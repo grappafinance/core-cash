@@ -6,7 +6,7 @@ import {OptionTokenUtils} from "../../libraries/OptionTokenUtils.sol";
 import "../../libraries/TokenEnums.sol";
 
 contract OptionTokenUtilsTest is Test {
-    function testTokenIdFuzz(
+    function testTokenIdHigherThan0(
         uint8 tokenType,
         uint32 productId,
         uint64 expiry,
@@ -14,6 +14,28 @@ contract OptionTokenUtilsTest is Test {
         uint64 shortStrike
     ) public {
         vm.assume(tokenType < 4);
+        vm.assume(productId > 0);
+
+        uint256 id = OptionTokenUtils.formatTokenId(
+            TokenType(tokenType),
+            productId,
+            expiry,
+            longStrike,
+            shortStrike
+        );
+
+        assertGt(id, 0);
+    }
+
+    function testFormatAndParseAreMirrored(
+        uint8 tokenType,
+        uint32 productId,
+        uint64 expiry,
+        uint64 longStrike,
+        uint64 shortStrike
+    ) public {
+        vm.assume(tokenType < 4);
+        vm.assume(productId > 0);
 
         uint256 id = OptionTokenUtils.formatTokenId(
             TokenType(tokenType),

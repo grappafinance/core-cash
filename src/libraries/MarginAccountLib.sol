@@ -2,7 +2,7 @@
 pragma solidity =0.8.13;
 
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
-import "./PositionConstants.sol";
+import "./MarginAccountConstants.sol";
 
 import {console} from "../test/utils/Console.sol";
 
