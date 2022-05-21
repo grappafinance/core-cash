@@ -1,0 +1,4 @@
+[default]
+optimizer = true
+optimizer_runs = 20000
+via_ir = true
