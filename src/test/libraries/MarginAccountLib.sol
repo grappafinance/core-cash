@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity =0.8.13;
 
-import {DSTest} from "ds-test/test.sol";
-
+import {Test} from "forge-std/Test.sol";
 import {MarginAccountLib} from "../../libraries/MarginAccountLib.sol";
 import "../../libraries/PositionConstants.sol";
 
-contract MarginAccountLibTest is DSTest {
+contract MarginAccountLibTest is Test {
     uint256 public constant base = UNIT;
     uint256 public today;
 

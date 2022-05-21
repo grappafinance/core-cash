@@ -96,7 +96,7 @@ library MarginAccountLib {
 
         // we calculate the max loss of spread, dominated in collateral
         uint256 maxLoss = (_account.longCallStrike - _account.shortCallStrike)
-            .fmul(_account.callAmount, UNIT);
+            .mulDivUp(_account.callAmount, UNIT);
 
         return min(maxLoss, minCollateralShortCall);
     }
@@ -122,7 +122,7 @@ library MarginAccountLib {
 
         // we calculate the max loss of the put spread
         uint256 maxLoss = (_account.shortPutStrike - _account.longPutStrike)
-            .fmul(_account.putAmount, UNIT);
+            .mulDivUp(_account.putAmount, UNIT);
 
         return min(minCollateralShortPut, maxLoss);
     }
@@ -136,14 +136,14 @@ library MarginAccountLib {
         uint256 _shockRatio
     ) internal view returns (uint256) {
         // if ratio is 20%, we calculate price of spot * 120%
-        uint256 shockPrice = _spot.fmul(BPS + _shockRatio, BPS);
+        uint256 shockPrice = _spot.mulDivUp(BPS + _shockRatio, BPS);
         uint256 timeValueDecay = getTimeDecay(_expiry);
         uint256 safeCashValue = getCallCashValue(shockPrice, _strike);
-        uint256 requireCollateral = min(_strike, shockPrice).fmul(
+        uint256 requireCollateral = min(_strike, shockPrice).mulDivUp(
             timeValueDecay,
             BPS
         ) + safeCashValue;
-        return requireCollateral.fmul(_shortAmount, UNIT);
+        return requireCollateral.mulDivUp(_shortAmount, UNIT);
     }
 
     ///@notice get the minimum collateral for a put option
@@ -158,17 +158,17 @@ library MarginAccountLib {
         uint256 _shockRatio
     ) internal view returns (uint256) {
         // if ratio is 20%, we calculate price of spot * 80%
-        uint256 shockPrice = _spot.fmul(BPS - _shockRatio, BPS);
+        uint256 shockPrice = _spot.mulDivUp(BPS - _shockRatio, BPS);
         uint256 timeValueDecay = getTimeDecay(_expiry);
 
         uint256 safeCashValue = getPutCashValue(shockPrice, _strike);
 
-        uint256 requireCollateral = min(_strike, shockPrice).fmul(
+        uint256 requireCollateral = min(_strike, shockPrice).mulDivUp(
             timeValueDecay,
             BPS
         ) + safeCashValue;
 
-        return requireCollateral.fmul(_shortAmount, UNIT);
+        return requireCollateral.mulDivUp(_shortAmount, UNIT);
     }
 
     /**
