@@ -64,15 +64,19 @@ contract MarginAccount is IMarginAccount, OptionToken {
         marginAccounts[_accountId] = account;
     }
 
-    function _addCollateral(Account memory _account, bytes memory _data, address accountId) internal {
+    function _addCollateral(
+        Account memory _account,
+        bytes memory _data,
+        address accountId
+    ) internal {
         // decode parameters
         (address collateral, address from, uint256 amount) = abi.decode(_data, (address, address, uint256));
-        
+
         // update the account structure in memory
         _account.addCollateral(collateral, amount);
 
         // collateral must come from caller or the primary account for this accountId
-        if (from != msg.sender && !_isPrimaryAccountFor(from, accountId)) revert InvalidFromAddress(); 
+        if (from != msg.sender && !_isPrimaryAccountFor(from, accountId)) revert InvalidFromAddress();
         IERC20(collateral).transferFrom(from, address(this), amount);
     }
 
