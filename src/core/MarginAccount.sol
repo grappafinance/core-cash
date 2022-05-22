@@ -3,8 +3,11 @@ pragma solidity =0.8.13;
 
 import {OptionToken} from "./OptionToken.sol";
 
-import {IMarginAccount} from "../interfaces/IMarginAccount.sol";
-import {IERC20} from "../interfaces/IERC20.sol";
+import {AssetRegistry} from "./AssetRegistry.sol";
+
+import {IMarginAccount} from "src/interfaces/IMarginAccount.sol";
+import {IERC20} from "src/interfaces/IERC20.sol";
+import {IOracle} from "src/interfaces/IOracle.sol";
 
 import {OptionTokenUtils} from "src/libraries/OptionTokenUtils.sol";
 import {MarginMathLib} from "src/libraries/MarginMathLib.sol";
@@ -16,7 +19,7 @@ import "src/constants/MarginAccountConstants.sol";
 
 import "forge-std/console2.sol";
 
-contract MarginAccount is IMarginAccount, OptionToken {
+contract MarginAccount is IMarginAccount, OptionToken, AssetRegistry {
     using MarginMathLib for MarginAccountDetail;
 
     using MarginAccountLib for Account;
@@ -35,13 +38,17 @@ contract MarginAccount is IMarginAccount, OptionToken {
     mapping(uint160 => mapping(address => bool)) public authorized;
 
     // mocked
-    uint256 public spotPrice = 3000 * UNIT;
+    IOracle public immutable oracle;
+
+    constructor(address _oracle) {
+        oracle = IOracle(_oracle);
+    }
 
     function getMinCollateral(address _accountId) external view returns (uint256 minCollateral) {
         Account memory account = marginAccounts[_accountId];
         MarginAccountDetail memory detail = _getAccountDetail(account);
 
-        minCollateral = detail.getMinCollateral(spotPrice, 1000);
+        minCollateral = detail.getMinCollateral(_getSpot(detail.productId), 1000);
     }
 
     ///@dev need to be reentry-guarded
@@ -139,9 +146,15 @@ contract MarginAccount is IMarginAccount, OptionToken {
     function _assertAccountHealth(Account memory account) internal view {
         MarginAccountDetail memory detail = _getAccountDetail(account);
 
-        uint256 minCollateral = detail.getMinCollateral(spotPrice, SHOCK_RATIO);
+        uint256 minCollateral = detail.getMinCollateral(_getSpot(detail.productId), SHOCK_RATIO);
 
         if (account.collateralAmount < minCollateral) revert AccountUnderwater();
+    }
+
+    function _getSpot(uint32 productId) internal view returns (uint256) {
+        (address underlying, address strike, ) = parseProductId(productId);
+
+        return oracle.getSpotPrice(underlying, strike);
     }
 
     /// @dev convert Account struct from storage to in-memory detail struct
@@ -155,7 +168,8 @@ contract MarginAccount is IMarginAccount, OptionToken {
             shortCallStrike: 0,
             expiry: 0,
             collateralAmount: account.collateralAmount,
-            isStrikeCollateral: false
+            isStrikeCollateral: false,
+            productId: 0
         });
 
         // if it contains a call
@@ -177,7 +191,7 @@ contract MarginAccount is IMarginAccount, OptionToken {
         uint256 commonId = account.shortPutId | account.shortCallId;
 
         (, uint32 productId, uint64 expiry, , ) = OptionTokenUtils.parseTokenId(commonId);
-        detail.isStrikeCollateral = OptionTokenUtils.productIsStrikeCollateral(productId);
+        detail.productId = productId;
         detail.expiry = expiry;
     }
 }

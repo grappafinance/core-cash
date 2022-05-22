@@ -22,6 +22,8 @@ contract MintVanillaOption is Fixture, ActionHelper {
         usdc.approve(address(grappa), type(uint256).max);
 
         expiry = block.timestamp + 14 days;
+
+        oracle.setSpotPrice(3000 * UNIT);
     }
 
     function testMintChangeStorage() public {

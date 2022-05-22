@@ -72,10 +72,4 @@ library OptionTokenUtils {
             tokenType := shr(224, tokenId)
         }
     }
-
-    function productIsStrikeCollateral(
-        uint32 /*_productId*/
-    ) internal pure returns (bool) {
-        return true;
-    }
 }

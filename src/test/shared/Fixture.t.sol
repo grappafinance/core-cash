@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "forge-std/Test.sol";
 
 import "src/test/mocks/MockERC20.sol";
+import "src/test/mocks/MockOracle.sol";
 
 import "src/core/Grappa.sol";
 import "src/types/MarginAccountTypes.sol";
@@ -14,6 +15,8 @@ abstract contract Fixture is Test {
 
     MockERC20 internal usdc;
 
+    MockOracle internal oracle;
+
     address internal alice;
     address internal charlie;
     address internal bob;
@@ -21,7 +24,9 @@ abstract contract Fixture is Test {
     constructor() {
         usdc = new MockERC20("USDC", "USDC", 6);
 
-        grappa = new Grappa();
+        oracle = new MockOracle();
+
+        grappa = new Grappa(address(oracle));
 
         charlie = address(0xcccc);
         vm.label(charlie, "Charlie");
