@@ -39,6 +39,7 @@ contract MarginAccount is IMarginAccount, OptionToken {
         for (uint256 i; i < actions.length; ) {
             if (actions[i].action == ActionType.AddCollateral) _addCollateral(account, actions[i].data);
             else if (actions[i].action == ActionType.RemoveCollateral) _removeCollateral(account, actions[i].data);
+            else if (actions[i].action == ActionType.MintShort) _mint(account, actions[i].data);
 
             // increase i without checking overflow
             unchecked {
@@ -64,9 +65,9 @@ contract MarginAccount is IMarginAccount, OptionToken {
         IERC20(collateral).transfer(recipient, amount);
     }
 
-    function mint(Account memory _account, bytes memory _data) external {
+    function _mint(Account memory _account, bytes memory _data) internal {
         (uint256 tokenId, address recipient, uint256 amount) = abi.decode(_data, (uint256, address, uint256));
-        _account.removeCollateral(amount);
+        _account.mintOption(tokenId, amount);
 
         // mint the real option token
         _mint(recipient, tokenId, amount, "");

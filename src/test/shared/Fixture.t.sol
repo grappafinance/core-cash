@@ -39,4 +39,14 @@ abstract contract Fixture is Test {
         usdc.mint(bob, 1000_000_000 * 1e6);
         usdc.mint(charlie, 1000_000_000 * 1e6);
     }
+
+    function onERC1155Received(
+        address,
+        address,
+        uint256,
+        uint256,
+        bytes calldata
+    ) external virtual returns (bytes4) {
+        return this.onERC1155Received.selector;
+    }
 }
