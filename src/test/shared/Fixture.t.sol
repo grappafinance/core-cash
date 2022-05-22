@@ -3,10 +3,11 @@ pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
 
-import "../../mocks/MockERC20.sol";
+import "src/test/mocks/MockERC20.sol";
 
 import "src/core/Grappa.sol";
-import "../../../types/MarginAccountTypes.sol";
+import "src/types/MarginAccountTypes.sol";
+import "src/constants/MarginAccountEnums.sol";
 
 abstract contract Fixture is Test {
     Grappa internal grappa;

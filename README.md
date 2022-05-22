@@ -1,4 +1,3 @@
-
 <div align="center">
   <h1 align="center"> Grappa 🥂</h1>
   <h4 align="center"> Don't waste your capital.</h4>
@@ -25,6 +24,15 @@ We believe there're lots of waste in capital when it comes to DeFi options. Grap
 forge build
 forge test
 ```
+
+### Developing locally
+
+You might find the compile time of `forge build` and `forge test` being long because of the `via-ir` optimization. For the purpose of developing and writing unit tests, try using the `lite` profile:
+
+```shell
+FOUNDRY_PROFILE=lite forge test
+```
+
 ## Linting
 
 Pre-configured `solhint` and `prettier-plugin-solidity`. Can be run by
