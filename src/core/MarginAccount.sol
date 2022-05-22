@@ -7,14 +7,14 @@ import {IMarginAccount} from "../interfaces/IMarginAccount.sol";
 import {IERC20} from "../interfaces/IERC20.sol";
 
 import {OptionTokenUtils} from "../libraries/OptionTokenUtils.sol";
-import {MarginAccountLib} from "../libraries/MarginAccountLib.sol";
+import {MarginMathLib} from "../libraries/MarginMathLib.sol";
 
 import "src/types/MarginAccountTypes.sol";
-import "src/constants/TokenEnums.sol";
+import {TokenType} from "src/constants/TokenEnums.sol";
 import "src/constants/MarginAccountConstants.sol";
 
 contract MarginAccount is IMarginAccount, OptionToken {
-    using MarginAccountLib for MarginAccountDetail;
+    using MarginMathLib for MarginAccountDetail;
 
     /*///////////////////////////////////////////////////////////////
                                   Variables
@@ -26,6 +26,13 @@ contract MarginAccount is IMarginAccount, OptionToken {
     uint256 public spotPrice = 3000 * UNIT;
 
     constructor() {}
+
+    function execute(address _account, ActionArgs[] calldata actions) external {
+        _assertCallerHasAccess(_account);
+        Account memory account = marginAccounts[_account];
+
+        // update the account memory and do external calls on the flight
+    }
 
     function addCollateral(
         address _account,
@@ -95,7 +102,7 @@ contract MarginAccount is IMarginAccount, OptionToken {
     function _assertAccountHealth(Account memory account) internal view {
         MarginAccountDetail memory detail = _getAccountDetail(account);
 
-        uint256 minCollateral = detail.getMinCollateral(spotPrice, SHOCK_RATIO);
+        uint256 minCollateral = detail.getMinCollateral(spotPrice, 1000);
 
         if (account.collateralAmount < minCollateral)
             revert AccountUnderwater();

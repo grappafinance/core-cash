@@ -6,7 +6,7 @@ import "../constants/MarginAccountConstants.sol";
 import "../types/MarginAccountTypes.sol";
 import {console} from "../test/utils/Console.sol";
 
-library MarginAccountLib {
+library MarginMathLib {
     using FixedPointMathLib for uint256;
 
     function getMinCollateral(

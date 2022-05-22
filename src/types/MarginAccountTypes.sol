@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity =0.8.13;
 
+import "src/constants/MarginAccountEnums.sol";
+
 /// @dev each margin position. This is used to store in storage
 ///
 struct Account {
@@ -26,4 +28,10 @@ struct MarginAccountDetail {
     uint256 expiry;
     uint256 collateralAmount;
     bool isStrikeCollateral;
+}
+
+///
+struct ActionArgs {
+    ActionType action;
+    bytes data;
 }
