@@ -111,11 +111,12 @@ contract MarginAccount is IMarginAccount, OptionToken {
     /// @dev add a ERC1155 long token into the margin account to reduce required collateral
     // function merge() external {}
 
-    /// @dev return if the calling address is eligible to access accountId
+    /// @dev return if {_account} address is the primary account for _accountId
     function _isPrimaryAccountFor(address _account, address _accountId) internal pure returns (bool) {
         return (uint160(_account) | 0xFF) == (uint160(_accountId) | 0xFF);
     }
 
+    /// @dev return if the calling address is eligible to access accountId
     function _assertCallerHasAccess(address _accountId) internal view {
         if (_isPrimaryAccountFor(msg.sender, _accountId)) return;
         // the sender is not the direct owner. check if he's authorized

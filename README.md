@@ -33,6 +33,12 @@ You might find the compile time of `forge build` and `forge test` being long bec
 FOUNDRY_PROFILE=lite forge test
 ```
 
+For auto linting and running gas snapshot, you will also need to setup npm environment.
+
+```shell
+npm i 
+```
+
 ## Linting
 
 Pre-configured `solhint` and `prettier-plugin-solidity`. Can be run by
