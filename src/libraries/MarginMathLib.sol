@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity =0.8.13;
 
+import "forge-std/console2.sol";
+
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import "../constants/MarginAccountConstants.sol";
 import "../types/MarginAccountTypes.sol";
-import {console} from "../test/utils/Console.sol";
 
 library MarginMathLib {
     using FixedPointMathLib for uint256;
@@ -59,7 +60,7 @@ library MarginMathLib {
         uint256 _shockRatio
     ) internal view returns (uint256) {
         // if max loss of short can always be covered by long
-        if (_account.longCallStrike < _account.shortCallStrike) return 0;
+        if (_account.longCallStrike != 0 && _account.longCallStrike < _account.shortCallStrike) return 0;
 
         // it's a simple short call position
         uint256 minCollateralShortCall = getMinCollateralForShortCall(

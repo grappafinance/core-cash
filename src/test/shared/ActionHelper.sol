@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "forge-std/console2.sol";
+
 import "src/types/MarginAccountTypes.sol";
 import "src/constants/MarginAccountEnums.sol";
 import "src/constants/TokenEnums.sol";

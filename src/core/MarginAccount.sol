@@ -14,6 +14,8 @@ import "src/types/MarginAccountTypes.sol";
 import {TokenType} from "src/constants/TokenEnums.sol";
 import "src/constants/MarginAccountConstants.sol";
 
+import "forge-std/console2.sol";
+
 contract MarginAccount is IMarginAccount, OptionToken {
     using MarginMathLib for MarginAccountDetail;
 
@@ -28,7 +30,12 @@ contract MarginAccount is IMarginAccount, OptionToken {
     // mocked
     uint256 public spotPrice = 3000 * UNIT;
 
-    constructor() {}
+    function getMinCollateral(address _account) external view returns (uint256 minCollateral) {
+        Account memory account = marginAccounts[_account];
+        MarginAccountDetail memory detail = _getAccountDetail(account);
+
+        minCollateral = detail.getMinCollateral(spotPrice, 1000);
+    }
 
     ///@dev need to be reentry-guarded
     function execute(address _account, ActionArgs[] calldata actions) external {

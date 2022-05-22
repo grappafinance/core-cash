@@ -10,6 +10,8 @@ import "src/constants/MarginAccountConstants.sol";
 import "src/constants/MarginAccountEnums.sol";
 import "src/constants/TokenEnums.sol";
 
+import "forge-std/console2.sol";
+
 contract MintVanillaOption is Fixture, ActionHelper {
     // mocked
     uint32 public productId = 1;
@@ -19,7 +21,7 @@ contract MintVanillaOption is Fixture, ActionHelper {
         usdc.mint(address(this), 1000_000 * 1e6);
         usdc.approve(address(grappa), type(uint256).max);
 
-        expiry = block.timestamp + 21 days;
+        expiry = block.timestamp + 14 days;
     }
 
     function testMintChangeStorage() public {
@@ -28,7 +30,7 @@ contract MintVanillaOption is Fixture, ActionHelper {
         uint256 strikePrice = 3000 * UNIT;
         uint256 amount = 1 * UNIT;
 
-        uint256 tokenId = getTokenId(TokenType.CALL, productId, 0, strikePrice, expiry);
+        uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, 0, strikePrice);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(address(usdc), depositAmount);
