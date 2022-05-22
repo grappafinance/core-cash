@@ -32,6 +32,6 @@ error WrongCollateral();
 
 error InvalidFromAddress();
 
-error InvalidShortTokenToMint();
+error InvalidShortTokenId();
 
 error AccountUnderwater();

@@ -53,7 +53,8 @@ contract MarginAccount is IMarginAccount, OptionToken {
         for (uint256 i; i < actions.length; ) {
             if (actions[i].action == ActionType.AddCollateral) _addCollateral(account, actions[i].data, _accountId);
             else if (actions[i].action == ActionType.RemoveCollateral) _removeCollateral(account, actions[i].data);
-            else if (actions[i].action == ActionType.MintShort) _mint(account, actions[i].data);
+            else if (actions[i].action == ActionType.MintShort) _mintOption(account, actions[i].data);
+            else if (actions[i].action == ActionType.BurnShort) _burnOption(account, actions[i].data, _accountId);
 
             // increase i without checking overflow
             unchecked {
@@ -92,7 +93,8 @@ contract MarginAccount is IMarginAccount, OptionToken {
         IERC20(collateral).transfer(recipient, amount);
     }
 
-    function _mint(Account memory _account, bytes memory _data) internal {
+    function _mintOption(Account memory _account, bytes memory _data) internal {
+        // decode parameters
         (uint256 tokenId, address recipient, uint256 amount) = abi.decode(_data, (uint256, address, uint256));
         _account.mintOption(tokenId, amount);
 
@@ -100,11 +102,21 @@ contract MarginAccount is IMarginAccount, OptionToken {
         _mint(recipient, tokenId, amount, "");
     }
 
-    function burn(
-        address _account,
-        uint256 _tokenId,
-        uint256 _amount
-    ) external {}
+    function _burnOption(
+        Account memory _account,
+        bytes memory _data,
+        address accountId
+    ) internal {
+        // decode parameters
+        (uint256 tokenId, address from, uint256 amount) = abi.decode(_data, (uint256, address, uint256));
+
+        // update the account structure in memory
+        _account.burnOption(tokenId, amount);
+
+        // tokening being burn must come from caller or the primary account for this accountId
+        if (from != msg.sender && !_isPrimaryAccountFor(from, accountId)) revert InvalidFromAddress();
+        _burn(from, tokenId, amount);
+    }
 
     // function settleAccount(address _account) external {}
 
