@@ -11,18 +11,32 @@ import "src/libraries/OptionTokenUtils.sol";
  * @dev   This library is in charge of updating the account memory and do validations
  */
 library MarginAccountLib {
-    function addCollateral(Account memory account, bytes memory _data) internal {
-        (address collateral, uint256 amount) = abi.decode(_data, (address, uint256));
-        if (account.collateral != address(0) && account.collateral != _collateral) revert WrongCollateral();
+    function addCollateral(Account memory account, address collateral, uint256 amount) internal pure {        
+        if (account.collateral != address(0) && account.collateral != collateral) revert WrongCollateral();
 
-        account.collateral = _collateral;
-        account.collateralAmount += uint80(_amount);
-        marginAccounts[_account] = account;
+        account.collateral = collateral;
+        account.collateralAmount += uint80(amount);
     }
 
-    function removeCollateral(Account memory account, bytes memory _data) internal {}
+    function removeCollateral(Account memory account, uint256 amount) internal pure {
+        account.collateralAmount += uint80(amount);
+        if (account.collateralAmount == 0) account.collateral = address(0);
+    }
 
-    function mintOption(Account memory account, bytes memory _data) internal {}
+    function mintOption(Account memory account, uint256 tokenId, uint256 amount) internal pure {
+      TokenType optionType = OptionTokenUtils.parseTokenType(tokenId);
+      if (optionType == TokenType.CALL || optionType == TokenType.CALL_SPREAD) {
+        // minting a short
+          if (account.shortCallId == 0) account.shortCallId = tokenId;
+          else if (account.shortCallId != tokenId) revert InvalidShortTokenToMint();
+          account.shortCallAmount += uint80(amount);
+      } else {
+          // minting a put or put spread
+          if (account.shortPutId == 0) account.shortPutId = tokenId;
+          else if (account.shortPutId != tokenId) revert InvalidShortTokenToMint();
+          account.shortPutAmount += uint80(amount);
+      }
+    }
 
     function burnOption(Account memory account, bytes memory _data) internal {}
 

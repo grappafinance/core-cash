@@ -6,8 +6,9 @@ import {OptionToken} from "./OptionToken.sol";
 import {IMarginAccount} from "../interfaces/IMarginAccount.sol";
 import {IERC20} from "../interfaces/IERC20.sol";
 
-import {OptionTokenUtils} from "../libraries/OptionTokenUtils.sol";
-import {MarginMathLib} from "../libraries/MarginMathLib.sol";
+import {OptionTokenUtils} from "src/libraries/OptionTokenUtils.sol";
+import {MarginMathLib} from "src/libraries/MarginMathLib.sol";
+import {MarginAccountLib} from "src/libraries/MarginAccountLib.sol";
 
 import "src/types/MarginAccountTypes.sol";
 import {TokenType} from "src/constants/TokenEnums.sol";
@@ -15,6 +16,8 @@ import "src/constants/MarginAccountConstants.sol";
 
 contract MarginAccount is IMarginAccount, OptionToken {
     using MarginMathLib for MarginAccountDetail;
+
+    using MarginAccountLib for Account;
 
     /*///////////////////////////////////////////////////////////////
                                   Variables
@@ -27,48 +30,55 @@ contract MarginAccount is IMarginAccount, OptionToken {
 
     constructor() {}
 
+    ///@dev need to be reentry-guarded
     function execute(address _account, ActionArgs[] calldata actions) external {
         _assertCallerHasAccess(_account);
         Account memory account = marginAccounts[_account];
 
         // update the account memory and do external calls on the flight
+        for (uint256 i; i < actions.length; ) {
+            if (actions[i].action == ActionType.AddCollateral ) _addCollateral(account, actions[i].data);
+            else if (actions[i].action == ActionType.RemoveCollateral ) _removeCollateral(account, actions[i].data);
+
+            // increase i without checking overflow
+            unchecked {
+                i++;
+            }
+        }
+        _assertAccountHealth(account);
+        marginAccounts[_account] = account;
     }
 
-    function addCollateral(
-        address _account,
-        address _collateral,
-        uint256 _amount
-    ) external {
-        Account memory account = marginAccounts[_account];
+    function _addCollateral(
+        Account memory _account,
+        bytes memory _data
+    ) internal {
+        (address collateral, uint256 amount ) = abi.decode(_data, (address, uint256));
+        // update the account structure
+        _account.addCollateral(collateral, amount);
+        IERC20(collateral).transferFrom(msg.sender, address(this), amount);
+    }
 
-        IERC20(_collateral).transferFrom(msg.sender, address(this), _amount);
+    function _removeCollateral(
+        Account memory _account,
+        bytes memory _data
+    ) internal {
+        (uint256 amount, address recipient ) = abi.decode(_data, (uint256, address));
+        // update the account memory structure
+        address collateral = _account.collateral;
+        _account.removeCollateral(amount);
+        IERC20(collateral).transfer(recipient, amount);
     }
 
     function mint(
-        address _account,
-        uint256 _tokenId,
-        uint256 _amount
+        Account memory _account,
+        bytes memory _data
     ) external {
-        _assertCallerHasAccess(_account);
-        Account memory account = marginAccounts[_account];
-        (TokenType optionType, , , , ) = OptionTokenUtils.parseTokenId(_tokenId);
-        if (optionType == TokenType.CALL || optionType == TokenType.CALL_SPREAD) {
-            if (account.shortCallId == 0) account.shortCallId = _tokenId;
-            else if (account.shortCallId != _tokenId) {
-                revert InvalidShortTokenToMint();
-            }
-            account.shortCallAmount += uint80(_amount);
-        } else {
-            if (account.shortPutId == 0) account.shortPutId = _tokenId;
-            else if (account.shortPutId != _tokenId) {
-                revert InvalidShortTokenToMint();
-            }
-            account.shortPutAmount += uint80(_amount);
-        }
-
-        _mint(msg.sender, _tokenId, _amount, "");
-
-        _assertAccountHealth(account);
+        (uint256 tokenId, address recipient, uint256 amount ) = abi.decode(_data, (uint256, address, uint256));
+        _account.removeCollateral(amount);
+        
+        // mint the real option token
+        _mint(recipient, tokenId, amount, "");
     }
 
     // function burn(
