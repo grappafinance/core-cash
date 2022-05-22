@@ -37,8 +37,8 @@ contract MarginAccount is IMarginAccount, OptionToken {
 
         // update the account memory and do external calls on the flight
         for (uint256 i; i < actions.length; ) {
-            if (actions[i].action == ActionType.AddCollateral ) _addCollateral(account, actions[i].data);
-            else if (actions[i].action == ActionType.RemoveCollateral ) _removeCollateral(account, actions[i].data);
+            if (actions[i].action == ActionType.AddCollateral) _addCollateral(account, actions[i].data);
+            else if (actions[i].action == ActionType.RemoveCollateral) _removeCollateral(account, actions[i].data);
 
             // increase i without checking overflow
             unchecked {
@@ -49,34 +49,25 @@ contract MarginAccount is IMarginAccount, OptionToken {
         marginAccounts[_account] = account;
     }
 
-    function _addCollateral(
-        Account memory _account,
-        bytes memory _data
-    ) internal {
-        (address collateral, uint256 amount ) = abi.decode(_data, (address, uint256));
+    function _addCollateral(Account memory _account, bytes memory _data) internal {
+        (address collateral, uint256 amount) = abi.decode(_data, (address, uint256));
         // update the account structure
         _account.addCollateral(collateral, amount);
         IERC20(collateral).transferFrom(msg.sender, address(this), amount);
     }
 
-    function _removeCollateral(
-        Account memory _account,
-        bytes memory _data
-    ) internal {
-        (uint256 amount, address recipient ) = abi.decode(_data, (uint256, address));
+    function _removeCollateral(Account memory _account, bytes memory _data) internal {
+        (uint256 amount, address recipient) = abi.decode(_data, (uint256, address));
         // update the account memory structure
         address collateral = _account.collateral;
         _account.removeCollateral(amount);
         IERC20(collateral).transfer(recipient, amount);
     }
 
-    function mint(
-        Account memory _account,
-        bytes memory _data
-    ) external {
-        (uint256 tokenId, address recipient, uint256 amount ) = abi.decode(_data, (uint256, address, uint256));
+    function mint(Account memory _account, bytes memory _data) external {
+        (uint256 tokenId, address recipient, uint256 amount) = abi.decode(_data, (uint256, address, uint256));
         _account.removeCollateral(amount);
-        
+
         // mint the real option token
         _mint(recipient, tokenId, amount, "");
     }

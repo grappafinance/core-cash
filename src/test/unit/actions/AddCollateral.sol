@@ -16,7 +16,6 @@ contract TestAddCollateral is Fixture, ActionHelper {
     }
 
     function testAddCollateral() public {
-
         uint256 depositAmount = 1000 * 1e6;
 
         ActionArgs[] memory actions = new ActionArgs[](1);
