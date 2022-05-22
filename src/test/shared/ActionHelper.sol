@@ -26,12 +26,12 @@ contract ActionHelper {
         );
     }
 
-    function createAddCollateralAction(address collateral, uint256 amount)
+    function createAddCollateralAction(address collateral, address from, uint256 amount)
         internal
         pure
         returns (ActionArgs memory action)
     {
-        action = ActionArgs({action: ActionType.AddCollateral, data: abi.encode(collateral, amount)});
+        action = ActionArgs({action: ActionType.AddCollateral, data: abi.encode(collateral, from, amount)});
     }
 
     function createRemoveCollateralAction(uint256 amount, address recipient)

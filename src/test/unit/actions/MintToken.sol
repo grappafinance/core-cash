@@ -33,7 +33,7 @@ contract MintVanillaOption is Fixture, ActionHelper {
         uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, 0, strikePrice);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createAddCollateralAction(address(usdc), depositAmount);
+        actions[0] = createAddCollateralAction(address(usdc), address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
         grappa.execute(address(this), actions);
         (uint256 shortCallId, uint256 shortPutId, uint80 shortCallAmount, uint80 shortPutAmount, , ) = grappa

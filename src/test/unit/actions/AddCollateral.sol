@@ -19,7 +19,7 @@ contract TestAddCollateral is Fixture, ActionHelper {
         uint256 depositAmount = 1000 * 1e6;
 
         ActionArgs[] memory actions = new ActionArgs[](1);
-        actions[0] = createAddCollateralAction(address(usdc), depositAmount);
+        actions[0] = createAddCollateralAction(address(usdc), address(this), depositAmount);
         grappa.execute(address(this), actions);
         (, , , , uint80 _collateralAmount, address _collateral) = grappa.marginAccounts(address(this));
 
@@ -33,7 +33,7 @@ contract TestAddCollateral is Fixture, ActionHelper {
         uint256 depositAmount = 1000 * 1e6;
 
         ActionArgs[] memory actions = new ActionArgs[](1);
-        actions[0] = createAddCollateralAction(address(usdc), depositAmount);
+        actions[0] = createAddCollateralAction(address(usdc), address(this), depositAmount);
         grappa.execute(address(this), actions);
 
         uint256 grappaBalanceAfter = usdc.balanceOf(address(grappa));

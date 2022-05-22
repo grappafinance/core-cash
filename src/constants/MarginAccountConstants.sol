@@ -23,12 +23,14 @@ uint256 constant DISCOUNT_RATIO_LOWER_BOUND = 800; // 8%
 /// @dev difference between DISCOUNT_RATIO_UPPER_BOUND and DISCOUNT_RATIO_LOWER_BOUND
 uint256 constant DIFF_DISCOUNT_RATIO = DISCOUNT_RATIO_UPPER_BOUND - DISCOUNT_RATIO_LOWER_BOUND;
 
-uint256 constant SHOCK_RATIO = 1000; // 20%
+uint256 constant SHOCK_RATIO = 1000; // 10%
 
 // Errors
 error NoAccess();
 
 error WrongCollateral();
+
+error InvalidFromAddress();
 
 error InvalidShortTokenToMint();
 

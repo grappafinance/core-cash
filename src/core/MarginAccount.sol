@@ -25,26 +25,33 @@ contract MarginAccount is IMarginAccount, OptionToken {
                                   Variables
     //////////////////////////////////////////////////////////////*/
 
+    ///@dev accountId => Account.
+    ///     accountId can be an address similar to the primary account, but has the last 8 bits different.
+    ///     this give every account access to 256 sub-accounts
     mapping(address => Account) public marginAccounts;
+
+    ///@dev primaryAccountId => operator => authorized
+    ///     every account can authorize any amount of addresses to modify all accounts he controls.
+    mapping(uint160 => mapping(address => bool)) public authorized;
 
     // mocked
     uint256 public spotPrice = 3000 * UNIT;
 
-    function getMinCollateral(address _account) external view returns (uint256 minCollateral) {
-        Account memory account = marginAccounts[_account];
+    function getMinCollateral(address _accountId) external view returns (uint256 minCollateral) {
+        Account memory account = marginAccounts[_accountId];
         MarginAccountDetail memory detail = _getAccountDetail(account);
 
         minCollateral = detail.getMinCollateral(spotPrice, 1000);
     }
 
     ///@dev need to be reentry-guarded
-    function execute(address _account, ActionArgs[] calldata actions) external {
-        _assertCallerHasAccess(_account);
-        Account memory account = marginAccounts[_account];
+    function execute(address _accountId, ActionArgs[] calldata actions) external {
+        _assertCallerHasAccess(_accountId);
+        Account memory account = marginAccounts[_accountId];
 
         // update the account memory and do external calls on the flight
         for (uint256 i; i < actions.length; ) {
-            if (actions[i].action == ActionType.AddCollateral) _addCollateral(account, actions[i].data);
+            if (actions[i].action == ActionType.AddCollateral) _addCollateral(account, actions[i].data, _accountId);
             else if (actions[i].action == ActionType.RemoveCollateral) _removeCollateral(account, actions[i].data);
             else if (actions[i].action == ActionType.MintShort) _mint(account, actions[i].data);
 
@@ -54,21 +61,30 @@ contract MarginAccount is IMarginAccount, OptionToken {
             }
         }
         _assertAccountHealth(account);
-        marginAccounts[_account] = account;
+        marginAccounts[_accountId] = account;
     }
 
-    function _addCollateral(Account memory _account, bytes memory _data) internal {
-        (address collateral, uint256 amount) = abi.decode(_data, (address, uint256));
-        // update the account structure
+    function _addCollateral(Account memory _account, bytes memory _data, address accountId) internal {
+        // decode parameters
+        (address collateral, address from, uint256 amount) = abi.decode(_data, (address, address, uint256));
+        
+        // update the account structure in memory
         _account.addCollateral(collateral, amount);
-        IERC20(collateral).transferFrom(msg.sender, address(this), amount);
+
+        // collateral must come from caller or the primary account for this accountId
+        if (from != msg.sender && !_isPrimaryAccountFor(from, accountId)) revert InvalidFromAddress(); 
+        IERC20(collateral).transferFrom(from, address(this), amount);
     }
 
     function _removeCollateral(Account memory _account, bytes memory _data) internal {
+        // decode parameters
         (uint256 amount, address recipient) = abi.decode(_data, (uint256, address));
-        // update the account memory structure
         address collateral = _account.collateral;
+
+        // update the account structure in memory
         _account.removeCollateral(amount);
+
+        // external calls
         IERC20(collateral).transfer(recipient, amount);
     }
 
@@ -80,25 +96,32 @@ contract MarginAccount is IMarginAccount, OptionToken {
         _mint(recipient, tokenId, amount, "");
     }
 
-    // function burn(
-    //     address _account,
-    //     uint256 _tokenId,
-    //     uint256 _amount
-    // ) external {}
+    function burn(
+        address _account,
+        uint256 _tokenId,
+        uint256 _amount
+    ) external {}
 
     // function settleAccount(address _account) external {}
 
     /// @dev add a ERC1155 long token into the margin account to reduce required collateral
     // function merge() external {}
 
-    function _assertCallerHasAccess(address _account) internal view {
-        if ((uint160(_account) | 0xFF) != (uint160(msg.sender) | 0xFF)) revert NoAccess();
+    function _isPrimaryAccountFor(address _account, address _accountId) internal pure returns (bool) {
+        return (uint160(_account) | 0xFF) == (uint160(_accountId) | 0xFF);
+    }
+
+    function _assertCallerHasAccess(address _accountId) internal view {
+        if (_isPrimaryAccountFor(msg.sender, _accountId)) return;
+        // the sender is not the direct owner. check if he's authorized
+        uint160 primaryAccountId = (uint160(_accountId) | 0xFF);
+        if (!authorized[primaryAccountId][msg.sender]) revert NoAccess();
     }
 
     function _assertAccountHealth(Account memory account) internal view {
         MarginAccountDetail memory detail = _getAccountDetail(account);
 
-        uint256 minCollateral = detail.getMinCollateral(spotPrice, 1000);
+        uint256 minCollateral = detail.getMinCollateral(spotPrice, SHOCK_RATIO);
 
         if (account.collateralAmount < minCollateral) revert AccountUnderwater();
     }
