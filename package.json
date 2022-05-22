@@ -9,6 +9,7 @@
     "url": "git+https://github.com/FrankieIsLost/forge-template.git"
   },
   "scripts": {
+    "postinstall": "husky install",
     "prettier": "prettier --write 'src/**/*.sol'",
     "prettier:list": "prettier --list-different 'src/**/*.sol'",
     "prettier:check": "prettier --check 'src/**/*.sol'",
@@ -18,9 +19,13 @@
     "lint:check": "npm run prettier:check && npm run solhint:check"
   },
   "devDependencies": {
+    "husky": "^8.0.1",
+    "lint-staged": "^12.4.1",
     "prettier": "^2.5.1",
     "prettier-plugin-solidity": "^1.0.0-beta.19",
-    "solhint": "^3.3.6",
-    "husky": "^8.0.1"
+    "solhint": "^3.3.6"
+  },
+  "lint-staged": {
+    "src/*/**.sol": ["npm run prettier"]
   }
 }
