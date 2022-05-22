@@ -36,7 +36,7 @@ contract MintVanillaOption is Fixture, ActionHelper {
         actions[0] = createAddCollateralAction(address(usdc), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
         grappa.execute(address(this), actions);
-        (uint256 shortCallId, uint256 shortPutId, uint80 shortCallAmount, uint80 shortPutAmount,,) = grappa
+        (uint256 shortCallId, uint256 shortPutId, uint80 shortCallAmount, uint80 shortPutAmount, , ) = grappa
             .marginAccounts(address(this));
 
         assertEq(shortCallId, tokenId);
