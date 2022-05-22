@@ -22,24 +22,12 @@ contract MarginMathLibTest is Test {
         uint256 shock = 1000; // 10%
         uint256 expiry = today + 21 days;
 
-        uint256 minCollat = MarginMathLib.getMinCollateralForShortCall(
-            amount,
-            strike,
-            expiry,
-            spot,
-            shock
-        );
+        uint256 minCollat = MarginMathLib.getMinCollateralForShortCall(amount, strike, expiry, spot, shock);
         assertEq(minCollat, 796950000); // 786 USD
 
         // spot decrease, min collateral also decrease
         spot = 2500 * base;
-        uint256 minCollat2 = MarginMathLib.getMinCollateralForShortCall(
-            amount,
-            strike,
-            expiry,
-            spot,
-            shock
-        );
+        uint256 minCollat2 = MarginMathLib.getMinCollateralForShortCall(amount, strike, expiry, spot, shock);
         assertEq(minCollat2, 664125000); // 664 USD
     }
 
@@ -50,24 +38,12 @@ contract MarginMathLibTest is Test {
         uint256 shock = 1000; // 10%
         uint256 expiry = today + 21 days;
 
-        uint256 minCollat = MarginMathLib.getMinCollateralForShortCall(
-            amount,
-            strike,
-            expiry,
-            spot,
-            shock
-        );
+        uint256 minCollat = MarginMathLib.getMinCollateralForShortCall(amount, strike, expiry, spot, shock);
         assertEq(minCollat, 1574500000); // 1574 USD
 
         // spot increase, min collateral also increase
         spot = 4000 * base;
-        uint256 minCollat2 = MarginMathLib.getMinCollateralForShortCall(
-            amount,
-            strike,
-            expiry,
-            spot,
-            shock
-        );
+        uint256 minCollat2 = MarginMathLib.getMinCollateralForShortCall(amount, strike, expiry, spot, shock);
         assertEq(minCollat2, 2124500000); // 664 USD
     }
 
@@ -78,24 +54,12 @@ contract MarginMathLibTest is Test {
         uint256 shock = 1000; // 10%
         uint256 expiry = today + 21 days;
 
-        uint256 minCollat = MarginMathLib.getMinCollateralForShortPut(
-            amount,
-            strike,
-            expiry,
-            spot,
-            shock
-        );
+        uint256 minCollat = MarginMathLib.getMinCollateralForShortPut(amount, strike, expiry, spot, shock);
         assertEq(minCollat, 724500000); // 724.5 USD
 
         // increasing spot price, the min collateral stay the same
         spot = 4000 * base;
-        uint256 minCollat2 = MarginMathLib.getMinCollateralForShortPut(
-            amount,
-            strike,
-            expiry,
-            spot,
-            shock
-        );
+        uint256 minCollat2 = MarginMathLib.getMinCollateralForShortPut(amount, strike, expiry, spot, shock);
         assertEq(minCollat2, 724500000); // 724.5 USD
     }
 
@@ -106,35 +70,17 @@ contract MarginMathLibTest is Test {
         uint256 shock = 1000; // 10%
         uint256 expiry = today + 21 days;
 
-        uint256 minCollat = MarginMathLib.getMinCollateralForShortPut(
-            amount,
-            strike,
-            expiry,
-            spot,
-            shock
-        );
+        uint256 minCollat = MarginMathLib.getMinCollateralForShortPut(amount, strike, expiry, spot, shock);
         assertEq(minCollat, 1452050000); // 1452 USD
 
         // decrease spot price, the min collateral increase
         spot = 2000 * base;
-        uint256 minCollat2 = MarginMathLib.getMinCollateralForShortPut(
-            amount,
-            strike,
-            expiry,
-            spot,
-            shock
-        );
+        uint256 minCollat2 = MarginMathLib.getMinCollateralForShortPut(amount, strike, expiry, spot, shock);
         assertEq(minCollat2, 2134700000); // 2134 USD
 
         // capped at strike price
         spot = 0;
-        uint256 minCollat3 = MarginMathLib.getMinCollateralForShortPut(
-            amount,
-            strike,
-            expiry,
-            spot,
-            shock
-        );
+        uint256 minCollat3 = MarginMathLib.getMinCollateralForShortPut(amount, strike, expiry, spot, shock);
         assertEq(minCollat3, 3500000000); // 3500 USD
     }
 

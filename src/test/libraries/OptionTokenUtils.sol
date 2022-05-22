@@ -17,13 +17,7 @@ contract OptionTokenUtilsTest is Test {
         vm.assume(tokenType < 4);
         vm.assume(productId > 0);
 
-        uint256 id = OptionTokenUtils.formatTokenId(
-            TokenType(tokenType),
-            productId,
-            expiry,
-            longStrike,
-            shortStrike
-        );
+        uint256 id = OptionTokenUtils.formatTokenId(TokenType(tokenType), productId, expiry, longStrike, shortStrike);
 
         assertGt(id, 0);
     }
@@ -38,13 +32,7 @@ contract OptionTokenUtilsTest is Test {
         vm.assume(tokenType < 4);
         vm.assume(productId > 0);
 
-        uint256 id = OptionTokenUtils.formatTokenId(
-            TokenType(tokenType),
-            productId,
-            expiry,
-            longStrike,
-            shortStrike
-        );
+        uint256 id = OptionTokenUtils.formatTokenId(TokenType(tokenType), productId, expiry, longStrike, shortStrike);
         (
             TokenType _tokenType,
             uint32 _productId,

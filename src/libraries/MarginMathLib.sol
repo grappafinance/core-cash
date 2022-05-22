@@ -37,16 +37,8 @@ library MarginMathLib {
         uint256 _shockRatio
     ) internal view returns (uint256) {
         // there're both short call and put in the position
-        uint256 minCollateralCall = getMinCollateralForCallSpread(
-            _account,
-            _spot,
-            _shockRatio
-        );
-        uint256 minCollateralPut = getMinCollateralForPutSpread(
-            _account,
-            _spot,
-            _shockRatio
-        );
+        uint256 minCollateralCall = getMinCollateralForCallSpread(_account, _spot, _shockRatio);
+        uint256 minCollateralPut = getMinCollateralForPutSpread(_account, _spot, _shockRatio);
 
         if (_account.shortPutStrike < _account.shortCallStrike) {
             // if strikes don't cross (put strike < call strike),
@@ -80,8 +72,7 @@ library MarginMathLib {
         if (_account.longCallStrike == 0) return minCollateralShortCall;
 
         // we calculate the max loss of spread, dominated in collateral
-        uint256 maxLoss = (_account.longCallStrike - _account.shortCallStrike)
-            .mulDivUp(_account.callAmount, UNIT);
+        uint256 maxLoss = (_account.longCallStrike - _account.shortCallStrike).mulDivUp(_account.callAmount, UNIT);
 
         return min(maxLoss, minCollateralShortCall);
     }
@@ -106,8 +97,7 @@ library MarginMathLib {
         if (_account.longPutStrike == 0) return minCollateralShortPut;
 
         // we calculate the max loss of the put spread
-        uint256 maxLoss = (_account.shortPutStrike - _account.longPutStrike)
-            .mulDivUp(_account.putAmount, UNIT);
+        uint256 maxLoss = (_account.shortPutStrike - _account.longPutStrike).mulDivUp(_account.putAmount, UNIT);
 
         return min(minCollateralShortPut, maxLoss);
     }
@@ -124,10 +114,7 @@ library MarginMathLib {
         uint256 shockPrice = _spot.mulDivUp(BPS + _shockRatio, BPS);
         uint256 timeValueDecay = getTimeDecay(_expiry);
         uint256 safeCashValue = getCallCashValue(shockPrice, _strike);
-        uint256 requireCollateral = min(_strike, shockPrice).mulDivUp(
-            timeValueDecay,
-            BPS
-        ) + safeCashValue;
+        uint256 requireCollateral = min(_strike, shockPrice).mulDivUp(timeValueDecay, BPS) + safeCashValue;
         return requireCollateral.mulDivUp(_shortAmount, UNIT);
     }
 
@@ -148,10 +135,7 @@ library MarginMathLib {
 
         uint256 safeCashValue = getPutCashValue(shockPrice, _strike);
 
-        uint256 requireCollateral = min(_strike, shockPrice).mulDivUp(
-            timeValueDecay,
-            BPS
-        ) + safeCashValue;
+        uint256 requireCollateral = min(_strike, shockPrice).mulDivUp(timeValueDecay, BPS) + safeCashValue;
 
         return requireCollateral.mulDivUp(_shortAmount, UNIT);
     }
@@ -164,14 +148,11 @@ library MarginMathLib {
         if (_expiry <= block.timestamp) return 0;
 
         uint256 timeToExpiry = _expiry - block.timestamp;
-        if (timeToExpiry > DISCOUNT_PERIOD_UPPER_BOUND)
-            return DISCOUNT_RATIO_UPPER_BOUND; // 80%
-        if (timeToExpiry < DISCOUNT_PERIOD_LOWER_BOND)
-            return DISCOUNT_RATIO_LOWER_BOUND; // 10% of time value
+        if (timeToExpiry > DISCOUNT_PERIOD_UPPER_BOUND) return DISCOUNT_RATIO_UPPER_BOUND; // 80%
+        if (timeToExpiry < DISCOUNT_PERIOD_LOWER_BOND) return DISCOUNT_RATIO_LOWER_BOUND; // 10% of time value
         return
             DISCOUNT_RATIO_LOWER_BOUND +
-            ((timeToExpiry.sqrt() - SQRT_MIN_DISCOUNT_PERIOUD) *
-                DIFF_DISCOUNT_RATIO) /
+            ((timeToExpiry.sqrt() - SQRT_MIN_DISCOUNT_PERIOUD) * DIFF_DISCOUNT_RATIO) /
             DIFF_SQRT_PERIOD;
     }
 
@@ -179,11 +160,7 @@ library MarginMathLib {
     /// @dev returns max(spot - strike, 0)
     /// @param _spot spot price in usd term with 8 decimals
     /// @param _strike strike price in usd term with 8 decimals
-    function getCallCashValue(uint256 _spot, uint256 _strike)
-        internal
-        pure
-        returns (uint256)
-    {
+    function getCallCashValue(uint256 _spot, uint256 _strike) internal pure returns (uint256) {
         unchecked {
             return _spot < _strike ? 0 : _spot - _strike;
         }
@@ -193,11 +170,7 @@ library MarginMathLib {
     /// @dev returns max(strike - spot, 0)
     /// @param _spot spot price in usd term with 8 decimals
     /// @param _strike strike price in usd term with 8 decimals
-    function getPutCashValue(uint256 _spot, uint256 _strike)
-        internal
-        pure
-        returns (uint256)
-    {
+    function getPutCashValue(uint256 _spot, uint256 _strike) internal pure returns (uint256) {
         unchecked {
             return _spot > _strike ? 0 : _strike - _spot;
         }

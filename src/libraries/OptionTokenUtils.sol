@@ -60,6 +60,19 @@ library OptionTokenUtils {
         }
     }
 
+    /**
+     * @notice derive option expiry and strike price from ERC1155 token id
+     * @dev   tokenId = | tokenType (32 bits) | productId (32 bits) | expiry (64 bits) | longStrike (64 bits) | shortStrike (64 bits) |
+     * @param tokenId token id
+     * @return tokenType TokenType enum
+     */
+    function parseTokenType(uint256 tokenId) internal pure returns (TokenType tokenType) {
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            tokenType := shr(224, tokenId)
+        }
+    }
+
     function productIsStrikeCollateral(
         uint32 /*_productId*/
     ) internal pure returns (bool) {

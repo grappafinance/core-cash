@@ -1,5 +1,5 @@
 {
-    "editor.formatOnSave": true,
+    "editor.formatOnSave": false,
     "solidity.formatter": "prettier",
     "[solidity]": {
         "editor.defaultFormatter": "JuanBlanco.solidity"

@@ -12,8 +12,7 @@ contract TestAddCollateral is Fixture {
 
     function testAddCollateral() public {
         grappa.addCollateral(address(this), address(usdc), 10000 * 1e6);
-        (, , , , uint80 _collateralAmount, address _collateral) = grappa
-            .marginAccounts(address(this));
+        (, , , , uint80 _collateralAmount, address _collateral) = grappa.marginAccounts(address(this));
 
         assertEq(_collateral, address(usdc));
         assertEq(_collateralAmount, 10000 * 1e6);
