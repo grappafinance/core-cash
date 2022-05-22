@@ -4,11 +4,14 @@ pragma solidity =0.8.13;
 import {OptionToken} from "./OptionToken.sol";
 
 import {IMarginAccount} from "../interfaces/IMarginAccount.sol";
+import {IERC20} from "../interfaces/IERC20.sol";
+
 import {OptionTokenUtils} from "../libraries/OptionTokenUtils.sol";
 import {MarginAccountLib} from "../libraries/MarginAccountLib.sol";
-import "../types/MarginAccountTypes.sol";
-import "../constants/TokenEnums.sol";
-import "../constants/MarginAccountConstants.sol";
+
+import "src/types/MarginAccountTypes.sol";
+import "src/constants/TokenEnums.sol";
+import "src/constants/MarginAccountConstants.sol";
 
 contract MarginAccount is IMarginAccount, OptionToken {
     using MarginAccountLib for MarginAccountDetail;
@@ -31,13 +34,15 @@ contract MarginAccount is IMarginAccount, OptionToken {
     ) external {
         Account memory account = marginAccounts[_account];
         if (
-            account.collateral != address(0) ||
+            account.collateral != address(0) &&
             account.collateral != _collateral
         ) revert WrongCollateral();
 
         account.collateral = _collateral;
         account.collateralAmount += uint80(_amount);
         marginAccounts[_account] = account;
+
+        IERC20(_collateral).transferFrom(msg.sender, address(this), _amount);
     }
 
     function mint(
