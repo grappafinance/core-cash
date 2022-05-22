@@ -3,7 +3,9 @@ pragma solidity =0.8.13;
 
 import {Test} from "forge-std/Test.sol";
 import {MarginAccountLib} from "../../libraries/MarginAccountLib.sol";
-import "../../libraries/MarginAccountConstants.sol";
+
+// import constants
+import "../../constants/MarginAccountConstants.sol";
 
 contract MarginAccountLibTest is Test {
     uint256 public constant base = UNIT;

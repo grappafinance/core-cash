@@ -2,27 +2,12 @@
 pragma solidity =0.8.13;
 
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
-import "./MarginAccountConstants.sol";
-
+import "../constants/MarginAccountConstants.sol";
+import "../types/MarginAccountTypes.sol";
 import {console} from "../test/utils/Console.sol";
 
 library MarginAccountLib {
     using FixedPointMathLib for uint256;
-
-    // this should only lives in memory
-    struct MarginAccountDetail {
-        /// amounts, with 6 decimals
-        uint256 putAmount;
-        uint256 callAmount;
-        /// strike prices in usd term, with 6 decimals.
-        uint256 longPutStrike;
-        uint256 shortPutStrike;
-        uint256 longCallStrike;
-        uint256 shortCallStrike;
-        //
-        uint256 expiry;
-        bool isStrikeCollateral;
-    }
 
     function getMinCollateral(
         MarginAccountDetail memory _account,

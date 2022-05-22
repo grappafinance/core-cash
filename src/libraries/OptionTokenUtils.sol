@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity =0.8.13;
 
-import "./TokenEnums.sol";
+import "../constants/TokenEnums.sol";
 
 library OptionTokenUtils {
     /**
@@ -50,6 +50,7 @@ library OptionTokenUtils {
             uint64 shortStrike
         )
     {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             tokenType := shr(224, tokenId)
             productId := shr(192, tokenId)
@@ -57,5 +58,11 @@ library OptionTokenUtils {
             longStrike := shr(64, tokenId)
             shortStrike := tokenId
         }
+    }
+
+    function productIsStrikeCollateral(
+        uint32 /*_productId*/
+    ) internal pure returns (bool) {
+        return true;
     }
 }
