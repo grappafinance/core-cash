@@ -59,16 +59,16 @@ contract OptionToken is ERC1155, IOptionToken, AssetRegistry {
 
         uint256 cashValue;
 
-        uint256 spotPrice = _getSpot(underlying, strike);
+        uint256 expiryPrice = oracle.getPriceAtExpiry(underlying, strike, expiry);
 
         if (tokenType == TokenType.CALL) {
-            cashValue = MarginMathLib.getCallCashValue(spotPrice, longStrike);
+            cashValue = MarginMathLib.getCallCashValue(expiryPrice, longStrike);
         } else if (tokenType == TokenType.CALL_SPREAD) {
-            cashValue = MarginMathLib.getCashValueCallDebitSpread(spotPrice, longStrike, shortStrike);
+            cashValue = MarginMathLib.getCashValueCallDebitSpread(expiryPrice, longStrike, shortStrike);
         } else if (tokenType == TokenType.PUT) {
-            cashValue = MarginMathLib.getPutCashValue(spotPrice, longStrike);
+            cashValue = MarginMathLib.getPutCashValue(expiryPrice, longStrike);
         } else if (tokenType == TokenType.PUT_SPREAD) {
-            cashValue = MarginMathLib.getCashValuePutDebitSpread(spotPrice, longStrike, shortStrike);
+            cashValue = MarginMathLib.getCashValuePutDebitSpread(expiryPrice, longStrike, shortStrike);
         }
 
         uint256 payout = cashValue.mulDivUp(_amount, UNIT);
@@ -81,13 +81,8 @@ contract OptionToken is ERC1155, IOptionToken, AssetRegistry {
         IERC20(collateral).transfer(msg.sender, payout);
     }
 
-    function _getSpot(address underlying, address strike) internal view returns (uint256) {
-        return oracle.getSpotPrice(underlying, strike);
-    }
-
     function _getSpot(uint32 productId) internal view returns (uint256) {
         (address underlying, address strike, ) = parseProductId(productId);
-
         return oracle.getSpotPrice(underlying, strike);
     }
 }
