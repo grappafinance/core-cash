@@ -48,11 +48,10 @@ contract TestMintVanillaOption is Fixture, ActionHelper {
     }
 
     function testMintVanilaCallSpread() public {
-
         uint256 longStrike = 3000 * UNIT;
         uint256 shortStrike = 3200 * UNIT;
 
-        uint256 depositAmount = shortStrike - longStrike;  
+        uint256 depositAmount = shortStrike - longStrike;
 
         uint256 amount = 1 * UNIT;
 
@@ -62,6 +61,7 @@ contract TestMintVanillaOption is Fixture, ActionHelper {
         actions[0] = createAddCollateralAction(address(usdc), address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
         grappa.execute(address(this), actions);
+        
         (uint256 shortCallId, uint256 shortPutId, uint80 shortCallAmount, uint80 shortPutAmount, , ) = grappa
             .marginAccounts(address(this));
 
@@ -69,11 +69,7 @@ contract TestMintVanillaOption is Fixture, ActionHelper {
         assertEq(shortPutId, 0);
         assertEq(shortCallAmount, amount);
         assertEq(shortPutAmount, 0);
-
-        uint256 min = grappa.getMinCollateral(address(this));
-        console2.log("min", min);
     }
-
 
     function testMintVanilaPutChangeStorage() public {
         uint256 depositAmount = 10000 * 1e6;
@@ -97,7 +93,6 @@ contract TestMintVanillaOption is Fixture, ActionHelper {
     }
 
     function testCannotMintWithoutCollateral() public {
-
         uint256 strikePrice = 3000 * UNIT;
         uint256 amount = 1 * UNIT;
 
