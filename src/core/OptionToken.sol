@@ -53,23 +53,30 @@ contract OptionToken is ERC1155, IOptionToken, AssetRegistry {
             uint256 shortStrike
         ) = OptionTokenUtils.parseTokenId(_tokenId);
 
+        if (block.timestamp < expiry) revert NotExpired();
+
         (address underlying, address strike, address collateral) = parseProductId(productId);
 
         uint256 cashValue;
 
         uint256 spotPrice = _getSpot(underlying, strike);
 
-        if (tokenType == TokenType.CALL) cashValue = MarginMathLib.getCallCashValue(spotPrice, longStrike);
-        else if (tokenType == TokenType.CALL_SPREAD)
+        if (tokenType == TokenType.CALL) {
+            cashValue = MarginMathLib.getCallCashValue(spotPrice, longStrike);
+        } else if (tokenType == TokenType.CALL_SPREAD) {
             cashValue = MarginMathLib.getCashValueCallDebitSpread(spotPrice, longStrike, shortStrike);
-        else if (tokenType == TokenType.PUT) cashValue = MarginMathLib.getPutCashValue(spotPrice, longStrike);
-        else if (tokenType == TokenType.PUT_SPREAD)
+        } else if (tokenType == TokenType.PUT) {
+            cashValue = MarginMathLib.getPutCashValue(spotPrice, longStrike);
+        } else if (tokenType == TokenType.PUT_SPREAD) {
             cashValue = MarginMathLib.getCashValuePutDebitSpread(spotPrice, longStrike, shortStrike);
+        }
 
         uint256 payout = cashValue.mulDivUp(_amount, UNIT);
 
         // todo: change unit to underlying if needed
         // bool strikeIsCollateral = strike == collateral;
+
+        _burn(msg.sender, _tokenId, _amount);
 
         IERC20(collateral).transfer(msg.sender, payout);
     }

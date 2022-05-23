@@ -32,6 +32,8 @@ error WrongCollateral();
 
 error InvalidFromAddress();
 
-error InvalidShortTokenId();
+error InvalidTokenId();
 
 error AccountUnderwater();
+
+error NotExpired();

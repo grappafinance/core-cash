@@ -32,16 +32,26 @@ library MarginAccountLib {
         uint256 tokenId,
         uint256 amount
     ) internal pure {
-        TokenType optionType = OptionTokenUtils.parseTokenType(tokenId);
+        //
+        (TokenType optionType, , , uint64 tokenLongStrike, uint64 tokenShortStrike) = OptionTokenUtils.parseTokenId(
+            tokenId
+        );
+
+        //
+        if ((optionType == TokenType.CALL || optionType == TokenType.PUT) && (tokenShortStrike != 0))
+            revert InvalidTokenId();
+        if (optionType == TokenType.CALL_SPREAD && (tokenShortStrike < tokenLongStrike)) revert InvalidTokenId();
+        if (optionType == TokenType.PUT_SPREAD && (tokenShortStrike > tokenLongStrike)) revert InvalidTokenId();
+
         if (optionType == TokenType.CALL || optionType == TokenType.CALL_SPREAD) {
             // minting a short
             if (account.shortCallId == 0) account.shortCallId = tokenId;
-            else if (account.shortCallId != tokenId) revert InvalidShortTokenId();
+            else if (account.shortCallId != tokenId) revert InvalidTokenId();
             account.shortCallAmount += uint80(amount);
         } else {
             // minting a put or put spread
             if (account.shortPutId == 0) account.shortPutId = tokenId;
-            else if (account.shortPutId != tokenId) revert InvalidShortTokenId();
+            else if (account.shortPutId != tokenId) revert InvalidTokenId();
             account.shortPutAmount += uint80(amount);
         }
     }
@@ -54,12 +64,12 @@ library MarginAccountLib {
         TokenType optionType = OptionTokenUtils.parseTokenType(tokenId);
         if (optionType == TokenType.CALL || optionType == TokenType.CALL_SPREAD) {
             // burnning a call or call spread
-            if (account.shortCallId != tokenId) revert InvalidShortTokenId();
+            if (account.shortCallId != tokenId) revert InvalidTokenId();
             account.shortCallAmount -= uint80(amount);
             if (account.shortCallAmount == 0) account.shortCallId = 0;
         } else {
             // minting a put or put spread
-            if (account.shortPutId != tokenId) revert InvalidShortTokenId();
+            if (account.shortPutId != tokenId) revert InvalidTokenId();
             account.shortPutAmount -= uint80(amount);
             if (account.shortPutAmount == 0) account.shortPutId = 0;
         }

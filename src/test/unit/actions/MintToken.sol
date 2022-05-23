@@ -12,7 +12,7 @@ import "src/constants/TokenEnums.sol";
 
 import "forge-std/console2.sol";
 
-contract MintVanillaOption is Fixture, ActionHelper {
+contract TestMintVanillaOption is Fixture, ActionHelper {
     // mocked
     uint32 public productId = 1;
     uint256 public expiry;
@@ -26,13 +26,13 @@ contract MintVanillaOption is Fixture, ActionHelper {
         oracle.setSpotPrice(3000 * UNIT);
     }
 
-    function testMintChangeStorage() public {
+    function testMintVanilaCallChangeStorage() public {
         uint256 depositAmount = 10000 * 1e6;
 
-        uint256 strikePrice = 3000 * UNIT;
+        uint256 strikePrice = 4000 * UNIT;
         uint256 amount = 1 * UNIT;
 
-        uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, 0, strikePrice);
+        uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(address(usdc), address(this), depositAmount);
@@ -45,5 +45,69 @@ contract MintVanillaOption is Fixture, ActionHelper {
         assertEq(shortPutId, 0);
         assertEq(shortCallAmount, amount);
         assertEq(shortPutAmount, 0);
+    }
+
+    function testMintVanilaCallSpread() public {
+
+        uint256 longStrike = 3000 * UNIT;
+        uint256 shortStrike = 3200 * UNIT;
+
+        uint256 depositAmount = shortStrike - longStrike;  
+
+        uint256 amount = 1 * UNIT;
+
+        uint256 tokenId = getTokenId(TokenType.CALL_SPREAD, productId, expiry, longStrike, shortStrike);
+
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        actions[0] = createAddCollateralAction(address(usdc), address(this), depositAmount);
+        actions[1] = createMintAction(tokenId, address(this), amount);
+        grappa.execute(address(this), actions);
+        (uint256 shortCallId, uint256 shortPutId, uint80 shortCallAmount, uint80 shortPutAmount, , ) = grappa
+            .marginAccounts(address(this));
+
+        assertEq(shortCallId, tokenId);
+        assertEq(shortPutId, 0);
+        assertEq(shortCallAmount, amount);
+        assertEq(shortPutAmount, 0);
+
+        uint256 min = grappa.getMinCollateral(address(this));
+        console2.log("min", min);
+    }
+
+
+    function testMintVanilaPutChangeStorage() public {
+        uint256 depositAmount = 10000 * 1e6;
+
+        uint256 strikePrice = 2000 * UNIT;
+        uint256 amount = 1 * UNIT;
+
+        uint256 tokenId = getTokenId(TokenType.PUT, productId, expiry, strikePrice, 0);
+
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        actions[0] = createAddCollateralAction(address(usdc), address(this), depositAmount);
+        actions[1] = createMintAction(tokenId, address(this), amount);
+        grappa.execute(address(this), actions);
+        (uint256 shortCallId, uint256 shortPutId, uint80 shortCallAmount, uint80 shortPutAmount, , ) = grappa
+            .marginAccounts(address(this));
+
+        assertEq(shortCallId, 0);
+        assertEq(shortPutId, tokenId);
+        assertEq(shortCallAmount, 0);
+        assertEq(shortPutAmount, amount);
+    }
+
+    function testCannotMintWithoutCollateral() public {
+
+        uint256 strikePrice = 3000 * UNIT;
+        uint256 amount = 1 * UNIT;
+
+        uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
+
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        // actions[0] = createAddCollateralAction(address(usdc), address(this), depositAmount);
+        actions[0] = createMintAction(tokenId, address(this), amount);
+
+        vm.expectRevert(AccountUnderwater.selector);
+        grappa.execute(address(this), actions);
     }
 }
