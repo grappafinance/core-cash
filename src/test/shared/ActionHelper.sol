@@ -27,11 +27,11 @@ contract ActionHelper {
     }
 
     function createAddCollateralAction(
-        address collateral,
+        uint32 productId,
         address from,
         uint256 amount
     ) internal pure returns (ActionArgs memory action) {
-        action = ActionArgs({action: ActionType.AddCollateral, data: abi.encode(collateral, from, amount)});
+        action = ActionArgs({action: ActionType.AddCollateral, data: abi.encode(from, uint80(amount), productId)});
     }
 
     function createRemoveCollateralAction(uint256 amount, address recipient)
@@ -39,7 +39,7 @@ contract ActionHelper {
         pure
         returns (ActionArgs memory action)
     {
-        action = ActionArgs({action: ActionType.RemoveCollateral, data: abi.encode(amount, recipient)});
+        action = ActionArgs({action: ActionType.RemoveCollateral, data: abi.encode(uint80(amount), recipient)});
     }
 
     function createMintAction(
@@ -47,6 +47,6 @@ contract ActionHelper {
         address recipient,
         uint256 amount
     ) internal pure returns (ActionArgs memory action) {
-        action = ActionArgs({action: ActionType.MintShort, data: abi.encode(tokenId, recipient, amount)});
+        action = ActionArgs({action: ActionType.MintShort, data: abi.encode(tokenId, recipient, uint64(amount))});
     }
 }

@@ -8,10 +8,10 @@ import "src/constants/MarginAccountEnums.sol";
 struct Account {
     uint256 shortCallId; // link to call or call spread
     uint256 shortPutId; // link to put or put spread
-    uint80 shortCallAmount;
-    uint80 shortPutAmount;
+    uint64 shortCallAmount;
+    uint64 shortPutAmount;
     uint80 collateralAmount;
-    address collateral;
+    uint32 productId; // underlying - strike - collateral {?}
 }
 
 /// @dev struct used in memory to represnet a margin account's status

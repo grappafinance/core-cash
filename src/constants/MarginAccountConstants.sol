@@ -28,7 +28,7 @@ uint256 constant SHOCK_RATIO = 1000; // 10%
 // Errors
 error NoAccess();
 
-error WrongCollateral();
+error WrongProductId();
 
 error InvalidFromAddress();
 

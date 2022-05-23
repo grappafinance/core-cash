@@ -18,9 +18,9 @@ contract AssetRegistry is Ownable {
 
     constructor() Ownable() {}
 
-    function registerAsset(address _asset) external onlyOwner {
+    function registerAsset(address _asset) external onlyOwner returns (uint8 id) {
         if (ids[_asset] != 0) revert AlreadyRegistered();
-        uint8 id = ++nextId;
+        id = ++nextId;
         assets[id] = _asset;
         ids[_asset] = id;
     }
@@ -43,5 +43,13 @@ contract AssetRegistry is Ownable {
             // the last 8 bits are not used
         }
         return (assets[underlyingId], assets[strikeId], assets[collateralId]);
+    }
+
+    function getProductId(
+        address underlying,
+        address strike,
+        address collateral
+    ) external view returns (uint32 id) {
+        id = (uint32(ids[underlying]) << 24) + (uint32(ids[strike]) << 16) + (uint32(ids[collateral]) << 8);
     }
 }

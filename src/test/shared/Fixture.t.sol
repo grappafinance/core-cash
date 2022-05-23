@@ -22,6 +22,12 @@ abstract contract Fixture is Test {
     address internal charlie;
     address internal bob;
 
+    // usdc collateralized call / put
+    uint32 internal productId;
+
+    // eth collateralized call / put
+    uint32 internal productIdEthCollat;
+
     constructor() {
         usdc = new MockERC20("USDC", "USDC", 6);
         weth = new MockERC20("WETH", "WETH", 18);
@@ -29,6 +35,13 @@ abstract contract Fixture is Test {
         oracle = new MockOracle();
 
         grappa = new Grappa(address(oracle));
+
+        // register products
+        grappa.registerAsset(address(usdc));
+        grappa.registerAsset(address(weth));
+
+        productId = grappa.getProductId(address(weth), address(usdc), address(usdc));
+        productIdEthCollat = grappa.getProductId(address(weth), address(usdc), address(weth));
 
         charlie = address(0xcccc);
         vm.label(charlie, "Charlie");

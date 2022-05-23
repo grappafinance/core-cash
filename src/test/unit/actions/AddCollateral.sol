@@ -22,11 +22,11 @@ contract TestAddCollateral is Fixture, ActionHelper {
         uint256 depositAmount = 1000 * 1e6;
 
         ActionArgs[] memory actions = new ActionArgs[](1);
-        actions[0] = createAddCollateralAction(address(usdc), address(this), depositAmount);
+        actions[0] = createAddCollateralAction(productId, address(this), depositAmount);
         grappa.execute(address(this), actions);
-        (, , , , uint80 _collateralAmount, address _collateral) = grappa.marginAccounts(address(this));
+        (, , , , uint80 _collateralAmount, uint32 _productId) = grappa.marginAccounts(address(this));
 
-        assertEq(_collateral, address(usdc));
+        assertEq(_productId, productId);
         assertEq(_collateralAmount, depositAmount);
     }
 
@@ -36,7 +36,7 @@ contract TestAddCollateral is Fixture, ActionHelper {
         uint256 depositAmount = 1000 * 1e6;
 
         ActionArgs[] memory actions = new ActionArgs[](1);
-        actions[0] = createAddCollateralAction(address(usdc), address(this), depositAmount);
+        actions[0] = createAddCollateralAction(productId, address(this), depositAmount);
         grappa.execute(address(this), actions);
 
         uint256 grappaBalanceAfter = usdc.balanceOf(address(grappa));
@@ -52,8 +52,8 @@ contract TestAddCollateral is Fixture, ActionHelper {
         uint256 depositAmount = 500 * 1e6;
 
         ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createAddCollateralAction(address(usdc), address(this), depositAmount);
-        actions[1] = createAddCollateralAction(address(usdc), address(this), depositAmount);
+        actions[0] = createAddCollateralAction(productId, address(this), depositAmount);
+        actions[1] = createAddCollateralAction(productId, address(this), depositAmount);
         grappa.execute(address(this), actions);
 
         uint256 grappaBalanceAfter = usdc.balanceOf(address(grappa));
@@ -68,10 +68,10 @@ contract TestAddCollateral is Fixture, ActionHelper {
         uint256 wethAmount = 10 * 1e18;
 
         ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createAddCollateralAction(address(usdc), address(this), usdcAmount);
-        actions[1] = createAddCollateralAction(address(weth), address(this), wethAmount);
+        actions[0] = createAddCollateralAction(productId, address(this), usdcAmount);
+        actions[1] = createAddCollateralAction(productIdEthCollat, address(this), wethAmount);
 
-        vm.expectRevert(WrongCollateral.selector);
+        vm.expectRevert(WrongProductId.selector);
         grappa.execute(address(this), actions);
     }
 }

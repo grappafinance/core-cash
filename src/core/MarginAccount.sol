@@ -73,10 +73,12 @@ contract MarginAccount is IMarginAccount, OptionToken {
         address accountId
     ) internal {
         // decode parameters
-        (address collateral, address from, uint256 amount) = abi.decode(_data, (address, address, uint256));
+        (address from, uint80 amount, uint32 productId) = abi.decode(_data, (address, uint80, uint32));
 
         // update the account structure in memory
-        _account.addCollateral(collateral, amount);
+        _account.addCollateral(amount, productId);
+
+        (, , address collateral) = parseProductId(productId);
 
         // collateral must come from caller or the primary account for this accountId
         if (from != msg.sender && !_isPrimaryAccountFor(from, accountId)) revert InvalidFromAddress();
@@ -85,8 +87,8 @@ contract MarginAccount is IMarginAccount, OptionToken {
 
     function _removeCollateral(Account memory _account, bytes memory _data) internal {
         // decode parameters
-        (uint256 amount, address recipient) = abi.decode(_data, (uint256, address));
-        address collateral = _account.collateral;
+        (uint80 amount, address recipient) = abi.decode(_data, (uint80, address));
+        (, , address collateral) = parseProductId(_account.productId);
 
         // update the account structure in memory
         _account.removeCollateral(amount);
@@ -97,7 +99,7 @@ contract MarginAccount is IMarginAccount, OptionToken {
 
     function _mintOption(Account memory _account, bytes memory _data) internal {
         // decode parameters
-        (uint256 tokenId, address recipient, uint256 amount) = abi.decode(_data, (uint256, address, uint256));
+        (uint256 tokenId, address recipient, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
         _account.mintOption(tokenId, amount);
 
         // mint the real option token
@@ -110,7 +112,7 @@ contract MarginAccount is IMarginAccount, OptionToken {
         address accountId
     ) internal {
         // decode parameters
-        (uint256 tokenId, address from, uint256 amount) = abi.decode(_data, (uint256, address, uint256));
+        (uint256 tokenId, address from, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
 
         // update the account structure in memory
         _account.burnOption(tokenId, amount);
