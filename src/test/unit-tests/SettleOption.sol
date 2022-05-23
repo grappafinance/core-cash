@@ -66,7 +66,7 @@ contract TestSettleCall is Fixture, ActionHelper {
     }
 
     function testShouldGetPayoutIfExpiresIMT() public {
-        // expires out the money
+        // expires in the money
         uint256 expiryPrice = 5000 * UNIT;
         oracle.setExpiryPrice(expiryPrice);
 
@@ -143,7 +143,7 @@ contract TestSettlePut is Fixture, ActionHelper {
     }
 
     function testShouldGetPayoutIfExpiresIMT() public {
-        // expires out the money
+        // expires in the money
         uint256 expiryPrice = 1000 * UNIT;
         oracle.setExpiryPrice(expiryPrice);
 
@@ -222,7 +222,7 @@ contract TestSettleCallSpread is Fixture, ActionHelper {
     }
 
     function testShouldGetPayoutDiffereceBetweenSpotAndLongStrike() public {
-        // expires out the money
+        // expires in the money, not higher than upper bond
         uint256 expiryPrice = 4100 * UNIT;
         oracle.setExpiryPrice(expiryPrice);
 
@@ -245,7 +245,7 @@ contract TestSettleCallSpread is Fixture, ActionHelper {
     }
 
     function testPayoutShouldBeCappedAtShortStrike() public {
-        // expires out the money
+        // expires in the money, higher than upper bond
         uint256 expiryPrice = 5000 * UNIT;
         oracle.setExpiryPrice(expiryPrice);
 
@@ -324,7 +324,7 @@ contract TestSettlePutSpread is Fixture, ActionHelper {
     }
 
     function testShouldGetPayoutDiffereceBetweenSpotAndLongStrike() public {
-        // expires out the money
+        // expires in the money, not lower than lower bond
         uint256 expiryPrice = 1900 * UNIT;
         oracle.setExpiryPrice(expiryPrice);
 
@@ -347,7 +347,7 @@ contract TestSettlePutSpread is Fixture, ActionHelper {
     }
 
     function testPayoutShouldBeCappedAtShortStrike() public {
-        // expires out the money
+        // expires in the money, lower than lower bond
         uint256 expiryPrice = 1000 * UNIT;
         oracle.setExpiryPrice(expiryPrice);
 
