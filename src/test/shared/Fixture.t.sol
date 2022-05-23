@@ -14,6 +14,7 @@ abstract contract Fixture is Test {
     Grappa internal grappa;
 
     MockERC20 internal usdc;
+    MockERC20 internal weth;
 
     MockOracle internal oracle;
 
@@ -23,6 +24,7 @@ abstract contract Fixture is Test {
 
     constructor() {
         usdc = new MockERC20("USDC", "USDC", 6);
+        weth = new MockERC20("WETH", "WETH", 18);
 
         oracle = new MockOracle();
 
