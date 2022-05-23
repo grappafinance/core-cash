@@ -177,6 +177,26 @@ library MarginMathLib {
         }
     }
 
+    function getCashValueCallDebitSpread(
+        uint256 _spot,
+        uint256 _longStrike,
+        uint256 _shortStrike
+    ) internal pure returns (uint256) {
+        unchecked {
+            return min(getCallCashValue(_spot, _longStrike), _shortStrike - _longStrike);
+        }
+    }
+
+    function getCashValuePutDebitSpread(
+        uint256 _spot,
+        uint256 _longStrike,
+        uint256 _shortStrike
+    ) internal pure returns (uint256) {
+        unchecked {
+            return min(getPutCashValue(_spot, _longStrike), _longStrike - _shortStrike);
+        }
+    }
+
     /// @dev return the max of a and b
     function max(uint256 a, uint256 b) internal pure returns (uint256) {
         return a > b ? a : b;

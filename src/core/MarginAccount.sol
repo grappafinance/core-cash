@@ -19,7 +19,7 @@ import "src/constants/MarginAccountConstants.sol";
 
 import "forge-std/console2.sol";
 
-contract MarginAccount is IMarginAccount, OptionToken, AssetRegistry {
+contract MarginAccount is IMarginAccount, OptionToken {
     using MarginMathLib for MarginAccountDetail;
 
     using MarginAccountLib for Account;
@@ -37,12 +37,7 @@ contract MarginAccount is IMarginAccount, OptionToken, AssetRegistry {
     ///     every account can authorize any amount of addresses to modify all accounts he controls.
     mapping(uint160 => mapping(address => bool)) public authorized;
 
-    // mocked
-    IOracle public immutable oracle;
-
-    constructor(address _oracle) {
-        oracle = IOracle(_oracle);
-    }
+    constructor(address _oracle) OptionToken(_oracle) {}
 
     function getMinCollateral(address _accountId) external view returns (uint256 minCollateral) {
         Account memory account = marginAccounts[_accountId];
@@ -151,12 +146,6 @@ contract MarginAccount is IMarginAccount, OptionToken, AssetRegistry {
         if (account.collateralAmount < minCollateral) revert AccountUnderwater();
     }
 
-    function _getSpot(uint32 productId) internal view returns (uint256) {
-        (address underlying, address strike, ) = parseProductId(productId);
-
-        return oracle.getSpotPrice(underlying, strike);
-    }
-
     /// @dev convert Account struct from storage to in-memory detail struct
     function _getAccountDetail(Account memory account) internal pure returns (MarginAccountDetail memory detail) {
         detail = MarginAccountDetail({
@@ -175,15 +164,18 @@ contract MarginAccount is IMarginAccount, OptionToken, AssetRegistry {
         // if it contains a call
         if (account.shortCallId != 0) {
             (, , , uint64 longStrike, uint64 shortStrike) = OptionTokenUtils.parseTokenId(account.shortCallId);
-            detail.longCallStrike = longStrike;
-            detail.shortCallStrike = shortStrike;
+            // the short position of the account is the long of the minted optionToken
+            detail.shortCallStrike = longStrike;
+            detail.longCallStrike = shortStrike;
         }
 
         // if it contains a put
         if (account.shortPutId != 0) {
             (, , , uint64 longStrike, uint64 shortStrike) = OptionTokenUtils.parseTokenId(account.shortPutId);
-            detail.longPutStrike = longStrike;
-            detail.shortPutStrike = shortStrike;
+
+            // the short position of the account is the long of the minted optionToken
+            detail.shortPutStrike = longStrike;
+            detail.longPutStrike = shortStrike;
         }
 
         // parse common field
