@@ -60,7 +60,7 @@ contract TestMintVanillaOption is Fixture, ActionHelper {
         actions[0] = createAddCollateralAction(productId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
         grappa.execute(address(this), actions);
-        
+
         (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = grappa
             .marginAccounts(address(this));
 
@@ -105,8 +105,8 @@ contract TestMintVanillaOption is Fixture, ActionHelper {
         actions[0] = createAddCollateralAction(productId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
         grappa.execute(address(this), actions);
-        
-        (, uint256 shortPutId,, uint64 shortPutAmount, , ) = grappa.marginAccounts(address(this));
+
+        (, uint256 shortPutId, , uint64 shortPutAmount, , ) = grappa.marginAccounts(address(this));
 
         assertEq(shortPutId, tokenId);
         assertEq(shortPutAmount, amount);
