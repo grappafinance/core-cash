@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  run-ci:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -16,13 +16,16 @@ jobs:
       - name: Install dev dependencies
         run: npm install
 
+      - name: Run lint check
+        run: npm run lint:check
+  test:
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
       - name: Install Foundry
         uses: onbjerg/foundry-toolchain@v1
         with:
           version: nightly
-
-      - name: Run lint check
-        run: npm run lint:check
-
       - name: Run tests
         run: forge test

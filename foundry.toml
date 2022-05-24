@@ -3,6 +3,8 @@ optimizer = true
 optimizer_runs = 20000
 # via_ir = true temporarily disable for faster snapshot
 
+# gas_reports = ["Grappa.sol"]
+
 [lite]
 via_ir = false
 optimizer_runs = 200
