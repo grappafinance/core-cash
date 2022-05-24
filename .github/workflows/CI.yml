@@ -31,4 +31,4 @@ jobs:
         with:
           version: nightly
       - name: Run tests
-        run: forge test
+        run: forge test --gas-report
