@@ -13,9 +13,10 @@ import {OptionTokenUtils} from "src/libraries/OptionTokenUtils.sol";
 import {MarginMathLib} from "src/libraries/MarginMathLib.sol";
 import {MarginAccountLib} from "src/libraries/MarginAccountLib.sol";
 
-import "src/types/MarginAccountTypes.sol";
-import {TokenType} from "src/constants/TokenEnums.sol";
-import "src/constants/MarginAccountConstants.sol";
+import "src/config/types.sol";
+import "src/config/enums.sol";
+import "src/config/constants.sol";
+import "src/config/errors.sol";
 
 import "forge-std/console2.sol";
 

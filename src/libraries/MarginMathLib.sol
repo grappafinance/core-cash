@@ -4,8 +4,8 @@ pragma solidity =0.8.13;
 import "forge-std/console2.sol";
 
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
-import "../constants/MarginAccountConstants.sol";
-import "../types/MarginAccountTypes.sol";
+import "../config/constants.sol";
+import "../config/types.sol";
 
 library MarginMathLib {
     using FixedPointMathLib for uint256;

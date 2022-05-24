@@ -5,9 +5,10 @@ pragma solidity ^0.8.13;
 import {Fixture} from "src/test/shared/Fixture.t.sol";
 import {ActionHelper} from "src/test/shared/ActionHelper.sol";
 
-import "src/types/MarginAccountTypes.sol";
-import "src/constants/MarginAccountConstants.sol";
-import "src/constants/MarginAccountEnums.sol";
+import "src/config/enums.sol";
+import "src/config/types.sol";
+import "src/config/constants.sol";
+import "src/config/errors.sol";
 
 contract TestAddCollateral is Fixture, ActionHelper {
     function setUp() public {

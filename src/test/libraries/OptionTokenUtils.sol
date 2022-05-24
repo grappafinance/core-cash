@@ -4,7 +4,7 @@ pragma solidity =0.8.13;
 import "forge-std/Test.sol";
 import {OptionTokenUtils} from "../../libraries/OptionTokenUtils.sol";
 
-import "../../constants/TokenEnums.sol";
+import "../../config/enums.sol";
 
 contract OptionTokenUtilsTest is Test {
     function testTokenIdHigherThan0(

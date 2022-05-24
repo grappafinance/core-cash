@@ -18,8 +18,9 @@ import {IOracle} from "src/interfaces/IOracle.sol";
 import {IERC20} from "src/interfaces/IERC20.sol";
 
 // constants / types
-import "src/constants/TokenEnums.sol";
-import "src/constants/MarginAccountConstants.sol";
+import "src/config/enums.sol";
+import "src/config/constants.sol";
+import "src/config/errors.sol";
 
 /**
  * @title   OptionToken

@@ -2,9 +2,11 @@
 pragma solidity =0.8.13;
 
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
-import "src/constants/MarginAccountConstants.sol";
-import "src/types/MarginAccountTypes.sol";
 import "src/libraries/OptionTokenUtils.sol";
+
+import "src/config/types.sol";
+import "src/config/constants.sol";
+import "src/config/errors.sol";
 
 /**
  * @title MarginAccountLib

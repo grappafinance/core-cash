@@ -7,8 +7,8 @@ import "src/test/mocks/MockERC20.sol";
 import "src/test/mocks/MockOracle.sol";
 
 import "src/core/Grappa.sol";
-import "src/types/MarginAccountTypes.sol";
-import "src/constants/MarginAccountEnums.sol";
+import "src/config/enums.sol";
+import "src/config/types.sol";
 
 abstract contract Fixture is Test {
     Grappa internal grappa;

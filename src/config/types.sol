@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity =0.8.13;
 
-import "src/constants/MarginAccountEnums.sol";
+import "./enums.sol";
 
 /// @dev each margin position. This is used to store in storage
 ///

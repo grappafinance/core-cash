@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity =0.8.13;
 
-import "../constants/TokenEnums.sol";
+import "../config/enums.sol";
 
 library OptionTokenUtils {
     /**

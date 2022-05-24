@@ -5,12 +5,10 @@ pragma solidity ^0.8.13;
 import {Fixture} from "src/test/shared/Fixture.t.sol";
 import {ActionHelper} from "src/test/shared/ActionHelper.sol";
 
-import "src/types/MarginAccountTypes.sol";
-import "src/constants/MarginAccountConstants.sol";
-import "src/constants/MarginAccountEnums.sol";
-import "src/constants/TokenEnums.sol";
-
-import "forge-std/console2.sol";
+import "src/config/enums.sol";
+import "src/config/types.sol";
+import "src/config/constants.sol";
+import "src/config/errors.sol";
 
 contract TestMintVanillaOption is Fixture, ActionHelper {
     // mocked

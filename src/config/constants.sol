@@ -24,16 +24,3 @@ uint256 constant DISCOUNT_RATIO_LOWER_BOUND = 800; // 8%
 uint256 constant DIFF_DISCOUNT_RATIO = DISCOUNT_RATIO_UPPER_BOUND - DISCOUNT_RATIO_LOWER_BOUND;
 
 uint256 constant SHOCK_RATIO = 1000; // 10%
-
-// Errors
-error NoAccess();
-
-error WrongProductId();
-
-error InvalidFromAddress();
-
-error InvalidTokenId();
-
-error AccountUnderwater();
-
-error NotExpired();
