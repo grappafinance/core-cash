@@ -118,15 +118,29 @@ contract MarginAccount is IMarginAccount {
         // update the account structure in memory
         _account.burnOption(tokenId, amount);
 
-        // tokening being burn must come from caller or the primary account for this accountId
+        // token being burn must come from caller or the primary account for this accountId
         if (from != msg.sender && !_isPrimaryAccountFor(from, accountId)) revert InvalidFromAddress();
         optionToken.burn(from, tokenId, amount);
     }
 
-    // function settleAccount(address _account) external {}
-
     /// @dev add a ERC1155 long token into the margin account to reduce required collateral
-    // function merge() external {}
+    function _merge(
+        Account memory _account,
+        bytes memory _data,
+        address accountId
+    ) external {
+        // decode parameters
+        (uint256 tokenId, address from, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
+
+        // update the account structure in memory
+        _account.merge(tokenId, amount);
+
+        // token being burn must come from caller or the primary account for this accountId
+        if (from != msg.sender && !_isPrimaryAccountFor(from, accountId)) revert InvalidFromAddress();
+        
+        optionToken.burn(from, tokenId, amount);
+
+    }
 
     /// @dev return if {_account} address is the primary account for _accountId
     function _isPrimaryAccountFor(address _account, address _accountId) internal pure returns (bool) {
