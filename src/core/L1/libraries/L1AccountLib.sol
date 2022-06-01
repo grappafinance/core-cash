@@ -9,10 +9,10 @@ import "src/config/constants.sol";
 import "src/config/errors.sol";
 
 /**
- * @title MarginAccountLib
- * @dev   This library is in charge of updating the account memory and do validations
+ * @title L1AccountLib
+ * @dev   This library is in charge of updating the l1 account memory and do validations
  */
-library MarginAccountLib {
+library L1AccountLib {
     function addCollateral(
         Account memory account,
         uint80 amount,

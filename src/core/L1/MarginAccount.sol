@@ -6,8 +6,8 @@ import {IOracle} from "src/interfaces/IOracle.sol";
 import {IOptionToken} from "src/interfaces/IOptionToken.sol";
 
 import {OptionTokenUtils} from "src/libraries/OptionTokenUtils.sol";
-import {MarginMathLib} from "src/libraries/MarginMathLib.sol";
-import {MarginAccountLib} from "src/libraries/MarginAccountLib.sol";
+import {L1MarginMathLib} from "./libraries/L1MarginMathLib.sol";
+import {L1AccountLib} from "./libraries/L1AccountLib.sol";
 
 import "src/config/types.sol";
 import "src/config/enums.sol";
@@ -17,9 +17,9 @@ import "src/config/errors.sol";
 import "forge-std/console2.sol";
 
 contract MarginAccount is IMarginAccount {
-    using MarginMathLib for MarginAccountDetail;
+    using L1MarginMathLib for MarginAccountDetail;
 
-    using MarginAccountLib for Account;
+    using L1AccountLib for Account;
 
     /*///////////////////////////////////////////////////////////////
                                   Variables
@@ -193,9 +193,6 @@ contract MarginAccount is IMarginAccount {
     ///@dev settle option and get out cash value
     function settleOption(uint256 _tokenId, uint256 _amount) external {
         (address collateral, uint256 payout) = optionToken.getOptionPayout(_tokenId, _amount);
-
-        // todo: change unit to underlying if needed
-        // bool strikeIsCollateral = strike == collateral;
 
         optionToken.burn(msg.sender, _tokenId, _amount);
 

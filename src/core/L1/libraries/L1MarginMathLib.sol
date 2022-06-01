@@ -4,10 +4,10 @@ pragma solidity =0.8.13;
 import "forge-std/console2.sol";
 
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
-import "../config/constants.sol";
-import "../config/types.sol";
+import "src/config/constants.sol";
+import "src/config/types.sol";
 
-library MarginMathLib {
+library L1MarginMathLib {
     using FixedPointMathLib for uint256;
 
     function getMinCollateral(
