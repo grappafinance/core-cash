@@ -6,12 +6,15 @@ import "forge-std/Test.sol";
 import "src/test/mocks/MockERC20.sol";
 import "src/test/mocks/MockOracle.sol";
 
-import "src/core/Grappa.sol";
+import "src/core/L1/MarginAccount.sol";
+import "src/core/OptionToken.sol";
+
 import "src/config/enums.sol";
 import "src/config/types.sol";
 
 abstract contract Fixture is Test {
-    Grappa internal grappa;
+    MarginAccount internal grappa;
+    OptionToken internal option;
 
     MockERC20 internal usdc;
     MockERC20 internal weth;
@@ -34,14 +37,19 @@ abstract contract Fixture is Test {
 
         oracle = new MockOracle();
 
-        grappa = new Grappa(address(oracle));
+        option = new OptionToken(address(oracle));
+
+        grappa = new MarginAccount(address(option));
 
         // register products
-        grappa.registerAsset(address(usdc));
-        grappa.registerAsset(address(weth));
+        option.registerAsset(address(usdc));
+        option.registerAsset(address(weth));
 
-        productId = grappa.getProductId(address(weth), address(usdc), address(usdc));
-        productIdEthCollat = grappa.getProductId(address(weth), address(usdc), address(weth));
+        // grant margin account rights to mint and burn
+        option.setIsMinter(address(grappa), true);
+
+        productId = option.getProductId(address(weth), address(usdc), address(usdc));
+        productIdEthCollat = option.getProductId(address(weth), address(usdc), address(weth));
 
         charlie = address(0xcccc);
         vm.label(charlie, "Charlie");

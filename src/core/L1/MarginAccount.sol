@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity =0.8.13;
 
-import {OptionToken} from "./OptionToken.sol";
-
-import {AssetRegistry} from "./AssetRegistry.sol";
 
 import {IMarginAccount} from "src/interfaces/IMarginAccount.sol";
 import {IERC20} from "src/interfaces/IERC20.sol";
 import {IOracle} from "src/interfaces/IOracle.sol";
+import {IOptionToken} from "src/interfaces/IOptionToken.sol";
 
 import {OptionTokenUtils} from "src/libraries/OptionTokenUtils.sol";
 import {MarginMathLib} from "src/libraries/MarginMathLib.sol";
@@ -20,7 +18,7 @@ import "src/config/errors.sol";
 
 import "forge-std/console2.sol";
 
-contract MarginAccount is IMarginAccount, OptionToken {
+contract MarginAccount is IMarginAccount {
     using MarginMathLib for MarginAccountDetail;
 
     using MarginAccountLib for Account;
@@ -28,6 +26,8 @@ contract MarginAccount is IMarginAccount, OptionToken {
     /*///////////////////////////////////////////////////////////////
                                   Variables
     //////////////////////////////////////////////////////////////*/
+
+    IOptionToken immutable optionToken;
 
     ///@dev accountId => Account.
     ///     accountId can be an address similar to the primary account, but has the last 8 bits different.
@@ -38,13 +38,15 @@ contract MarginAccount is IMarginAccount, OptionToken {
     ///     every account can authorize any amount of addresses to modify all accounts he controls.
     mapping(uint160 => mapping(address => bool)) public authorized;
 
-    constructor(address _oracle) OptionToken(_oracle) {}
+    constructor(address _optionToken) {
+        optionToken = IOptionToken(_optionToken);
+    }
 
     function getMinCollateral(address _accountId) external view returns (uint256 minCollateral) {
         Account memory account = marginAccounts[_accountId];
         MarginAccountDetail memory detail = _getAccountDetail(account);
 
-        minCollateral = detail.getMinCollateral(_getSpot(detail.productId), 1000);
+        minCollateral = detail.getMinCollateral(optionToken.getSpot(detail.productId), 1000);
     }
 
     ///@dev need to be reentry-guarded
@@ -79,7 +81,7 @@ contract MarginAccount is IMarginAccount, OptionToken {
         // update the account structure in memory
         _account.addCollateral(amount, productId);
 
-        (, , address collateral) = parseProductId(productId);
+        (, , address collateral) = optionToken.parseProductId(productId);
 
         // collateral must come from caller or the primary account for this accountId
         if (from != msg.sender && !_isPrimaryAccountFor(from, accountId)) revert InvalidFromAddress();
@@ -89,7 +91,7 @@ contract MarginAccount is IMarginAccount, OptionToken {
     function _removeCollateral(Account memory _account, bytes memory _data) internal {
         // decode parameters
         (uint80 amount, address recipient) = abi.decode(_data, (uint80, address));
-        (, , address collateral) = parseProductId(_account.productId);
+        (, , address collateral) = optionToken.parseProductId(_account.productId);
 
         // update the account structure in memory
         _account.removeCollateral(amount);
@@ -104,7 +106,7 @@ contract MarginAccount is IMarginAccount, OptionToken {
         _account.mintOption(tokenId, amount);
 
         // mint the real option token
-        _mint(recipient, tokenId, amount, "");
+        optionToken.mint(recipient, tokenId, amount);
     }
 
     function _burnOption(
@@ -120,7 +122,7 @@ contract MarginAccount is IMarginAccount, OptionToken {
 
         // tokening being burn must come from caller or the primary account for this accountId
         if (from != msg.sender && !_isPrimaryAccountFor(from, accountId)) revert InvalidFromAddress();
-        _burn(from, tokenId, amount);
+        optionToken.burn(from, tokenId, amount);
     }
 
     // function settleAccount(address _account) external {}
@@ -144,7 +146,7 @@ contract MarginAccount is IMarginAccount, OptionToken {
     function _assertAccountHealth(Account memory account) internal view {
         MarginAccountDetail memory detail = _getAccountDetail(account);
 
-        uint256 minCollateral = detail.getMinCollateral(_getSpot(detail.productId), SHOCK_RATIO);
+        uint256 minCollateral = detail.getMinCollateral(optionToken.getSpot(detail.productId), SHOCK_RATIO);
 
         if (account.collateralAmount < minCollateral) revert AccountUnderwater();
     }
@@ -188,5 +190,17 @@ contract MarginAccount is IMarginAccount, OptionToken {
         (, uint32 productId, uint64 expiry, , ) = OptionTokenUtils.parseTokenId(commonId);
         detail.productId = productId;
         detail.expiry = expiry;
+    }
+
+    ///@dev settle option and get out cash value
+    function settleOption(uint256 _tokenId, uint256 _amount) external {
+        (address collateral, uint256 payout) = optionToken.getOptionPayout(_tokenId, _amount);
+
+        // todo: change unit to underlying if needed
+        // bool strikeIsCollateral = strike == collateral;
+
+        optionToken.burn(msg.sender, _tokenId, _amount);
+
+        IERC20(collateral).transfer(msg.sender, payout);
     }
 }

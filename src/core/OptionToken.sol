@@ -45,7 +45,11 @@ contract OptionToken is ERC1155, IOptionToken, AssetRegistry {
     }
 
     ///@dev settle option and get out cash value
-    function settleOption(uint256 _tokenId, uint256 _amount) external {
+    function getOptionPayout(uint256 _tokenId, uint256 _amount)
+        external
+        view
+        returns (address collateral, uint256 payout)
+    {
         (
             TokenType tokenType,
             uint32 productId,
@@ -56,7 +60,7 @@ contract OptionToken is ERC1155, IOptionToken, AssetRegistry {
 
         if (block.timestamp < expiry) revert NotExpired();
 
-        (address underlying, address strike, address collateral) = parseProductId(productId);
+        (address underlying, address strike, address _collateral) = parseProductId(productId);
 
         uint256 cashValue;
 
@@ -72,18 +76,61 @@ contract OptionToken is ERC1155, IOptionToken, AssetRegistry {
             cashValue = MarginMathLib.getCashValuePutDebitSpread(expiryPrice, longStrike, shortStrike);
         }
 
-        uint256 payout = cashValue.mulDivUp(_amount, UNIT);
+        payout = cashValue.mulDivUp(_amount, UNIT);
 
         // todo: change unit to underlying if needed
         // bool strikeIsCollateral = strike == collateral;
-
-        _burn(msg.sender, _tokenId, _amount);
-
-        IERC20(collateral).transfer(msg.sender, payout);
+        return (_collateral, payout);
     }
 
-    function _getSpot(uint32 productId) internal view returns (uint256) {
+    // todo: move to somewhere appropriate
+    function parseProductId(uint32 _productId)
+        public
+        view
+        returns (
+            address underlying,
+            address strike,
+            address collateral
+        )
+    {
+        (uint8 underlyingId, uint8 strikeId, uint8 collateralId) = (0, 0, 0);
+        assembly {
+            underlyingId := shr(24, _productId)
+            strikeId := shr(16, _productId)
+            collateralId := shr(8, _productId)
+            // the last 8 bits are not used
+        }
+        return (assets[underlyingId], assets[strikeId], assets[collateralId]);
+    }
+
+    function getProductId(
+        address underlying,
+        address strike,
+        address collateral
+    ) external view returns (uint32 id) {
+        id = (uint32(ids[underlying]) << 24) + (uint32(ids[strike]) << 16) + (uint32(ids[collateral]) << 8);
+    }
+
+    function getSpot(uint32 productId) external view returns (uint256) {
         (address underlying, address strike, ) = parseProductId(productId);
         return oracle.getSpotPrice(underlying, strike);
+    }
+
+    function mint(
+        address _recipient,
+        uint256 _tokenId,
+        uint256 _amount
+    ) external {
+        _checkCanMint();
+        _mint(_recipient, _tokenId, _amount, "");
+    }
+
+    function burn(
+        address _from,
+        uint256 _tokenId,
+        uint256 _amount
+    ) external {
+        _checkCanMint();
+        _burn(_from, _tokenId, _amount);
     }
 }
