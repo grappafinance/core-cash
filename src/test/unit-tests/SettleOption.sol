@@ -49,12 +49,12 @@ contract TestSettleCall is Fixture, ActionHelper {
         vm.startPrank(alice);
 
         uint256 usdcBefore = usdc.balanceOf(alice);
-        uint256 optionBefore = grappa.balanceOf(alice, tokenId);
+        uint256 optionBefore = option.balanceOf(alice, tokenId);
 
         grappa.settleOption(tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
-        uint256 optionAfter = grappa.balanceOf(alice, tokenId);
+        uint256 optionAfter = option.balanceOf(alice, tokenId);
 
         assertEq(usdcBefore, usdcAfter);
         assertEq(optionBefore, optionAfter + amount);
@@ -72,12 +72,12 @@ contract TestSettleCall is Fixture, ActionHelper {
         vm.startPrank(alice);
 
         uint256 usdcBefore = usdc.balanceOf(alice);
-        uint256 optionBefore = grappa.balanceOf(alice, tokenId);
+        uint256 optionBefore = option.balanceOf(alice, tokenId);
 
         grappa.settleOption(tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
-        uint256 optionAfter = grappa.balanceOf(alice, tokenId);
+        uint256 optionAfter = option.balanceOf(alice, tokenId);
 
         assertEq(usdcBefore + expectedPayout, usdcAfter);
         assertEq(optionBefore, optionAfter + amount);
@@ -126,12 +126,12 @@ contract TestSettlePut is Fixture, ActionHelper {
         vm.startPrank(alice);
 
         uint256 usdcBefore = usdc.balanceOf(alice);
-        uint256 optionBefore = grappa.balanceOf(alice, tokenId);
+        uint256 optionBefore = option.balanceOf(alice, tokenId);
 
         grappa.settleOption(tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
-        uint256 optionAfter = grappa.balanceOf(alice, tokenId);
+        uint256 optionAfter = option.balanceOf(alice, tokenId);
 
         assertEq(usdcBefore, usdcAfter);
         assertEq(optionBefore, optionAfter + amount);
@@ -149,12 +149,12 @@ contract TestSettlePut is Fixture, ActionHelper {
         vm.startPrank(alice);
 
         uint256 usdcBefore = usdc.balanceOf(alice);
-        uint256 optionBefore = grappa.balanceOf(alice, tokenId);
+        uint256 optionBefore = option.balanceOf(alice, tokenId);
 
         grappa.settleOption(tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
-        uint256 optionAfter = grappa.balanceOf(alice, tokenId);
+        uint256 optionAfter = option.balanceOf(alice, tokenId);
 
         assertEq(usdcBefore + expectedPayout, usdcAfter);
         assertEq(optionBefore, optionAfter + amount);
@@ -205,12 +205,12 @@ contract TestSettleCallSpread is Fixture, ActionHelper {
         vm.startPrank(alice);
 
         uint256 usdcBefore = usdc.balanceOf(alice);
-        uint256 optionBefore = grappa.balanceOf(alice, tokenId);
+        uint256 optionBefore = option.balanceOf(alice, tokenId);
 
         grappa.settleOption(tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
-        uint256 optionAfter = grappa.balanceOf(alice, tokenId);
+        uint256 optionAfter = option.balanceOf(alice, tokenId);
 
         assertEq(usdcBefore, usdcAfter);
         assertEq(optionBefore, optionAfter + amount);
@@ -228,12 +228,12 @@ contract TestSettleCallSpread is Fixture, ActionHelper {
         vm.startPrank(alice);
 
         uint256 usdcBefore = usdc.balanceOf(alice);
-        uint256 optionBefore = grappa.balanceOf(alice, tokenId);
+        uint256 optionBefore = option.balanceOf(alice, tokenId);
 
         grappa.settleOption(tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
-        uint256 optionAfter = grappa.balanceOf(alice, tokenId);
+        uint256 optionAfter = option.balanceOf(alice, tokenId);
 
         assertEq(usdcBefore + expectedPayout, usdcAfter);
         assertEq(optionBefore, optionAfter + amount);
@@ -251,12 +251,12 @@ contract TestSettleCallSpread is Fixture, ActionHelper {
         vm.startPrank(alice);
 
         uint256 usdcBefore = usdc.balanceOf(alice);
-        uint256 optionBefore = grappa.balanceOf(alice, tokenId);
+        uint256 optionBefore = option.balanceOf(alice, tokenId);
 
         grappa.settleOption(tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
-        uint256 optionAfter = grappa.balanceOf(alice, tokenId);
+        uint256 optionAfter = option.balanceOf(alice, tokenId);
 
         assertEq(usdcBefore + expectedPayout, usdcAfter);
         assertEq(optionBefore, optionAfter + amount);
@@ -307,12 +307,12 @@ contract TestSettlePutSpread is Fixture, ActionHelper {
         vm.startPrank(alice);
 
         uint256 usdcBefore = usdc.balanceOf(alice);
-        uint256 optionBefore = grappa.balanceOf(alice, tokenId);
+        uint256 optionBefore = option.balanceOf(alice, tokenId);
 
         grappa.settleOption(tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
-        uint256 optionAfter = grappa.balanceOf(alice, tokenId);
+        uint256 optionAfter = option.balanceOf(alice, tokenId);
 
         assertEq(usdcBefore, usdcAfter);
         assertEq(optionBefore, optionAfter + amount);
@@ -330,12 +330,12 @@ contract TestSettlePutSpread is Fixture, ActionHelper {
         vm.startPrank(alice);
 
         uint256 usdcBefore = usdc.balanceOf(alice);
-        uint256 optionBefore = grappa.balanceOf(alice, tokenId);
+        uint256 optionBefore = option.balanceOf(alice, tokenId);
 
         grappa.settleOption(tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
-        uint256 optionAfter = grappa.balanceOf(alice, tokenId);
+        uint256 optionAfter = option.balanceOf(alice, tokenId);
 
         assertEq(usdcBefore + expectedPayout, usdcAfter);
         assertEq(optionBefore, optionAfter + amount);
@@ -353,12 +353,12 @@ contract TestSettlePutSpread is Fixture, ActionHelper {
         vm.startPrank(alice);
 
         uint256 usdcBefore = usdc.balanceOf(alice);
-        uint256 optionBefore = grappa.balanceOf(alice, tokenId);
+        uint256 optionBefore = option.balanceOf(alice, tokenId);
 
         grappa.settleOption(tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
-        uint256 optionAfter = grappa.balanceOf(alice, tokenId);
+        uint256 optionAfter = option.balanceOf(alice, tokenId);
 
         assertEq(usdcBefore + expectedPayout, usdcAfter);
         assertEq(optionBefore, optionAfter + amount);
