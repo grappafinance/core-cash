@@ -11,7 +11,6 @@ import "src/config/constants.sol";
 import "src/config/errors.sol";
 
 contract TestMintVanillaOption is Fixture, ActionHelper {
-    // mocked
     uint256 public expiry;
 
     function setUp() public {
@@ -117,7 +116,6 @@ contract TestMintVanillaOption is Fixture, ActionHelper {
         uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](1);
-        // actions[0] = createAddCollateralAction(address(usdc), address(this), depositAmount);
         actions[0] = createMintAction(tokenId, address(this), amount);
 
         vm.expectRevert(AccountUnderwater.selector);
