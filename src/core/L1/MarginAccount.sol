@@ -137,9 +137,8 @@ contract MarginAccount is IMarginAccount {
 
         // token being burn must come from caller or the primary account for this accountId
         if (from != msg.sender && !_isPrimaryAccountFor(from, accountId)) revert InvalidFromAddress();
-        
-        optionToken.burn(from, tokenId, amount);
 
+        optionToken.burn(from, tokenId, amount);
     }
 
     /// @dev return if {_account} address is the primary account for _accountId
