@@ -96,6 +96,8 @@ contract OptionToken is ERC1155, IOptionToken, AssetRegistry {
         )
     {
         (uint8 underlyingId, uint8 strikeId, uint8 collateralId) = (0, 0, 0);
+
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             underlyingId := shr(24, _productId)
             strikeId := shr(16, _productId)
