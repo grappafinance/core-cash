@@ -80,9 +80,12 @@ abstract contract Fixture is Test, ActionHelper {
         return this.onERC1155Received.selector;
     }
 
-
-    function mintOptionFor(address _recipient, uint256 _tokenId, uint32 _productId, uint256 _amount) internal {
-
+    function mintOptionFor(
+        address _recipient,
+        uint256 _tokenId,
+        uint32 _productId,
+        uint256 _amount
+    ) internal {
         address anon = address(0x42424242);
 
         vm.startPrank(anon);

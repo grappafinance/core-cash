@@ -33,9 +33,8 @@ contract TestMergeOption is Fixture {
     }
 
     function testMergeCallChangeStorage() public {
-
         // mint new call option for this address
-        
+
         uint256 higherStrike = 5000 * UNIT;
         uint256 newTokenId = getTokenId(TokenType.CALL, productId, expiry, higherStrike, 0);
         mintOptionFor(address(this), newTokenId, productId, amount);
@@ -44,7 +43,7 @@ contract TestMergeOption is Fixture {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createMergeAction(newTokenId, address(this), amount);
         grappa.execute(address(this), actions);
-        (uint256 shortCallId, , , , ,) = grappa.marginAccounts(address(this));
+        (uint256 shortCallId, , , , , ) = grappa.marginAccounts(address(this));
 
         // check result
         (, , , uint64 longStrike, uint64 shortStrike) = parseTokenId(shortCallId);
@@ -55,7 +54,6 @@ contract TestMergeOption is Fixture {
     }
 
     function testMergeIntoCreditSpreadCanRemoveCollateral() public {
-
         // mint new call option for this address
         uint256 higherStrike = 4200 * UNIT;
         uint256 newTokenId = getTokenId(TokenType.CALL, productId, expiry, higherStrike, 0);
@@ -72,7 +70,6 @@ contract TestMergeOption is Fixture {
     }
 
     function testMergeIntoDebitSpreadCanRemoveAllCollateral() public {
-
         // mint new call option for this address
         uint256 lowerStrike = 3800 * UNIT;
         uint256 newTokenId = getTokenId(TokenType.CALL, productId, expiry, lowerStrike, 0);
@@ -85,7 +82,4 @@ contract TestMergeOption is Fixture {
 
         //action should not revert
     }
-
-    
-
 }

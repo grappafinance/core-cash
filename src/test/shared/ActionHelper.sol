@@ -24,13 +24,17 @@ contract ActionHelper {
         );
     }
 
-    function parseTokenId(uint256 tokenId) internal pure returns (
+    function parseTokenId(uint256 tokenId)
+        internal
+        pure
+        returns (
             TokenType tokenType,
             uint32 productId,
             uint64 expiry,
             uint64 longStrike,
             uint64 shortStrike
-        ) {
+        )
+    {
         return OptionTokenUtils.parseTokenId(tokenId);
     }
 
