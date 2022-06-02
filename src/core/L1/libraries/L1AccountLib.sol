@@ -74,7 +74,7 @@ library L1AccountLib {
             account.shortCallAmount -= amount;
             if (account.shortCallAmount == 0) account.shortCallId = 0;
         } else {
-            // minting a put or put spread
+            // burning a put or put spread
             if (account.shortPutId != tokenId) revert InvalidTokenId();
             account.shortPutAmount -= amount;
             if (account.shortPutAmount == 0) account.shortPutId = 0;

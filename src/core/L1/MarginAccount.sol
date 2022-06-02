@@ -25,7 +25,7 @@ contract MarginAccount is IMarginAccount {
                                   Variables
     //////////////////////////////////////////////////////////////*/
 
-    IOptionToken immutable optionToken;
+    IOptionToken immutable public optionToken;
 
     ///@dev accountId => Account.
     ///     accountId can be an address similar to the primary account, but has the last 8 bits different.
