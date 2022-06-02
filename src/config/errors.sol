@@ -13,3 +13,15 @@ error InvalidTokenId();
 error AccountUnderwater();
 
 error NotExpired();
+
+error CannotMergeSpread();
+
+error MergeTypeMismatch();
+
+error MergeProductMismatch();
+
+error MergeExpiryMismatch();
+
+error MergeAmountMismatch();
+
+error MergeWithSameStrike();

@@ -3,14 +3,13 @@ pragma solidity ^0.8.13;
 
 // import test base and helpers.
 import {Fixture} from "src/test/shared/Fixture.t.sol";
-import {ActionHelper} from "src/test/shared/ActionHelper.sol";
 
 import "src/config/enums.sol";
 import "src/config/types.sol";
 import "src/config/constants.sol";
 import "src/config/errors.sol";
 
-contract TestAddCollateral is Fixture, ActionHelper {
+contract TestAddCollateral is Fixture {
     function setUp() public {
         usdc.mint(address(this), 10000 * 1e6);
         usdc.approve(address(grappa), type(uint256).max);

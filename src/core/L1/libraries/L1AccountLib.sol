@@ -82,7 +82,43 @@ library L1AccountLib {
     }
 
     ///@dev merge an OptionToken into the accunt, changing existing short to spread
-    function merge(Account memory account, bytes memory _data) internal {}
+    function merge(
+        Account memory account,
+        uint256 tokenId,
+        uint64 amount
+    ) internal pure {
+        // get token attribute for incoming token
+        (TokenType optionType, uint32 productId, uint64 expiry, uint64 mergingStrike, ) = OptionTokenUtils.parseTokenId(
+            tokenId
+        );
+
+        // token being added can only be call or put
+        if (optionType != TokenType.CALL && optionType != TokenType.PUT) revert CannotMergeSpread();
+
+        // check the existing short position
+        bool isMergingCall = optionType == TokenType.CALL;
+        uint256 shortId = isMergingCall ? account.shortCallId : account.shortPutId;
+        uint256 shortAmount = isMergingCall ? account.shortCallAmount : account.shortPutAmount;
+
+        (TokenType shortType, uint32 productId_, uint64 expiry_, uint64 tokenLongStrike_, ) = OptionTokenUtils
+            .parseTokenId(shortId);
+
+        // if exisiting type is SPREAD, will revert
+        if (shortType != optionType) revert MergeTypeMismatch();
+
+        if (productId_ != productId) revert MergeProductMismatch();
+        if (expiry_ != expiry) revert MergeExpiryMismatch();
+        if (shortAmount != amount) revert MergeAmountMismatch();
+
+        if (tokenLongStrike_ == mergingStrike) revert MergeWithSameStrike();
+
+        if (optionType == TokenType.CALL) {
+            // adding the "short strike" to the minted "option token", converting the debt into a spread.
+            account.shortCallId = account.shortCallId + mergingStrike;
+        } else {
+            account.shortPutId = account.shortPutId + mergingStrike;
+        }
+    }
 
     ///@dev split an MarginAccount with spread into short + long
     function split(Account memory account, bytes memory _data) internal {}
