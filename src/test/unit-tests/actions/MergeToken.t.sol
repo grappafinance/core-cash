@@ -12,6 +12,7 @@ import "src/config/errors.sol";
 contract TestMergeOption is Fixture {
     uint256 public expiry;
     uint256 public strikePrice = 4000 * UNIT;
+    uint256 public depositAmount = 1000 * UNIT;
     uint256 public amount = 1 * UNIT;
 
     function setUp() public {
@@ -24,7 +25,6 @@ contract TestMergeOption is Fixture {
 
         // mint a 3000 strike call first
         uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
-        uint256 depositAmount = 1000 * UNIT;
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(productId, address(this), depositAmount);
@@ -34,25 +34,56 @@ contract TestMergeOption is Fixture {
 
     function testMergeCallChangeStorage() public {
 
+        // mint new call option for this address
+        
         uint256 higherStrike = 5000 * UNIT;
-
-        // tokenId that will be used to merge
         uint256 newTokenId = getTokenId(TokenType.CALL, productId, expiry, higherStrike, 0);
-
-        // create call option for this address
         mintOptionFor(address(this), newTokenId, productId, amount);
 
+        // merge
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createMergeAction(newTokenId, address(this), amount);
         grappa.execute(address(this), actions);
-        (uint256 shortCallId, , , , ,) = grappa
-            .marginAccounts(address(this));
+        (uint256 shortCallId, , , , ,) = grappa.marginAccounts(address(this));
 
+        // check result
         (, , , uint64 longStrike, uint64 shortStrike) = parseTokenId(shortCallId);
 
         assertTrue(shortCallId != newTokenId);
         assertEq(longStrike, strikePrice);
         assertEq(shortStrike, higherStrike);
+    }
+
+    function testMergeIntoCreditSpreadCanRemoveCollateral() public {
+
+        // mint new call option for this address
+        uint256 higherStrike = 4200 * UNIT;
+        uint256 newTokenId = getTokenId(TokenType.CALL, productId, expiry, higherStrike, 0);
+        mintOptionFor(address(this), newTokenId, productId, amount);
+
+        uint256 amountToRemove = depositAmount - (higherStrike - strikePrice);
+
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        actions[0] = createMergeAction(newTokenId, address(this), amount);
+        actions[1] = createRemoveCollateralAction(amountToRemove, address(this));
+        grappa.execute(address(this), actions);
+
+        //action should not revert
+    }
+
+    function testMergeIntoDebitSpreadCanRemoveAllCollateral() public {
+
+        // mint new call option for this address
+        uint256 lowerStrike = 3800 * UNIT;
+        uint256 newTokenId = getTokenId(TokenType.CALL, productId, expiry, lowerStrike, 0);
+        mintOptionFor(address(this), newTokenId, productId, amount);
+
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        actions[0] = createMergeAction(newTokenId, address(this), amount);
+        actions[1] = createRemoveCollateralAction(depositAmount, address(this));
+        grappa.execute(address(this), actions);
+
+        //action should not revert
     }
 
     
