@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import "forge-std/console2.sol";
-
 import "src/config/enums.sol";
 import "src/config/types.sol";
 
@@ -23,6 +22,16 @@ contract ActionHelper {
             uint64(longStrike),
             uint64(shortStrike)
         );
+    }
+
+    function parseTokenId(uint256 tokenId) internal pure returns (
+            TokenType tokenType,
+            uint32 productId,
+            uint64 expiry,
+            uint64 longStrike,
+            uint64 shortStrike
+        ) {
+        return OptionTokenUtils.parseTokenId(tokenId);
     }
 
     function createAddCollateralAction(
@@ -47,5 +56,21 @@ contract ActionHelper {
         uint256 amount
     ) internal pure returns (ActionArgs memory action) {
         action = ActionArgs({action: ActionType.MintShort, data: abi.encode(tokenId, recipient, uint64(amount))});
+    }
+
+    function createBurnAction(
+        uint256 tokenId,
+        address from,
+        uint256 amount
+    ) internal pure returns (ActionArgs memory action) {
+        action = ActionArgs({action: ActionType.BurnShort, data: abi.encode(tokenId, from, uint64(amount))});
+    }
+
+    function createMergeAction(
+        uint256 tokenId,
+        address from,
+        uint256 amount
+    ) internal pure returns (ActionArgs memory action) {
+        action = ActionArgs({action: ActionType.MergeOptionToken, data: abi.encode(tokenId, from, uint64(amount))});
     }
 }

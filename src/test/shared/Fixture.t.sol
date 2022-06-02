@@ -12,7 +12,9 @@ import "src/core/OptionToken.sol";
 import "src/config/enums.sol";
 import "src/config/types.sol";
 
-abstract contract Fixture is Test {
+import {ActionHelper} from "src/test/shared/ActionHelper.sol";
+
+abstract contract Fixture is Test, ActionHelper {
     MarginAccount internal grappa;
     OptionToken internal option;
 
@@ -76,5 +78,27 @@ abstract contract Fixture is Test {
         bytes calldata
     ) external virtual returns (bytes4) {
         return this.onERC1155Received.selector;
+    }
+
+
+    function mintOptionFor(address _recipient, uint256 _tokenId, uint32 _productId, uint256 _amount) internal {
+
+        address anon = address(0x42424242);
+
+        vm.startPrank(anon);
+
+        uint256 lotOfCollateral = 1_000 * 1e18;
+
+        usdc.mint(anon, lotOfCollateral);
+        weth.mint(anon, lotOfCollateral);
+        usdc.approve(address(grappa), type(uint256).max);
+        weth.approve(address(grappa), type(uint256).max);
+
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        actions[0] = createAddCollateralAction(_productId, address(anon), lotOfCollateral);
+        actions[1] = createMintAction(_tokenId, address(_recipient), _amount);
+        grappa.execute(address(anon), actions);
+
+        vm.stopPrank();
     }
 }

@@ -58,6 +58,7 @@ contract MarginAccount is IMarginAccount {
             else if (actions[i].action == ActionType.RemoveCollateral) _removeCollateral(account, actions[i].data);
             else if (actions[i].action == ActionType.MintShort) _mintOption(account, actions[i].data);
             else if (actions[i].action == ActionType.BurnShort) _burnOption(account, actions[i].data, _accountId);
+            else if (actions[i].action == ActionType.MergeOptionToken) _merge(account, actions[i].data, _accountId);
 
             // increase i without checking overflow
             unchecked {
@@ -128,7 +129,7 @@ contract MarginAccount is IMarginAccount {
         Account memory _account,
         bytes memory _data,
         address accountId
-    ) external {
+    ) internal {
         // decode parameters
         (uint256 tokenId, address from, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
 

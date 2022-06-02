@@ -3,13 +3,12 @@ pragma solidity ^0.8.13;
 
 // import test base and helpers.
 import {Fixture} from "src/test/shared/Fixture.t.sol";
-import {ActionHelper} from "src/test/shared/ActionHelper.sol";
 
 import "src/config/enums.sol";
 import "src/config/types.sol";
 import "src/config/constants.sol";
 
-contract TestSettleCall is Fixture, ActionHelper {
+contract TestSettleCall is Fixture {
     uint256 public expiry;
 
     uint64 private amount = uint64(1 * UNIT);
@@ -86,7 +85,7 @@ contract TestSettleCall is Fixture, ActionHelper {
     }
 }
 
-contract TestSettlePut is Fixture, ActionHelper {
+contract TestSettlePut is Fixture {
     uint256 public expiry;
 
     uint64 private amount = uint64(1 * UNIT);
@@ -163,7 +162,7 @@ contract TestSettlePut is Fixture, ActionHelper {
     }
 }
 
-contract TestSettleCallSpread is Fixture, ActionHelper {
+contract TestSettleCallSpread is Fixture {
     uint256 public expiry;
 
     uint64 private amount = uint64(1 * UNIT);
@@ -265,7 +264,7 @@ contract TestSettleCallSpread is Fixture, ActionHelper {
     }
 }
 
-contract TestSettlePutSpread is Fixture, ActionHelper {
+contract TestSettlePutSpread is Fixture {
     uint256 public expiry;
 
     uint64 private amount = uint64(1 * UNIT);

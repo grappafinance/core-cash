@@ -86,8 +86,8 @@ library L1AccountLib {
         Account memory account,
         uint256 tokenId,
         uint64 amount
-    ) internal {
-        // token attribute for incoming token
+    ) internal pure {
+        // get token attribute for incoming token
         (TokenType optionType, uint32 productId, uint64 expiry, uint64 mergingStrike, ) = OptionTokenUtils.parseTokenId(
             tokenId
         );
