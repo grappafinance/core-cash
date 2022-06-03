@@ -44,7 +44,7 @@ contract MarginAccount is IMarginAccount {
         Account memory account = marginAccounts[_accountId];
         MarginAccountDetail memory detail = _getAccountDetail(account);
 
-        minCollateral = detail.getMinCollateral(optionToken.getSpot(detail.productId), 1000);
+        minCollateral = detail.getMinCollateral(optionToken.getSpot(detail.productId), SHOCK_RATIO);
     }
 
     ///@dev need to be reentry-guarded
@@ -155,6 +155,7 @@ contract MarginAccount is IMarginAccount {
         if (!authorized[primaryAccountId][msg.sender]) revert NoAccess();
     }
 
+    /// @dev make sure account is above water
     function _assertAccountHealth(Account memory account) internal view {
         MarginAccountDetail memory detail = _getAccountDetail(account);
 

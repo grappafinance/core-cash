@@ -3,7 +3,7 @@ optimizer = true
 optimizer_runs = 20000
 # via_ir = true temporarily disable for faster snapshot
 
-gas_reports = ["Grappa"]
+gas_reports = ["MarginAccount", "OptionToken"]
 
 [lite]
 via_ir = false
