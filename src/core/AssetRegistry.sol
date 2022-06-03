@@ -9,6 +9,7 @@ contract AssetRegistry is Ownable {
     error AlreadyRegistered();
     error NotAuthorized();
 
+    /// @dev next id used to represent an address
     uint8 public nextId;
 
     /// @dev assetId => asset address
@@ -17,6 +18,7 @@ contract AssetRegistry is Ownable {
     /// @dev address => assetId
     mapping(address => uint8) public ids;
 
+    /// @dev address => authorized to mint
     mapping(address => bool) public isMinter;
 
     /// Events
@@ -24,11 +26,11 @@ contract AssetRegistry is Ownable {
     event MinterUpdated(address minter, bool isMinter);
     event AssetRegistered(address asset, uint8 id);
 
+    // solhint-disable-next-line no-empty-blocks
     constructor() Ownable() {}
 
-    ///@dev     set who can mint and burn tokens
-    ///         this function is only callable by owner
-    ///@param _minter minter address
+    ///@dev             set who can mint and burn token
+    ///@param _minter   minter address
     ///@param _isMinter grant or revoke access
     function setIsMinter(address _minter, bool _isMinter) external onlyOwner {
         isMinter[_minter] = _isMinter;
@@ -36,6 +38,8 @@ contract AssetRegistry is Ownable {
         emit MinterUpdated(_minter, _isMinter);
     }
 
+    ///@dev register an asset to be used as strike/underlying
+    ///@param _asset address to add
     function registerAsset(address _asset) external onlyOwner returns (uint8 id) {
         if (ids[_asset] != 0) revert AlreadyRegistered();
         id = ++nextId;
@@ -45,6 +49,7 @@ contract AssetRegistry is Ownable {
         emit AssetRegistered(_asset, id);
     }
 
+    ///@dev check if a rule has minter previlidge
     function _checkCanMint() internal view {
         if (!isMinter[msg.sender]) revert NotAuthorized();
     }
