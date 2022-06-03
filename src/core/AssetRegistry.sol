@@ -48,9 +48,4 @@ contract AssetRegistry is Ownable {
 
         emit AssetRegistered(_asset, id);
     }
-
-    ///@dev check if a rule has minter previlidge
-    function _checkCanMint() internal view {
-        if (!isMinter[msg.sender]) revert NotAuthorized();
-    }
 }
