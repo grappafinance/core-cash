@@ -31,6 +31,18 @@ struct MarginAccountDetail {
     bool isStrikeCollateral;
 }
 
+struct ProductMarginParameter {
+    uint32 discountPeriodUpperBound; // = 180 days;
+    uint32 discountPeriodLowerBound; // = 1 days;
+    uint32 sqrtMaxDiscountPeriod; // = 3944; // (86400*180).sqrt()
+    uint32 sqrtMinDiscountPeriod; // 293; // 86400.sqrt()
+    /// @dev percentage of time value required as collateral when time to expiry is higher than upper bond
+    uint32 discountRatioUpperBound; // = 6400; // 64%
+    /// @dev percentage of time value required as collateral when time to expiry is lower than lower bond
+    uint32 discountRatioLowerBound; // = 800; // 8%
+    uint32 shockRatio; // = 1000; // 10%
+}
+
 ///
 struct ActionArgs {
     ActionType action;

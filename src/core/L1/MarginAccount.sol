@@ -44,7 +44,7 @@ contract MarginAccount is IMarginAccount {
         Account memory account = marginAccounts[_accountId];
         MarginAccountDetail memory detail = _getAccountDetail(account);
 
-        minCollateral = detail.getMinCollateral(optionToken.getSpot(detail.productId), SHOCK_RATIO);
+        minCollateral = detail.getMinCollateral(optionToken.getSpot(detail.productId), _getDefaultConfig());
     }
 
     ///@dev need to be reentry-guarded
@@ -161,7 +161,7 @@ contract MarginAccount is IMarginAccount {
     function _assertAccountHealth(Account memory account) internal view {
         MarginAccountDetail memory detail = _getAccountDetail(account);
 
-        uint256 minCollateral = detail.getMinCollateral(optionToken.getSpot(detail.productId), SHOCK_RATIO);
+        uint256 minCollateral = detail.getMinCollateral(optionToken.getSpot(detail.productId), _getDefaultConfig());
 
         if (account.collateralAmount < minCollateral) revert AccountUnderwater();
     }
@@ -214,5 +214,19 @@ contract MarginAccount is IMarginAccount {
         optionToken.burn(msg.sender, _tokenId, _amount);
 
         IERC20(collateral).transfer(msg.sender, payout);
+    }
+
+    //@todo: get config based on product
+    function _getDefaultConfig() internal pure returns (ProductMarginParameter memory config) {
+        return
+            ProductMarginParameter({
+                discountPeriodUpperBound: 180 days,
+                discountPeriodLowerBound: 1 days,
+                sqrtMaxDiscountPeriod: 3944, // (86400*180).sqrt()
+                sqrtMinDiscountPeriod: 293, // 86400.sqrt()
+                discountRatioUpperBound: 6400, // 64%
+                discountRatioLowerBound: 800, // 8%
+                shockRatio: 1000 // 10%
+            });
     }
 }
