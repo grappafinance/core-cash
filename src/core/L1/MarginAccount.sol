@@ -102,6 +102,8 @@ contract MarginAccount is IMarginAccount {
     function _mintOption(Account memory _account, bytes memory _data) internal {
         // decode parameters
         (uint256 tokenId, address recipient, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
+
+        // update the account structure in memory
         _account.mintOption(tokenId, amount);
 
         // mint the real option token
