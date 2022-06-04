@@ -164,7 +164,10 @@ contract MarginAccount is IMarginAccount, Ownable {
     function _assertAccountHealth(Account memory account) internal view {
         MarginAccountDetail memory detail = _getAccountDetail(account);
 
-        uint256 minCollateral = detail.getMinCollateral(optionToken.getSpot(detail.productId), productParams[detail.productId]);
+        uint256 minCollateral = detail.getMinCollateral(
+            optionToken.getSpot(detail.productId),
+            productParams[detail.productId]
+        );
 
         if (account.collateralAmount < minCollateral) revert AccountUnderwater();
     }
@@ -220,14 +223,13 @@ contract MarginAccount is IMarginAccount, Ownable {
     }
 
     function setProductMarginConfig(
-        uint32 _productId, 
-        uint32 _discountPeriodUpperBound, 
+        uint32 _productId,
+        uint32 _discountPeriodUpperBound,
         uint32 _discountPeriodLowerBound,
         uint32 _discountRatioUpperBound,
         uint32 _discountRatioLowerBound,
         uint32 _shockRatio
     ) external onlyOwner {
-
         productParams[_productId] = ProductMarginParams({
             discountPeriodUpperBound: _discountPeriodUpperBound,
             discountPeriodLowerBound: _discountPeriodLowerBound,
