@@ -247,7 +247,7 @@ contract MarginAccount is IMarginAccount, Ownable, ReentrancyGuard {
 
     /**
      * @notice burn option token and get out cash value at expiry
-     */ 
+     */
     function settleOption(uint256 _tokenId, uint256 _amount) external {
         (address collateral, uint256 payout) = optionToken.getOptionPayout(_tokenId, _amount);
 
