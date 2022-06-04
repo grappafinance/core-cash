@@ -6,6 +6,7 @@ import "forge-std/console2.sol";
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import "src/config/constants.sol";
 import "src/config/types.sol";
+import "src/config/errors.sol";
 
 library L1MarginMathLib {
     using FixedPointMathLib for uint256;
@@ -13,10 +14,12 @@ library L1MarginMathLib {
     function getMinCollateral(
         MarginAccountDetail memory _account,
         uint256 _spot,
-        ProductMarginParameter memory params
+        ProductMarginParams memory params
     ) internal view returns (uint256) {
         // don't need collateral
         if (_account.putAmount == 0 && _account.callAmount == 0) return 0;
+
+        if (params.discountRatioUpperBound == 0) revert InvalidConfig();
 
         // we only have short put
         if (_account.callAmount == 0) {
@@ -35,7 +38,7 @@ library L1MarginMathLib {
     function getMinCollateralForDoubleShort(
         MarginAccountDetail memory _account,
         uint256 _spot,
-        ProductMarginParameter memory params
+        ProductMarginParams memory params
     ) internal view returns (uint256) {
         // there're both short call and put in the position
         uint256 minCollateralCall = getMinCollateralForCallSpread(_account, _spot, params);
@@ -57,7 +60,7 @@ library L1MarginMathLib {
     function getMinCollateralForCallSpread(
         MarginAccountDetail memory _account,
         uint256 _spot,
-        ProductMarginParameter memory params
+        ProductMarginParams memory params
     ) internal view returns (uint256) {
         // if max loss of short can always be covered by long
         if (_account.longCallStrike != 0 && _account.longCallStrike < _account.shortCallStrike) return 0;
@@ -81,7 +84,7 @@ library L1MarginMathLib {
     function getMinCollateralForPutSpread(
         MarginAccountDetail memory _account,
         uint256 _spot,
-        ProductMarginParameter memory params
+        ProductMarginParams memory params
     ) internal view returns (uint256) {
         // if max loss of short can always be covered by long
         if (_account.longPutStrike > _account.shortPutStrike) return 0;
@@ -109,7 +112,7 @@ library L1MarginMathLib {
         uint256 _strike,
         uint256 _expiry,
         uint256 _spot,
-        ProductMarginParameter memory params
+        ProductMarginParams memory params
     ) internal view returns (uint256) {
         // if ratio is 20%, we calculate price of spot * 120%
         uint256 shockPrice = _spot.mulDivUp(BPS + params.shockRatio, BPS);
@@ -128,7 +131,7 @@ library L1MarginMathLib {
         uint256 _strike,
         uint256 _expiry,
         uint256 _spot,
-        ProductMarginParameter memory params
+        ProductMarginParams memory params
     ) internal view returns (uint256) {
         // if ratio is 20%, we calculate price of spot * 80%
         uint256 shockPrice = _spot.mulDivUp(BPS - params.shockRatio, BPS);
@@ -145,7 +148,7 @@ library L1MarginMathLib {
      * get the time decay value apply to minimum collateral
      * @param _expiry expiry timestamp
      */
-    function getTimeDecay(uint256 _expiry, ProductMarginParameter memory params) internal view returns (uint256) {
+    function getTimeDecay(uint256 _expiry, ProductMarginParams memory params) internal view returns (uint256) {
         if (_expiry <= block.timestamp) return 0;
 
         uint256 timeToExpiry = _expiry - block.timestamp;

@@ -55,6 +55,9 @@ abstract contract Fixture is Test, ActionHelper, Utilities {
         productId = option.getProductId(address(weth), address(usdc), address(usdc));
         productIdEthCollat = option.getProductId(address(weth), address(usdc), address(weth));
 
+        grappa.setProductMarginConfig(productId, 180 days, 1 days, 6400, 800, 1000);
+        grappa.setProductMarginConfig(productIdEthCollat, 180 days, 1 days, 6400, 800, 1000);
+
         charlie = address(0xcccc);
         vm.label(charlie, "Charlie");
 

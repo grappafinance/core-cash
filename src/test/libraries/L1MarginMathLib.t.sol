@@ -103,7 +103,7 @@ contract L1MarginMathLibTest is Test {
         uint256 strike = 3500 * base;
         uint256 expiry = today + 21 days;
 
-        ProductMarginParameter memory config = getDefaultConfig();
+        ProductMarginParams memory config = getDefaultConfig();
 
         uint256 minCollat = L1MarginMathLib.getMinCollateralForShortPut(amount, strike, expiry, spot, config);
         assertEq(minCollat, 1452050000); // 1452 USD
@@ -121,14 +121,14 @@ contract L1MarginMathLibTest is Test {
 
     function testTimeDecayValueLowerBond() public {
         uint256 expiry = today + 8000 seconds;
-        ProductMarginParameter memory config = getDefaultConfig();
+        ProductMarginParams memory config = getDefaultConfig();
         uint256 decay = L1MarginMathLib.getTimeDecay(expiry, config);
         assertEq(decay, config.discountRatioLowerBound);
     }
 
     function testTimeDecayValueUpperBond() public {
         uint256 expiry = today + 180 days + 10 seconds;
-        ProductMarginParameter memory config = getDefaultConfig();
+        ProductMarginParams memory config = getDefaultConfig();
         uint256 decay = L1MarginMathLib.getTimeDecay(expiry, config);
         assertEq(decay, config.discountRatioUpperBound);
     }
@@ -179,9 +179,9 @@ contract L1MarginMathLibTest is Test {
         assertEq(cash, 0);
     }
 
-    function getDefaultConfig() internal pure returns (ProductMarginParameter memory config) {
+    function getDefaultConfig() internal pure returns (ProductMarginParams memory config) {
         return
-            ProductMarginParameter({
+            ProductMarginParams({
                 discountPeriodUpperBound: 180 days,
                 discountPeriodLowerBound: 1 days,
                 sqrtMaxDiscountPeriod: 3944, // (86400*180).sqrt()

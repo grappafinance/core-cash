@@ -9,16 +9,17 @@ import {OptionTokenUtils} from "src/libraries/OptionTokenUtils.sol";
 import {L1MarginMathLib} from "./libraries/L1MarginMathLib.sol";
 import {L1AccountLib} from "./libraries/L1AccountLib.sol";
 
+import {Ownable} from "openzeppelin/access/Ownable.sol";
+import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
+
 import "src/config/types.sol";
 import "src/config/enums.sol";
 import "src/config/constants.sol";
 import "src/config/errors.sol";
-
 import "forge-std/console2.sol";
 
-contract MarginAccount is IMarginAccount {
+contract MarginAccount is IMarginAccount, Ownable {
     using L1MarginMathLib for MarginAccountDetail;
-
     using L1AccountLib for Account;
 
     /*///////////////////////////////////////////////////////////////
@@ -36,6 +37,8 @@ contract MarginAccount is IMarginAccount {
     ///     every account can authorize any amount of addresses to modify all accounts he controls.
     mapping(uint160 => mapping(address => bool)) public authorized;
 
+    mapping(uint32 => ProductMarginParams) public productParams;
+
     constructor(address _optionToken) {
         optionToken = IOptionToken(_optionToken);
     }
@@ -44,7 +47,7 @@ contract MarginAccount is IMarginAccount {
         Account memory account = marginAccounts[_accountId];
         MarginAccountDetail memory detail = _getAccountDetail(account);
 
-        minCollateral = detail.getMinCollateral(optionToken.getSpot(detail.productId), _getDefaultConfig());
+        minCollateral = detail.getMinCollateral(optionToken.getSpot(detail.productId), productParams[detail.productId]);
     }
 
     ///@dev need to be reentry-guarded
@@ -161,7 +164,7 @@ contract MarginAccount is IMarginAccount {
     function _assertAccountHealth(Account memory account) internal view {
         MarginAccountDetail memory detail = _getAccountDetail(account);
 
-        uint256 minCollateral = detail.getMinCollateral(optionToken.getSpot(detail.productId), _getDefaultConfig());
+        uint256 minCollateral = detail.getMinCollateral(optionToken.getSpot(detail.productId), productParams[detail.productId]);
 
         if (account.collateralAmount < minCollateral) revert AccountUnderwater();
     }
@@ -216,17 +219,23 @@ contract MarginAccount is IMarginAccount {
         IERC20(collateral).transfer(msg.sender, payout);
     }
 
-    //@todo: get config based on product
-    function _getDefaultConfig() internal pure returns (ProductMarginParameter memory config) {
-        return
-            ProductMarginParameter({
-                discountPeriodUpperBound: 180 days,
-                discountPeriodLowerBound: 1 days,
-                sqrtMaxDiscountPeriod: 3944, // (86400*180).sqrt()
-                sqrtMinDiscountPeriod: 293, // 86400.sqrt()
-                discountRatioUpperBound: 6400, // 64%
-                discountRatioLowerBound: 800, // 8%
-                shockRatio: 1000 // 10%
-            });
+    function setProductMarginConfig(
+        uint32 _productId, 
+        uint32 _discountPeriodUpperBound, 
+        uint32 _discountPeriodLowerBound,
+        uint32 _discountRatioUpperBound,
+        uint32 _discountRatioLowerBound,
+        uint32 _shockRatio
+    ) external onlyOwner {
+
+        productParams[_productId] = ProductMarginParams({
+            discountPeriodUpperBound: _discountPeriodUpperBound,
+            discountPeriodLowerBound: _discountPeriodLowerBound,
+            sqrtMaxDiscountPeriod: uint32(FixedPointMathLib.sqrt(uint256(_discountPeriodUpperBound))),
+            sqrtMinDiscountPeriod: uint32(FixedPointMathLib.sqrt(uint256(_discountPeriodLowerBound))),
+            discountRatioUpperBound: _discountRatioUpperBound,
+            discountRatioLowerBound: _discountRatioLowerBound,
+            shockRatio: _shockRatio
+        });
     }
 }

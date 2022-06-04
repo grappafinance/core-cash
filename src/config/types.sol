@@ -31,7 +31,7 @@ struct MarginAccountDetail {
     bool isStrikeCollateral;
 }
 
-struct ProductMarginParameter {
+struct ProductMarginParams {
     uint32 discountPeriodUpperBound; // = 180 days;
     uint32 discountPeriodLowerBound; // = 1 days;
     uint32 sqrtMaxDiscountPeriod; // = 3944; // (86400*180).sqrt()
