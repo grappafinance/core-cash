@@ -3,6 +3,7 @@
   "rules": {
     "compiler-version": ["error", ">=0.8.0"],
     "avoid-low-level-calls": "off",
+    "func-visibility": ["warn",{"ignoreConstructors":true}],
     "const-name-snakecase": "off",
     "not-rely-on-time": "off",
     "max-line-length": ["error", 140]

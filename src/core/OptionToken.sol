@@ -32,9 +32,11 @@ contract OptionToken is ERC1155, IOptionToken, AssetRegistry {
     using FixedPointMathLib for uint256;
 
     IOracle public immutable oracle;
+    address public immutable marginAccount;
 
-    constructor(address _oracle) {
+    constructor(address _oracle, address _marginAccount) {
         oracle = IOracle(_oracle);
+        marginAccount = _marginAccount;
     }
 
     // @todo: update function
@@ -148,5 +150,10 @@ contract OptionToken is ERC1155, IOptionToken, AssetRegistry {
     ) external {
         _checkCanMint();
         _burn(_from, _tokenId, _amount);
+    }
+
+    ///@dev check if a rule has minter previlidge
+    function _checkCanMint() internal view {
+        if (msg.sender != marginAccount && !isMinter[msg.sender]) revert NotAuthorized();
     }
 }

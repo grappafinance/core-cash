@@ -13,9 +13,8 @@ import "src/config/errors.sol";
  * @dev   This library is in charge of updating the l1 account memory and do validations
  */
 library L1AccountLib {
-    
     ///@dev Increase the collateral in the account
-    ///@param account Account memory that will be updated in-place 
+    ///@param account Account memory that will be updated in-place
     function addCollateral(
         Account memory account,
         uint80 amount,
@@ -30,7 +29,7 @@ library L1AccountLib {
     }
 
     ///@dev Reduce the collateral in the account
-    ///@param account Account memory that will be updated in-place 
+    ///@param account Account memory that will be updated in-place
     function removeCollateral(Account memory account, uint80 amount) internal pure {
         account.collateralAmount -= amount;
         if (account.collateralAmount == 0) {
@@ -39,7 +38,7 @@ library L1AccountLib {
     }
 
     ///@dev Increase the amount of short call or put (debt) of the account
-    ///@param account Account memory that will be updated in-place 
+    ///@param account Account memory that will be updated in-place
     function mintOption(
         Account memory account,
         uint256 tokenId,
@@ -70,7 +69,7 @@ library L1AccountLib {
     }
 
     ///@dev Remove the amount of short call or put (debt) of the account
-    ///@param account Account memory that will be updated in-place 
+    ///@param account Account memory that will be updated in-place
     function burnOption(
         Account memory account,
         uint256 tokenId,
@@ -91,9 +90,9 @@ library L1AccountLib {
     }
 
     ///@dev merge an OptionToken into the accunt, changing existing short to spread
-    ///@param account Account memory that will be updated in-place 
+    ///@param account Account memory that will be updated in-place
     ///@param tokenId token to be "added" into the account. This is expected to have the same time of the exisiting short type.
-    ///               e.g: if the account currenly have short call, we can added another "call token" into the account 
+    ///               e.g: if the account currenly have short call, we can added another "call token" into the account
     ///               and convert the short position to a spread.
     function merge(
         Account memory account,
@@ -135,6 +134,6 @@ library L1AccountLib {
     }
 
     ///@dev split an MarginAccount with spread into short + long
-    ///@param account Account memory that will be updated in-place 
+    ///@param account Account memory that will be updated in-place
     function split(Account memory account, bytes memory _data) internal {}
 }

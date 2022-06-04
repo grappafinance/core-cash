@@ -12,9 +12,11 @@ import "src/core/OptionToken.sol";
 import "src/config/enums.sol";
 import "src/config/types.sol";
 
+import "src/test/utils/Utilities.sol";
+
 import {ActionHelper} from "src/test/shared/ActionHelper.sol";
 
-abstract contract Fixture is Test, ActionHelper {
+abstract contract Fixture is Test, ActionHelper, Utilities {
     MarginAccount internal grappa;
     OptionToken internal option;
 
@@ -34,14 +36,17 @@ abstract contract Fixture is Test, ActionHelper {
     uint32 internal productIdEthCollat;
 
     constructor() {
-        usdc = new MockERC20("USDC", "USDC", 6);
-        weth = new MockERC20("WETH", "WETH", 18);
+        usdc = new MockERC20("USDC", "USDC", 6); // nonce: 1
 
-        oracle = new MockOracle();
+        weth = new MockERC20("WETH", "WETH", 18); // nonce: 2
 
-        option = new OptionToken(address(oracle));
+        oracle = new MockOracle(); // nonce: 3
 
-        grappa = new MarginAccount(address(option));
+        // predit address of margin account and use it here
+        address marginAccountAddr = addressFrom(address(this), 5);
+        option = new OptionToken(address(oracle), marginAccountAddr); // nonce: 4
+
+        grappa = new MarginAccount(address(option)); // nonce 5
 
         // register products
         option.registerAsset(address(usdc));

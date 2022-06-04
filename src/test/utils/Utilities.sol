@@ -6,30 +6,58 @@ import {Vm} from "forge-std/Vm.sol";
 
 //common utilities for forge tests
 contract Utilities is DSTest {
-    Vm internal immutable vm = Vm(HEVM_ADDRESS);
-    bytes32 internal nextUser = keccak256(abi.encodePacked("user address"));
-
-    function getNextUserAddress() external returns (address payable) {
-        //bytes32 to address conversion
-        address payable user = payable(address(uint160(uint256(nextUser))));
-        nextUser = keccak256(abi.encodePacked(nextUser));
-        return user;
-    }
-
-    //create users with 100 ether balance
-    function createUsers(uint256 userNum) external returns (address payable[] memory) {
-        address payable[] memory users = new address payable[](userNum);
-        for (uint256 i = 0; i < userNum; i++) {
-            address payable user = this.getNextUserAddress();
-            vm.deal(user, 100 ether);
-            users[i] = user;
-        }
-        return users;
-    }
-
-    //move block.number forward by a given number of blocks
-    function mineBlocks(uint256 numBlocks) external {
-        uint256 targetBlock = block.number + numBlocks;
-        vm.roll(targetBlock);
+    // solhint-disable max-line-length
+    function addressFrom(address _origin, uint256 _nonce) public pure returns (address) {
+        if (_nonce == 0x00)
+            return
+                address(
+                    uint160(uint256(keccak256(abi.encodePacked(bytes1(0xd6), bytes1(0x94), _origin, bytes1(0x80)))))
+                );
+        if (_nonce <= 0x7f)
+            return
+                address(
+                    uint160(uint256(keccak256(abi.encodePacked(bytes1(0xd6), bytes1(0x94), _origin, uint8(_nonce)))))
+                );
+        if (_nonce <= 0xff)
+            return
+                address(
+                    uint160(
+                        uint256(
+                            keccak256(
+                                abi.encodePacked(bytes1(0xd7), bytes1(0x94), _origin, bytes1(0x81), uint8(_nonce))
+                            )
+                        )
+                    )
+                );
+        if (_nonce <= 0xffff)
+            return
+                address(
+                    uint160(
+                        uint256(
+                            keccak256(
+                                abi.encodePacked(bytes1(0xd8), bytes1(0x94), _origin, bytes1(0x82), uint16(_nonce))
+                            )
+                        )
+                    )
+                );
+        if (_nonce <= 0xffffff)
+            return
+                address(
+                    uint160(
+                        uint256(
+                            keccak256(
+                                abi.encodePacked(bytes1(0xd9), bytes1(0x94), _origin, bytes1(0x83), uint24(_nonce))
+                            )
+                        )
+                    )
+                );
+        return
+            address(
+                uint160(
+                    uint256(
+                        keccak256(abi.encodePacked(bytes1(0xda), bytes1(0x94), _origin, bytes1(0x84), uint32(_nonce)))
+                    )
+                )
+            );
     }
 }
