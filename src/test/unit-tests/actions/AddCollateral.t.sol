@@ -63,7 +63,7 @@ contract TestAddCollateral is Fixture {
         assertEq(grappaBalanceAfter - grappaBalanceBefoe, depositAmount * 2);
     }
 
-    function testCannotAddDifferentCollateralToSameAccount() public {
+    function testCannotAddDifferentProductToSameAccount() public {
         uint256 usdcAmount = 500 * 1e6;
         uint256 wethAmount = 10 * 1e18;
 

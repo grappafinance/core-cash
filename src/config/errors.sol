@@ -6,6 +6,8 @@ error NoAccess();
 
 error WrongProductId();
 
+error InvalidConfig();
+
 error InvalidFromAddress();
 
 error InvalidTokenId();
