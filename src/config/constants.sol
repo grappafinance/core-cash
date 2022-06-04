@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Unlicense
+// SPDX-License-Identifier: MIT
 pragma solidity =0.8.13;
 
 ///@dev unit used for option amount and strike prices
