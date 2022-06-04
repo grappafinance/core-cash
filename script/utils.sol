@@ -10,6 +10,7 @@ contract Create2Deployer {
         external
         returns (address addr)
     {
+        // solhint-disable-next-line
         assembly {
             addr := create2(value, add(bytecode, 0x20), mload(bytecode), salt)
         }

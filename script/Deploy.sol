@@ -36,7 +36,7 @@ contract Deploy is Script, Utilities {
 
         // deploy oracle with 4 leading zeros
         oracle = deployWithLeadingZeros(deployer, 0, type(MockOracle).creationCode, 4); // nonce 1
-        
+
         // prepare bytecode for MarginAccount
         address optionTokenAddr = addressFrom(msg.sender, 3);
         // deploy MarginAccount
@@ -60,16 +60,15 @@ contract Deploy is Script, Utilities {
             bound := shl(pow, 2)
         }
         uint256 salt;
+        bytes32 codeHash = keccak256(creationCode);
+
         while (true) {
-            address prediction = Create2.computeAddress(bytes32(salt), keccak256(creationCode), address(deployer));
+            address prediction = Create2.computeAddress(bytes32(salt), codeHash , address(deployer));
             if (uint160(prediction) < bound) break;
             unchecked {
                 salt++;
             }
         }
-
-        console.log("salt found:", salt);
-        
         addr = deployer.deploy(value, creationCode, bytes32(salt));
     }
 }
