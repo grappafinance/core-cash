@@ -52,9 +52,6 @@ abstract contract Fixture is Test, ActionHelper, Utilities {
         option.registerAsset(address(usdc));
         option.registerAsset(address(weth));
 
-        // grant margin account rights to mint and burn
-        option.setIsMinter(address(grappa), true);
-
         productId = option.getProductId(address(weth), address(usdc), address(usdc));
         productIdEthCollat = option.getProductId(address(weth), address(usdc), address(weth));
 

@@ -154,6 +154,6 @@ contract OptionToken is ERC1155, IOptionToken, AssetRegistry {
 
     ///@dev check if a rule has minter previlidge
     function _checkCanMint() internal view {
-        if (msg.sender != marginAccount && !isMinter[msg.sender]) revert NotAuthorized();
+        if (msg.sender != marginAccount) revert NotAuthorized();
     }
 }

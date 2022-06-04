@@ -19,7 +19,7 @@ contract AssetRegistry is Ownable {
     mapping(address => uint8) public ids;
 
     /// @dev address => authorized to mint
-    mapping(address => bool) public isMinter;
+    // mapping(address => bool) public isMinter;
 
     /// Events
 
@@ -32,11 +32,11 @@ contract AssetRegistry is Ownable {
     ///@dev             set who can mint and burn token
     ///@param _minter   minter address
     ///@param _isMinter grant or revoke access
-    function setIsMinter(address _minter, bool _isMinter) external onlyOwner {
-        isMinter[_minter] = _isMinter;
+    // function setIsMinter(address _minter, bool _isMinter) external onlyOwner {
+    //     isMinter[_minter] = _isMinter;
 
-        emit MinterUpdated(_minter, _isMinter);
-    }
+    //     emit MinterUpdated(_minter, _isMinter);
+    // }
 
     ///@dev register an asset to be used as strike/underlying
     ///@param _asset address to add
