@@ -43,4 +43,4 @@ jobs:
         with:
           version: nightly
       - name: Run tests
-        run: forge script script/Deploy.sol --fork-url $TEST_DEPLOY_FORK_URL
+        run: forge script script/Deploy.sol --fork-url ${{secrets.TEST_DEPLOY_FORK_URL}}
