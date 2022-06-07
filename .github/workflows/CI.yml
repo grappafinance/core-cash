@@ -32,15 +32,3 @@ jobs:
           version: nightly
       - name: Run tests
         run: forge test --gas-report
-  test-script:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: recursive
-      - name: Install Foundry
-        uses: onbjerg/foundry-toolchain@v1
-        with:
-          version: nightly
-      - name: Run tests
-        run: forge script script/Deploy.sol --fork-url ${{secrets.TEST_DEPLOY_FORK_URL}}
