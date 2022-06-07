@@ -35,14 +35,16 @@ contract Deploy is Script, Utilities {
         Create2Deployer deployer = new Create2Deployer(); // nonce 0
 
         // deploy oracle with 4 leading zeros
-        oracle = deployWithLeadingZeros(deployer, 0, type(MockOracle).creationCode, 4); // nonce 1
+        oracle = deployWithLeadingZeros(deployer, 0, type(MockOracle).creationCode, 2); // nonce 1
+        console.log("oracle", oracle);
 
         // prepare bytecode for MarginAccount
         address optionTokenAddr = addressFrom(msg.sender, 3);
         // deploy MarginAccount
         bytes memory maCreationCode = type(MarginAccount).creationCode;
         bytes memory maBytecode = abi.encodePacked(maCreationCode, abi.encode(optionTokenAddr));
-        marginAccount = deployWithLeadingZeros(deployer, 0, maBytecode, 4); // nonce 2
+        marginAccount = deployWithLeadingZeros(deployer, 0, maBytecode, 2); // nonce 2
+        console.log("marginAccount", marginAccount);
 
         // deploy optionToken directly, just so the address is the same as predicted by `create` (optionTokenAddr) 
         optionToken = address(new OptionToken(oracle, marginAccount));
@@ -52,12 +54,12 @@ contract Deploy is Script, Utilities {
         internal 
         returns (address addr) 
     {
-        uint8 pow = 160 - (zerosBytes * 4);
-        uint160 bound;
+        uint8 bits = zerosBytes * 8;
+        uint160 bound = type(uint160).max;
 
         // solhint-disable-next-line
         assembly {
-            bound := shl(pow, 2)
+            bound := shr(bits, bound)
         }
         uint256 salt;
         bytes32 codeHash = keccak256(creationCode);
