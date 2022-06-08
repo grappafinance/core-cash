@@ -150,9 +150,13 @@ library L1AccountLib {
         amount = isSplitingCallSpread ? account.shortCallAmount : account.shortPutAmount;
 
         // we expected the existing "shortId" to be a spread
-        (TokenType spreadType, uint32 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) = OptionTokenUtils.parseTokenId(
-            spreadId
-        );
+        (
+            TokenType spreadType,
+            uint32 productId,
+            uint64 expiry,
+            uint64 longStrike,
+            uint64 shortStrike
+        ) = OptionTokenUtils.parseTokenId(spreadId);
 
         // if exisiting type is not spread, it will revert
         if (spreadType != optionType) revert MergeTypeMismatch();
