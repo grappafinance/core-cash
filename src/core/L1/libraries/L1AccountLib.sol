@@ -94,11 +94,7 @@ library L1AccountLib {
     ///@param tokenId token to be "added" into the account. This is expected to have the same time of the exisiting short type.
     ///               e.g: if the account currenly have short call, we can added another "call token" into the account
     ///               and convert the short position to a spread.
-    function merge(
-        Account memory account,
-        uint256 tokenId,
-        uint64 amount
-    ) internal pure {
+    function merge(Account memory account, uint256 tokenId) internal pure returns (uint64 amount) {
         // get token attribute for incoming token
         (TokenType optionType, uint32 productId, uint64 expiry, uint64 mergingStrike, ) = OptionTokenUtils.parseTokenId(
             tokenId
@@ -110,7 +106,7 @@ library L1AccountLib {
         // check the existing short position
         bool isMergingCall = optionType == TokenType.CALL;
         uint256 shortId = isMergingCall ? account.shortCallId : account.shortPutId;
-        uint256 shortAmount = isMergingCall ? account.shortCallAmount : account.shortPutAmount;
+        amount = isMergingCall ? account.shortCallAmount : account.shortPutAmount;
 
         (TokenType shortType, uint32 productId_, uint64 expiry_, uint64 tokenLongStrike_, ) = OptionTokenUtils
             .parseTokenId(shortId);
@@ -120,7 +116,6 @@ library L1AccountLib {
 
         if (productId_ != productId) revert MergeProductMismatch();
         if (expiry_ != expiry) revert MergeExpiryMismatch();
-        if (shortAmount != amount) revert MergeAmountMismatch();
 
         if (tokenLongStrike_ == mergingStrike) revert MergeWithSameStrike();
 

@@ -161,10 +161,10 @@ contract MarginAccount is IMarginAccount, Ownable, ReentrancyGuard {
         address accountId
     ) internal {
         // decode parameters
-        (uint256 tokenId, address from, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
+        (uint256 tokenId, address from) = abi.decode(_data, (uint256, address));
 
         // update the account structure in memory
-        _account.merge(tokenId, amount);
+        uint64 amount = _account.merge(tokenId);
 
         // token being burn must come from caller or the primary account for this accountId
         if (from != msg.sender && !_isPrimaryAccountFor(from, accountId)) revert InvalidFromAddress();

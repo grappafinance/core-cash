@@ -41,7 +41,7 @@ contract TestMergeOption is Fixture {
 
         // merge
         ActionArgs[] memory actions = new ActionArgs[](1);
-        actions[0] = createMergeAction(newTokenId, address(this), amount);
+        actions[0] = createMergeAction(newTokenId, address(this));
         grappa.execute(address(this), actions);
         (uint256 shortCallId, , , , , ) = grappa.marginAccounts(address(this));
 
@@ -62,7 +62,7 @@ contract TestMergeOption is Fixture {
         uint256 amountToRemove = depositAmount - (higherStrike - strikePrice);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createMergeAction(newTokenId, address(this), amount);
+        actions[0] = createMergeAction(newTokenId, address(this));
         actions[1] = createRemoveCollateralAction(amountToRemove, address(this));
         grappa.execute(address(this), actions);
 
@@ -76,7 +76,7 @@ contract TestMergeOption is Fixture {
         mintOptionFor(address(this), newTokenId, productId, amount);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createMergeAction(newTokenId, address(this), amount);
+        actions[0] = createMergeAction(newTokenId, address(this));
         actions[1] = createRemoveCollateralAction(depositAmount, address(this));
         grappa.execute(address(this), actions);
 

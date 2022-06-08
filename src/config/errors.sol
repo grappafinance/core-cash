@@ -24,8 +24,6 @@ error MergeProductMismatch();
 
 error MergeExpiryMismatch();
 
-error MergeAmountMismatch();
-
 error MergeWithSameStrike();
 
 error CanOnlySplitSpread();
