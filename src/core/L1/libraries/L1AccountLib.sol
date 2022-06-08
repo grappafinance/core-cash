@@ -150,7 +150,7 @@ library L1AccountLib {
         amount = isSplitingCallSpread ? account.shortCallAmount : account.shortPutAmount;
 
         // we expected the existing "shortId" to be a spread
-        (TokenType spreadType, uint32 productId, uint64 expiry, , uint64 shortStrike) = OptionTokenUtils.parseTokenId(
+        (TokenType spreadType, uint32 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) = OptionTokenUtils.parseTokenId(
             spreadId
         );
 
@@ -159,13 +159,13 @@ library L1AccountLib {
 
         if (isSplitingCallSpread) {
             // remove the "short strike" field of the shorted "option token"
-            account.shortCallId = (account.shortCallId >> 64) << 64;
+            account.shortCallId = OptionTokenUtils.formatTokenId(TokenType.CALL, productId, expiry, longStrike, 0);
 
             // token to be "minted" is removed "short strike" of shorted token as the new "long strike"
             mintingTokenId = OptionTokenUtils.formatTokenId(TokenType.CALL, productId, expiry, shortStrike, 0);
         } else {
             // remove the "short strike" field of the shorted "option token"
-            account.shortPutId = (account.shortPutId >> 64) << 64;
+            account.shortPutId = OptionTokenUtils.formatTokenId(TokenType.PUT, productId, expiry, longStrike, 0);
 
             // token to be "minted" is removed "short strike" of shorted token as the new "long strike"
             mintingTokenId = OptionTokenUtils.formatTokenId(TokenType.PUT, productId, expiry, shortStrike, 0);
