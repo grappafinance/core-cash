@@ -170,8 +170,4 @@ library L1AccountLib {
             mintingTokenId = OptionTokenUtils.formatTokenId(TokenType.PUT, productId, expiry, shortStrike, 0);
         }
     }
-
-    ///@dev split an MarginAccount with spread into short + long
-    ///@param account Account memory that will be updated in-place
-    function split(Account memory account, bytes memory _data) internal {}
 }
