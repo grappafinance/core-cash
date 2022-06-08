@@ -72,6 +72,7 @@ contract MarginAccount is IMarginAccount, Ownable, ReentrancyGuard {
             else if (actions[i].action == ActionType.MintShort) _mintOption(account, actions[i].data);
             else if (actions[i].action == ActionType.BurnShort) _burnOption(account, actions[i].data, _accountId);
             else if (actions[i].action == ActionType.MergeOptionToken) _merge(account, actions[i].data, _accountId);
+            else if (actions[i].action == ActionType.SplitOptionToken) _split(account, actions[i].data);
 
             // increase i without checking overflow
             unchecked {
@@ -169,6 +170,19 @@ contract MarginAccount is IMarginAccount, Ownable, ReentrancyGuard {
         if (from != msg.sender && !_isPrimaryAccountFor(from, accountId)) revert InvalidFromAddress();
 
         optionToken.burn(from, tokenId, amount);
+    }
+
+    /**
+     * @dev Change existing spread position to short, and mint option token for recipient
+     */
+    function _split(Account memory _account, bytes memory _data) internal {
+        // decode parameters
+        (TokenType tokenType, address recipient) = abi.decode(_data, (TokenType, address));
+
+        // update the account structure in memory
+        (uint256 tokenId, uint64 amount) = _account.split(tokenType);
+
+        optionToken.mint(recipient, tokenId, amount);
     }
 
     /**

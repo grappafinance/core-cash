@@ -13,6 +13,6 @@ enum ActionType {
     RemoveCollateral,
     MintShort,
     BurnShort,
-    SplitOptionToken,
-    MergeOptionToken
+    MergeOptionToken,
+    SplitOptionToken
 }
