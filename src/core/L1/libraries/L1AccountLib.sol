@@ -94,11 +94,7 @@ library L1AccountLib {
     ///@param tokenId token to be "added" into the account. This is expected to have the same time of the exisiting short type.
     ///               e.g: if the account currenly have short call, we can added another "call token" into the account
     ///               and convert the short position to a spread.
-    function merge(
-        Account memory account,
-        uint256 tokenId,
-        uint64 amount
-    ) internal pure {
+    function merge(Account memory account, uint256 tokenId) internal pure returns (uint64 amount) {
         // get token attribute for incoming token
         (TokenType optionType, uint32 productId, uint64 expiry, uint64 mergingStrike, ) = OptionTokenUtils.parseTokenId(
             tokenId
@@ -110,7 +106,7 @@ library L1AccountLib {
         // check the existing short position
         bool isMergingCall = optionType == TokenType.CALL;
         uint256 shortId = isMergingCall ? account.shortCallId : account.shortPutId;
-        uint256 shortAmount = isMergingCall ? account.shortCallAmount : account.shortPutAmount;
+        amount = isMergingCall ? account.shortCallAmount : account.shortPutAmount;
 
         (TokenType shortType, uint32 productId_, uint64 expiry_, uint64 tokenLongStrike_, ) = OptionTokenUtils
             .parseTokenId(shortId);
@@ -120,16 +116,58 @@ library L1AccountLib {
 
         if (productId_ != productId) revert MergeProductMismatch();
         if (expiry_ != expiry) revert MergeExpiryMismatch();
-        if (shortAmount != amount) revert MergeAmountMismatch();
 
         if (tokenLongStrike_ == mergingStrike) revert MergeWithSameStrike();
 
         if (optionType == TokenType.CALL) {
-            // adding the "strike of the adding token" to the "long strike" field of the existing "option token"
+            // adding the "strike of the adding token" to the "short strike" field of the existing "option token"
             account.shortCallId = account.shortCallId + mergingStrike;
         } else {
-            // adding the "strike of the adding token" to the "long strike" field of the existing "option token"
+            // adding the "strike of the adding token" to the "short strike" field of the existing "option token"
             account.shortPutId = account.shortPutId + mergingStrike;
+        }
+    }
+
+    ///@dev split an accunt's spread position into short + 1 token
+    ///@param account Account memory that will be updated in-place
+    ///@param optionType to split call spread or put spread. Must be either
+    function split(Account memory account, TokenType optionType)
+        internal
+        pure
+        returns (uint256 mintingTokenId, uint64 amount)
+    {
+        // token being added can only be call or put
+        if (optionType != TokenType.CALL_SPREAD && optionType != TokenType.PUT_SPREAD) revert CanOnlySplitSpread();
+
+        // check the existing short position
+        bool isSplitingCallSpread = optionType == TokenType.CALL_SPREAD;
+        uint256 spreadId = isSplitingCallSpread ? account.shortCallId : account.shortPutId;
+        amount = isSplitingCallSpread ? account.shortCallAmount : account.shortPutAmount;
+
+        // we expected the existing "shortId" to be a spread
+        (
+            TokenType spreadType,
+            uint32 productId,
+            uint64 expiry,
+            uint64 longStrike,
+            uint64 shortStrike
+        ) = OptionTokenUtils.parseTokenId(spreadId);
+
+        // if exisiting type is not spread, it will revert
+        if (spreadType != optionType) revert MergeTypeMismatch();
+
+        if (isSplitingCallSpread) {
+            // remove the "short strike" field of the shorted "option token"
+            account.shortCallId = OptionTokenUtils.formatTokenId(TokenType.CALL, productId, expiry, longStrike, 0);
+
+            // token to be "minted" is removed "short strike" of shorted token as the new "long strike"
+            mintingTokenId = OptionTokenUtils.formatTokenId(TokenType.CALL, productId, expiry, shortStrike, 0);
+        } else {
+            // remove the "short strike" field of the shorted "option token"
+            account.shortPutId = OptionTokenUtils.formatTokenId(TokenType.PUT, productId, expiry, longStrike, 0);
+
+            // token to be "minted" is removed "short strike" of shorted token as the new "long strike"
+            mintingTokenId = OptionTokenUtils.formatTokenId(TokenType.PUT, productId, expiry, shortStrike, 0);
         }
     }
 

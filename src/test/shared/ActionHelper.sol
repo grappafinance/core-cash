@@ -70,11 +70,15 @@ contract ActionHelper {
         action = ActionArgs({action: ActionType.BurnShort, data: abi.encode(tokenId, from, uint64(amount))});
     }
 
-    function createMergeAction(
-        uint256 tokenId,
-        address from,
-        uint256 amount
-    ) internal pure returns (ActionArgs memory action) {
-        action = ActionArgs({action: ActionType.MergeOptionToken, data: abi.encode(tokenId, from, uint64(amount))});
+    function createMergeAction(uint256 tokenId, address from) internal pure returns (ActionArgs memory action) {
+        action = ActionArgs({action: ActionType.MergeOptionToken, data: abi.encode(tokenId, from)});
+    }
+
+    function createSplitAction(TokenType tokenType, address recipient)
+        internal
+        pure
+        returns (ActionArgs memory action)
+    {
+        action = ActionArgs({action: ActionType.SplitOptionToken, data: abi.encode(tokenType, recipient)});
     }
 }

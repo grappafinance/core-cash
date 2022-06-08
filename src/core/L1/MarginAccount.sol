@@ -72,6 +72,7 @@ contract MarginAccount is IMarginAccount, Ownable, ReentrancyGuard {
             else if (actions[i].action == ActionType.MintShort) _mintOption(account, actions[i].data);
             else if (actions[i].action == ActionType.BurnShort) _burnOption(account, actions[i].data, _accountId);
             else if (actions[i].action == ActionType.MergeOptionToken) _merge(account, actions[i].data, _accountId);
+            else if (actions[i].action == ActionType.SplitOptionToken) _split(account, actions[i].data);
 
             // increase i without checking overflow
             unchecked {
@@ -160,15 +161,28 @@ contract MarginAccount is IMarginAccount, Ownable, ReentrancyGuard {
         address accountId
     ) internal {
         // decode parameters
-        (uint256 tokenId, address from, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
+        (uint256 tokenId, address from) = abi.decode(_data, (uint256, address));
 
         // update the account structure in memory
-        _account.merge(tokenId, amount);
+        uint64 amount = _account.merge(tokenId);
 
         // token being burn must come from caller or the primary account for this accountId
         if (from != msg.sender && !_isPrimaryAccountFor(from, accountId)) revert InvalidFromAddress();
 
         optionToken.burn(from, tokenId, amount);
+    }
+
+    /**
+     * @dev Change existing spread position to short, and mint option token for recipient
+     */
+    function _split(Account memory _account, bytes memory _data) internal {
+        // decode parameters
+        (TokenType tokenType, address recipient) = abi.decode(_data, (TokenType, address));
+
+        // update the account structure in memory
+        (uint256 tokenId, uint64 amount) = _account.split(tokenType);
+
+        optionToken.mint(recipient, tokenId, amount);
     }
 
     /**
