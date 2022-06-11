@@ -133,13 +133,11 @@ contract TestActionGas is Test, Utilities, ActionHelper {
     }
 
     function testMintCall() public {
-        uint64 mintAmount = uint64(1 * UNIT);
         bytes memory data = abi.encode(callId, address(this), mintAmount);
         tester.mintOption(accountWithCollateral, data);
     }
 
     function testMintWithAccountAlreadyHaveCall() public {
-        uint64 mintAmount = uint64(1 * UNIT);
         bytes memory data = abi.encode(callId, address(this), mintAmount);
         tester.mintOption(accountWithCall, data);
     }
@@ -158,7 +156,6 @@ contract TestActionGas is Test, Utilities, ActionHelper {
 
     function testMerge() public {
         // mint some long
-        uint64 mintAmount = uint64(1 * UNIT);
         bytes memory mintData = abi.encode(higherCallId, address(this), mintAmount);
         tester.mintOption(accountWithCollateral, mintData);
 
