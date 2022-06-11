@@ -3,6 +3,7 @@ pragma solidity ^0.8.13;
 
 import {MarginAccount} from "src/core/L1/MarginAccount.sol";
 import "src/config/types.sol";
+
 /**
  * @title MarginAccountGasTester
  * @dev this contract is only used to expose internal functions to be availabel in gas reports.

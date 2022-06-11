@@ -17,7 +17,6 @@ import "src/config/types.sol";
 import "src/config/constants.sol";
 import "src/config/errors.sol";
 
-
 import {ActionHelper} from "src/test/shared/ActionHelper.sol";
 
 /**
@@ -25,12 +24,11 @@ import {ActionHelper} from "src/test/shared/ActionHelper.sol";
         Instead, it's only used to give us better insight of how each action is performing gas-wise
  */
 contract TestActionGas is Test, Utilities, ActionHelper {
-
     MockERC20 public usdc;
     MockERC20 public weth;
     MockOracle public oracle;
     OptionToken public option;
-    MarginAccountGasTester public tester; 
+    MarginAccountGasTester public tester;
 
     uint32 public productId;
     uint32 public productIdEthCollat;
@@ -111,7 +109,6 @@ contract TestActionGas is Test, Utilities, ActionHelper {
         actions2[0] = createAddCollateralAction(productId, address(this), depositAmount);
         actions2[1] = createMintAction(callSpreadId, address(this), mintAmount);
         tester.execute(accountWithSpread, actions2);
-                
     }
 
     function testAddCollateralGas() public {
@@ -175,7 +172,6 @@ contract TestActionGas is Test, Utilities, ActionHelper {
         bytes memory data = abi.encode(TokenType.CALL_SPREAD, address(this));
         tester.split(accountWithSpread, data);
     }
-
 
     function onERC1155Received(
         address,
