@@ -47,6 +47,11 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
 
     constructor(address _optionToken, address _oracle) Settlement(_optionToken, _oracle) {}
 
+    /** 
+     * @notice get minimum collateral needed for a margin account
+     * @param _accountId account id.
+     * @return minCollateral minimum collateral required, in collateral asset's decimals
+     */
     function getMinCollateral(address _accountId) external view returns (uint256 minCollateral) {
         Account memory account = marginAccounts[_accountId];
         MarginAccountDetail memory detail = _getAccountDetail(account);
@@ -211,6 +216,8 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
 
     /**
      * @notice get minimum collateral needed for a margin account
+     * @param detail account memory dtail
+     * @return minCollateral minimum collateral required, in collateral asset's decimals
      */
     function _getMinCollateral(MarginAccountDetail memory detail) internal view returns (uint256 minCollateral) {
         ProductAssets memory assets = _getProductAssets(detail.productId);
@@ -231,13 +238,14 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
             collateralStrikePrice,
             productParams[detail.productId]
         );
+
         minCollateral = _convertDecimals(minCollateralInUnit, UNIT_DECIMALS, assets.collateralDecimals);
     }
 
     /**
      * @dev convert Account struct from storage to in-memory detail struct
      */
-    function _getAccountDetail(Account memory account) internal view returns (MarginAccountDetail memory detail) {
+    function _getAccountDetail(Account memory account) internal pure returns (MarginAccountDetail memory detail) {
         detail = MarginAccountDetail({
             putAmount: account.shortPutAmount,
             callAmount: account.shortCallAmount,
@@ -276,6 +284,9 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
         detail.expiry = expiry;
     }
 
+    /**
+     * @dev get a struct that stores all relevent token addresses, along with collateral asset decimals
+     */
     function _getProductAssets(uint32 _productId) internal view returns (ProductAssets memory info) {
         (address underlying, address strike, address collateral, uint8 collatDecimals) = parseProductId(_productId);
         info.underlying = underlying;
