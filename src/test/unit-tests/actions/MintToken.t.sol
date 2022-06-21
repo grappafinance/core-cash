@@ -21,7 +21,7 @@ contract TestMintVanillaOption is Fixture {
         oracle.setSpotPrice(3000 * UNIT);
     }
 
-    function testMintVanilaCall() public {
+    function testMintCall() public {
         uint256 depositAmount = 10000 * 1e6;
 
         uint256 strikePrice = 4000 * UNIT;
@@ -40,6 +40,22 @@ contract TestMintVanillaOption is Fixture {
         assertEq(shortPutId, 0);
         assertEq(shortCallAmount, amount);
         assertEq(shortPutAmount, 0);
+    }
+
+    function testCannotMintCallWithLittleCollateral() public {
+        uint256 depositAmount = 100 * 1e6;
+
+        uint256 strikePrice = 4000 * UNIT;
+        uint256 amount = 1 * UNIT;
+
+        uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
+
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        actions[0] = createAddCollateralAction(productId, address(this), depositAmount);
+        actions[1] = createMintAction(tokenId, address(this), amount);
+
+        vm.expectRevert(AccountUnderwater.selector);
+        grappa.execute(address(this), actions);
     }
 
     function testMintCallSpread() public {
@@ -66,8 +82,8 @@ contract TestMintVanillaOption is Fixture {
         assertEq(shortPutAmount, 0);
     }
 
-    function testMintVanilaPut() public {
-        uint256 depositAmount = 10000 * 1e6;
+    function testMintPut() public {
+        uint256 depositAmount = 1000 * 1e6;
 
         uint256 strikePrice = 2000 * UNIT;
         uint256 amount = 1 * UNIT;
@@ -85,6 +101,22 @@ contract TestMintVanillaOption is Fixture {
         assertEq(shortPutId, tokenId);
         assertEq(shortCallAmount, 0);
         assertEq(shortPutAmount, amount);
+    }
+
+    function testCannotMintPutWithLittleCollateral() public {
+        uint256 depositAmount = 100 * 1e6;
+
+        uint256 strikePrice = 2000 * UNIT;
+        uint256 amount = 1 * UNIT;
+
+        uint256 tokenId = getTokenId(TokenType.PUT, productId, expiry, strikePrice, 0);
+
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        actions[0] = createAddCollateralAction(productId, address(this), depositAmount);
+        actions[1] = createMintAction(tokenId, address(this), amount);
+
+        vm.expectRevert(AccountUnderwater.selector);
+        grappa.execute(address(this), actions);
     }
 
     function testMintPutSpread() public {

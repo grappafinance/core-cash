@@ -9,28 +9,60 @@ import "src/config/errors.sol";
 library L1MarginMathLib {
     using FixedPointMathLib for uint256;
 
+    /**
+     * @notice get minimum collateral denominated in strike asset
+     * @param _account margin account
+     * @param _assets product asset detail
+     * @param _spotUnderlyingStrike underlying/strike spot price
+     * @param _spotCollateralStrike collateral/strike spot price, can be 0 if collateral = strike
+     * @param _param specific product parameters
+     */
     function getMinCollateral(
         MarginAccountDetail memory _account,
+        ProductAssets memory _assets,
+        uint256 _spotUnderlyingStrike,
+        uint256 _spotCollateralStrike,
+        ProductMarginParams memory _param
+    ) internal view returns (uint256 minCollatUnit) {
+        // this is denominated in strike, with {UNIT_DECIMALS} decimals
+        uint256 minCollatValueInStrike = getMinCollateralInStrike(_account, _spotUnderlyingStrike, _param);
+
+        if (_assets.collateral == _assets.strike) return minCollatValueInStrike;
+
+        // if collateral is not strike, calculate how much collateral needed by devidede by collat price.
+        // will revert if _spotCollateralStrike is 0.
+        minCollatUnit = minCollatValueInStrike.mulDivUp(UNIT_DECIMALS, _spotCollateralStrike);
+    }
+
+    /**
+     * @notice get minimum collateral denominated in strike asset
+     * @param _account margin account
+     * @param _spot underlying/strike spot price
+     * @param _params specific product parameters
+     * @return minCollatValueInStrike minimum collateral in strike (USD) value. with {BASE_UNIT} decimals
+     */
+    function getMinCollateralInStrike(
+        MarginAccountDetail memory _account,
         uint256 _spot,
-        ProductMarginParams memory params
-    ) internal view returns (uint256) {
+        ProductMarginParams memory _params
+    ) internal view returns (uint256 minCollatValueInStrike) {
         // don't need collateral
         if (_account.putAmount == 0 && _account.callAmount == 0) return 0;
 
-        if (params.discountRatioUpperBound == 0) revert InvalidConfig();
+        if (_params.discountRatioUpperBound == 0) revert InvalidConfig();
 
         // we only have short put
         if (_account.callAmount == 0) {
-            return getMinCollateralForPutSpread(_account, _spot, params);
+            return getMinCollateralForPutSpread(_account, _spot, _params);
         }
-
         // we only have short call
         if (_account.putAmount == 0) {
-            return getMinCollateralForCallSpread(_account, _spot, params);
+            return getMinCollateralForCallSpread(_account, _spot, _params);
         }
-
         // we have both call and short
-        return getMinCollateralForDoubleShort(_account, _spot, params);
+        else {
+            return getMinCollateralForDoubleShort(_account, _spot, _params);
+        }
     }
 
     function getMinCollateralForDoubleShort(
@@ -73,10 +105,11 @@ library L1MarginMathLib {
         );
         if (_account.longCallStrike == 0) return minCollateralShortCall;
 
-        // we calculate the max loss of spread, dominated in collateral
-        uint256 maxLoss = (_account.longCallStrike - _account.shortCallStrike).mulDivUp(_account.callAmount, UNIT);
-
-        return min(maxLoss, minCollateralShortCall);
+        // we calculate the max loss of spread, dominated in strke asset (usually USD)
+        unchecked {
+            uint256 maxLoss = (_account.longCallStrike - _account.shortCallStrike).mulDivUp(_account.callAmount, UNIT);
+            return min(maxLoss, minCollateralShortCall);
+        }
     }
 
     function getMinCollateralForPutSpread(
@@ -99,9 +132,10 @@ library L1MarginMathLib {
         if (_account.longPutStrike == 0) return minCollateralShortPut;
 
         // we calculate the max loss of the put spread
-        uint256 maxLoss = (_account.shortPutStrike - _account.longPutStrike).mulDivUp(_account.putAmount, UNIT);
-
-        return min(minCollateralShortPut, maxLoss);
+        unchecked {
+            uint256 maxLoss = (_account.shortPutStrike - _account.longPutStrike).mulDivUp(_account.putAmount, UNIT);
+            return min(minCollateralShortPut, maxLoss);
+        }
     }
 
     ///@notice get the minimum collateral for a naked short option
