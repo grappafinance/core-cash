@@ -28,7 +28,10 @@ struct MarginAccountDetail {
     uint256 expiry;
     uint256 collateralAmount;
     uint32 productId;
-    bool isStrikeCollateral;
+    // product assets detail
+    address underlying;
+    address strike;
+    address collateral;
 }
 
 struct ProductMarginParams {

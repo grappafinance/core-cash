@@ -212,7 +212,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
     /**
      * @dev convert Account struct from storage to in-memory detail struct
      */
-    function _getAccountDetail(Account memory account) internal pure returns (MarginAccountDetail memory detail) {
+    function _getAccountDetail(Account memory account) internal view returns (MarginAccountDetail memory detail) {
         detail = MarginAccountDetail({
             putAmount: account.shortPutAmount,
             callAmount: account.shortCallAmount,
@@ -222,7 +222,9 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
             shortCallStrike: 0,
             expiry: 0,
             collateralAmount: account.collateralAmount,
-            isStrikeCollateral: false,
+            strike: address(0),
+            collateral: address(0),
+            underlying: address(0),
             productId: 0
         });
 
@@ -248,8 +250,13 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
         uint256 commonId = account.shortPutId | account.shortCallId;
 
         (, uint32 productId, uint64 expiry, , ) = OptionTokenUtils.parseTokenId(commonId);
+        (address underlying, address strike, address collateral,) = parseProductId(productId);
         detail.productId = productId;
         detail.expiry = expiry;
+
+        detail.underlying = underlying;
+        detail.strike = strike;
+        detail.collateral = collateral;
     }
 
     /**

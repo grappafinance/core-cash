@@ -13,7 +13,7 @@ library L1MarginMathLib {
         MarginAccountDetail memory _account,
         uint256 _spot,
         ProductMarginParams memory params
-    ) internal view returns (uint256) {
+    ) internal view returns (uint256 minCollatValueInStrike) {
         // don't need collateral
         if (_account.putAmount == 0 && _account.callAmount == 0) return 0;
 
@@ -21,16 +21,21 @@ library L1MarginMathLib {
 
         // we only have short put
         if (_account.callAmount == 0) {
-            return getMinCollateralForPutSpread(_account, _spot, params);
+            minCollatValueInStrike = getMinCollateralForPutSpread(_account, _spot, params);
         }
 
         // we only have short call
-        if (_account.putAmount == 0) {
-            return getMinCollateralForCallSpread(_account, _spot, params);
+        else if (_account.putAmount == 0) {
+            minCollatValueInStrike = getMinCollateralForCallSpread(_account, _spot, params);
         }
 
         // we have both call and short
-        return getMinCollateralForDoubleShort(_account, _spot, params);
+        else {
+            minCollatValueInStrike = getMinCollateralForDoubleShort(_account, _spot, params);
+        }
+
+        // convert collat value into asset
+        
     }
 
     function getMinCollateralForDoubleShort(
