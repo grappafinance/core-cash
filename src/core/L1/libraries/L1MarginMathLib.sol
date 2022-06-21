@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity =0.8.13;
 
-import "forge-std/console2.sol";
-
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import "src/config/constants.sol";
 import "src/config/types.sol";

@@ -48,3 +48,10 @@ struct ActionArgs {
     ActionType action;
     bytes data;
 }
+
+struct AssetDetail {
+    /// @dev use uint160 to store address
+    uint160 addr;
+    /// @dev store decimals locally
+    uint8 decimals;
+}

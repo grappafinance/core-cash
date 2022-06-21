@@ -10,7 +10,7 @@ import "src/config/types.sol";
  *      so we can better optimize each action functions
  */
 contract MarginAccountGasTester is MarginAccount {
-    constructor(address _optionToken) MarginAccount(_optionToken) {}
+    constructor(address _optionToken, address _oracle) MarginAccount(_optionToken, _oracle) {}
 
     function addCollateral(address _accountId, bytes calldata _data) external {
         Account memory account = marginAccounts[_accountId];

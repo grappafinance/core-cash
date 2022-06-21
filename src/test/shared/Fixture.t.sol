@@ -44,16 +44,16 @@ abstract contract Fixture is Test, ActionHelper, Utilities {
 
         // predit address of margin account and use it here
         address marginAccountAddr = addressFrom(address(this), 5);
-        option = new OptionToken(address(oracle), marginAccountAddr); // nonce: 4
+        option = new OptionToken(marginAccountAddr); // nonce: 4
 
-        grappa = new MarginAccount(address(option)); // nonce 5
+        grappa = new MarginAccount(address(option), address(oracle)); // nonce 5
 
         // register products
-        option.registerAsset(address(usdc));
-        option.registerAsset(address(weth));
+        grappa.registerAsset(address(usdc));
+        grappa.registerAsset(address(weth));
 
-        productId = option.getProductId(address(weth), address(usdc), address(usdc));
-        productIdEthCollat = option.getProductId(address(weth), address(usdc), address(weth));
+        productId = grappa.getProductId(address(weth), address(usdc), address(usdc));
+        productIdEthCollat = grappa.getProductId(address(weth), address(usdc), address(weth));
 
         grappa.setProductMarginConfig(productId, 180 days, 1 days, 6400, 800, 1000);
         grappa.setProductMarginConfig(productIdEthCollat, 180 days, 1 days, 6400, 800, 1000);
