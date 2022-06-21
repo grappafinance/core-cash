@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity =0.8.13;
 
-import "forge-std/console2.sol";
 import {AssetDetail} from "src/config/types.sol";
 import {IERC20Metadata} from "openzeppelin/token/ERC20/extensions/IERC20Metadata.sol";
 import {Ownable} from "openzeppelin/access/Ownable.sol";
 
 contract AssetRegistry is Ownable {
     error AlreadyRegistered();
-    error NotAuthorized();
 
     /// @dev next id used to represent an address
     uint8 public nextId;
@@ -18,9 +16,6 @@ contract AssetRegistry is Ownable {
 
     /// @dev address => assetId
     mapping(address => uint8) public ids;
-
-    /// @dev address => authorized to mint
-    // mapping(address => bool) public isMinter;
 
     /// Events
 

@@ -22,11 +22,9 @@ import "src/config/errors.sol";
             The value of each OptionType should always be positive.
  */
 contract OptionToken is ERC1155, IOptionToken {
-    // IOracle public immutable oracle;
     address public immutable marginAccount;
 
     constructor(address _marginAccount) {
-        // oracle = IOracle(_oracle);
         marginAccount = _marginAccount;
     }
 
@@ -37,34 +35,34 @@ contract OptionToken is ERC1155, IOptionToken {
         return "https://grappa.maybe";
     }
 
-    ///@dev mint option token to an address. Can only be called by authorized contracts
-    ///@param _recipient where to mint token to
-    ///@param _tokenId tokenId to mint
-    ///@param _amount amount to mint
+    ///@dev mint option token to an address. Can only be called by marginAccount
+    ///@param _recipient    where to mint token to
+    ///@param _tokenId      tokenId to mint
+    ///@param _amount       amount to mint
     function mint(
         address _recipient,
         uint256 _tokenId,
         uint256 _amount
     ) external {
-        _checkCanMint();
+        _checkAccess();
         _mint(_recipient, _tokenId, _amount, "");
     }
 
-    ///@dev burn option token from an address. Can only be called by authorized contracts
-    ///@param _from who's account to burn from
-    ///@param _tokenId tokenId to burn
-    ///@param _amount amount to burn
+    ///@dev burn option token from an address. Can only be called by marginAccount
+    ///@param _from         account to burn from
+    ///@param _tokenId      tokenId to burn
+    ///@param _amount       amount to burn
     function burn(
         address _from,
         uint256 _tokenId,
         uint256 _amount
     ) external {
-        _checkCanMint();
+        _checkAccess();
         _burn(_from, _tokenId, _amount);
     }
 
-    ///@dev check if a rule has minter previlidge
-    function _checkCanMint() internal view {
+    ///@dev check if msg.sender is the marginAccount
+    function _checkAccess() internal view {
         if (msg.sender != marginAccount) revert NoAccess();
     }
 }

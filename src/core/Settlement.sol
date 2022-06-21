@@ -74,6 +74,7 @@ contract Settlement is AssetRegistry {
         // payout is denominated in strike asset (usually USD), with BASE decimals (6)
         payout = cashValue.mulDivDown(_amount, UNIT);
 
+        // the following logic convert payout amount if collateral is not strike:
         if (collateral == underlying) {
             // collateral is underlying. payout should be devided by underlying price
             payout = payout.mulDivDown(UNIT, expiryPrice);
