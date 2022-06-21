@@ -297,7 +297,7 @@ contract TestSettleCallSpread is Fixture {
         vm.stopPrank();
     }
 
-    function testShouldGetPayoutDiffereceBetweenSpotAndLongStrike() public {
+    function testShouldGetPayoutDifferenceBetweenSpotAndLongStrike() public {
         // expires in the money, not higher than upper bond
         uint256 expiryPrice = 4100 * UNIT;
         oracle.setExpiryPrice(expiryPrice);
@@ -399,7 +399,7 @@ contract TestSettlePutSpread is Fixture {
         vm.stopPrank();
     }
 
-    function testShouldGetPayoutDiffereceBetweenSpotAndLongStrike() public {
+    function testShouldGetPayoutDifferenceBetweenSpotAndLongStrike() public {
         // expires in the money, not lower than lower bond
         uint256 expiryPrice = 1900 * UNIT;
         oracle.setExpiryPrice(expiryPrice);
