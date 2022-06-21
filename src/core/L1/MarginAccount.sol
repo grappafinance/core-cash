@@ -51,7 +51,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
         Account memory account = marginAccounts[_accountId];
         MarginAccountDetail memory detail = _getAccountDetail(account);
 
-        minCollateral = detail.getMinCollateralInStrike(getSpot(detail.productId), productParams[detail.productId]);
+        minCollateral = _getMinCollateral(detail);
     }
 
     /**
@@ -204,22 +204,34 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
     function _assertAccountHealth(Account memory account) internal view {
         MarginAccountDetail memory detail = _getAccountDetail(account);
 
+        uint256 minCollateral = _getMinCollateral(detail);
+
+        if (account.collateralAmount < minCollateral) revert AccountUnderwater();
+    }
+
+    /**
+     * @notice get minimum collateral needed for a margin account
+     */
+    function _getMinCollateral(MarginAccountDetail memory detail) internal view returns (uint256 minCollateral) {
+        ProductAssets memory assets = _getProductAssets(detail.productId);
+
         // denominated in {UNIT_DECIMALS}
-        uint256 spotPrice = getSpot(detail.productId);
+        uint256 spotPrice = oracle.getSpotPrice(assets.underlying, assets.strike);
 
         // need to pass in collateral/strike price. Pass in 0 if collateral is strike to save gas.
-        uint256 collateralStrikePrice = detail.strike == detail.collateral
-            ? 0
-            : oracle.getSpotPrice(detail.collateral, detail.strike);
+        uint256 collateralStrikePrice = 0;
+        if (assets.collateral == assets.underlying) collateralStrikePrice = spotPrice;
+        else if (assets.collateral != assets.strike) {
+            collateralStrikePrice = oracle.getSpotPrice(assets.collateral, assets.strike);
+        }
 
         uint256 minCollateralInUnit = detail.getMinCollateral(
+            assets,
             spotPrice,
             collateralStrikePrice,
             productParams[detail.productId]
         );
-        uint256 minCollateral = _convertDecimals(minCollateralInUnit, UNIT_DECIMALS, detail.collateralDecimals);
-
-        if (account.collateralAmount < minCollateral) revert AccountUnderwater();
+        minCollateral = _convertDecimals(minCollateralInUnit, UNIT_DECIMALS, assets.collateralDecimals);
     }
 
     /**
@@ -235,10 +247,6 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
             shortCallStrike: 0,
             expiry: 0,
             collateralAmount: account.collateralAmount,
-            strike: address(0),
-            collateral: address(0),
-            underlying: address(0),
-            collateralDecimals: 0,
             productId: 0
         });
 
@@ -264,17 +272,17 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
         uint256 commonId = account.shortPutId | account.shortCallId;
 
         (, uint32 productId, uint64 expiry, , ) = OptionTokenUtils.parseTokenId(commonId);
-        (address underlying, address strike, address collateral, uint8 collatDecimals) = parseProductId(productId);
         detail.productId = productId;
         detail.expiry = expiry;
-
-        // store
-        detail.underlying = underlying;
-        detail.strike = strike;
-        detail.collateral = collateral;
-        detail.collateralDecimals = collatDecimals;
     }
 
+    function _getProductAssets(uint32 _productId) internal view returns (ProductAssets memory info) {
+        (address underlying, address strike, address collateral, uint8 collatDecimals) = parseProductId(_productId);
+        info.underlying = underlying;
+        info.strike = strike;
+        info.collateral = collateral;
+        info.collateralDecimals = collatDecimals;
+    }
     /**
      * @notice set the margin config for specific productId
      * @param _productId product id

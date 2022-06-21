@@ -12,12 +12,14 @@ library L1MarginMathLib {
     /**
      * @notice get minimum collateral denominated in strike asset
      * @param _account margin account
+     * @param _assets product asset detail
      * @param _spotUnderlyingStrike underlying/strike spot price
      * @param _spotCollateralStrike collateral/strike spot price, can be 0 if collateral = strike
      * @param _param specific product parameters
      */
     function getMinCollateral(
         MarginAccountDetail memory _account,
+        ProductAssets memory _assets,
         uint256 _spotUnderlyingStrike,
         uint256 _spotCollateralStrike,
         ProductMarginParams memory _param
@@ -25,7 +27,7 @@ library L1MarginMathLib {
         // this is denominated in strike, with {UNIT_DECIMALS} decimals
         uint256 minCollatValueInStrike = getMinCollateralInStrike(_account, _spotUnderlyingStrike, _param);
 
-        if (_account.collateral == _account.strike) return minCollatValueInStrike;
+        if (_assets.collateral == _assets.strike) return minCollatValueInStrike;
 
         // if collateral is not strike, calculate how much collateral needed by devidede by collat price.
         // will revert if _spotCollateralStrike is 0.
