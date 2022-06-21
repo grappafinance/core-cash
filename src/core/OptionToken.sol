@@ -106,7 +106,7 @@ contract OptionToken is ERC1155, IOptionToken, AssetRegistry {
             collateralId := shr(8, _productId)
             // the last 8 bits are not used
         }
-        return (assets[underlyingId], assets[strikeId], assets[collateralId]);
+        return (address(assets[underlyingId].addr), address(assets[strikeId].addr), address(assets[collateralId].addr));
     }
 
     ///@notice  get product id from underlying, strike and collateral address
