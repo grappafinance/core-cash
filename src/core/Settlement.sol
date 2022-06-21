@@ -146,10 +146,10 @@ contract Settlement is AssetRegistry {
     }
 
     /**
-     * @dev   convert decimals
-     * @param  _amount number to convert
+     * @notice convert decimals
+     * @param  _amount      number to convert
      * @param _fromDecimals the decimals _amount is denominated in
-     * @param _toDecimals the destination decimals
+     * @param _toDecimals   the destination decimals
      */
     function toDecimals(
         uint256 _amount,
@@ -159,9 +159,17 @@ contract Settlement is AssetRegistry {
         if (_fromDecimals == _toDecimals) return _amount;
 
         if (_fromDecimals > _toDecimals) {
-            return _amount / (10 ^ (_fromDecimals - _toDecimals));
+            uint8 diff;
+            unchecked {
+                diff = _fromDecimals - _toDecimals;
+            }
+            return _amount / (10**diff);
         } else {
-            return _amount * (10 ^ (_toDecimals - _fromDecimals));
+            uint8 diff;
+            unchecked {
+                diff = _toDecimals - _fromDecimals;
+            }
+            return _amount * (10**diff);
         }
     }
 }
