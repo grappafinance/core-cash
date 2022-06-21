@@ -283,6 +283,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
         info.collateral = collateral;
         info.collateralDecimals = collatDecimals;
     }
+
     /**
      * @notice set the margin config for specific productId
      * @param _productId product id
