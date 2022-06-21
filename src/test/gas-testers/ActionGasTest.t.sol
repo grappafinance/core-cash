@@ -53,17 +53,17 @@ contract TestActionGas is Test, Utilities, ActionHelper {
 
         // predit address of margin account and use it here
         address marginAccountAddr = addressFrom(address(this), 5);
-        option = new OptionToken(address(oracle), marginAccountAddr); // nonce: 4
+        option = new OptionToken(marginAccountAddr); // nonce: 4
 
         // deploy gas tester! (instead of real margin account)
-        tester = new MarginAccountGasTester(address(option)); // nonce 5
+        tester = new MarginAccountGasTester(address(option), address(oracle)); // nonce 5
 
         // register products
-        option.registerAsset(address(usdc));
-        option.registerAsset(address(weth));
+        tester.registerAsset(address(usdc));
+        tester.registerAsset(address(weth));
 
-        productId = option.getProductId(address(weth), address(usdc), address(usdc));
-        productIdEthCollat = option.getProductId(address(weth), address(usdc), address(weth));
+        productId = tester.getProductId(address(weth), address(usdc), address(usdc));
+        productIdEthCollat = tester.getProductId(address(weth), address(usdc), address(weth));
 
         tester.setProductMarginConfig(productId, 180 days, 1 days, 6400, 800, 1000);
         tester.setProductMarginConfig(productIdEthCollat, 180 days, 1 days, 6400, 800, 1000);

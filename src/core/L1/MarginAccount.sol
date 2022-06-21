@@ -13,6 +13,8 @@ import {Ownable} from "openzeppelin/access/Ownable.sol";
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import {ReentrancyGuard} from "solmate/utils/ReentrancyGuard.sol";
 
+import {Settlement} from "src/core/Settlement.sol";
+
 import "src/config/types.sol";
 import "src/config/enums.sol";
 import "src/config/constants.sol";
@@ -26,15 +28,13 @@ import "forge-std/console2.sol";
             Users can deposit collateral into MarginAccount and mint optionTokens (debt) out of it.
             Interacts with OptionToken to mint / burn and get product information.
  */
-contract MarginAccount is IMarginAccount, Ownable, ReentrancyGuard {
+contract MarginAccount is IMarginAccount, Ownable, ReentrancyGuard, Settlement {
     using L1MarginMathLib for MarginAccountDetail;
     using L1AccountLib for Account;
 
     /*///////////////////////////////////////////////////////////////
                                   Variables
     //////////////////////////////////////////////////////////////*/
-
-    IOptionToken public immutable optionToken;
 
     ///@dev accountId => Account.
     ///     accountId can be an address similar to the primary account, but has the last 8 bits different.
@@ -47,15 +47,13 @@ contract MarginAccount is IMarginAccount, Ownable, ReentrancyGuard {
 
     mapping(uint32 => ProductMarginParams) public productParams;
 
-    constructor(address _optionToken) {
-        optionToken = IOptionToken(_optionToken);
-    }
+    constructor(address _optionToken, address _oracle) Settlement(_optionToken, _oracle) {}
 
     function getMinCollateral(address _accountId) external view returns (uint256 minCollateral) {
         Account memory account = marginAccounts[_accountId];
         MarginAccountDetail memory detail = _getAccountDetail(account);
 
-        minCollateral = detail.getMinCollateral(optionToken.getSpot(detail.productId), productParams[detail.productId]);
+        minCollateral = detail.getMinCollateral(getSpot(detail.productId), productParams[detail.productId]);
     }
 
     /**
@@ -97,7 +95,7 @@ contract MarginAccount is IMarginAccount, Ownable, ReentrancyGuard {
         // update the account structure in memory
         _account.addCollateral(amount, productId);
 
-        (, , address collateral) = optionToken.parseProductId(productId);
+        (, , address collateral) = parseProductId(productId);
 
         // collateral must come from caller or the primary account for this accountId
         if (from != msg.sender && !_isPrimaryAccountFor(from, accountId)) revert InvalidFromAddress();
@@ -110,7 +108,7 @@ contract MarginAccount is IMarginAccount, Ownable, ReentrancyGuard {
     function _removeCollateral(Account memory _account, bytes memory _data) internal {
         // decode parameters
         (uint80 amount, address recipient) = abi.decode(_data, (uint80, address));
-        (, , address collateral) = optionToken.parseProductId(_account.productId);
+        (, , address collateral) = parseProductId(_account.productId);
 
         // update the account structure in memory
         _account.removeCollateral(amount);
@@ -209,7 +207,7 @@ contract MarginAccount is IMarginAccount, Ownable, ReentrancyGuard {
         MarginAccountDetail memory detail = _getAccountDetail(account);
 
         uint256 minCollateral = detail.getMinCollateral(
-            optionToken.getSpot(detail.productId),
+            getSpot(detail.productId),
             productParams[detail.productId]
         );
 
@@ -257,17 +255,6 @@ contract MarginAccount is IMarginAccount, Ownable, ReentrancyGuard {
         (, uint32 productId, uint64 expiry, , ) = OptionTokenUtils.parseTokenId(commonId);
         detail.productId = productId;
         detail.expiry = expiry;
-    }
-
-    /**
-     * @notice burn option token and get out cash value at expiry
-     */
-    function settleOption(uint256 _tokenId, uint256 _amount) external {
-        (address collateral, uint256 payout) = optionToken.getOptionPayout(_tokenId, _amount);
-
-        optionToken.burn(msg.sender, _tokenId, _amount);
-
-        IERC20(collateral).transfer(msg.sender, payout);
     }
 
     /**
