@@ -9,7 +9,6 @@ import {OptionTokenUtils} from "src/libraries/OptionTokenUtils.sol";
 import {L1MarginMathLib} from "./libraries/L1MarginMathLib.sol";
 import {L1AccountLib} from "./libraries/L1AccountLib.sol";
 
-import {Ownable} from "openzeppelin/access/Ownable.sol";
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import {ReentrancyGuard} from "solmate/utils/ReentrancyGuard.sol";
 
@@ -27,7 +26,7 @@ import "src/config/errors.sol";
             Users can deposit collateral into MarginAccount and mint optionTokens (debt) out of it.
             Interacts with OptionToken to mint / burn and get product information.
  */
-contract MarginAccount is IMarginAccount, Ownable, ReentrancyGuard, Settlement {
+contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
     using L1MarginMathLib for MarginAccountDetail;
     using L1AccountLib for Account;
 

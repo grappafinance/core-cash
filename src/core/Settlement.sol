@@ -31,8 +31,10 @@ import "src/config/types.sol";
 contract Settlement is AssetRegistry {
     using FixedPointMathLib for uint256;
 
+    /// @dev oracle address
     IOracle public immutable oracle;
 
+    /// @dev optionToken address
     IOptionToken public immutable optionToken;
 
     constructor(address _optionToken, address _oracle) {
@@ -40,9 +42,13 @@ contract Settlement is AssetRegistry {
         optionToken = IOptionToken(_optionToken);
     }
 
-    ///@dev calculate the payout for an expired option token
-    ///@param _tokenId token id of option token
-    ///@param _amount amount to settle
+    /**
+     * @dev calculate the payout for an expired option token
+     * @param _tokenId  token id of option token
+     * @param _amount   amount to settle
+     * @return collateral asset to settle in
+     * @return payout amount paid
+     **/
     function getOptionPayout(uint256 _tokenId, uint256 _amount) public view returns (address, uint256 payout) {
         (
             TokenType tokenType,
@@ -56,9 +62,10 @@ contract Settlement is AssetRegistry {
 
         (address underlying, address strike, address collateral, uint8 collatDecimals) = parseProductId(productId);
 
+        // cash value denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
         uint256 cashValue;
 
-        // get expiry price of underlying, denominated in strike
+        // expiry price of underlying, denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
         uint256 expiryPrice = oracle.getPriceAtExpiry(underlying, strike, expiry);
 
         if (tokenType == TokenType.CALL) {
@@ -71,7 +78,7 @@ contract Settlement is AssetRegistry {
             cashValue = L1MarginMathLib.getCashValuePutDebitSpread(expiryPrice, longStrike, shortStrike);
         }
 
-        // payout is denominated in strike asset (usually USD), with BASE decimals (6)
+        // payout is denominated in strike asset (usually USD), with {UNIT_DECIMALS} decimals
         payout = cashValue.mulDivDown(_amount, UNIT);
 
         // the following logic convert payout amount if collateral is not strike:
@@ -84,11 +91,12 @@ contract Settlement is AssetRegistry {
             payout = payout.mulDivDown(UNIT, collateralPrice);
         }
 
-        return (collateral, toDecimals(payout, UNIT_DECIMALS, collatDecimals));
+        return (collateral, _convertDecimals(payout, UNIT_DECIMALS, collatDecimals));
     }
 
     /**
      * @dev parse product id into composing asset addresses
+     * @param _productId product id
      */
     function parseProductId(uint32 _productId)
         public
@@ -118,8 +126,13 @@ contract Settlement is AssetRegistry {
         );
     }
 
-    ///@notice  get product id from underlying, strike and collateral address
-    ///         function will still return if some of the assets are not registered
+    /**
+     * @notice    get product id from underlying, strike and collateral address
+     * @dev       function will still return even if some of the assets are not registered
+     * @param underlying  underlying address
+     * @param strike      strike address
+     * @param collateral  collateral address
+     */
     function getProductId(
         address underlying,
         address strike,
@@ -128,8 +141,11 @@ contract Settlement is AssetRegistry {
         id = (uint32(ids[underlying]) << 24) + (uint32(ids[strike]) << 16) + (uint32(ids[collateral]) << 8);
     }
 
-    ///@dev get spot price for a productId
-    ///@param _productId productId
+    /**
+     * @dev get spot price for a productId
+     * @param _productId productId
+     * @return spotPrice denominated in UNIT
+     */
     function getSpot(uint32 _productId) public view returns (uint256) {
         (address underlying, address strike, , ) = parseProductId(_productId);
         return oracle.getSpotPrice(underlying, strike);
@@ -137,6 +153,8 @@ contract Settlement is AssetRegistry {
 
     /**
      * @notice burn option token and get out cash value at expiry
+     * @param _tokenId  tokenId of option token to burn
+     * @param _amount   amount to settle
      */
     function settleOption(uint256 _tokenId, uint256 _amount) external {
         (address collateral, uint256 payout) = getOptionPayout(_tokenId, _amount);
@@ -152,7 +170,7 @@ contract Settlement is AssetRegistry {
      * @param _fromDecimals the decimals _amount is denominated in
      * @param _toDecimals   the destination decimals
      */
-    function toDecimals(
+    function _convertDecimals(
         uint256 _amount,
         uint8 _fromDecimals,
         uint8 _toDecimals

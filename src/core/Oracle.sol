@@ -10,7 +10,7 @@ import {IOracle} from "src/interfaces/IOracle.sol";
  */
 contract Oracle is IOracle {
     /**
-     * @dev     get spot price of underlying, denominated in strike asset.
+     * @dev get spot price of underlying, denominated in strike asset.
      */
     function getSpotPrice(
         address, /*_underlying*/
@@ -20,8 +20,8 @@ contract Oracle is IOracle {
     }
 
     /**
-     * @dev     get expiry price of underlying, denominated in strike asset.
-                can revert if expiry is in the future, or the price is not reported by authorized party.
+     * @dev get expiry price of underlying, denominated in strike asset.
+            can revert if expiry is in the future, or the price is not reported by authorized party.
      */
     function getPriceAtExpiry(
         address, /*_underlying*/
