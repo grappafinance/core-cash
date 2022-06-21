@@ -42,12 +42,12 @@ contract Deploy is Script, Utilities {
         address optionTokenAddr = addressFrom(msg.sender, 3);
         // deploy MarginAccount
         bytes memory maCreationCode = type(MarginAccount).creationCode;
-        bytes memory maBytecode = abi.encodePacked(maCreationCode, abi.encode(optionTokenAddr));
+        bytes memory maBytecode = abi.encodePacked(maCreationCode, abi.encode(optionTokenAddr, oracle));
         marginAccount = deployWithLeadingZeros(deployer, 0, maBytecode, 2); // nonce 2
         console.log("marginAccount", marginAccount);
 
         // deploy optionToken directly, just so the address is the same as predicted by `create` (optionTokenAddr) 
-        optionToken = address(new OptionToken(oracle, marginAccount));
+        optionToken = address(new OptionToken(marginAccount));
     }   
 
     function deployWithLeadingZeros(Create2Deployer deployer, uint256 value, bytes memory creationCode, uint8 zerosBytes) 

@@ -95,7 +95,7 @@ contract MarginAccount is IMarginAccount, Ownable, ReentrancyGuard, Settlement {
         // update the account structure in memory
         _account.addCollateral(amount, productId);
 
-        (, , address collateral) = parseProductId(productId);
+        (, , address collateral, ) = parseProductId(productId);
 
         // collateral must come from caller or the primary account for this accountId
         if (from != msg.sender && !_isPrimaryAccountFor(from, accountId)) revert InvalidFromAddress();
@@ -108,7 +108,7 @@ contract MarginAccount is IMarginAccount, Ownable, ReentrancyGuard, Settlement {
     function _removeCollateral(Account memory _account, bytes memory _data) internal {
         // decode parameters
         (uint80 amount, address recipient) = abi.decode(_data, (uint80, address));
-        (, , address collateral) = parseProductId(_account.productId);
+        (, , address collateral, ) = parseProductId(_account.productId);
 
         // update the account structure in memory
         _account.removeCollateral(amount);
@@ -206,10 +206,7 @@ contract MarginAccount is IMarginAccount, Ownable, ReentrancyGuard, Settlement {
     function _assertAccountHealth(Account memory account) internal view {
         MarginAccountDetail memory detail = _getAccountDetail(account);
 
-        uint256 minCollateral = detail.getMinCollateral(
-            getSpot(detail.productId),
-            productParams[detail.productId]
-        );
+        uint256 minCollateral = detail.getMinCollateral(getSpot(detail.productId), productParams[detail.productId]);
 
         if (account.collateralAmount < minCollateral) revert AccountUnderwater();
     }

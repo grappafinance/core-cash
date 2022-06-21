@@ -21,6 +21,7 @@ import {IERC20} from "src/interfaces/IERC20.sol";
 import "src/config/enums.sol";
 import "src/config/constants.sol";
 import "src/config/errors.sol";
+import "src/config/types.sol";
 
 /**
  * @title   Settlement
@@ -42,11 +43,7 @@ contract Settlement is AssetRegistry {
     ///@dev calculate the payout for an expired option token
     ///@param _tokenId token id of option token
     ///@param _amount amount to settle
-    function getOptionPayout(uint256 _tokenId, uint256 _amount)
-        public
-        view
-        returns (address collateral, uint256 payout)
-    {
+    function getOptionPayout(uint256 _tokenId, uint256 _amount) public view returns (address, uint256 payout) {
         (
             TokenType tokenType,
             uint32 productId,
@@ -57,10 +54,11 @@ contract Settlement is AssetRegistry {
 
         if (block.timestamp < expiry) revert NotExpired();
 
-        (address underlying, address strike, address _collateral) = parseProductId(productId);
+        (address underlying, address strike, address collateral, uint8 collatDecimals) = parseProductId(productId);
 
         uint256 cashValue;
 
+        // get expiry price of underlying, denominated in strike
         uint256 expiryPrice = oracle.getPriceAtExpiry(underlying, strike, expiry);
 
         if (tokenType == TokenType.CALL) {
@@ -73,21 +71,32 @@ contract Settlement is AssetRegistry {
             cashValue = L1MarginMathLib.getCashValuePutDebitSpread(expiryPrice, longStrike, shortStrike);
         }
 
-        payout = cashValue.mulDivUp(_amount, UNIT);
+        // payout is denominated in strike asset (usually USD), with BASE decimals (6)
+        payout = cashValue.mulDivDown(_amount, UNIT);
 
-        // todo: change unit to underlying if needed
-        // bool strikeIsCollateral = strike == collateral;
-        return (_collateral, payout);
+        if (collateral == underlying) {
+            // collateral is underlying. payout should be devided by underlying price
+            payout = payout.mulDivDown(UNIT, expiryPrice);
+        } else if (collateral != strike) {
+            // collateral is not underlying nor strike
+            uint256 collateralPrice = oracle.getPriceAtExpiry(collateral, strike, expiry);
+            payout = payout.mulDivDown(UNIT, collateralPrice);
+        }
+
+        return (collateral, toDecimals(payout, UNIT_DECIMALS, collatDecimals));
     }
 
-    // todo: move to somewhere appropriate
+    /**
+     * @dev parse product id into composing asset addresses
+     */
     function parseProductId(uint32 _productId)
         public
         view
         returns (
             address underlying,
             address strike,
-            address collateral
+            address collateral,
+            uint8 collateralDecimals
         )
     {
         (uint8 underlyingId, uint8 strikeId, uint8 collateralId) = (0, 0, 0);
@@ -99,7 +108,13 @@ contract Settlement is AssetRegistry {
             collateralId := shr(8, _productId)
             // the last 8 bits are not used
         }
-        return (address(assets[underlyingId].addr), address(assets[strikeId].addr), address(assets[collateralId].addr));
+        AssetDetail memory collateralDetail = assets[collateralId];
+        return (
+            address(assets[underlyingId].addr),
+            address(assets[strikeId].addr),
+            address(collateralDetail.addr),
+            collateralDetail.decimals
+        );
     }
 
     ///@notice  get product id from underlying, strike and collateral address
@@ -115,7 +130,7 @@ contract Settlement is AssetRegistry {
     ///@dev get spot price for a productId
     ///@param _productId productId
     function getSpot(uint32 _productId) public view returns (uint256) {
-        (address underlying, address strike, ) = parseProductId(_productId);
+        (address underlying, address strike, , ) = parseProductId(_productId);
         return oracle.getSpotPrice(underlying, strike);
     }
 
@@ -128,5 +143,25 @@ contract Settlement is AssetRegistry {
         optionToken.burn(msg.sender, _tokenId, _amount);
 
         IERC20(collateral).transfer(msg.sender, payout);
+    }
+
+    /**
+     * @dev   convert decimals
+     * @param  _amount number to convert
+     * @param _fromDecimals the decimals _amount is denominated in
+     * @param _toDecimals the destination decimals
+     */
+    function toDecimals(
+        uint256 _amount,
+        uint8 _fromDecimals,
+        uint8 _toDecimals
+    ) internal pure returns (uint256) {
+        if (_fromDecimals == _toDecimals) return _amount;
+
+        if (_fromDecimals > _toDecimals) {
+            return _amount / (10 ^ (_fromDecimals - _toDecimals));
+        } else {
+            return _amount * (10 ^ (_toDecimals - _fromDecimals));
+        }
     }
 }
