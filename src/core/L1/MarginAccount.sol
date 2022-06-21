@@ -47,7 +47,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
 
     constructor(address _optionToken, address _oracle) Settlement(_optionToken, _oracle) {}
 
-    /** 
+    /**
      * @notice get minimum collateral needed for a margin account
      * @param _accountId account id.
      * @return minCollateral minimum collateral required, in collateral asset's decimals
