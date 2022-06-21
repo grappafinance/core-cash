@@ -32,6 +32,7 @@ struct MarginAccountDetail {
     address underlying;
     address strike;
     address collateral;
+    uint8 collateralDecimals;
 }
 
 struct ProductMarginParams {

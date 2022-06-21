@@ -51,7 +51,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
         Account memory account = marginAccounts[_accountId];
         MarginAccountDetail memory detail = _getAccountDetail(account);
 
-        minCollateral = detail.getMinCollateral(getSpot(detail.productId), productParams[detail.productId]);
+        minCollateral = detail.getMinCollateralInStrike(getSpot(detail.productId), productParams[detail.productId]);
     }
 
     /**
@@ -204,7 +204,20 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
     function _assertAccountHealth(Account memory account) internal view {
         MarginAccountDetail memory detail = _getAccountDetail(account);
 
-        uint256 minCollateral = detail.getMinCollateral(getSpot(detail.productId), productParams[detail.productId]);
+        // denominated in {UNIT_DECIMALS}
+        uint256 spotPrice = getSpot(detail.productId);
+
+        // need to pass in collateral/strike price. Pass in 0 if collateral is strike to save gas.
+        uint256 collateralStrikePrice = detail.strike == detail.collateral
+            ? 0
+            : oracle.getSpotPrice(detail.collateral, detail.strike);
+
+        uint256 minCollateralInUnit = detail.getMinCollateral(
+            spotPrice,
+            collateralStrikePrice,
+            productParams[detail.productId]
+        );
+        uint256 minCollateral = _convertDecimals(minCollateralInUnit, UNIT_DECIMALS, detail.collateralDecimals);
 
         if (account.collateralAmount < minCollateral) revert AccountUnderwater();
     }
@@ -225,6 +238,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
             strike: address(0),
             collateral: address(0),
             underlying: address(0),
+            collateralDecimals: 0,
             productId: 0
         });
 
@@ -250,13 +264,15 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
         uint256 commonId = account.shortPutId | account.shortCallId;
 
         (, uint32 productId, uint64 expiry, , ) = OptionTokenUtils.parseTokenId(commonId);
-        (address underlying, address strike, address collateral,) = parseProductId(productId);
+        (address underlying, address strike, address collateral, uint8 collatDecimals) = parseProductId(productId);
         detail.productId = productId;
         detail.expiry = expiry;
 
+        // store
         detail.underlying = underlying;
         detail.strike = strike;
         detail.collateral = collateral;
+        detail.collateralDecimals = collatDecimals;
     }
 
     /**
