@@ -145,7 +145,7 @@ contract TestSettleCoveredCall is Fixture {
         uint256 expiryPrice = 5000 * UNIT;
         oracle.setExpiryPrice(expiryPrice);
 
-        uint256 expectedPayout = (uint64(expiryPrice) - strike) / 5000 * (10 ** (18 - UNIT_DECIMALS)) ;
+        uint256 expectedPayout = ((uint64(expiryPrice) - strike) / 5000) * (10**(18 - UNIT_DECIMALS));
 
         vm.startPrank(alice);
 
