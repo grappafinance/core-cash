@@ -95,16 +95,6 @@ contract Settlement is AssetRegistry {
     }
 
     /**
-     * @dev get spot price for a productId
-     * @param _productId productId
-     * @return spotPrice denominated in UNIT
-     */
-    function getSpot(uint32 _productId) public view returns (uint256) {
-        (address underlying, address strike, , ) = parseProductId(_productId);
-        return oracle.getSpotPrice(underlying, strike);
-    }
-
-    /**
      * @notice burn option token and get out cash value at expiry
      * @param _tokenId  tokenId of option token to burn
      * @param _amount   amount to settle
