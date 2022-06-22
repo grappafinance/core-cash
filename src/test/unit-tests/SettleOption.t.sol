@@ -7,6 +7,7 @@ import {Fixture} from "src/test/shared/Fixture.t.sol";
 import "src/config/enums.sol";
 import "src/config/types.sol";
 import "src/config/constants.sol";
+import "src/config/errors.sol";
 
 import "forge-std/console2.sol";
 
@@ -495,6 +496,13 @@ contract TestBatchSettleCall is Fixture {
         vm.warp(expiry);
     }
 
+    function testCannotSettleWithWrongCollateral() public {
+        oracle.setExpiryPrice(strikes[0] - 1);
+
+        vm.expectRevert(WrongSettlementCollateral.selector);
+        grappa.batchSettleOptions(alice, tokenIds, amounts, address(weth));
+    }
+
     function testShouldGetNothingIfAllOptionsExpiresOTM() public {
         // expires out the money
         oracle.setExpiryPrice(strikes[0] - 1);
@@ -534,7 +542,7 @@ contract TestBatchSettleCall is Fixture {
         assertEq(option2After, 0);
         assertEq(option3After, 0);
     }
-    
+
     function testShouldGetPayoutIfAllOptionsExpiresITM() public {
         // strikes[1] and strikes[2] expries OTM
         // only get 500 out of strikes[0]
