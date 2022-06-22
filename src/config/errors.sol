@@ -16,6 +16,10 @@ error AccountUnderwater();
 
 error NotExpired();
 
+error WrongArgumentLength();
+
+error WrongSettlementCollateral();
+
 error CannotMergeSpread();
 
 error MergeTypeMismatch();

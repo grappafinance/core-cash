@@ -52,7 +52,7 @@ contract TestSettleCall is Fixture {
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(tokenId, amount);
+        grappa.settleOption(alice,tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
@@ -75,7 +75,7 @@ contract TestSettleCall is Fixture {
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(tokenId, amount);
+        grappa.settleOption(alice, tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
@@ -129,7 +129,7 @@ contract TestSettleCoveredCall is Fixture {
         uint256 wethBefore = weth.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(tokenId, amount);
+        grappa.settleOption(alice, tokenId, amount);
 
         uint256 wethAfter = weth.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
@@ -152,7 +152,7 @@ contract TestSettleCoveredCall is Fixture {
         uint256 wethBefore = weth.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(tokenId, amount);
+        grappa.settleOption(alice, tokenId, amount);
 
         uint256 wethAfter = weth.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
@@ -205,7 +205,7 @@ contract TestSettlePut is Fixture {
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(tokenId, amount);
+        grappa.settleOption(alice, tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
@@ -228,7 +228,7 @@ contract TestSettlePut is Fixture {
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(tokenId, amount);
+        grappa.settleOption(alice, tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
@@ -282,7 +282,7 @@ contract TestSettleETHCollateralizedPut is Fixture {
         uint256 wethBefore = weth.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(tokenId, amount);
+        grappa.settleOption(alice, tokenId, amount);
 
         uint256 wethAfter = weth.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
@@ -305,7 +305,7 @@ contract TestSettleETHCollateralizedPut is Fixture {
         uint256 wethBefore = weth.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(tokenId, amount);
+        grappa.settleOption(alice, tokenId, amount);
 
         uint256 wethAfter = weth.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
@@ -360,7 +360,7 @@ contract TestSettleCallSpread is Fixture {
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(tokenId, amount);
+        grappa.settleOption(alice, tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
@@ -383,7 +383,7 @@ contract TestSettleCallSpread is Fixture {
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(tokenId, amount);
+        grappa.settleOption(alice, tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
@@ -406,7 +406,7 @@ contract TestSettleCallSpread is Fixture {
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(tokenId, amount);
+        grappa.settleOption(alice, tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
@@ -462,7 +462,7 @@ contract TestSettlePutSpread is Fixture {
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(tokenId, amount);
+        grappa.settleOption(alice, tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
@@ -485,7 +485,7 @@ contract TestSettlePutSpread is Fixture {
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(tokenId, amount);
+        grappa.settleOption(alice, tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
@@ -508,7 +508,7 @@ contract TestSettlePutSpread is Fixture {
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(tokenId, amount);
+        grappa.settleOption(alice, tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
