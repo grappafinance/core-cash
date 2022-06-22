@@ -67,6 +67,21 @@ contract OptionToken is ERC1155, IOptionToken {
     }
 
     /**
+     * @dev burn batch of option token from an address. Can only be called by marginAccount
+     * @param _from         account to burn from
+     * @param _ids          tokenId to burn
+     * @param _amounts      amount to burn
+     **/
+    function batchBurn(
+        address _from,
+        uint256[] memory _ids,
+        uint256[] memory _amounts
+    ) external {
+        _checkAccess();
+        _batchBurn(_from, _ids, _amounts);
+    }
+
+    /**
      * @dev check if msg.sender is the marginAccount
      */
     function _checkAccess() internal view {

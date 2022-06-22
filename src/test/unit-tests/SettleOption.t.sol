@@ -7,6 +7,7 @@ import {Fixture} from "src/test/shared/Fixture.t.sol";
 import "src/config/enums.sol";
 import "src/config/types.sol";
 import "src/config/constants.sol";
+import "src/config/errors.sol";
 
 import "forge-std/console2.sol";
 
@@ -46,21 +47,16 @@ contract TestSettleCall is Fixture {
     function testShouldGetNothingIfExpiresOTM() public {
         // expires out the money
         oracle.setExpiryPrice(strike - 1);
-
-        vm.startPrank(alice);
-
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(tokenId, amount);
+        grappa.settleOption(alice, tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
 
         assertEq(usdcBefore, usdcAfter);
         assertEq(optionBefore, optionAfter + amount);
-
-        vm.stopPrank();
     }
 
     function testShouldGetPayoutIfExpiresIMT() public {
@@ -69,21 +65,16 @@ contract TestSettleCall is Fixture {
         oracle.setExpiryPrice(expiryPrice);
 
         uint256 expectedPayout = (uint64(expiryPrice) - strike);
-
-        vm.startPrank(alice);
-
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(tokenId, amount);
+        grappa.settleOption(alice, tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
 
         assertEq(usdcBefore + expectedPayout, usdcAfter);
         assertEq(optionBefore, optionAfter + amount);
-
-        vm.stopPrank();
     }
 }
 
@@ -124,20 +115,16 @@ contract TestSettleCoveredCall is Fixture {
         // expires out the money
         oracle.setExpiryPrice(strike - 1);
 
-        vm.startPrank(alice);
-
         uint256 wethBefore = weth.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(tokenId, amount);
+        grappa.settleOption(alice, tokenId, amount);
 
         uint256 wethAfter = weth.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
 
         assertEq(wethBefore, wethAfter);
         assertEq(optionBefore, optionAfter + amount);
-
-        vm.stopPrank();
     }
 
     function testShouldGetPayoutIfExpiresIMT() public {
@@ -146,20 +133,15 @@ contract TestSettleCoveredCall is Fixture {
         oracle.setExpiryPrice(expiryPrice);
 
         uint256 expectedPayout = ((uint64(expiryPrice) - strike) / 5000) * (10**(18 - UNIT_DECIMALS));
-
-        vm.startPrank(alice);
-
         uint256 wethBefore = weth.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(tokenId, amount);
+        grappa.settleOption(alice, tokenId, amount);
 
         uint256 wethAfter = weth.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
         assertEq(wethAfter, wethBefore + expectedPayout);
         assertEq(optionBefore, optionAfter + amount);
-
-        vm.stopPrank();
     }
 }
 
@@ -199,21 +181,16 @@ contract TestSettlePut is Fixture {
     function testShouldGetNothingIfExpiresOTM() public {
         // expires out the money
         oracle.setExpiryPrice(strike + 1);
-
-        vm.startPrank(alice);
-
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(tokenId, amount);
+        grappa.settleOption(alice, tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
 
         assertEq(usdcBefore, usdcAfter);
         assertEq(optionBefore, optionAfter + amount);
-
-        vm.stopPrank();
     }
 
     function testShouldGetPayoutIfExpiresIMT() public {
@@ -222,21 +199,16 @@ contract TestSettlePut is Fixture {
         oracle.setExpiryPrice(expiryPrice);
 
         uint256 expectedPayout = strike - uint64(expiryPrice);
-
-        vm.startPrank(alice);
-
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(tokenId, amount);
+        grappa.settleOption(alice, tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
 
         assertEq(usdcBefore + expectedPayout, usdcAfter);
         assertEq(optionBefore, optionAfter + amount);
-
-        vm.stopPrank();
     }
 }
 
@@ -276,21 +248,16 @@ contract TestSettleETHCollateralizedPut is Fixture {
     function testShouldGetNothingIfExpiresOTM() public {
         // expires out the money
         oracle.setExpiryPrice(strike + 1);
-
-        vm.startPrank(alice);
-
         uint256 wethBefore = weth.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(tokenId, amount);
+        grappa.settleOption(alice, tokenId, amount);
 
         uint256 wethAfter = weth.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
 
         assertEq(wethBefore, wethAfter);
         assertEq(optionBefore, optionAfter + amount);
-
-        vm.stopPrank();
     }
 
     function testShouldGetPayoutIfExpiresIMT() public {
@@ -299,20 +266,15 @@ contract TestSettleETHCollateralizedPut is Fixture {
         oracle.setExpiryPrice(expiryPrice);
 
         uint256 expectedPayout = ((strike - uint64(expiryPrice)) / 1600) * (10**(18 - UNIT_DECIMALS));
-
-        vm.startPrank(alice);
-
         uint256 wethBefore = weth.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(tokenId, amount);
+        grappa.settleOption(alice, tokenId, amount);
 
         uint256 wethAfter = weth.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
         assertEq(wethAfter, wethBefore + expectedPayout);
         assertEq(optionBefore, optionAfter + amount);
-
-        vm.stopPrank();
     }
 }
 
@@ -354,21 +316,16 @@ contract TestSettleCallSpread is Fixture {
     function testShouldGetNothingIfExpiresOTM() public {
         // expires out the money
         oracle.setExpiryPrice(longStrike);
-
-        vm.startPrank(alice);
-
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(tokenId, amount);
+        grappa.settleOption(alice, tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
 
         assertEq(usdcBefore, usdcAfter);
         assertEq(optionBefore, optionAfter + amount);
-
-        vm.stopPrank();
     }
 
     function testShouldGetPayoutDifferenceBetweenSpotAndLongStrike() public {
@@ -377,21 +334,16 @@ contract TestSettleCallSpread is Fixture {
         oracle.setExpiryPrice(expiryPrice);
 
         uint256 expectedPayout = (uint64(expiryPrice) - longStrike);
-
-        vm.startPrank(alice);
-
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(tokenId, amount);
+        grappa.settleOption(alice, tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
 
         assertEq(usdcBefore + expectedPayout, usdcAfter);
         assertEq(optionBefore, optionAfter + amount);
-
-        vm.stopPrank();
     }
 
     function testPayoutShouldBeCappedAtShortStrike() public {
@@ -400,21 +352,16 @@ contract TestSettleCallSpread is Fixture {
         oracle.setExpiryPrice(expiryPrice);
 
         uint256 expectedPayout = (uint64(shortStrike) - longStrike);
-
-        vm.startPrank(alice);
-
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(tokenId, amount);
+        grappa.settleOption(alice, tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
 
         assertEq(usdcBefore + expectedPayout, usdcAfter);
         assertEq(optionBefore, optionAfter + amount);
-
-        vm.stopPrank();
     }
 }
 
@@ -456,21 +403,16 @@ contract TestSettlePutSpread is Fixture {
     function testShouldGetNothingIfExpiresOTM() public {
         // expires out the money
         oracle.setExpiryPrice(longStrike);
-
-        vm.startPrank(alice);
-
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(tokenId, amount);
+        grappa.settleOption(alice, tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
 
         assertEq(usdcBefore, usdcAfter);
         assertEq(optionBefore, optionAfter + amount);
-
-        vm.stopPrank();
     }
 
     function testShouldGetPayoutDifferenceBetweenSpotAndLongStrike() public {
@@ -479,21 +421,16 @@ contract TestSettlePutSpread is Fixture {
         oracle.setExpiryPrice(expiryPrice);
 
         uint256 expectedPayout = longStrike - uint64(expiryPrice);
-
-        vm.startPrank(alice);
-
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(tokenId, amount);
+        grappa.settleOption(alice, tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
 
         assertEq(usdcBefore + expectedPayout, usdcAfter);
         assertEq(optionBefore, optionAfter + amount);
-
-        vm.stopPrank();
     }
 
     function testPayoutShouldBeCappedAtShortStrike() public {
@@ -502,20 +439,129 @@ contract TestSettlePutSpread is Fixture {
         oracle.setExpiryPrice(expiryPrice);
 
         uint256 expectedPayout = longStrike - uint64(shortStrike);
-
-        vm.startPrank(alice);
-
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(tokenId, amount);
+        grappa.settleOption(alice, tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
 
         assertEq(usdcBefore + expectedPayout, usdcAfter);
         assertEq(optionBefore, optionAfter + amount);
+    }
+}
 
-        vm.stopPrank();
+contract TestBatchSettleCall is Fixture {
+    uint256 public expiry;
+
+    uint64 private amount = uint64(1 * UNIT);
+    uint256[] private tokenIds = new uint256[](3);
+    uint256[] private amounts = new uint256[](3);
+    uint64[] private strikes = new uint64[](3);
+
+    function setUp() public {
+        usdc.mint(address(this), 1000_000 * 1e6);
+        usdc.approve(address(grappa), type(uint256).max);
+
+        expiry = block.timestamp + 14 days;
+
+        oracle.setSpotPrice(3000 * UNIT);
+
+        // mint option
+        uint256 depositAmount = 1000 * 1e6;
+
+        strikes[0] = uint64(3500 * UNIT);
+        strikes[1] = uint64(4000 * UNIT);
+        strikes[2] = uint64(4500 * UNIT);
+
+        tokenIds[0] = getTokenId(TokenType.CALL, productId, expiry, strikes[0], 0);
+        tokenIds[1] = getTokenId(TokenType.CALL, productId, expiry, strikes[1], 0);
+        tokenIds[2] = getTokenId(TokenType.CALL, productId, expiry, strikes[2], 0);
+
+        console2.log("here");
+
+        // mint 2 tokens to alice
+        for (uint160 i = 0; i < 3; i++) {
+            amounts[i] = amount;
+
+            ActionArgs[] memory actions = new ActionArgs[](2);
+            actions[0] = createAddCollateralAction(productId, address(this), depositAmount);
+            // give optoin to alice
+            actions[1] = createMintAction(tokenIds[i], alice, amount);
+            // mint option
+            grappa.execute(address(uint160(address(this)) + i), actions);
+        }
+        // expire option
+        vm.warp(expiry);
+    }
+
+    function testCannotSettleWithWrongCollateral() public {
+        oracle.setExpiryPrice(strikes[0] - 1);
+
+        vm.expectRevert(WrongSettlementCollateral.selector);
+        grappa.batchSettleOptions(alice, tokenIds, amounts, address(weth));
+    }
+
+    function testShouldGetNothingIfAllOptionsExpiresOTM() public {
+        // expires out the money
+        oracle.setExpiryPrice(strikes[0] - 1);
+
+        uint256 usdcBefore = usdc.balanceOf(alice);
+
+        grappa.batchSettleOptions(alice, tokenIds, amounts, address(usdc));
+
+        uint256 usdcAfter = usdc.balanceOf(alice);
+        uint256 option1After = option.balanceOf(alice, tokenIds[0]);
+        uint256 option2After = option.balanceOf(alice, tokenIds[1]);
+        uint256 option3After = option.balanceOf(alice, tokenIds[2]);
+
+        assertEq(usdcBefore, usdcAfter);
+        assertEq(option1After, 0);
+        assertEq(option2After, 0);
+        assertEq(option3After, 0);
+    }
+
+    function testShouldGetPayoutIfOneOptionExpiresITM() public {
+        // strikes[1] and strikes[2] expries OTM
+        // only get 500 out of strikes[0]
+        oracle.setExpiryPrice(strikes[1]);
+
+        uint256 expectedReturn = strikes[1] - strikes[0];
+
+        uint256 usdcBefore = usdc.balanceOf(alice);
+        grappa.batchSettleOptions(alice, tokenIds, amounts, address(usdc));
+
+        uint256 usdcAfter = usdc.balanceOf(alice);
+        uint256 option1After = option.balanceOf(alice, tokenIds[0]);
+        uint256 option2After = option.balanceOf(alice, tokenIds[1]);
+        uint256 option3After = option.balanceOf(alice, tokenIds[2]);
+
+        assertEq(usdcBefore + expectedReturn, usdcAfter);
+        assertEq(option1After, 0);
+        assertEq(option2After, 0);
+        assertEq(option3After, 0);
+    }
+
+    function testShouldGetPayoutIfAllOptionsExpiresITM() public {
+        // strikes[1] and strikes[2] expries OTM
+        // only get 500 out of strikes[0]
+        uint256 expiryPrice = strikes[2] + 500 * UNIT;
+        oracle.setExpiryPrice(expiryPrice);
+
+        uint256 expectedReturn = 3 * expiryPrice - (strikes[0] + strikes[1] + strikes[2]);
+
+        uint256 usdcBefore = usdc.balanceOf(alice);
+        grappa.batchSettleOptions(alice, tokenIds, amounts, address(usdc));
+
+        uint256 usdcAfter = usdc.balanceOf(alice);
+        uint256 option1After = option.balanceOf(alice, tokenIds[0]);
+        uint256 option2After = option.balanceOf(alice, tokenIds[1]);
+        uint256 option3After = option.balanceOf(alice, tokenIds[2]);
+
+        assertEq(usdcBefore + expectedReturn, usdcAfter);
+        assertEq(option1After, 0);
+        assertEq(option2After, 0);
+        assertEq(option3After, 0);
     }
 }

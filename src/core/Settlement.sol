@@ -96,15 +96,53 @@ contract Settlement is AssetRegistry {
 
     /**
      * @notice burn option token and get out cash value at expiry
+     * @param _account who to settle for
      * @param _tokenId  tokenId of option token to burn
      * @param _amount   amount to settle
      */
-    function settleOption(uint256 _tokenId, uint256 _amount) external {
+    function settleOption(
+        address _account,
+        uint256 _tokenId,
+        uint256 _amount
+    ) external {
         (address collateral, uint256 payout) = getOptionPayout(_tokenId, _amount);
 
-        optionToken.burn(msg.sender, _tokenId, _amount);
+        optionToken.burn(_account, _tokenId, _amount);
 
-        IERC20(collateral).transfer(msg.sender, payout);
+        IERC20(collateral).transfer(_account, payout);
+    }
+
+    /**
+     * @notice burn option token and get out cash value at expiry
+     * @param _account who to settle for
+     * @param _tokenIds array of tokenIds to burn
+     * @param _amounts   array of amounts to burn
+     * @param _collateral collateral asset to settle in.
+     */
+    function batchSettleOptions(
+        address _account,
+        uint256[] memory _tokenIds,
+        uint256[] memory _amounts,
+        address _collateral
+    ) external {
+        if (_tokenIds.length != _amounts.length) revert WrongArgumentLength();
+
+        uint256 totalPayout;
+
+        for (uint256 i; i < _tokenIds.length; ) {
+            (address collateral, uint256 payout) = getOptionPayout(_tokenIds[i], _amounts[i]);
+
+            if (collateral != _collateral) revert WrongSettlementCollateral();
+            totalPayout += payout;
+
+            unchecked {
+                i++;
+            }
+        }
+
+        optionToken.batchBurn(_account, _tokenIds, _amounts);
+
+        IERC20(_collateral).transfer(_account, totalPayout);
     }
 
     /**
