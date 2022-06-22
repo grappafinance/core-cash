@@ -96,6 +96,7 @@ contract Settlement is AssetRegistry {
 
     /**
      * @notice burn option token and get out cash value at expiry
+     * @param _account who to settle for
      * @param _tokenId  tokenId of option token to burn
      * @param _amount   amount to settle
      */
@@ -113,11 +114,13 @@ contract Settlement is AssetRegistry {
 
     /**
      * @notice burn option token and get out cash value at expiry
+     * @param _account who to settle for
      * @param _tokenIds array of tokenIds to burn
      * @param _amounts   array of amounts to burn
      * @param _collateral collateral asset to settle in.
      */
     function batchSettleOptions(
+        address _account,
         uint256[] memory _tokenIds,
         uint256[] memory _amounts,
         address _collateral
@@ -137,9 +140,9 @@ contract Settlement is AssetRegistry {
             }
         }
 
-        optionToken.batchBurn(msg.sender, _tokenIds, _amounts);
+        optionToken.batchBurn(_account, _tokenIds, _amounts);
 
-        IERC20(_collateral).transfer(msg.sender, totalPayout);
+        IERC20(_collateral).transfer(_account, totalPayout);
     }
 
     /**
