@@ -479,8 +479,6 @@ contract TestBatchSettleCall is Fixture {
         tokenIds[1] = getTokenId(TokenType.CALL, productId, expiry, strikes[1], 0);
         tokenIds[2] = getTokenId(TokenType.CALL, productId, expiry, strikes[2], 0);
 
-        console2.log("here");
-
         // mint 2 tokens to alice
         for (uint160 i = 0; i < 3; i++) {
             amounts[i] = amount;

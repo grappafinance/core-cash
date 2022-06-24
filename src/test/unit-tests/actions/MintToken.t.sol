@@ -16,6 +16,9 @@ contract TestMintVanillaOption is Fixture {
         usdc.mint(address(this), 1000_000 * 1e6);
         usdc.approve(address(grappa), type(uint256).max);
 
+        weth.mint(address(this), 100 * 1e18);
+        weth.approve(address(grappa), type(uint256).max);
+
         expiry = block.timestamp + 14 days;
 
         oracle.setSpotPrice(3000 * UNIT);
@@ -55,6 +58,22 @@ contract TestMintVanillaOption is Fixture {
         actions[1] = createMintAction(tokenId, address(this), amount);
 
         vm.expectRevert(AccountUnderwater.selector);
+        grappa.execute(address(this), actions);
+    }
+
+    function testCannotMintCallWithDifferentCollateralType() public {
+        uint256 depositAmount = 1 * 1e18;
+
+        uint256 strikePrice = 4000 * UNIT;
+        uint256 amount = 1 * UNIT;
+
+        uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
+
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
+        actions[1] = createMintAction(tokenId, address(this), amount);
+
+        vm.expectRevert(InvalidTokenId.selector);
         grappa.execute(address(this), actions);
     }
 
