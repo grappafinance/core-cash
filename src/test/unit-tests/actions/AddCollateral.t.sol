@@ -22,11 +22,11 @@ contract TestAddCollateral is Fixture {
         uint256 depositAmount = 1000 * 1e6;
 
         ActionArgs[] memory actions = new ActionArgs[](1);
-        actions[0] = createAddCollateralAction(productId, address(this), depositAmount);
+        actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         grappa.execute(address(this), actions);
-        (, , , , uint80 _collateralAmount, uint32 _productId) = grappa.marginAccounts(address(this));
+        (, , , , uint80 _collateralAmount, uint8 _collateralId) = grappa.marginAccounts(address(this));
 
-        assertEq(_productId, productId);
+        assertEq(_collateralId, usdcId);
         assertEq(_collateralAmount, depositAmount);
     }
 
@@ -36,7 +36,7 @@ contract TestAddCollateral is Fixture {
         uint256 depositAmount = 1000 * 1e6;
 
         ActionArgs[] memory actions = new ActionArgs[](1);
-        actions[0] = createAddCollateralAction(productId, address(this), depositAmount);
+        actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         grappa.execute(address(this), actions);
 
         uint256 grappaBalanceAfter = usdc.balanceOf(address(grappa));
@@ -52,8 +52,8 @@ contract TestAddCollateral is Fixture {
         uint256 depositAmount = 500 * 1e6;
 
         ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createAddCollateralAction(productId, address(this), depositAmount);
-        actions[1] = createAddCollateralAction(productId, address(this), depositAmount);
+        actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
+        actions[1] = createAddCollateralAction(usdcId, address(this), depositAmount);
         grappa.execute(address(this), actions);
 
         uint256 grappaBalanceAfter = usdc.balanceOf(address(grappa));
@@ -68,10 +68,10 @@ contract TestAddCollateral is Fixture {
         uint256 wethAmount = 10 * 1e18;
 
         ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createAddCollateralAction(productId, address(this), usdcAmount);
-        actions[1] = createAddCollateralAction(productIdEthCollat, address(this), wethAmount);
+        actions[0] = createAddCollateralAction(usdcId, address(this), usdcAmount);
+        actions[1] = createAddCollateralAction(wethId, address(this), wethAmount);
 
-        vm.expectRevert(WrongProductId.selector);
+        vm.expectRevert(WrongCollateralId.selector);
         grappa.execute(address(this), actions);
     }
 }

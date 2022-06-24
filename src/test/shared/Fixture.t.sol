@@ -35,6 +35,9 @@ abstract contract Fixture is Test, ActionHelper, Utilities {
     // eth collateralized call / put
     uint32 internal productIdEthCollat;
 
+    uint8 internal usdcId;
+    uint8 internal wethId;
+
     constructor() {
         usdc = new MockERC20("USDC", "USDC", 6); // nonce: 1
 
@@ -49,8 +52,8 @@ abstract contract Fixture is Test, ActionHelper, Utilities {
         grappa = new MarginAccount(address(option), address(oracle)); // nonce 5
 
         // register products
-        grappa.registerAsset(address(usdc));
-        grappa.registerAsset(address(weth));
+        usdcId = grappa.registerAsset(address(usdc));
+        wethId = grappa.registerAsset(address(weth));
 
         productId = grappa.getProductId(address(weth), address(usdc), address(usdc));
         productIdEthCollat = grappa.getProductId(address(weth), address(usdc), address(weth));
@@ -103,7 +106,13 @@ abstract contract Fixture is Test, ActionHelper, Utilities {
         weth.approve(address(grappa), type(uint256).max);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createAddCollateralAction(_productId, address(anon), lotOfCollateral);
+
+        uint8 collateralId;
+        assembly {
+            collateralId := shr(8, _productId)
+        }
+
+        actions[0] = createAddCollateralAction(collateralId, address(anon), lotOfCollateral);
         actions[1] = createMintAction(_tokenId, address(_recipient), _amount);
         grappa.execute(address(anon), actions);
 

@@ -39,11 +39,11 @@ contract ActionHelper {
     }
 
     function createAddCollateralAction(
-        uint32 productId,
+        uint8 collateralId,
         address from,
         uint256 amount
     ) internal pure returns (ActionArgs memory action) {
-        action = ActionArgs({action: ActionType.AddCollateral, data: abi.encode(from, uint80(amount), productId)});
+        action = ActionArgs({action: ActionType.AddCollateral, data: abi.encode(from, uint80(amount), collateralId)});
     }
 
     function createRemoveCollateralAction(uint256 amount, address recipient)

@@ -28,7 +28,7 @@ contract TestSplitCallSpread is Fixture {
         uint256 tokenId = getTokenId(TokenType.CALL_SPREAD, productId, expiry, strikePriceLow, strikePriceHigh);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createAddCollateralAction(productId, address(this), depositAmount);
+        actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
         grappa.execute(address(this), actions);
     }
@@ -37,7 +37,7 @@ contract TestSplitCallSpread is Fixture {
         // split
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createSplitAction(TokenType.CALL_SPREAD, address(this));
-        actions[1] = createAddCollateralAction(productId, address(this), depositAmount * 5); // will need to add collateral
+        actions[1] = createAddCollateralAction(usdcId, address(this), depositAmount * 5); // will need to add collateral
         grappa.execute(address(this), actions);
 
         // check result
@@ -53,7 +53,7 @@ contract TestSplitCallSpread is Fixture {
         // split
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createSplitAction(TokenType.CALL_SPREAD, address(this));
-        actions[1] = createAddCollateralAction(productId, address(this), depositAmount * 5); // will need to add collateral
+        actions[1] = createAddCollateralAction(usdcId, address(this), depositAmount * 5); // will need to add collateral
         grappa.execute(address(this), actions);
 
         // check result
@@ -91,7 +91,7 @@ contract TestSplitPutSpread is Fixture {
         uint256 tokenId = getTokenId(TokenType.PUT_SPREAD, productId, expiry, strikePriceHigh, strikePriceLow);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createAddCollateralAction(productId, address(this), depositAmount);
+        actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
         grappa.execute(address(this), actions);
     }
@@ -100,7 +100,7 @@ contract TestSplitPutSpread is Fixture {
         // split
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createSplitAction(TokenType.PUT_SPREAD, address(this));
-        actions[1] = createAddCollateralAction(productId, address(this), depositAmount * 5); // will need to add collateral
+        actions[1] = createAddCollateralAction(usdcId, address(this), depositAmount * 5); // will need to add collateral
         grappa.execute(address(this), actions);
 
         // check result
@@ -116,7 +116,7 @@ contract TestSplitPutSpread is Fixture {
         // split
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createSplitAction(TokenType.PUT_SPREAD, address(this));
-        actions[1] = createAddCollateralAction(productId, address(this), depositAmount * 5); // will need to add collateral
+        actions[1] = createAddCollateralAction(usdcId, address(this), depositAmount * 5); // will need to add collateral
         grappa.execute(address(this), actions);
 
         // check result

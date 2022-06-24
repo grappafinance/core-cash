@@ -6,11 +6,17 @@ error NoAccess();
 
 error WrongProductId();
 
+error WrongCollateralId();
+
 error InvalidConfig();
 
 error InvalidFromAddress();
 
 error InvalidTokenId();
+
+error AccountIsHealthy();
+
+error WrongLiquidationAmounts();
 
 error AccountUnderwater();
 

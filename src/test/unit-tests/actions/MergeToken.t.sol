@@ -27,7 +27,7 @@ contract TestMergeOption is Fixture {
         uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createAddCollateralAction(productId, address(this), depositAmount);
+        actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
         grappa.execute(address(this), actions);
     }

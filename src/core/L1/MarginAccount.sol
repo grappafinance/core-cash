@@ -85,6 +85,70 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
     }
 
     /**
+     * @dev liquidate an account: burning the token the account is shorted, and get the collateral from the vault.
+     */
+    function liquidate(address _accountId, uint64 _repayCallAmount, uint64 _repayPutAmount) external {
+        Account memory account = marginAccounts[_accountId];
+        if(_isAccountHealthy(account)) revert AccountIsHealthy() ;
+
+        bool hasShortCall = account.shortCallAmount != 0;
+        bool hasShortPut = account.shortCallAmount != 0;
+
+        uint256 portionBPS;
+        if (hasShortCall && hasShortPut) {
+            // if the account is short call and put at the same time, 
+            // amounts to liquidate needs to be the same portion of short call and short put amount.
+            uint256 callPortionBPS = _repayCallAmount * BPS / account.shortCallAmount;
+            uint256 putPortionBPS = _repayPutAmount * BPS / account.shortPutAmount;
+            if (callPortionBPS != putPortionBPS) revert WrongLiquidationAmounts();
+            portionBPS = callPortionBPS;
+
+            // burn the token from msg.sender
+            uint256[] memory tokenIds = new uint256[](2);
+            tokenIds[0] = account.shortCallId;
+            tokenIds[1] = account.shortPutId;
+            uint256[] memory amounts = new uint256[](2);
+            amounts[0] = _repayCallAmount;
+            amounts[1] = _repayPutAmount;
+            optionToken.batchBurn(msg.sender, tokenIds, amounts);
+        } else if (hasShortCall) {
+            // account only short call
+            if (_repayPutAmount != 0) revert WrongLiquidationAmounts();
+            portionBPS = _repayCallAmount * BPS / account.shortCallAmount;
+
+            // burn from msg.sender
+            optionToken.burn(msg.sender, account.shortCallId, _repayCallAmount);
+        } else {
+            // if account is underwater, it must have shortCall or shortPut. in this branch it will sure have shortPutAmount > 0;
+            // account only short put
+            if (_repayCallAmount != 0) revert WrongLiquidationAmounts();
+            portionBPS = _repayPutAmount * BPS / account.shortPutAmount;
+
+            // burn from msg.sender
+            optionToken.burn(msg.sender, account.shortPutId, _repayPutAmount);
+        }
+
+        uint256 collateralToPay = account.collateralAmount * portionBPS / BPS;
+
+        // update account structure.
+        // todo: safecast
+        account.removeCollateral(uint80(collateralToPay));
+        if (hasShortCall) {
+            account.burnOption(account.shortCallId, _repayCallAmount);
+        }
+        if (hasShortPut) {
+            account.burnOption(account.shortPutId, _repayPutAmount);
+        }
+        // write to storage
+        marginAccounts[_accountId] = account;
+
+        // payout to liquidator
+        address collateral = address(assets[account.collateralId].addr);
+        IERC20(collateral).transfer(msg.sender, collateralToPay);
+        
+    }
+
+    /**
      * @dev pull token from user, increase collateral in account memory
      */
     function _addCollateral(
@@ -93,12 +157,12 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
         address accountId
     ) internal {
         // decode parameters
-        (address from, uint80 amount, uint32 productId) = abi.decode(_data, (address, uint80, uint32));
+        (address from, uint80 amount, uint8 collateralId) = abi.decode(_data, (address, uint80, uint8));
 
         // update the account structure in memory
-        _account.addCollateral(amount, productId);
+        _account.addCollateral(amount, collateralId);
 
-        (, , address collateral, ) = parseProductId(productId);
+        address collateral = address(assets[collateralId].addr);
 
         // collateral must come from caller or the primary account for this accountId
         if (from != msg.sender && !_isPrimaryAccountFor(from, accountId)) revert InvalidFromAddress();
@@ -111,7 +175,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
     function _removeCollateral(Account memory _account, bytes memory _data) internal {
         // decode parameters
         (uint80 amount, address recipient) = abi.decode(_data, (uint80, address));
-        (, , address collateral, ) = parseProductId(_account.productId);
+        address collateral = address(assets[_account.collateralId].addr);
 
         // update the account structure in memory
         _account.removeCollateral(amount);
@@ -207,11 +271,18 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
      * @dev make sure account is above water
      */
     function _assertAccountHealth(Account memory account) internal view {
+        if (!_isAccountHealthy(account)) revert AccountUnderwater();
+    }
+
+    /**
+     * @dev return whether if an account is healthy.
+     * @param account account structure in memory
+     * @return isHealthy true if account is in good condition, false if it's liquidatable
+     */
+    function _isAccountHealthy(Account memory account) internal view returns (bool isHealthy) {
         MarginAccountDetail memory detail = _getAccountDetail(account);
-
         uint256 minCollateral = _getMinCollateral(detail);
-
-        if (account.collateralAmount < minCollateral) revert AccountUnderwater();
+        isHealthy = account.collateralAmount >= minCollateral;
     }
 
     /**
