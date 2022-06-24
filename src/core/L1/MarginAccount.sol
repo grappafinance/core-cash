@@ -87,19 +87,23 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
     /**
      * @dev liquidate an account: burning the token the account is shorted, and get the collateral from the vault.
      */
-    function liquidate(address _accountId, uint64 _repayCallAmount, uint64 _repayPutAmount) external {
+    function liquidate(
+        address _accountId,
+        uint64 _repayCallAmount,
+        uint64 _repayPutAmount
+    ) external {
         Account memory account = marginAccounts[_accountId];
-        if(_isAccountHealthy(account)) revert AccountIsHealthy() ;
+        if (_isAccountHealthy(account)) revert AccountIsHealthy();
 
         bool hasShortCall = account.shortCallAmount != 0;
         bool hasShortPut = account.shortCallAmount != 0;
 
         uint256 portionBPS;
         if (hasShortCall && hasShortPut) {
-            // if the account is short call and put at the same time, 
+            // if the account is short call and put at the same time,
             // amounts to liquidate needs to be the same portion of short call and short put amount.
-            uint256 callPortionBPS = _repayCallAmount * BPS / account.shortCallAmount;
-            uint256 putPortionBPS = _repayPutAmount * BPS / account.shortPutAmount;
+            uint256 callPortionBPS = (_repayCallAmount * BPS) / account.shortCallAmount;
+            uint256 putPortionBPS = (_repayPutAmount * BPS) / account.shortPutAmount;
             if (callPortionBPS != putPortionBPS) revert WrongLiquidationAmounts();
             portionBPS = callPortionBPS;
 
@@ -114,7 +118,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
         } else if (hasShortCall) {
             // account only short call
             if (_repayPutAmount != 0) revert WrongLiquidationAmounts();
-            portionBPS = _repayCallAmount * BPS / account.shortCallAmount;
+            portionBPS = (_repayCallAmount * BPS) / account.shortCallAmount;
 
             // burn from msg.sender
             optionToken.burn(msg.sender, account.shortCallId, _repayCallAmount);
@@ -122,13 +126,13 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
             // if account is underwater, it must have shortCall or shortPut. in this branch it will sure have shortPutAmount > 0;
             // account only short put
             if (_repayCallAmount != 0) revert WrongLiquidationAmounts();
-            portionBPS = _repayPutAmount * BPS / account.shortPutAmount;
+            portionBPS = (_repayPutAmount * BPS) / account.shortPutAmount;
 
             // burn from msg.sender
             optionToken.burn(msg.sender, account.shortPutId, _repayPutAmount);
         }
 
-        uint256 collateralToPay = account.collateralAmount * portionBPS / BPS;
+        uint256 collateralToPay = (account.collateralAmount * portionBPS) / BPS;
 
         // update account structure.
         // todo: safecast
@@ -145,7 +149,6 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
         // payout to liquidator
         address collateral = address(assets[account.collateralId].addr);
         IERC20(collateral).transfer(msg.sender, collateralToPay);
-        
     }
 
     /**
