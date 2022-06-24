@@ -27,6 +27,9 @@ contract AssetRegistry is Ownable {
 
     /**
      * @dev parse product id into composing asset addresses
+     *                         * ---------------------- | ------------------ | ---------------------- | -------------- *
+     * productId (32 bits) =   | underlying ID (8 bits) | strike ID (8 bits) | collateral ID (8 bits) | empty (8 bits) |
+     *                         * ---------------------- | ------------------ | ---------------------- | -------------- *
      * @param _productId product id
      */
     function parseProductId(uint32 _productId)
@@ -60,6 +63,9 @@ contract AssetRegistry is Ownable {
     /**
      * @notice    get product id from underlying, strike and collateral address
      * @dev       function will still return even if some of the assets are not registered
+     *                         * ---------------------- | ------------------ | ---------------------- | -------------- *
+     * productId (32 bits) =   | underlying ID (8 bits) | strike ID (8 bits) | collateral ID (8 bits) | empty (8 bits) |
+     *                         * ---------------------- | ------------------ | ---------------------- | -------------- *
      * @param underlying  underlying address
      * @param strike      strike address
      * @param collateral  collateral address
