@@ -85,7 +85,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
     }
 
     /**
-     * @dev liquidate an account: burning the token the account is shorted, and get the collateral from the vault.
+     * @dev liquidate an account: burning the token the account is shorted (repay the debt), and get the collateral from the margin account.
      */
     function liquidate(
         address _accountId,
@@ -98,7 +98,9 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
         bool hasShortCall = account.shortCallAmount != 0;
         bool hasShortPut = account.shortPutAmount != 0;
 
+        // portion of the collateral the liquidator is liquidating.
         uint256 portionBPS;
+
         if (hasShortCall && hasShortPut) {
             // if the account is short call and put at the same time,
             // amounts to liquidate needs to be the same portion of short call and short put amount.
@@ -132,13 +134,11 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
             optionToken.burn(msg.sender, account.shortPutId, _repayPutAmount);
         }
 
-        uint256 collateralToPay = (account.collateralAmount * portionBPS) / BPS;
+        address collateral = address(assets[account.collateralId].addr);
+        uint80 collateralToPay = uint80((account.collateralAmount * portionBPS) / BPS);
 
         // update account structure.
-        // todo: safecast
-        address collateral = address(assets[account.collateralId].addr);
-
-        account.removeCollateral(uint80(collateralToPay));
+        account.removeCollateral(collateralToPay);
         if (hasShortCall) {
             account.burnOption(account.shortCallId, _repayCallAmount);
         }
@@ -151,6 +151,46 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
         // payout to liquidator
         IERC20(collateral).transfer(msg.sender, collateralToPay);
     }
+
+    /**
+     * @dev alternative to liquidation: take over someone else's underwater margin account, tap up collateral to make it healthy.
+     *      effectively equivalent to mint + liquidate + add back collateral got from liquidation
+     * @param _accountIdToTakeOver account id to be moved
+     * @param _newAccountId new acount Id which will be linked to the margin account structure
+     * @param _additionalCollateral additional collateral to tap up
+     */
+    function takeoverPosition(
+        address _accountIdToTakeOver,
+        address _newAccountId,
+        uint80 _additionalCollateral
+    ) external {
+        Account memory account = marginAccounts[_accountIdToTakeOver];
+        if (_isAccountHealthy(account)) revert AccountIsHealthy();
+
+        // make sure caller has access to the new account id.
+        _assertCallerHasAccess(_newAccountId);
+
+        address collateral = address(assets[account.collateralId].addr);
+        IERC20(collateral).transferFrom(msg.sender, address(this), _additionalCollateral);
+
+        // update account structure.
+        account.addCollateral(_additionalCollateral, account.collateralId);
+
+        _assertAccountHealth(account);
+
+        // migrate account storage: delete the old entry and write "account" to new account id
+        delete marginAccounts[_accountIdToTakeOver];
+        if (!marginAccounts[_newAccountId].isEmpty()) revert AccountIsNotEmpty();
+        marginAccounts[_newAccountId] = account;
+    }
+
+    /** ======================================================== **
+                        ------------------------
+                        |   Actions Functions  |
+                        ------------------------
+          These functions all update account struct memory and
+          deal with burning / minting or transfering collateral
+     ** ========================================================= **/
 
     /**
      * @dev pull token from user, increase collateral in account memory
@@ -253,6 +293,10 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
 
         optionToken.mint(recipient, tokenId, amount);
     }
+
+    /** ========================================================= **
+                            Internal Functions
+     ** ========================================================= **/
 
     /**
      * @notice return if {_account} address is the primary account for _accountId
