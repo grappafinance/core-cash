@@ -14,7 +14,7 @@ import "src/config/errors.sol";
  */
 library L1AccountLib {
     /**
-     * @return isEmpty return true if the account has no short positions nor collatearl
+     * @dev return true if the account has no short positions nor collateral
      */
     function isEmpty(Account storage account) internal view returns (bool) {
         return account.collateralAmount == 0 && account.shortCallAmount == 0 && account.shortPutAmount == 0;
