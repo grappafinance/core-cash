@@ -11,7 +11,7 @@ struct Account {
     uint64 shortCallAmount;
     uint64 shortPutAmount;
     uint80 collateralAmount;
-    uint32 productId; // underlying - strike - collateral {?}
+    uint8 collateralId;
 }
 
 /// @dev struct used in memory to represnet a margin account's status

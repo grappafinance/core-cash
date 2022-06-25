@@ -19,6 +19,8 @@ import "src/config/errors.sol";
 
 import {ActionHelper} from "src/test/shared/ActionHelper.sol";
 
+import "forge-std/console2.sol";
+
 /**
  * @dev This file doesn't test any of the contract behavior
         Instead, it's only used to give us better insight of how each action is performing gas-wise
@@ -44,6 +46,9 @@ contract TestActionGas is Test, Utilities, ActionHelper {
     uint64 private expiry;
     uint64 private mintAmount;
 
+    uint8 private usdcId;
+    uint8 private wethId;
+
     constructor() {
         usdc = new MockERC20("USDC", "USDC", 6); // nonce: 1
 
@@ -59,8 +64,8 @@ contract TestActionGas is Test, Utilities, ActionHelper {
         tester = new MarginAccountGasTester(address(option), address(oracle)); // nonce 5
 
         // register products
-        tester.registerAsset(address(usdc));
-        tester.registerAsset(address(weth));
+        usdcId = tester.registerAsset(address(usdc));
+        wethId = tester.registerAsset(address(weth));
 
         productId = tester.getProductId(address(weth), address(usdc), address(usdc));
         productIdEthCollat = tester.getProductId(address(weth), address(usdc), address(weth));
@@ -95,18 +100,18 @@ contract TestActionGas is Test, Utilities, ActionHelper {
         uint80 depositAmount = 1000 * 1e6;
 
         // prepare "account with collateral"
-        bytes memory data = abi.encode(address(this), depositAmount, productId);
+        bytes memory data = abi.encode(address(this), depositAmount, usdcId);
         tester.addCollateral(accountWithCollateral, data);
 
         // prepare "account with call"
         ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createAddCollateralAction(productId, address(this), depositAmount);
+        actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(callId, address(this), mintAmount);
         tester.execute(accountWithCall, actions);
 
         // prepare "account with call spread"
         ActionArgs[] memory actions2 = new ActionArgs[](2);
-        actions2[0] = createAddCollateralAction(productId, address(this), depositAmount);
+        actions2[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions2[1] = createMintAction(callSpreadId, address(this), mintAmount);
         tester.execute(accountWithSpread, actions2);
     }
@@ -114,7 +119,7 @@ contract TestActionGas is Test, Utilities, ActionHelper {
     function testAddCollateralGas() public {
         uint80 depositAmount = 1000 * 1e6;
 
-        bytes memory data = abi.encode(address(this), depositAmount, productId);
+        bytes memory data = abi.encode(address(this), depositAmount, usdcId);
         tester.addCollateral(address(this), data);
     }
 

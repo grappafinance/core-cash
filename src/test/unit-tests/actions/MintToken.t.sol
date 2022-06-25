@@ -16,6 +16,9 @@ contract TestMintVanillaOption is Fixture {
         usdc.mint(address(this), 1000_000 * 1e6);
         usdc.approve(address(grappa), type(uint256).max);
 
+        weth.mint(address(this), 100 * 1e18);
+        weth.approve(address(grappa), type(uint256).max);
+
         expiry = block.timestamp + 14 days;
 
         oracle.setSpotPrice(3000 * UNIT);
@@ -30,7 +33,7 @@ contract TestMintVanillaOption is Fixture {
         uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createAddCollateralAction(productId, address(this), depositAmount);
+        actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
         grappa.execute(address(this), actions);
         (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = grappa
@@ -51,10 +54,26 @@ contract TestMintVanillaOption is Fixture {
         uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createAddCollateralAction(productId, address(this), depositAmount);
+        actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
 
         vm.expectRevert(AccountUnderwater.selector);
+        grappa.execute(address(this), actions);
+    }
+
+    function testCannotMintCallWithDifferentCollateralType() public {
+        uint256 depositAmount = 1 * 1e18;
+
+        uint256 strikePrice = 4000 * UNIT;
+        uint256 amount = 1 * UNIT;
+
+        uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
+
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
+        actions[1] = createMintAction(tokenId, address(this), amount);
+
+        vm.expectRevert(InvalidTokenId.selector);
         grappa.execute(address(this), actions);
     }
 
@@ -69,7 +88,7 @@ contract TestMintVanillaOption is Fixture {
         uint256 tokenId = getTokenId(TokenType.CALL_SPREAD, productId, expiry, longStrike, shortStrike);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createAddCollateralAction(productId, address(this), depositAmount);
+        actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
         grappa.execute(address(this), actions);
 
@@ -91,7 +110,7 @@ contract TestMintVanillaOption is Fixture {
         uint256 tokenId = getTokenId(TokenType.PUT, productId, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createAddCollateralAction(productId, address(this), depositAmount);
+        actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
         grappa.execute(address(this), actions);
         (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = grappa
@@ -112,7 +131,7 @@ contract TestMintVanillaOption is Fixture {
         uint256 tokenId = getTokenId(TokenType.PUT, productId, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createAddCollateralAction(productId, address(this), depositAmount);
+        actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
 
         vm.expectRevert(AccountUnderwater.selector);
@@ -130,7 +149,7 @@ contract TestMintVanillaOption is Fixture {
         uint256 tokenId = getTokenId(TokenType.PUT_SPREAD, productId, expiry, longStrike, shortStrike);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createAddCollateralAction(productId, address(this), depositAmount);
+        actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
         grappa.execute(address(this), actions);
 
@@ -150,7 +169,7 @@ contract TestMintVanillaOption is Fixture {
         uint256 putId = getTokenId(TokenType.PUT, productId, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](3);
-        actions[0] = createAddCollateralAction(productId, address(this), depositAmount);
+        actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(callId, address(this), amount);
         actions[2] = createMintAction(putId, address(this), amount);
         grappa.execute(address(this), actions);
@@ -175,7 +194,7 @@ contract TestMintVanillaOption is Fixture {
         uint256 putId = getTokenId(TokenType.PUT, productId, expiry, 2000 * UNIT, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](3);
-        actions[0] = createAddCollateralAction(productId, address(this), depositAmount);
+        actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(callId, address(this), amount);
         actions[2] = createMintAction(putId, address(this), amount);
         grappa.execute(address(this), actions);
@@ -215,7 +234,7 @@ contract TestMintVanillaOption is Fixture {
         uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createAddCollateralAction(productId, address(this), depositAmount);
+        actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
         grappa.execute(address(this), actions);
 

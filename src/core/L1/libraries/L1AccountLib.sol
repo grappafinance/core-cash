@@ -18,12 +18,12 @@ library L1AccountLib {
     function addCollateral(
         Account memory account,
         uint80 amount,
-        uint32 productId
+        uint8 collateralId
     ) internal pure {
-        if (account.productId == 0) {
-            account.productId = productId;
+        if (account.collateralId == 0) {
+            account.collateralId = collateralId;
         } else {
-            if (account.productId != productId) revert WrongProductId();
+            if (account.collateralId != collateralId) revert WrongCollateralId();
         }
         account.collateralAmount += amount;
     }
@@ -33,7 +33,7 @@ library L1AccountLib {
     function removeCollateral(Account memory account, uint80 amount) internal pure {
         account.collateralAmount -= amount;
         if (account.collateralAmount == 0) {
-            account.productId = 0;
+            account.collateralId = 0;
         }
     }
 
@@ -44,9 +44,16 @@ library L1AccountLib {
         uint256 tokenId,
         uint64 amount
     ) internal pure {
-        (TokenType optionType, , , uint64 tokenLongStrike, uint64 tokenShortStrike) = OptionTokenUtils.parseTokenId(
-            tokenId
-        );
+        (TokenType optionType, uint32 productId, , uint64 tokenLongStrike, uint64 tokenShortStrike) = OptionTokenUtils
+            .parseTokenId(tokenId);
+
+        // assign collateralId or check collateral id is the same
+        uint8 collateralId = parseCollateralId(productId);
+        if (account.collateralId == 0) {
+            account.collateralId = collateralId;
+        } else {
+            if (account.collateralId != collateralId) revert InvalidTokenId();
+        }
 
         // check that vanilla options doesnt have a shortStrike argument
         if ((optionType == TokenType.CALL || optionType == TokenType.PUT) && (tokenShortStrike != 0))
@@ -168,6 +175,13 @@ library L1AccountLib {
 
             // token to be "minted" is removed "short strike" of shorted token as the new "long strike"
             mintingTokenId = OptionTokenUtils.formatTokenId(TokenType.PUT, productId, expiry, shortStrike, 0);
+        }
+    }
+
+    function parseCollateralId(uint32 _productId) internal pure returns (uint8 collateralId) {
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            collateralId := shr(8, _productId)
         }
     }
 }

@@ -33,7 +33,7 @@ contract TestSettleCall is Fixture {
 
         tokenId = getTokenId(TokenType.CALL, productId, expiry, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createAddCollateralAction(productId, address(this), depositAmount);
+        actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         // give optoin to alice
         actions[1] = createMintAction(tokenId, alice, amount);
 
@@ -100,7 +100,7 @@ contract TestSettleCoveredCall is Fixture {
 
         tokenId = getTokenId(TokenType.CALL, productIdEthCollat, expiry, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createAddCollateralAction(productIdEthCollat, address(this), depositAmount);
+        actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         // give optoin to alice
         actions[1] = createMintAction(tokenId, alice, amount);
 
@@ -167,7 +167,7 @@ contract TestSettlePut is Fixture {
 
         tokenId = getTokenId(TokenType.PUT, productId, expiry, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createAddCollateralAction(productId, address(this), depositAmount);
+        actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         // give optoin to alice
         actions[1] = createMintAction(tokenId, alice, amount);
 
@@ -234,7 +234,7 @@ contract TestSettleETHCollateralizedPut is Fixture {
 
         tokenId = getTokenId(TokenType.PUT, productIdEthCollat, expiry, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createAddCollateralAction(productIdEthCollat, address(this), depositAmount);
+        actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         // give optoin to alice
         actions[1] = createMintAction(tokenId, alice, amount);
 
@@ -302,7 +302,7 @@ contract TestSettleCallSpread is Fixture {
 
         tokenId = getTokenId(TokenType.CALL_SPREAD, productId, expiry, longStrike, shortStrike);
         ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createAddCollateralAction(productId, address(this), depositAmount);
+        actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         // give optoin to alice
         actions[1] = createMintAction(tokenId, alice, amount);
 
@@ -389,7 +389,7 @@ contract TestSettlePutSpread is Fixture {
 
         tokenId = getTokenId(TokenType.PUT_SPREAD, productId, expiry, longStrike, shortStrike);
         ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createAddCollateralAction(productId, address(this), depositAmount);
+        actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         // give optoin to alice
         actions[1] = createMintAction(tokenId, alice, amount);
 
@@ -479,14 +479,12 @@ contract TestBatchSettleCall is Fixture {
         tokenIds[1] = getTokenId(TokenType.CALL, productId, expiry, strikes[1], 0);
         tokenIds[2] = getTokenId(TokenType.CALL, productId, expiry, strikes[2], 0);
 
-        console2.log("here");
-
         // mint 2 tokens to alice
         for (uint160 i = 0; i < 3; i++) {
             amounts[i] = amount;
 
             ActionArgs[] memory actions = new ActionArgs[](2);
-            actions[0] = createAddCollateralAction(productId, address(this), depositAmount);
+            actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
             // give optoin to alice
             actions[1] = createMintAction(tokenIds[i], alice, amount);
             // mint option
