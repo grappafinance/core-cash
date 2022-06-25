@@ -198,3 +198,135 @@ contract TestLiquidatePut is Fixture {
         assertEq(collateralId, 0);
     }
 }
+
+contract TestLiquidateCallAndPut is Fixture {
+    uint256 public expiry;
+
+    uint64 private amount = uint64(1 * UNIT);
+    uint256 private callId;
+    uint256 private putId;
+
+    uint64 private callStrike;
+    uint64 private putStrike;
+
+    uint256 private initialCollateral;
+
+    address private accountId;
+
+    function setUp() public {
+        // setup account for alice
+        usdc.mint(alice, 1000_000 * 1e6);
+
+        vm.startPrank(alice);
+        usdc.approve(address(grappa), type(uint256).max);
+
+        expiry = block.timestamp + 7 days;
+
+        oracle.setSpotPrice(4000 * UNIT);
+
+        // mint option
+        initialCollateral = 700 * 1e6;
+
+        callStrike = uint64(4500 * UNIT);
+        putStrike = uint64(3500 * UNIT);
+
+        accountId = alice;
+
+        callId = getTokenId(TokenType.CALL, productId, expiry, callStrike, 0);
+        putId = getTokenId(TokenType.PUT, productId, expiry, putStrike, 0);
+        ActionArgs[] memory actions = new ActionArgs[](3);
+        actions[0] = createAddCollateralAction(usdcId, alice, initialCollateral);
+        // give optoins to this address, so it can liquidate alice
+        actions[1] = createMintAction(callId, address(this), amount);
+        actions[2] = createMintAction(putId, address(this), amount);
+
+        // mint option
+        grappa.execute(accountId, actions);
+
+        vm.stopPrank();
+    }
+
+    function testCannotLiquidateHealthyVault() public {
+        vm.expectRevert(AccountIsHealthy.selector);
+        grappa.liquidate(accountId, amount, amount);
+    }
+
+    function testCannotLiquidateWithOnlySpecifyCallAmount() public {
+        oracle.setSpotPrice(3600 * UNIT);
+
+        vm.expectRevert(WrongLiquidationAmounts.selector);
+        grappa.liquidate(accountId, amount, 0);
+    }
+
+    function testCannotLiquidateWithImbalancedAmount() public {
+        oracle.setSpotPrice(3600 * UNIT);
+
+        vm.expectRevert(WrongLiquidationAmounts.selector);
+        grappa.liquidate(accountId, amount, amount - 1);
+
+        vm.expectRevert(WrongLiquidationAmounts.selector);
+        grappa.liquidate(accountId, amount - 1, amount);
+    }
+
+    function testCannotLiquidateWithOnlySpecifyPutAmount() public {
+        oracle.setSpotPrice(3600 * UNIT);
+
+        vm.expectRevert(WrongLiquidationAmounts.selector);
+        grappa.liquidate(accountId, 0, amount);
+    }
+
+    function testPartiallyLiquidateTheVault() public {
+        oracle.setSpotPrice(3600 * UNIT);
+
+        uint256 usdcBalanceBefore = usdc.balanceOf(address(this));
+        uint256 callBefore = option.balanceOf(address(this), callId);
+        uint256 putBefore = option.balanceOf(address(this), putId);
+
+        uint64 liquidateAmount = amount / 2;
+        grappa.liquidate(accountId, liquidateAmount, liquidateAmount);
+
+        uint256 expectCollateralToGet = initialCollateral / 2;
+        uint256 usdcBalanceAfter = usdc.balanceOf(address(this));
+        uint256 callAfter = option.balanceOf(address(this), callId);
+        uint256 putAfter = option.balanceOf(address(this), putId);
+
+        assertEq(usdcBalanceAfter - usdcBalanceBefore, expectCollateralToGet);
+        assertEq(callBefore - callAfter, liquidateAmount);
+        assertEq(putBefore - putAfter, liquidateAmount);
+    }
+
+    function testFullyLiquidateTheVault() public {
+        oracle.setSpotPrice(3600 * UNIT);
+
+        uint256 usdcBalanceBefore = usdc.balanceOf(address(this));
+        uint256 callBefore = option.balanceOf(address(this), callId);
+        uint256 putBefore = option.balanceOf(address(this), putId);
+
+        grappa.liquidate(accountId, amount, amount);
+
+        uint256 usdcBalanceAfter = usdc.balanceOf(address(this));
+        uint256 callAfter = option.balanceOf(address(this), callId);
+        uint256 putAfter = option.balanceOf(address(this), putId);
+
+        assertEq(usdcBalanceAfter - usdcBalanceBefore, initialCollateral);
+        assertEq(callBefore - callAfter, amount);
+        assertEq(putBefore - putAfter, amount);
+
+        // vault should be reset
+        (
+            uint256 shortCallId,
+            uint256 shortPutId,
+            uint64 shortCallAmount,
+            uint64 shortPutAmount,
+            uint80 collateralAmount,
+            uint8 collateralId
+        ) = grappa.marginAccounts(accountId);
+
+        assertEq(shortCallId, 0);
+        assertEq(shortPutId, 0);
+        assertEq(shortCallAmount, 0);
+        assertEq(shortPutAmount, 0);
+        assertEq(collateralAmount, 0);
+        assertEq(collateralId, 0);
+    }
+}
