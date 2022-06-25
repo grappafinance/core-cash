@@ -137,7 +137,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
         // update account structure.
         // todo: safecast
         address collateral = address(assets[account.collateralId].addr);
-        
+
         account.removeCollateral(uint80(collateralToPay));
         if (hasShortCall) {
             account.burnOption(account.shortCallId, _repayCallAmount);

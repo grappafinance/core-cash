@@ -68,7 +68,7 @@ contract TestLiquidateCall is Fixture {
 
         uint256 usdcBalanceBefore = usdc.balanceOf(address(this));
         uint256 optionBalanceBefore = option.balanceOf(address(this), tokenId);
-        
+
         uint64 liquidateAmount = amount / 2;
         grappa.liquidate(accountId, liquidateAmount, 0);
 
@@ -95,14 +95,8 @@ contract TestLiquidateCall is Fixture {
         assertEq(optionBalanceBefore - optionBalanceAfter, amount);
 
         // vault should be reset
-        (
-            uint256 shortCallId,
-            ,
-            uint64 shortCallAmount,
-            ,
-            uint80 collateralAmount,
-            uint8 collateralId
-        ) = grappa.marginAccounts(accountId);
+        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAmount, uint8 collateralId) = grappa
+            .marginAccounts(accountId);
 
         assertEq(shortCallId, 0);
         assertEq(shortCallAmount, 0);
@@ -168,7 +162,7 @@ contract TestLiquidatePut is Fixture {
 
         uint256 usdcBalanceBefore = usdc.balanceOf(address(this));
         uint256 optionBalanceBefore = option.balanceOf(address(this), tokenId);
-        
+
         uint64 liquidateAmount = amount / 2;
         grappa.liquidate(accountId, 0, liquidateAmount);
 
@@ -195,14 +189,8 @@ contract TestLiquidatePut is Fixture {
         assertEq(optionBalanceBefore - optionBalanceAfter, amount);
 
         // vault should be reset
-        (
-            uint256 shortCallId,
-            ,
-            uint64 shortCallAmount,
-            ,
-            uint80 collateralAmount,
-            uint8 collateralId
-        ) = grappa.marginAccounts(accountId);
+        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAmount, uint8 collateralId) = grappa
+            .marginAccounts(accountId);
 
         assertEq(shortCallId, 0);
         assertEq(shortCallAmount, 0);
