@@ -16,6 +16,8 @@ error InvalidTokenId();
 
 error AccountIsHealthy();
 
+error AccountIsNotEmpty();
+
 error WrongLiquidationAmounts();
 
 error AccountUnderwater();

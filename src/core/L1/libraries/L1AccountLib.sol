@@ -13,6 +13,13 @@ import "src/config/errors.sol";
  * @dev   This library is in charge of updating the l1 account memory and do validations
  */
 library L1AccountLib {
+    /**
+     * @return isEmpty return true if the account has no short positions nor collatearl
+     */
+    function isEmpty(Account storage account) internal view returns (bool) {
+        return account.collateralAmount == 0 && account.shortCallAmount == 0 && account.shortPutAmount == 0;
+    }
+
     ///@dev Increase the collateral in the account
     ///@param account Account memory that will be updated in-place
     function addCollateral(

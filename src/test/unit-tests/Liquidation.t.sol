@@ -94,7 +94,7 @@ contract TestLiquidateCall is Fixture {
         assertEq(usdcBalanceAfter - usdcBalanceBefore, initialCollateral);
         assertEq(optionBalanceBefore - optionBalanceAfter, amount);
 
-        // vault should be reset
+        //margin account should be reset
         (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAmount, uint8 collateralId) = grappa
             .marginAccounts(accountId);
 
@@ -188,7 +188,7 @@ contract TestLiquidatePut is Fixture {
         assertEq(usdcBalanceAfter - usdcBalanceBefore, initialCollateral);
         assertEq(optionBalanceBefore - optionBalanceAfter, amount);
 
-        // vault should be reset
+        //margin account should be reset
         (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAmount, uint8 collateralId) = grappa
             .marginAccounts(accountId);
 
@@ -312,7 +312,7 @@ contract TestLiquidateCallAndPut is Fixture {
         assertEq(callBefore - callAfter, amount);
         assertEq(putBefore - putAfter, amount);
 
-        // vault should be reset
+        //margin account should be reset
         (
             uint256 shortCallId,
             uint256 shortPutId,
