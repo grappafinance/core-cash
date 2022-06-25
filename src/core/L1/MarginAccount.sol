@@ -96,7 +96,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
         if (_isAccountHealthy(account)) revert AccountIsHealthy();
 
         bool hasShortCall = account.shortCallAmount != 0;
-        bool hasShortPut = account.shortCallAmount != 0;
+        bool hasShortPut = account.shortPutAmount != 0;
 
         uint256 portionBPS;
         if (hasShortCall && hasShortPut) {
@@ -136,6 +136,8 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
 
         // update account structure.
         // todo: safecast
+        address collateral = address(assets[account.collateralId].addr);
+        
         account.removeCollateral(uint80(collateralToPay));
         if (hasShortCall) {
             account.burnOption(account.shortCallId, _repayCallAmount);
@@ -147,7 +149,6 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
         marginAccounts[_accountId] = account;
 
         // payout to liquidator
-        address collateral = address(assets[account.collateralId].addr);
         IERC20(collateral).transfer(msg.sender, collateralToPay);
     }
 
