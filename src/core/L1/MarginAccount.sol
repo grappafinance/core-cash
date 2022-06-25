@@ -190,7 +190,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
                         ------------------------
           These functions all update account struct memory and
           deal with burning / minting or transfering collateral
-     ** ========================================================= **/ 
+     ** ========================================================= **/
 
     /**
      * @dev pull token from user, increase collateral in account memory
@@ -296,7 +296,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
 
     /** ========================================================= **
                             Internal Functions
-     ** ========================================================= **/ 
+     ** ========================================================= **/
 
     /**
      * @notice return if {_account} address is the primary account for _accountId
