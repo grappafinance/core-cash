@@ -85,7 +85,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
     }
 
     /**
-     * @dev liquidate an account: burning the token the account is shorted (repay the debt), and get the collateral from the vault.
+     * @dev liquidate an account: burning the token the account is shorted (repay the debt), and get the collateral from the margin account.
      */
     function liquidate(
         address _accountId,
@@ -98,7 +98,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
         bool hasShortCall = account.shortCallAmount != 0;
         bool hasShortPut = account.shortPutAmount != 0;
 
-        // portion of the vault the liquidator is liquidating.
+        // portion of the collateral the liquidator is liquidating.
         uint256 portionBPS;
 
         if (hasShortCall && hasShortPut) {
@@ -153,8 +153,8 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
     }
 
     /**
-     * @dev alternative to liquidation: take over someone else's underwater vault, tap up collateral to make it healthy.
-     *      effectively equivelant to mint + liquidate, and add back collateral got from liquidation
+     * @dev alternative to liquidation: take over someone else's underwater margin account, tap up collateral to make it healthy.
+     *      effectively equivalent to mint + liquidate + add back collateral got from liquidation
      * @param _accountIdToTakeOver account id to be moved
      * @param _newAccountId new acount Id which will be linked to the margin account structure
      * @param _additionalCollateral additional collateral to tap up
@@ -183,6 +183,14 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
         if (!marginAccounts[_newAccountId].isEmpty()) revert AccountIsNotEmpty();
         marginAccounts[_newAccountId] = account;
     }
+
+    /** ======================================================== **
+                        ------------------------
+                        |   Actions Functions  |
+                        ------------------------
+          These functions all update account struct memory and
+          deal with burning / minting or transfering collateral
+     ** ========================================================= **/ 
 
     /**
      * @dev pull token from user, increase collateral in account memory
@@ -285,6 +293,10 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
 
         optionToken.mint(recipient, tokenId, amount);
     }
+
+    /** ========================================================= **
+                            Internal Functions
+     ** ========================================================= **/ 
 
     /**
      * @notice return if {_account} address is the primary account for _accountId
