@@ -1,0 +1,46 @@
+// SPDX-License-Identifier: MIT
+pragma solidity =0.8.13;
+
+library ProductIdUtil {
+    /**
+     * @dev parse product id into composing asset addresses
+     *                        * -------------- | ---------------------- | ------------------ | ---------------------- *
+     * productId (32 bits) =  | empty (8 bits) | underlying ID (8 bits) | strike ID (8 bits) | collateral ID (8 bits) |
+     *                        * -------------- | ---------------------- | ------------------ | ---------------------- *
+     * @param _productId product id
+     */
+    function parseProductId(uint32 _productId)
+        internal
+        pure
+        returns (
+            uint8 underlyingId,
+            uint8 strikeId,
+            uint8 collateralId
+        )
+    {
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            underlyingId := shr(16, _productId)
+            strikeId := shr(8, _productId)
+        }
+        collateralId = uint8(_productId);
+    }
+
+    /**
+     * @notice    get product id from underlying, strike and collateral address
+     * @dev       function will still return even if some of the assets are not registered
+     *                        * -------------- | ---------------------- | ------------------ | ---------------------- *
+     * productId (32 bits) =  | empty (8 bits) | underlying ID (8 bits) | strike ID (8 bits) | collateral ID (8 bits) |
+     *                        * -------------- | ---------------------- | ------------------ | ---------------------- *
+     * @param underlyingId  underlying id
+     * @param strikeId      strike id
+     * @param collateralId  collateral id
+     */
+    function getProductId(
+        uint8 underlyingId,
+        uint8 strikeId,
+        uint8 collateralId
+    ) internal pure returns (uint32 id) {
+        id = (uint32(underlyingId) << 16) + (uint32(strikeId) << 8) + (uint32(collateralId));
+    }
+}

@@ -55,7 +55,9 @@ contract Settlement is AssetRegistry {
 
         if (block.timestamp < expiry) revert NotExpired();
 
-        (address underlying, address strike, address collateral, uint8 collatDecimals) = parseProductId(productId);
+        (address underlying, address strike, address collateral, uint8 collatDecimals) = getAssetsFromProductId(
+            productId
+        );
 
         // cash value denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
         uint256 cashValue;
