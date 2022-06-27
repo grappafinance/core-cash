@@ -1,12 +1,12 @@
 {
-  "name": "forge-template",
-  "author": "FrankieIsLost",
+  "name": "grappa",
+  "author": "antoncoding",
   "version": "1.0.0",
-  "description": "A forge template",
-  "homepage": "https://github.com/FrankieIsLost/forge-template#readme",
+  "description": "option protocol built with forge template",
+  "homepage": "https://github.com/antoncoding/grappa",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/FrankieIsLost/forge-template.git"
+    "url": "git@github.com:antoncoding/grappa.git"
   },
   "scripts": {
     "postinstall": "husky install",
