@@ -40,8 +40,7 @@ contract AssetRegistry is Ownable {
             uint8 collateralDecimals
         )
     {
-        (uint8 underlyingId, uint8 strikeId, uint8 collateralId) = (0, 0, 0);
-        (underlyingId, strikeId, collateralId) = ProductIdUtil.parseProductId(_productId);
+        (uint8 underlyingId, uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(_productId);
         AssetDetail memory collateralDetail = assets[collateralId];
         return (
             address(assets[underlyingId].addr),
