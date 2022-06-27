@@ -55,7 +55,8 @@ library L1AccountLib {
         uint256 tokenId,
         uint64 amount
     ) internal pure {
-        (TokenType optionType, uint32 productId, , uint64 tokenLongStrike, uint64 tokenShortStrike) = tokenId.parseTokenId();
+        (TokenType optionType, uint32 productId, , uint64 tokenLongStrike, uint64 tokenShortStrike) = tokenId
+            .parseTokenId();
 
         // assign collateralId or check collateral id is the same
         uint8 collateralId = productId.getCollateralId();
@@ -159,7 +160,8 @@ library L1AccountLib {
         amount = isSplitingCallSpread ? account.shortCallAmount : account.shortPutAmount;
 
         // we expected the existing "shortId" to be a spread
-        (TokenType spreadType, uint32 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) = spreadId.parseTokenId();
+        (TokenType spreadType, uint32 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) = spreadId
+            .parseTokenId();
 
         // if exisiting type is not spread, it will revert
         if (spreadType != optionType) revert MergeTypeMismatch();
