@@ -33,9 +33,9 @@ library TokenIdUtil {
 
     /**
      * @notice derive option expiry and strike price from ERC1155 token id
-     *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
+     *                  * ------------------- | ------------------- | ----------------- | -------------------- | --------------------- *
      * @dev   tokenId = | tokenType (32 bits) | productId (32 bits) | expiry (64 bits)  | longStrike (64 bits) | shortStrike (64 bits) |
-     *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
+     *                  * ------------------- | ------------------- | ----------------- | -------------------- | --------------------- *
      * @param tokenId token id
      * @return tokenType TokenType enum
      * @return productId if of the product

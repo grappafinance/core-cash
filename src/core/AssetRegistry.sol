@@ -4,6 +4,7 @@ pragma solidity =0.8.13;
 import {AssetDetail} from "src/config/types.sol";
 import {IERC20Metadata} from "openzeppelin/token/ERC20/extensions/IERC20Metadata.sol";
 import {Ownable} from "openzeppelin/access/Ownable.sol";
+import {ProductIdUtil} from "src/libraries/ProductIdUtil.sol";
 
 contract AssetRegistry is Ownable {
     error AlreadyRegistered();
@@ -27,13 +28,10 @@ contract AssetRegistry is Ownable {
 
     /**
      * @dev parse product id into composing asset addresses
-     *                        * -------------- | ---------------------- | ------------------ | ---------------------- *
-     * productId (32 bits) =  | empty (8 bits) | underlying ID (8 bits) | strike ID (8 bits) | collateral ID (8 bits) |
-     *                        * -------------- | ---------------------- | ------------------ | ---------------------- *
      * @param _productId product id
      */
-    function parseProductId(uint32 _productId)
-        public
+    function getAssetsFromProductId(uint32 _productId)
+        internal
         view
         returns (
             address underlying,
@@ -42,14 +40,7 @@ contract AssetRegistry is Ownable {
             uint8 collateralDecimals
         )
     {
-        (uint8 underlyingId, uint8 strikeId) = (0, 0);
-
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            underlyingId := shr(16, _productId)
-            strikeId := shr(8, _productId)
-        }
-        uint8 collateralId = uint8(_productId);
+        (uint8 underlyingId, uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(_productId);
         AssetDetail memory collateralDetail = assets[collateralId];
         return (
             address(assets[underlyingId].addr),
@@ -62,9 +53,6 @@ contract AssetRegistry is Ownable {
     /**
      * @notice    get product id from underlying, strike and collateral address
      * @dev       function will still return even if some of the assets are not registered
-     *                        * -------------- | ---------------------- | ------------------ | ---------------------- *
-     * productId (32 bits) =  | empty (8 bits) | underlying ID (8 bits) | strike ID (8 bits) | collateral ID (8 bits) |
-     *                        * -------------- | ---------------------- | ------------------ | ---------------------- *
      * @param underlying  underlying address
      * @param strike      strike address
      * @param collateral  collateral address
@@ -74,7 +62,7 @@ contract AssetRegistry is Ownable {
         address strike,
         address collateral
     ) public view returns (uint32 id) {
-        id = (uint32(ids[underlying]) << 16) + (uint32(ids[strike]) << 8) + (uint32(ids[collateral]));
+        id = ProductIdUtil.getProductId(ids[underlying], ids[strike], ids[collateral]);
     }
 
     /**
