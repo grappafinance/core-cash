@@ -5,7 +5,7 @@ import {IERC20} from "src/interfaces/IERC20.sol";
 import {IOracle} from "src/interfaces/IOracle.sol";
 import {IOptionToken} from "src/interfaces/IOptionToken.sol";
 
-import {OptionTokenUtils} from "src/libraries/OptionTokenUtils.sol";
+import {TokenIdUtil} from "src/libraries/TokenIdUtil.sol";
 import {L1MarginMathLib} from "./libraries/L1MarginMathLib.sol";
 import {L1AccountLib} from "./libraries/L1AccountLib.sol";
 
@@ -379,7 +379,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
 
         // if it contains a call
         if (account.shortCallId != 0) {
-            (, , , uint64 longStrike, uint64 shortStrike) = OptionTokenUtils.parseTokenId(account.shortCallId);
+            (, , , uint64 longStrike, uint64 shortStrike) = TokenIdUtil.parseTokenId(account.shortCallId);
             // the short position of the account is the long of the minted optionToken
             detail.shortCallStrike = longStrike;
             detail.longCallStrike = shortStrike;
@@ -387,7 +387,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
 
         // if it contains a put
         if (account.shortPutId != 0) {
-            (, , , uint64 longStrike, uint64 shortStrike) = OptionTokenUtils.parseTokenId(account.shortPutId);
+            (, , , uint64 longStrike, uint64 shortStrike) = TokenIdUtil.parseTokenId(account.shortPutId);
 
             // the short position of the account is the long of the minted optionToken
             detail.shortPutStrike = longStrike;
@@ -398,7 +398,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
         // use the OR operator, so as long as one of shortPutId or shortCallId is non-zero, got reflected here
         uint256 commonId = account.shortPutId | account.shortCallId;
 
-        (, uint32 productId, uint64 expiry, , ) = OptionTokenUtils.parseTokenId(commonId);
+        (, uint32 productId, uint64 expiry, , ) = TokenIdUtil.parseTokenId(commonId);
         detail.productId = productId;
         detail.expiry = expiry;
     }

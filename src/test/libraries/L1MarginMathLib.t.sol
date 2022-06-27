@@ -67,7 +67,7 @@ contract L1MarginMathLibTest is Test {
             spot,
             getDefaultConfig()
         );
-        assertEq(minCollat2, 2124500000); // 664 USD
+        assertEq(minCollat2, 2124500000); // 2124.5 USD
     }
 
     function testMinCollateralOTMPut() public {

@@ -9,7 +9,7 @@ import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import {AssetRegistry} from "src/core/AssetRegistry.sol";
 
 // libraries
-import {OptionTokenUtils} from "src/libraries/OptionTokenUtils.sol";
+import {TokenIdUtil} from "src/libraries/TokenIdUtil.sol";
 import {L1MarginMathLib} from "src/core/L1/libraries/L1MarginMathLib.sol";
 
 // interfaces
@@ -50,13 +50,8 @@ contract Settlement is AssetRegistry {
      * @return payout amount paid
      **/
     function getOptionPayout(uint256 _tokenId, uint256 _amount) public view returns (address, uint256 payout) {
-        (
-            TokenType tokenType,
-            uint32 productId,
-            uint64 expiry,
-            uint64 longStrike,
-            uint256 shortStrike
-        ) = OptionTokenUtils.parseTokenId(_tokenId);
+        (TokenType tokenType, uint32 productId, uint64 expiry, uint64 longStrike, uint256 shortStrike) = TokenIdUtil
+            .parseTokenId(_tokenId);
 
         if (block.timestamp < expiry) revert NotExpired();
 

@@ -5,7 +5,7 @@ import "forge-std/console2.sol";
 import "src/config/enums.sol";
 import "src/config/types.sol";
 
-import "src/libraries/OptionTokenUtils.sol";
+import "src/libraries/TokenIdUtil.sol";
 
 contract ActionHelper {
     function getTokenId(
@@ -15,7 +15,7 @@ contract ActionHelper {
         uint256 longStrike,
         uint256 shortStrike
     ) internal pure returns (uint256 tokenId) {
-        tokenId = OptionTokenUtils.formatTokenId(
+        tokenId = TokenIdUtil.formatTokenId(
             tokenType,
             productId,
             uint64(expiry),
@@ -35,7 +35,7 @@ contract ActionHelper {
             uint64 shortStrike
         )
     {
-        return OptionTokenUtils.parseTokenId(tokenId);
+        return TokenIdUtil.parseTokenId(tokenId);
     }
 
     function createAddCollateralAction(
