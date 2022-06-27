@@ -185,10 +185,14 @@ library L1AccountLib {
         }
     }
 
-    function parseCollateralId(uint32 _productId) internal pure returns (uint8 collateralId) {
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            collateralId := shr(8, _productId)
-        }
+    /**
+     * @dev get collateral id from product Id.
+     *      since collateral id is uint8 of the last 8 bits of productId, we can just cast to uint8
+     *                              * -------------- | ---------------------- | ------------------ | ---------------------- *
+     *       productId (32 bits) =  | empty (8 bits) | underlying ID (8 bits) | strike ID (8 bits) | collateral ID (8 bits) |
+     *                              * -------------- | ---------------------- | ------------------ | ---------------------- *
+     */
+    function parseCollateralId(uint32 _productId) internal pure returns (uint8) {
+        return uint8(_productId);
     }
 }
