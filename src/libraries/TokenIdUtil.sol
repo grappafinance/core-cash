@@ -3,7 +3,7 @@ pragma solidity =0.8.13;
 
 import "../config/enums.sol";
 
-library OptionTokenUtils {
+library TokenIdUtil {
     /**
      * @notice calculate ERC1155 token id for given option parameters
      *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *

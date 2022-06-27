@@ -27,9 +27,9 @@ contract AssetRegistry is Ownable {
 
     /**
      * @dev parse product id into composing asset addresses
-     *                         * ---------------------- | ------------------ | ---------------------- | -------------- *
-     * productId (32 bits) =   | underlying ID (8 bits) | strike ID (8 bits) | collateral ID (8 bits) | empty (8 bits) |
-     *                         * ---------------------- | ------------------ | ---------------------- | -------------- *
+     *                        * -------------- | ---------------------- | ------------------ | ---------------------- *
+     * productId (32 bits) =  | empty (8 bits) | underlying ID (8 bits) | strike ID (8 bits) | collateral ID (8 bits) |
+     *                        * -------------- | ---------------------- | ------------------ | ---------------------- *
      * @param _productId product id
      */
     function parseProductId(uint32 _productId)
@@ -42,15 +42,14 @@ contract AssetRegistry is Ownable {
             uint8 collateralDecimals
         )
     {
-        (uint8 underlyingId, uint8 strikeId, uint8 collateralId) = (0, 0, 0);
+        (uint8 underlyingId, uint8 strikeId) = (0, 0);
 
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            underlyingId := shr(24, _productId)
-            strikeId := shr(16, _productId)
-            collateralId := shr(8, _productId)
-            // the last 8 bits are not used
+            underlyingId := shr(16, _productId)
+            strikeId := shr(8, _productId)
         }
+        uint8 collateralId = uint8(_productId);
         AssetDetail memory collateralDetail = assets[collateralId];
         return (
             address(assets[underlyingId].addr),
@@ -63,9 +62,9 @@ contract AssetRegistry is Ownable {
     /**
      * @notice    get product id from underlying, strike and collateral address
      * @dev       function will still return even if some of the assets are not registered
-     *                         * ---------------------- | ------------------ | ---------------------- | -------------- *
-     * productId (32 bits) =   | underlying ID (8 bits) | strike ID (8 bits) | collateral ID (8 bits) | empty (8 bits) |
-     *                         * ---------------------- | ------------------ | ---------------------- | -------------- *
+     *                        * -------------- | ---------------------- | ------------------ | ---------------------- *
+     * productId (32 bits) =  | empty (8 bits) | underlying ID (8 bits) | strike ID (8 bits) | collateral ID (8 bits) |
+     *                        * -------------- | ---------------------- | ------------------ | ---------------------- *
      * @param underlying  underlying address
      * @param strike      strike address
      * @param collateral  collateral address
@@ -75,7 +74,7 @@ contract AssetRegistry is Ownable {
         address strike,
         address collateral
     ) public view returns (uint32 id) {
-        id = (uint32(ids[underlying]) << 24) + (uint32(ids[strike]) << 16) + (uint32(ids[collateral]) << 8);
+        id = (uint32(ids[underlying]) << 16) + (uint32(ids[strike]) << 8) + (uint32(ids[collateral]));
     }
 
     /**
