@@ -3,7 +3,7 @@ pragma solidity =0.8.13;
 
 library ProductIdUtil {
     /**
-     * @dev parse product id into composing asset addresses
+     * @dev parse product id into composing asset ids
      *                        * -------------- | ---------------------- | ------------------ | ---------------------- *
      * productId (32 bits) =  | empty (8 bits) | underlying ID (8 bits) | strike ID (8 bits) | collateral ID (8 bits) |
      *                        * -------------- | ---------------------- | ------------------ | ---------------------- *
@@ -24,6 +24,17 @@ library ProductIdUtil {
             strikeId := shr(8, _productId)
         }
         collateralId = uint8(_productId);
+    }
+
+    /**
+     * @dev parse collateral id from product Id.
+     *      since collateral id is uint8 of the last 8 bits of productId, we can just cast to uint8
+     *                        * -------------- | ---------------------- | ------------------ | ---------------------- *
+     * productId (32 bits) =  | empty (8 bits) | underlying ID (8 bits) | strike ID (8 bits) | collateral ID (8 bits) |
+     *                        * -------------- | ---------------------- | ------------------ | ---------------------- *
+     */
+    function getCollateralId(uint32 _productId) internal pure returns (uint8) {
+        return uint8(_productId);
     }
 
     /**

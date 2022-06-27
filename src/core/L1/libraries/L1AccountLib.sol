@@ -3,6 +3,7 @@ pragma solidity =0.8.13;
 
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import "src/libraries/TokenIdUtil.sol";
+import "src/libraries/ProductIdUtil.sol";
 
 import "src/config/types.sol";
 import "src/config/constants.sol";
@@ -13,6 +14,9 @@ import "src/config/errors.sol";
  * @dev   This library is in charge of updating the l1 account memory and do validations
  */
 library L1AccountLib {
+    using TokenIdUtil for uint256;
+    using ProductIdUtil for uint32;
+
     /**
      * @dev return true if the account has no short positions nor collateral
      */
@@ -51,11 +55,10 @@ library L1AccountLib {
         uint256 tokenId,
         uint64 amount
     ) internal pure {
-        (TokenType optionType, uint32 productId, , uint64 tokenLongStrike, uint64 tokenShortStrike) = TokenIdUtil
-            .parseTokenId(tokenId);
+        (TokenType optionType, uint32 productId, , uint64 tokenLongStrike, uint64 tokenShortStrike) = tokenId.parseTokenId();
 
         // assign collateralId or check collateral id is the same
-        uint8 collateralId = parseCollateralId(productId);
+        uint8 collateralId = productId.getCollateralId();
         if (account.collateralId == 0) {
             account.collateralId = collateralId;
         } else {
@@ -89,7 +92,7 @@ library L1AccountLib {
         uint256 tokenId,
         uint64 amount
     ) internal pure {
-        TokenType optionType = TokenIdUtil.parseTokenType(tokenId);
+        TokenType optionType = tokenId.parseTokenType();
         if (optionType == TokenType.CALL || optionType == TokenType.CALL_SPREAD) {
             // burnning a call or call spread
             if (account.shortCallId != tokenId) revert InvalidTokenId();
@@ -110,9 +113,7 @@ library L1AccountLib {
     ///               and convert the short position to a spread.
     function merge(Account memory account, uint256 tokenId) internal pure returns (uint64 amount) {
         // get token attribute for incoming token
-        (TokenType optionType, uint32 productId, uint64 expiry, uint64 mergingStrike, ) = TokenIdUtil.parseTokenId(
-            tokenId
-        );
+        (TokenType optionType, uint32 productId, uint64 expiry, uint64 mergingStrike, ) = tokenId.parseTokenId();
 
         // token being added can only be call or put
         if (optionType != TokenType.CALL && optionType != TokenType.PUT) revert CannotMergeSpread();
@@ -122,9 +123,7 @@ library L1AccountLib {
         uint256 shortId = isMergingCall ? account.shortCallId : account.shortPutId;
         amount = isMergingCall ? account.shortCallAmount : account.shortPutAmount;
 
-        (TokenType shortType, uint32 productId_, uint64 expiry_, uint64 tokenLongStrike_, ) = TokenIdUtil.parseTokenId(
-            shortId
-        );
+        (TokenType shortType, uint32 productId_, uint64 expiry_, uint64 tokenLongStrike_, ) = shortId.parseTokenId();
 
         // if exisiting type is SPREAD, will revert
         if (shortType != optionType) revert MergeTypeMismatch();
@@ -160,8 +159,7 @@ library L1AccountLib {
         amount = isSplitingCallSpread ? account.shortCallAmount : account.shortPutAmount;
 
         // we expected the existing "shortId" to be a spread
-        (TokenType spreadType, uint32 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) = TokenIdUtil
-            .parseTokenId(spreadId);
+        (TokenType spreadType, uint32 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) = spreadId.parseTokenId();
 
         // if exisiting type is not spread, it will revert
         if (spreadType != optionType) revert MergeTypeMismatch();
@@ -179,16 +177,5 @@ library L1AccountLib {
             // token to be "minted" is removed "short strike" of shorted token as the new "long strike"
             mintingTokenId = TokenIdUtil.formatTokenId(TokenType.PUT, productId, expiry, shortStrike, 0);
         }
-    }
-
-    /**
-     * @dev get collateral id from product Id.
-     *      since collateral id is uint8 of the last 8 bits of productId, we can just cast to uint8
-     *                              * -------------- | ---------------------- | ------------------ | ---------------------- *
-     *       productId (32 bits) =  | empty (8 bits) | underlying ID (8 bits) | strike ID (8 bits) | collateral ID (8 bits) |
-     *                              * -------------- | ---------------------- | ------------------ | ---------------------- *
-     */
-    function parseCollateralId(uint32 _productId) internal pure returns (uint8) {
-        return uint8(_productId);
     }
 }
