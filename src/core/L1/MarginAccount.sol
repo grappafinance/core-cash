@@ -22,9 +22,10 @@ import "src/config/errors.sol";
 /**
  * @title   MarginAccount
  * @author  antoncoding
- * @dev     MarginAccount is in charge of maintaining margin requirement for each "account"
+ * @notice  MarginAccount is in charge of maintaining margin requirement for each "account"
             Users can deposit collateral into MarginAccount and mint optionTokens (debt) out of it.
             Interacts with OptionToken to mint / burn and get product information.
+            Interacts with Oracle to read spot price.
  */
 contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
     using L1MarginMathLib for MarginAccountDetail;
@@ -60,7 +61,8 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
     }
 
     /**
-     * @dev execute array of actions on an account
+     * @notice  execute array of actions on an account
+     * @dev     expected to be called by account owners.
      */
     function execute(address _accountId, ActionArgs[] calldata actions) external nonReentrant {
         _assertCallerHasAccess(_accountId);
@@ -85,7 +87,10 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
     }
 
     /**
-     * @dev liquidate an account: burning the token the account is shorted (repay the debt), and get the collateral from the margin account.
+     * @notice  liquidate an account: 
+                burning the token the account is shorted (repay the debt), 
+                and get the collateral from the margin account.
+     * @dev     expected to be called by liquidators
      */
     function liquidate(
         address _accountId,
@@ -153,8 +158,10 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
     }
 
     /**
-     * @dev alternative to liquidation: take over someone else's underwater margin account, tap up collateral to make it healthy.
-     *      effectively equivalent to mint + liquidate + add back collateral got from liquidation
+     * @notice  alternative to liquidation: 
+                take over someone else's underwater account, tap up collateral to make it healthy.
+     *          effectively equivalent to mint + liquidate + add back collateral got from liquidation
+     * @dev     expected to be called by liquidators
      * @param _accountIdToTakeOver account id to be moved
      * @param _newAccountId new acount Id which will be linked to the margin account structure
      * @param _additionalCollateral additional collateral to tap up
@@ -362,7 +369,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
     }
 
     /**
-     * @dev convert Account struct from storage to in-memory detail struct
+     * @notice  convert Account struct from storage to in-memory detail struct
      */
     function _getAccountDetail(Account memory account) internal pure returns (MarginAccountDetail memory detail) {
         detail = MarginAccountDetail({
