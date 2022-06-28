@@ -10,10 +10,10 @@ import "src/config/constants.sol";
 import "src/config/errors.sol";
 
 /**
- * @title L1AccountLib
- * @dev   This library is in charge of updating the l1 account memory and do validations
+ * @title SimpleMarginLib
+ * @dev   This library is in charge of updating the simple account struct memory and do validations
  */
-library L1AccountLib {
+library SimpleMarginLib {
     using TokenIdUtil for uint256;
     using ProductIdUtil for uint32;
 

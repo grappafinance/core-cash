@@ -6,7 +6,7 @@ import "forge-std/Test.sol";
 import "src/test/mocks/MockERC20.sol";
 import "src/test/mocks/MockOracle.sol";
 
-import "src/core/L1/MarginAccount.sol";
+import "src/core/SimpleMargin/MarginAccount.sol";
 import "src/core/OptionToken.sol";
 
 import "src/config/enums.sol";

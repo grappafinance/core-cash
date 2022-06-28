@@ -10,7 +10,7 @@ import {AssetRegistry} from "src/core/AssetRegistry.sol";
 
 // libraries
 import {TokenIdUtil} from "src/libraries/TokenIdUtil.sol";
-import {L1MarginMathLib} from "src/core/L1/libraries/L1MarginMathLib.sol";
+import {SimpleMarginMath} from "src/core/SimpleMargin/libraries/SimpleMarginMath.sol";
 
 // interfaces
 import {IOptionToken} from "src/interfaces/IOptionToken.sol";
@@ -66,13 +66,13 @@ contract Settlement is AssetRegistry {
         uint256 expiryPrice = oracle.getPriceAtExpiry(underlying, strike, expiry);
 
         if (tokenType == TokenType.CALL) {
-            cashValue = L1MarginMathLib.getCallCashValue(expiryPrice, longStrike);
+            cashValue = SimpleMarginMath.getCallCashValue(expiryPrice, longStrike);
         } else if (tokenType == TokenType.CALL_SPREAD) {
-            cashValue = L1MarginMathLib.getCashValueCallDebitSpread(expiryPrice, longStrike, shortStrike);
+            cashValue = SimpleMarginMath.getCashValueCallDebitSpread(expiryPrice, longStrike, shortStrike);
         } else if (tokenType == TokenType.PUT) {
-            cashValue = L1MarginMathLib.getPutCashValue(expiryPrice, longStrike);
+            cashValue = SimpleMarginMath.getPutCashValue(expiryPrice, longStrike);
         } else if (tokenType == TokenType.PUT_SPREAD) {
-            cashValue = L1MarginMathLib.getCashValuePutDebitSpread(expiryPrice, longStrike, shortStrike);
+            cashValue = SimpleMarginMath.getCashValuePutDebitSpread(expiryPrice, longStrike, shortStrike);
         }
 
         // payout is denominated in strike asset (usually USD), with {UNIT_DECIMALS} decimals

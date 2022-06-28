@@ -6,7 +6,7 @@ import "forge-std/Script.sol";
 import "openzeppelin/utils/Create2.sol";
 
 import "src/core/OptionToken.sol";
-import "src/core/L1/MarginAccount.sol";
+import "src/core/SimpleMargin/MarginAccount.sol";
 
 // todo: change to real oracle
 import "src/test/mocks/MockOracle.sol";
