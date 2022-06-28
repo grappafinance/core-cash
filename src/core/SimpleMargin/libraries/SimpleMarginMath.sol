@@ -147,6 +147,8 @@ library SimpleMarginMath {
     }
 
     ///@notice get the minimum collateral for a naked short option
+    ///@dev margin = cashValue + decay(t) * sqrt(v) * min(spot, K, sqrt(v)* spot^2 /K)
+    ///     decay(t) = a multiplier from [0, 1]
     function getMinCollateralForShortCall(
         uint256 _shortAmount,
         uint256 _strike,
@@ -155,11 +157,21 @@ library SimpleMarginMath {
         uint256 _vol,
         ProductMarginParams memory params
     ) internal view returns (uint256) {
-        // if ratio is 20%, we calculate price of spot * 120%
-        uint256 shockPrice = _spot.mulDivUp(BPS + params.shockRatio, BPS);
+        // todo: make sure strike cannot be 0!
         uint256 timeValueDecay = getTimeDecay(_expiry, params);
-        uint256 safeCashValue = getCallCashValue(shockPrice, _strike);
-        uint256 requireCollateral = min(_strike, shockPrice).mulDivUp(timeValueDecay, BPS) + safeCashValue;
+
+        // squared vol in UNIT
+        uint256 sqrtV = (_vol * UNIT).sqrt();
+
+        uint256 cashValue = getCallCashValue(_spot, _strike);
+
+        uint256 tempMin = min(_strike, _spot);
+
+        uint256 otmReq = sqrtV.mulDivUp(_spot, UNIT).mulDivUp(_spot, _strike);
+        tempMin = min(tempMin, otmReq);
+
+        uint256 requireCollateral = tempMin.mulDivUp(timeValueDecay, BPS).mulDivUp(sqrtV, UNIT) + cashValue;
+
         return requireCollateral.mulDivUp(_shortAmount, UNIT);
     }
 
@@ -184,12 +196,12 @@ library SimpleMarginMath {
 
         uint256 cashValue = getPutCashValue(_spot, _strike);
 
-        uint256 min1 = min(_strike, _spot);
+        uint256 tempMin = min(_strike, _spot);
 
         uint256 otmReq = sqrtV.mulDivUp(_strike, UNIT).mulDivUp(_strike, _spot);
-        min1 = min(min1, otmReq);
-        
-        uint256 requireCollateral = min1.mulDivUp(timeValueDecay, BPS).mulDivUp(sqrtV, UNIT) + cashValue;
+        tempMin = min(tempMin, otmReq);
+
+        uint256 requireCollateral = tempMin.mulDivUp(timeValueDecay, BPS).mulDivUp(sqrtV, UNIT) + cashValue;
 
         uint256 ans = requireCollateral.mulDivUp(_shortAmount, UNIT);
         return ans;

@@ -33,7 +33,7 @@ contract TestLiquidateCall is Fixture {
         oracle.setSpotPrice(3500 * UNIT);
 
         // mint option
-        initialCollateral = 700 * 1e6;
+        initialCollateral = 500 * 1e6;
 
         strike = uint64(4000 * UNIT);
 
@@ -225,7 +225,7 @@ contract TestLiquidateCallAndPut is Fixture {
         oracle.setSpotPrice(4000 * UNIT);
 
         // mint option
-        initialCollateral = 700 * 1e6;
+        initialCollateral = 600 * 1e6;
 
         callStrike = uint64(4500 * UNIT);
         putStrike = uint64(3500 * UNIT);
