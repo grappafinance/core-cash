@@ -66,7 +66,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
      * @return subAccountId number 0 ~ 255
      */
     function getSubAccount(address primary, uint256 subAccountId) external pure returns (address) {
-        if(subAccountId >= 256) revert InvalidSubAccountNumber();
+        if (subAccountId >= 256) revert InvalidSubAccountNumber();
         return address(uint160(primary) ^ uint160(subAccountId));
     }
 
@@ -97,8 +97,8 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
     }
 
     /**
-     * @notice  liquidate an account: 
-     *          burning the token the account is shorted (repay the debt), 
+     * @notice  liquidate an account:
+     *          burning the token the account is shorted (repay the debt),
      *          and get the collateral from the margin account.
      * @dev     expected to be called by liquidators
      */
@@ -168,7 +168,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
     }
 
     /**
-     * @notice  alternative to liquidation: 
+     * @notice  alternative to liquidation:
      *          take over someone else's underwater account, tap up collateral to make it healthy.
      *          effectively equivalent to mint + liquidate + add back collateral got from liquidation
      * @dev     expected to be called by liquidators
@@ -203,7 +203,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
 
     /**
      * @notice  grant or revoke an account access to all your sub-accounts
-     * @dev     usually user should only give access to helper contracts 
+     * @dev     usually user should only give access to helper contracts
      */
     function setAccountAccess(address _account, bool _isAuthorized) external {
         authorized[uint160(msg.sender) | 0xFF][_account] = _isAuthorized;
@@ -364,7 +364,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
      */
     function _assertCallerHasAccess(address _subAccount) internal view {
         if (_isPrimaryAccountFor(msg.sender, _subAccount)) return;
-        
+
         // the sender is not the direct owner. check if he's authorized
         uint160 maskedAccountId = (uint160(_subAccount) | 0xFF);
         if (!authorized[maskedAccountId][msg.sender]) revert NoAccess();
