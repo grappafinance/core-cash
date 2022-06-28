@@ -12,57 +12,57 @@ import "src/config/types.sol";
 contract MarginAccountGasTester is MarginAccount {
     constructor(address _optionToken, address _oracle) MarginAccount(_optionToken, _oracle) {}
 
-    function addCollateral(address _accountId, bytes calldata _data) external {
-        Account memory account = marginAccounts[_accountId];
+    function addCollateral(address _subAccount, bytes calldata _data) external {
+        Account memory account = marginAccounts[_subAccount];
 
-        _addCollateral(account, _data, _accountId);
+        _addCollateral(account, _data, _subAccount);
 
         _assertAccountHealth(account);
-        marginAccounts[_accountId] = account;
+        marginAccounts[_subAccount] = account;
     }
 
-    function removeCollateral(address _accountId, bytes calldata _data) external {
-        Account memory account = marginAccounts[_accountId];
+    function removeCollateral(address _subAccount, bytes calldata _data) external {
+        Account memory account = marginAccounts[_subAccount];
 
         _removeCollateral(account, _data);
 
         _assertAccountHealth(account);
-        marginAccounts[_accountId] = account;
+        marginAccounts[_subAccount] = account;
     }
 
-    function mintOption(address _accountId, bytes calldata _data) external {
-        Account memory account = marginAccounts[_accountId];
+    function mintOption(address _subAccount, bytes calldata _data) external {
+        Account memory account = marginAccounts[_subAccount];
 
         _mintOption(account, _data);
 
         _assertAccountHealth(account);
-        marginAccounts[_accountId] = account;
+        marginAccounts[_subAccount] = account;
     }
 
-    function burnOption(address _accountId, bytes calldata _data) external {
-        Account memory account = marginAccounts[_accountId];
+    function burnOption(address _subAccount, bytes calldata _data) external {
+        Account memory account = marginAccounts[_subAccount];
 
-        _burnOption(account, _data, _accountId);
+        _burnOption(account, _data, _subAccount);
 
         _assertAccountHealth(account);
-        marginAccounts[_accountId] = account;
+        marginAccounts[_subAccount] = account;
     }
 
-    function merge(address _accountId, bytes calldata _data) external {
-        Account memory account = marginAccounts[_accountId];
+    function merge(address _subAccount, bytes calldata _data) external {
+        Account memory account = marginAccounts[_subAccount];
 
-        _merge(account, _data, _accountId);
+        _merge(account, _data, _subAccount);
 
         _assertAccountHealth(account);
-        marginAccounts[_accountId] = account;
+        marginAccounts[_subAccount] = account;
     }
 
-    function split(address _accountId, bytes calldata _data) external {
-        Account memory account = marginAccounts[_accountId];
+    function split(address _subAccount, bytes calldata _data) external {
+        Account memory account = marginAccounts[_subAccount];
 
         _split(account, _data);
 
         _assertAccountHealth(account);
-        marginAccounts[_accountId] = account;
+        marginAccounts[_subAccount] = account;
     }
 }

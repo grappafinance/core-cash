@@ -50,31 +50,41 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
 
     /**
      * @notice get minimum collateral needed for a margin account
-     * @param _accountId account id.
+     * @param _subAccount account id.
      * @return minCollateral minimum collateral required, in collateral asset's decimals
      */
-    function getMinCollateral(address _accountId) external view returns (uint256 minCollateral) {
-        Account memory account = marginAccounts[_accountId];
+    function getMinCollateral(address _subAccount) external view returns (uint256 minCollateral) {
+        Account memory account = marginAccounts[_subAccount];
         MarginAccountDetail memory detail = _getAccountDetail(account);
 
         minCollateral = _getMinCollateral(detail);
     }
 
     /**
+     * @notice get the subAccount address to use
+     * @param primary usually the msg.sender
+     * @return subAccountId number 0 ~ 255
+     */
+    function getSubAccount(address primary, uint256 subAccountId) external pure returns (address) {
+        if(subAccountId >= 256) revert InvalidSubAccountNumber();
+        return address(uint160(primary) ^ uint160(subAccountId));
+    }
+
+    /**
      * @notice  execute array of actions on an account
      * @dev     expected to be called by account owners.
      */
-    function execute(address _accountId, ActionArgs[] calldata actions) external nonReentrant {
-        _assertCallerHasAccess(_accountId);
-        Account memory account = marginAccounts[_accountId];
+    function execute(address _subAccount, ActionArgs[] calldata actions) external nonReentrant {
+        _assertCallerHasAccess(_subAccount);
+        Account memory account = marginAccounts[_subAccount];
 
         // update the account memory and do external calls on the flight
         for (uint256 i; i < actions.length; ) {
-            if (actions[i].action == ActionType.AddCollateral) _addCollateral(account, actions[i].data, _accountId);
+            if (actions[i].action == ActionType.AddCollateral) _addCollateral(account, actions[i].data, _subAccount);
             else if (actions[i].action == ActionType.RemoveCollateral) _removeCollateral(account, actions[i].data);
             else if (actions[i].action == ActionType.MintShort) _mintOption(account, actions[i].data);
-            else if (actions[i].action == ActionType.BurnShort) _burnOption(account, actions[i].data, _accountId);
-            else if (actions[i].action == ActionType.MergeOptionToken) _merge(account, actions[i].data, _accountId);
+            else if (actions[i].action == ActionType.BurnShort) _burnOption(account, actions[i].data, _subAccount);
+            else if (actions[i].action == ActionType.MergeOptionToken) _merge(account, actions[i].data, _subAccount);
             else if (actions[i].action == ActionType.SplitOptionToken) _split(account, actions[i].data);
 
             // increase i without checking overflow
@@ -83,21 +93,21 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
             }
         }
         _assertAccountHealth(account);
-        marginAccounts[_accountId] = account;
+        marginAccounts[_subAccount] = account;
     }
 
     /**
      * @notice  liquidate an account: 
-                burning the token the account is shorted (repay the debt), 
-                and get the collateral from the margin account.
+     *          burning the token the account is shorted (repay the debt), 
+     *          and get the collateral from the margin account.
      * @dev     expected to be called by liquidators
      */
     function liquidate(
-        address _accountId,
+        address _subAccount,
         uint64 _repayCallAmount,
         uint64 _repayPutAmount
     ) external {
-        Account memory account = marginAccounts[_accountId];
+        Account memory account = marginAccounts[_subAccount];
         if (_isAccountHealthy(account)) revert AccountIsHealthy();
 
         bool hasShortCall = account.shortCallAmount != 0;
@@ -151,7 +161,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
             account.burnOption(account.shortPutId, _repayPutAmount);
         }
         // write to storage
-        marginAccounts[_accountId] = account;
+        marginAccounts[_subAccount] = account;
 
         // payout to liquidator
         IERC20(collateral).transfer(msg.sender, collateralToPay);
@@ -159,19 +169,19 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
 
     /**
      * @notice  alternative to liquidation: 
-                take over someone else's underwater account, tap up collateral to make it healthy.
+     *          take over someone else's underwater account, tap up collateral to make it healthy.
      *          effectively equivalent to mint + liquidate + add back collateral got from liquidation
      * @dev     expected to be called by liquidators
-     * @param _accountIdToTakeOver account id to be moved
+     * @param _subAccountToTakeOver account id to be moved
      * @param _newAccountId new acount Id which will be linked to the margin account structure
      * @param _additionalCollateral additional collateral to tap up
      */
     function takeoverPosition(
-        address _accountIdToTakeOver,
+        address _subAccountToTakeOver,
         address _newAccountId,
         uint80 _additionalCollateral
     ) external {
-        Account memory account = marginAccounts[_accountIdToTakeOver];
+        Account memory account = marginAccounts[_subAccountToTakeOver];
         if (_isAccountHealthy(account)) revert AccountIsHealthy();
 
         // make sure caller has access to the new account id.
@@ -186,17 +196,54 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
         _assertAccountHealth(account);
 
         // migrate account storage: delete the old entry and write "account" to new account id
-        delete marginAccounts[_accountIdToTakeOver];
+        delete marginAccounts[_subAccountToTakeOver];
         if (!marginAccounts[_newAccountId].isEmpty()) revert AccountIsNotEmpty();
         marginAccounts[_newAccountId] = account;
     }
 
-    /** ======================================================== **
-                        ------------------------
-                        |   Actions Functions  |
-                        ------------------------
-          These functions all update account struct memory and
-          deal with burning / minting or transfering collateral
+    /**
+     * @notice  grant or revoke an account access to all your sub-accounts
+     * @dev     usually user should only give access to helper contracts 
+     */
+    function setAccountAccess(address _account, bool _isAuthorized) external {
+        authorized[uint160(msg.sender) | 0xFF][_account] = _isAuthorized;
+    }
+
+    /**
+     * @notice set the margin config for specific productId
+     * @dev    expected to be used by Owner or governance
+     * @param _productId product id
+     * @param _discountPeriodUpperBound (sec) max time to expiry to offer a collateral requirement discount
+     * @param _discountPeriodLowerBound (sec) min time to expiry to offer a collateral requirement discount
+     * @param _discountRatioUpperBound (BPS) discount ratio if the time to expiry is at the upper bound
+     * @param _discountRatioLowerBound (BPS) discount ratio if the time to expiry is at the lower bound
+     * @param _shockRatio (BPS) spot shock
+     */
+    function setProductMarginConfig(
+        uint32 _productId,
+        uint32 _discountPeriodUpperBound,
+        uint32 _discountPeriodLowerBound,
+        uint32 _discountRatioUpperBound,
+        uint32 _discountRatioLowerBound,
+        uint32 _shockRatio
+    ) external onlyOwner {
+        productParams[_productId] = ProductMarginParams({
+            discountPeriodUpperBound: _discountPeriodUpperBound,
+            discountPeriodLowerBound: _discountPeriodLowerBound,
+            sqrtMaxDiscountPeriod: uint32(FixedPointMathLib.sqrt(uint256(_discountPeriodUpperBound))),
+            sqrtMinDiscountPeriod: uint32(FixedPointMathLib.sqrt(uint256(_discountPeriodLowerBound))),
+            discountRatioUpperBound: _discountRatioUpperBound,
+            discountRatioLowerBound: _discountRatioLowerBound,
+            shockRatio: _shockRatio
+        });
+    }
+
+    /** ========================================================= **
+     *                 * -------------------- *                    *
+     *                 |  Actions  Functions  |                    *
+     *                 * -------------------- *                    *
+     *    These functions all update account struct memory and     *
+     *    deal with burning / minting or transfering collateral    *
      ** ========================================================= **/
 
     /**
@@ -306,20 +353,21 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
      ** ========================================================= **/
 
     /**
-     * @notice return if {_account} address is the primary account for _accountId
+     * @notice return if {_primary} address is the primary account for {_subAccount}
      */
-    function _isPrimaryAccountFor(address _account, address _accountId) internal pure returns (bool) {
-        return (uint160(_account) | 0xFF) == (uint160(_accountId) | 0xFF);
+    function _isPrimaryAccountFor(address _primary, address _subAccount) internal pure returns (bool) {
+        return (uint160(_primary) | 0xFF) == (uint160(_subAccount) | 0xFF);
     }
 
     /**
-     * @notice return if the calling address is eligible to access accountId
+     * @notice return if the calling address is eligible to access an subAccount address
      */
-    function _assertCallerHasAccess(address _accountId) internal view {
-        if (_isPrimaryAccountFor(msg.sender, _accountId)) return;
+    function _assertCallerHasAccess(address _subAccount) internal view {
+        if (_isPrimaryAccountFor(msg.sender, _subAccount)) return;
+        
         // the sender is not the direct owner. check if he's authorized
-        uint160 primaryAccountId = (uint160(_accountId) | 0xFF);
-        if (!authorized[primaryAccountId][msg.sender]) revert NoAccess();
+        uint160 maskedAccountId = (uint160(_subAccount) | 0xFF);
+        if (!authorized[maskedAccountId][msg.sender]) revert NoAccess();
     }
 
     /**
@@ -421,33 +469,5 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
         info.strike = strike;
         info.collateral = collateral;
         info.collateralDecimals = collatDecimals;
-    }
-
-    /**
-     * @notice set the margin config for specific productId
-     * @param _productId product id
-     * @param _discountPeriodUpperBound (sec) max time to expiry to offer a collateral requirement discount
-     * @param _discountPeriodLowerBound (sec) min time to expiry to offer a collateral requirement discount
-     * @param _discountRatioUpperBound (BPS) discount ratio if the time to expiry is at the upper bound
-     * @param _discountRatioLowerBound (BPS) discount ratio if the time to expiry is at the lower bound
-     * @param _shockRatio (BPS) spot shock
-     */
-    function setProductMarginConfig(
-        uint32 _productId,
-        uint32 _discountPeriodUpperBound,
-        uint32 _discountPeriodLowerBound,
-        uint32 _discountRatioUpperBound,
-        uint32 _discountRatioLowerBound,
-        uint32 _shockRatio
-    ) external onlyOwner {
-        productParams[_productId] = ProductMarginParams({
-            discountPeriodUpperBound: _discountPeriodUpperBound,
-            discountPeriodLowerBound: _discountPeriodLowerBound,
-            sqrtMaxDiscountPeriod: uint32(FixedPointMathLib.sqrt(uint256(_discountPeriodUpperBound))),
-            sqrtMinDiscountPeriod: uint32(FixedPointMathLib.sqrt(uint256(_discountPeriodLowerBound))),
-            discountRatioUpperBound: _discountRatioUpperBound,
-            discountRatioLowerBound: _discountRatioLowerBound,
-            shockRatio: _shockRatio
-        });
     }
 }
