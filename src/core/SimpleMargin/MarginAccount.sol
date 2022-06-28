@@ -217,7 +217,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
      * @param _discountPeriodLowerBound (sec) min time to expiry to offer a collateral requirement discount
      * @param _discountRatioUpperBound (BPS) discount ratio if the time to expiry is at the upper bound
      * @param _discountRatioLowerBound (BPS) discount ratio if the time to expiry is at the lower bound
-     * @param _shockRatio (BPS) spot shock
+     * @param _volMultiplier (BPS) spot shock
      */
     function setProductMarginConfig(
         uint32 _productId,
@@ -225,7 +225,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
         uint32 _discountPeriodLowerBound,
         uint32 _discountRatioUpperBound,
         uint32 _discountRatioLowerBound,
-        uint32 _shockRatio
+        uint32 _volMultiplier
     ) external onlyOwner {
         productParams[_productId] = ProductMarginParams({
             discountPeriodUpperBound: _discountPeriodUpperBound,
@@ -234,7 +234,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
             sqrtMinDiscountPeriod: uint32(FixedPointMathLib.sqrt(uint256(_discountPeriodLowerBound))),
             discountRatioUpperBound: _discountRatioUpperBound,
             discountRatioLowerBound: _discountRatioLowerBound,
-            shockRatio: _shockRatio
+            volMultiplier: _volMultiplier
         });
     }
 

@@ -147,7 +147,7 @@ library SimpleMarginMath {
     }
 
     ///@notice get the minimum collateral for a naked short option
-    ///@dev margin = cashValue + decay(t) * sqrt(v) * min(spot, K, sqrt(v)* spot^2 /K)
+    ///@dev margin = cashValue + decay(t) * v * min(spot, K, sqrt(v)* spot^2 /K)
     ///     decay(t) = a multiplier from [0, 1]
     function getMinCollateralForShortCall(
         uint256 _shortAmount,
@@ -173,7 +173,7 @@ library SimpleMarginMath {
     }
 
     ///@notice get the minimum collateral for a put option
-    ///@dev margin = cashValue + decay(t) * sqrt(v) * min(spot, K, v * K^2 /spot)
+    ///@dev margin = cashValue + decay(t) * v * min(spot, K, v * K^2 /spot)
     ///     decay(t) = a multiplier from [0, 1]
     function getMinCollateralForShortPut(
         uint256 _shortAmount,

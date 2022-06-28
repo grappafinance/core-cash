@@ -68,8 +68,8 @@ contract TestActionGas is Test, Utilities, ActionHelper {
         productId = tester.getProductId(address(weth), address(usdc), address(usdc));
         productIdEthCollat = tester.getProductId(address(weth), address(usdc), address(weth));
 
-        tester.setProductMarginConfig(productId, 180 days, 1 days, 6400, 800, 1000);
-        tester.setProductMarginConfig(productIdEthCollat, 180 days, 1 days, 6400, 800, 1000);
+        tester.setProductMarginConfig(productId, 180 days, 1 days, 6400, 800, 10000);
+        tester.setProductMarginConfig(productIdEthCollat, 180 days, 1 days, 6400, 800, 10000);
 
         // make sure timestamp is not 0
         vm.warp(0xffff);
