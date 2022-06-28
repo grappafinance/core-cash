@@ -27,6 +27,7 @@ contract SimpleMarginMathTest is Test {
             strike,
             expiry,
             spot,
+            UNIT,
             getDefaultConfig()
         );
         assertEq(minCollat, 796950000); // 786 USD
@@ -38,6 +39,7 @@ contract SimpleMarginMathTest is Test {
             strike,
             expiry,
             spot,
+            UNIT,
             getDefaultConfig()
         );
         assertEq(minCollat2, 664125000); // 664 USD
@@ -54,6 +56,7 @@ contract SimpleMarginMathTest is Test {
             strike,
             expiry,
             spot,
+            UNIT,
             getDefaultConfig()
         );
         assertEq(minCollat, 1574500000); // 1574 USD
@@ -65,6 +68,7 @@ contract SimpleMarginMathTest is Test {
             strike,
             expiry,
             spot,
+            UNIT,
             getDefaultConfig()
         );
         assertEq(minCollat2, 2124500000); // 2124.5 USD
@@ -75,15 +79,17 @@ contract SimpleMarginMathTest is Test {
         uint256 amount = 1 * base;
         uint256 strike = 3000 * base;
         uint256 expiry = today + 21 days;
+        uint256 vol = UNIT;
 
         uint256 minCollat = SimpleMarginMath.getMinCollateralForShortPut(
             amount,
             strike,
             expiry,
             spot,
+            vol,
             getDefaultConfig()
         );
-        assertEq(minCollat, 724500000); // 724.5 USD
+        assertEq(minCollat, 621000001); // 621 USD
 
         // increasing spot price, the min collateral stay the same
         spot = 4000 * base;
@@ -92,9 +98,10 @@ contract SimpleMarginMathTest is Test {
             strike,
             expiry,
             spot,
+            vol,
             getDefaultConfig()
         );
-        assertEq(minCollat2, 724500000); // 724.5 USD
+        assertEq(minCollat2, 543375000); // 543.5 USD
     }
 
     function testMinCollateralITMPut() public {
@@ -102,20 +109,21 @@ contract SimpleMarginMathTest is Test {
         uint256 amount = 1 * base;
         uint256 strike = 3500 * base;
         uint256 expiry = today + 21 days;
+        uint256 vol = UNIT;
 
         ProductMarginParams memory config = getDefaultConfig();
 
-        uint256 minCollat = SimpleMarginMath.getMinCollateralForShortPut(amount, strike, expiry, spot, config);
-        assertEq(minCollat, 1452050000); // 1452 USD
+        uint256 minCollat = SimpleMarginMath.getMinCollateralForShortPut(amount, strike, expiry, spot, vol, config);
+        assertEq(minCollat, 1224500000); // 1121 USD
 
         // decrease spot price, the min collateral increase
         spot = 2000 * base;
-        uint256 minCollat2 = SimpleMarginMath.getMinCollateralForShortPut(amount, strike, expiry, spot, config);
-        assertEq(minCollat2, 2134700000); // 2134 USD
+        uint256 minCollat2 = SimpleMarginMath.getMinCollateralForShortPut(amount, strike, expiry, spot, vol, config);
+        assertEq(minCollat2, 1983000000); // 1983,6 USD
 
         // capped at strike price
         spot = 0;
-        uint256 minCollat3 = SimpleMarginMath.getMinCollateralForShortPut(amount, strike, expiry, spot, config);
+        uint256 minCollat3 = SimpleMarginMath.getMinCollateralForShortPut(amount, strike, expiry, spot, vol, config);
         assertEq(minCollat3, 3500000000); // 3500 USD
     }
 

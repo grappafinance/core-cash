@@ -19,8 +19,6 @@ import "src/config/errors.sol";
 
 import {ActionHelper} from "src/test/shared/ActionHelper.sol";
 
-import "forge-std/console2.sol";
-
 /**
  * @dev This file doesn't test any of the contract behavior
         Instead, it's only used to give us better insight of how each action is performing gas-wise
