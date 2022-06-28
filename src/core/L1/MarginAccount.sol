@@ -6,7 +6,7 @@ import {IOracle} from "src/interfaces/IOracle.sol";
 import {IOptionToken} from "src/interfaces/IOptionToken.sol";
 
 import {TokenIdUtil} from "src/libraries/TokenIdUtil.sol";
-import {L1MarginMathLib} from "./libraries/L1MarginMathLib.sol";
+import {SimpleMarginLib} from "./libraries/SimpleMarginLib.sol";
 import {L1AccountLib} from "./libraries/L1AccountLib.sol";
 
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
@@ -28,7 +28,7 @@ import "src/config/errors.sol";
             Interacts with Oracle to read spot price.
  */
 contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
-    using L1MarginMathLib for MarginAccountDetail;
+    using SimpleMarginLib for MarginAccountDetail;
     using L1AccountLib for Account;
 
     /*///////////////////////////////////////////////////////////////

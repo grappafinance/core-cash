@@ -6,7 +6,7 @@ import "src/config/constants.sol";
 import "src/config/types.sol";
 import "src/config/errors.sol";
 
-library L1MarginMathLib {
+library SimpleMarginLib {
     using FixedPointMathLib for uint256;
 
     /**
