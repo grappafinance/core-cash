@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {MarginAccount} from "src/core/L1/MarginAccount.sol";
+import {MarginAccount} from "src/core/SimpleMargin/MarginAccount.sol";
 import "src/config/types.sol";
 
 /**
