@@ -8,6 +8,11 @@ import "src/config/constants.sol";
 import "src/config/errors.sol";
 import "src/config/types.sol";
 
+/**
+ * Test if the formula is working properly for min collateral calculation:
+ * Desmos file with same parameter can be found here: 
+            https://www.desmos.com/calculator/mx6le8msfo
+ */
 contract SimpleMarginMathTest is Test {
     uint256 public constant base = UNIT;
     uint256 public today;
@@ -145,7 +150,7 @@ contract SimpleMarginMathTest is Test {
     function testTimeDecayValue90Days() public {
         uint256 expiry = today + 90 days;
         uint256 decay = SimpleMarginMath.getTimeDecay(expiry, getDefaultConfig());
-        assertEq(decay, 2645); // 26.45
+        assertEq(decay, 2645); // 26.45%
     }
 
     function testTimeDecayValue30Days() public {
