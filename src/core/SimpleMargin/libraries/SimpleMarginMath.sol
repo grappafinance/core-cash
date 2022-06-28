@@ -164,7 +164,7 @@ library SimpleMarginMath {
     }
 
     ///@notice get the minimum collateral for a put option
-    ///@dev margin = cashValue + decay(t) * sqrt(v) * min(spot, K, sqrt(v)* spot^2 /K)
+    ///@dev margin = cashValue + decay(t) * sqrt(v) * min(spot, K, sqrt(v)* K^2 /spot)
     ///     decay(t) = a multiplier from [0, 1]
     function getMinCollateralForShortPut(
         uint256 _shortAmount,
@@ -184,11 +184,12 @@ library SimpleMarginMath {
 
         uint256 cashValue = getPutCashValue(_spot, _strike);
 
+        uint256 min1 = min(_strike, _spot);
+
         uint256 otmReq = sqrtV.mulDivUp(_strike, UNIT).mulDivUp(_strike, _spot);
-
-        uint256 _a = min(_strike, _spot);
-
-        uint256 requireCollateral = min(_a, otmReq).mulDivUp(timeValueDecay, BPS).mulDivUp(sqrtV, UNIT) + cashValue;
+        min1 = min(min1, otmReq);
+        
+        uint256 requireCollateral = min1.mulDivUp(timeValueDecay, BPS).mulDivUp(sqrtV, UNIT) + cashValue;
 
         uint256 ans = requireCollateral.mulDivUp(_shortAmount, UNIT);
         return ans;
