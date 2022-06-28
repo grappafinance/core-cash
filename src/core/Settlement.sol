@@ -50,7 +50,7 @@ contract Settlement is AssetRegistry {
      * @return payout amount paid
      **/
     function getOptionPayout(uint256 _tokenId, uint256 _amount) public view returns (address, uint256 payout) {
-        (TokenType tokenType, uint32 productId, uint64 expiry, uint64 longStrike, uint256 shortStrike) = TokenIdUtil
+        (TokenType tokenType, uint32 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) = TokenIdUtil
             .parseTokenId(_tokenId);
 
         if (block.timestamp < expiry) revert NotExpired();
