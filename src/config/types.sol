@@ -49,7 +49,11 @@ struct MarginAccountDetail {
 }
 
 /**
- * @dev product assets detail
+ * @dev struct containing assets detail for an product
+ * @param underlying    underlying address
+ * @param strike        strike address
+ * @param collateral    collateral address
+ * @param collateralDecimals collateral asset decimals
  */
 struct ProductAssets {
     address underlying;
@@ -58,6 +62,7 @@ struct ProductAssets {
     uint8 collateralDecimals;
 }
 
+// todo: update doc after adopting new formula
 struct ProductMarginParams {
     uint32 discountPeriodUpperBound; // = 180 days;
     uint32 discountPeriodLowerBound; // = 1 days;
@@ -70,15 +75,18 @@ struct ProductMarginParams {
     uint32 shockRatio; // = 1000; // 10%
 }
 
-///
+// todo: update doc
 struct ActionArgs {
     ActionType action;
     bytes data;
 }
 
+/**
+ * @dev asset detail stored per asset id
+ * @param addr use uint160 to store address so it can be packed with decimals
+ * @param decimals token decimals
+ */
 struct AssetDetail {
-    /// @dev use uint160 to store address
     uint160 addr;
-    /// @dev store decimals locally
     uint8 decimals;
 }
