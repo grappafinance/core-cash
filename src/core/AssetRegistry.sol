@@ -10,6 +10,7 @@ contract AssetRegistry is Ownable {
     error AlreadyRegistered();
 
     /// @dev next id used to represent an address
+    /// invariant:  any id in tokenId not greater than this number
     uint8 public nextId;
 
     /// @dev assetId => asset address
