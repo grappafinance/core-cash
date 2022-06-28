@@ -47,7 +47,7 @@ contract MarginAccountAccessTest is Fixture {
 
         // can access subaccount!
         _assertCanAccessAliceAccount(true);
-        
+
         // alice revoke access to this contract
         vm.startPrank(alice);
         grappa.setAccountAccess(address(this), false);
@@ -61,9 +61,9 @@ contract MarginAccountAccessTest is Fixture {
         // we can update the account now
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
-        
+
         if (!_canAccess) vm.expectRevert(NoAccess.selector);
-        
+
         grappa.execute(subAccountIdToModify, actions);
     }
 }
