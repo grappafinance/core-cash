@@ -4,6 +4,8 @@ pragma solidity =0.8.13;
 // Errors
 error NoAccess();
 
+error InvalidSubAccountNumber();
+
 error WrongProductId();
 
 error WrongCollateralId();
