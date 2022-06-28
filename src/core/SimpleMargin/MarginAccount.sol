@@ -35,8 +35,8 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
                                   Variables
     //////////////////////////////////////////////////////////////*/
 
-    ///@dev accountId => Account.
-    ///     accountId can be an address similar to the primary account, but has the last 8 bits different.
+    ///@dev subAccount => Account.
+    ///     subAccount can be an address similar to the primary account, but has the last 8 bits different.
     ///     this give every account access to 256 sub-accounts
     mapping(address => Account) public marginAccounts;
 
@@ -173,19 +173,19 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
      *          effectively equivalent to mint + liquidate + add back collateral got from liquidation
      * @dev     expected to be called by liquidators
      * @param _subAccountToTakeOver account id to be moved
-     * @param _newAccountId new acount Id which will be linked to the margin account structure
+     * @param _newSubAccount new acount Id which will be linked to the margin account structure
      * @param _additionalCollateral additional collateral to tap up
      */
     function takeoverPosition(
         address _subAccountToTakeOver,
-        address _newAccountId,
+        address _newSubAccount,
         uint80 _additionalCollateral
     ) external {
         Account memory account = marginAccounts[_subAccountToTakeOver];
         if (_isAccountHealthy(account)) revert AccountIsHealthy();
 
         // make sure caller has access to the new account id.
-        _assertCallerHasAccess(_newAccountId);
+        _assertCallerHasAccess(_newSubAccount);
 
         address collateral = address(assets[account.collateralId].addr);
         IERC20(collateral).transferFrom(msg.sender, address(this), _additionalCollateral);
@@ -197,8 +197,8 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
 
         // migrate account storage: delete the old entry and write "account" to new account id
         delete marginAccounts[_subAccountToTakeOver];
-        if (!marginAccounts[_newAccountId].isEmpty()) revert AccountIsNotEmpty();
-        marginAccounts[_newAccountId] = account;
+        if (!marginAccounts[_newSubAccount].isEmpty()) revert AccountIsNotEmpty();
+        marginAccounts[_newSubAccount] = account;
     }
 
     /**
@@ -252,7 +252,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
     function _addCollateral(
         Account memory _account,
         bytes memory _data,
-        address accountId
+        address subAccount
     ) internal {
         // decode parameters
         (address from, uint80 amount, uint8 collateralId) = abi.decode(_data, (address, uint80, uint8));
@@ -262,8 +262,8 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
 
         address collateral = address(assets[collateralId].addr);
 
-        // collateral must come from caller or the primary account for this accountId
-        if (from != msg.sender && !_isPrimaryAccountFor(from, accountId)) revert InvalidFromAddress();
+        // collateral must come from caller or the primary account for this subAccount
+        if (from != msg.sender && !_isPrimaryAccountFor(from, subAccount)) revert InvalidFromAddress();
         IERC20(collateral).transferFrom(from, address(this), amount);
     }
 
@@ -302,7 +302,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
     function _burnOption(
         Account memory _account,
         bytes memory _data,
-        address accountId
+        address subAccount
     ) internal {
         // decode parameters
         (uint256 tokenId, address from, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
@@ -310,8 +310,8 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
         // update the account structure in memory
         _account.burnOption(tokenId, amount);
 
-        // token being burn must come from caller or the primary account for this accountId
-        if (from != msg.sender && !_isPrimaryAccountFor(from, accountId)) revert InvalidFromAddress();
+        // token being burn must come from caller or the primary account for this subAccount
+        if (from != msg.sender && !_isPrimaryAccountFor(from, subAccount)) revert InvalidFromAddress();
         optionToken.burn(from, tokenId, amount);
     }
 
@@ -321,7 +321,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
     function _merge(
         Account memory _account,
         bytes memory _data,
-        address accountId
+        address subAccount
     ) internal {
         // decode parameters
         (uint256 tokenId, address from) = abi.decode(_data, (uint256, address));
@@ -329,8 +329,8 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
         // update the account structure in memory
         uint64 amount = _account.merge(tokenId);
 
-        // token being burn must come from caller or the primary account for this accountId
-        if (from != msg.sender && !_isPrimaryAccountFor(from, accountId)) revert InvalidFromAddress();
+        // token being burn must come from caller or the primary account for this subAccount
+        if (from != msg.sender && !_isPrimaryAccountFor(from, subAccount)) revert InvalidFromAddress();
 
         optionToken.burn(from, tokenId, amount);
     }
