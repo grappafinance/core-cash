@@ -160,9 +160,6 @@ library SimpleMarginMath {
         // todo: make sure strike cannot be 0!
         uint256 timeValueDecay = getTimeDecay(_expiry, params);
 
-        // squared vol in UNIT
-        uint256 sqrtV = (_vol * UNIT).sqrt();
-
         uint256 cashValue = getCallCashValue(_spot, _strike);
 
         uint256 tempMin = min(_strike, _spot);
@@ -170,7 +167,7 @@ library SimpleMarginMath {
         uint256 otmReq = _vol.mulDivUp(_spot, UNIT).mulDivUp(_spot, _strike);
         tempMin = min(tempMin, otmReq);
 
-        uint256 requireCollateral = tempMin.mulDivUp(timeValueDecay, BPS).mulDivUp(sqrtV, UNIT) + cashValue;
+        uint256 requireCollateral = tempMin.mulDivUp(timeValueDecay, BPS).mulDivUp(_vol, UNIT) + cashValue;
 
         return requireCollateral.mulDivUp(_shortAmount, UNIT);
     }
@@ -191,9 +188,6 @@ library SimpleMarginMath {
         // get time decay in BPS
         uint256 timeValueDecay = getTimeDecay(_expiry, params);
 
-        // squared vol in UNIT
-        uint256 sqrtV = (_vol * UNIT).sqrt();
-
         uint256 cashValue = getPutCashValue(_spot, _strike);
 
         uint256 tempMin = min(_strike, _spot);
@@ -201,7 +195,7 @@ library SimpleMarginMath {
         uint256 otmReq = _vol.mulDivUp(_strike, UNIT).mulDivUp(_strike, _spot);
         tempMin = min(tempMin, otmReq);
 
-        uint256 requireCollateral = tempMin.mulDivUp(timeValueDecay, BPS).mulDivUp(sqrtV, UNIT) + cashValue;
+        uint256 requireCollateral = tempMin.mulDivUp(timeValueDecay, BPS).mulDivUp(_vol, UNIT) + cashValue;
 
         uint256 ans = requireCollateral.mulDivUp(_shortAmount, UNIT);
         return ans;
