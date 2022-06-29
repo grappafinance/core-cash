@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 pragma solidity =0.8.13;
-import {IMarginAccount} from "src/interfaces/IMarginAccount.sol";
 import {IERC20} from "src/interfaces/IERC20.sol";
 import {IOracle} from "src/interfaces/IOracle.sol";
 import {IOptionToken} from "src/interfaces/IOptionToken.sol";
@@ -27,7 +26,7 @@ import "src/config/errors.sol";
             Interacts with OptionToken to mint / burn and get product information.
             Interacts with Oracle to read spot price.
  */
-contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
+contract MarginAccount is ReentrancyGuard, Settlement {
     using SimpleMarginMath for MarginAccountDetail;
     using SimpleMarginLib for Account;
 
