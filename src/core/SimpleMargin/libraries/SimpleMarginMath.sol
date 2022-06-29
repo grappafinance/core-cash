@@ -6,6 +6,8 @@ import "src/config/constants.sol";
 import "src/config/types.sol";
 import "src/config/errors.sol";
 
+import "forge-std/console2.sol";
+
 library SimpleMarginMath {
     using FixedPointMathLib for uint256;
 
@@ -25,7 +27,7 @@ library SimpleMarginMath {
         ProductMarginParams memory _param
     ) internal view returns (uint256 minCollatUnit) {
         // this is denominated in strike, with {UNIT_DECIMALS} decimals
-        uint256 minCollatValueInStrike = getMinCollateralInStrike(_account, _spotUnderlyingStrike, _param);
+        uint256 minCollatValueInStrike = getMinCollateralInStrike(_account, _spotUnderlyingStrike, UNIT, _param);
 
         if (_assets.collateral == _assets.strike) return minCollatValueInStrike;
 
@@ -44,6 +46,7 @@ library SimpleMarginMath {
     function getMinCollateralInStrike(
         MarginAccountDetail memory _account,
         uint256 _spot,
+        uint256 _vol,
         ProductMarginParams memory _params
     ) internal view returns (uint256 minCollatValueInStrike) {
         // don't need collateral
@@ -53,26 +56,27 @@ library SimpleMarginMath {
 
         // we only have short put
         if (_account.callAmount == 0) {
-            return getMinCollateralForPutSpread(_account, _spot, _params);
+            return getMinCollateralForPutSpread(_account, _spot, _vol, _params);
         }
         // we only have short call
         if (_account.putAmount == 0) {
-            return getMinCollateralForCallSpread(_account, _spot, _params);
+            return getMinCollateralForCallSpread(_account, _spot, _vol, _params);
         }
         // we have both call and short
         else {
-            return getMinCollateralForDoubleShort(_account, _spot, _params);
+            return getMinCollateralForDoubleShort(_account, _spot, _vol, _params);
         }
     }
 
     function getMinCollateralForDoubleShort(
         MarginAccountDetail memory _account,
         uint256 _spot,
+        uint256 _vol,
         ProductMarginParams memory params
     ) internal view returns (uint256) {
         // there're both short call and put in the position
-        uint256 minCollateralCall = getMinCollateralForCallSpread(_account, _spot, params);
-        uint256 minCollateralPut = getMinCollateralForPutSpread(_account, _spot, params);
+        uint256 minCollateralCall = getMinCollateralForCallSpread(_account, _spot, _vol, params);
+        uint256 minCollateralPut = getMinCollateralForPutSpread(_account, _spot, _vol, params);
 
         if (_account.shortPutStrike < _account.shortCallStrike) {
             // if strikes don't cross (put strike < call strike),
@@ -90,6 +94,7 @@ library SimpleMarginMath {
     function getMinCollateralForCallSpread(
         MarginAccountDetail memory _account,
         uint256 _spot,
+        uint256 _vol,
         ProductMarginParams memory params
     ) internal view returns (uint256) {
         // if max loss of short can always be covered by long
@@ -101,6 +106,7 @@ library SimpleMarginMath {
             _account.shortCallStrike,
             _account.expiry,
             _spot,
+            _vol,
             params
         );
         if (_account.longCallStrike == 0) return minCollateralShortCall;
@@ -115,6 +121,7 @@ library SimpleMarginMath {
     function getMinCollateralForPutSpread(
         MarginAccountDetail memory _account,
         uint256 _spot,
+        uint256 _vol,
         ProductMarginParams memory params
     ) internal view returns (uint256) {
         // if max loss of short can always be covered by long
@@ -126,6 +133,7 @@ library SimpleMarginMath {
             _account.shortPutStrike,
             _account.expiry,
             _spot,
+            _vol,
             params
         );
 
@@ -139,41 +147,58 @@ library SimpleMarginMath {
     }
 
     ///@notice get the minimum collateral for a naked short option
+    ///@dev margin = cashValue + decay(t) * v * min(spot, K, max(v,1) * spot^2 / strike)
+    ///     decay(t) = a multiplier from [0, 1]
     function getMinCollateralForShortCall(
         uint256 _shortAmount,
         uint256 _strike,
         uint256 _expiry,
         uint256 _spot,
+        uint256 _vol,
         ProductMarginParams memory params
     ) internal view returns (uint256) {
-        // if ratio is 20%, we calculate price of spot * 120%
-        uint256 shockPrice = _spot.mulDivUp(BPS + params.shockRatio, BPS);
+        // todo: make sure strike cannot be 0!
         uint256 timeValueDecay = getTimeDecay(_expiry, params);
-        uint256 safeCashValue = getCallCashValue(shockPrice, _strike);
-        uint256 requireCollateral = min(_strike, shockPrice).mulDivUp(timeValueDecay, BPS) + safeCashValue;
+
+        uint256 cashValue = getCallCashValue(_spot, _strike);
+
+        uint256 tempMin = min(_strike, _spot);
+
+        uint256 otmReq = max(_vol, 1).mulDivUp(_spot, UNIT).mulDivUp(_spot, _strike);
+        tempMin = min(tempMin, otmReq);
+
+        uint256 requireCollateral = tempMin.mulDivUp(timeValueDecay, BPS) + cashValue;
+
         return requireCollateral.mulDivUp(_shortAmount, UNIT);
     }
 
     ///@notice get the minimum collateral for a put option
-    ///@dev margin = decay(t) * min(strike, shockPrice) + max(strike — shockPrice, 0)
+    ///@dev margin = cashValue + decay(t) * v * min(spot, K, max(v,1) * strike^2 /spot)
     ///     decay(t) = a multiplier from [0, 1]
-    ///     shockPrice = (1-shockRatio) * spot
     function getMinCollateralForShortPut(
         uint256 _shortAmount,
         uint256 _strike,
         uint256 _expiry,
         uint256 _spot,
+        uint256 _vol,
         ProductMarginParams memory params
     ) internal view returns (uint256) {
-        // if ratio is 20%, we calculate price of spot * 80%
-        uint256 shockPrice = _spot.mulDivUp(BPS - params.shockRatio, BPS);
+        if (_spot == 0) return _strike.mulDivUp(_shortAmount, UNIT);
+
+        // get time decay in BPS
         uint256 timeValueDecay = getTimeDecay(_expiry, params);
 
-        uint256 safeCashValue = getPutCashValue(shockPrice, _strike);
+        uint256 cashValue = getPutCashValue(_spot, _strike);
 
-        uint256 requireCollateral = min(_strike, shockPrice).mulDivUp(timeValueDecay, BPS) + safeCashValue;
+        uint256 tempMin = min(_strike, _spot);
 
-        return requireCollateral.mulDivUp(_shortAmount, UNIT);
+        uint256 otmReq = max(_vol, 1).mulDivUp(_strike, UNIT).mulDivUp(_strike, _spot);
+        tempMin = min(tempMin, otmReq);
+
+        uint256 requireCollateral = tempMin.mulDivUp(timeValueDecay, BPS) + cashValue;
+
+        uint256 ans = requireCollateral.mulDivUp(_shortAmount, UNIT);
+        return ans;
     }
 
     /**

@@ -72,7 +72,7 @@ struct ProductMarginParams {
     uint32 discountRatioUpperBound; // = 6400; // 64%
     /// @dev percentage of time value required as collateral when time to expiry is lower than lower bond
     uint32 discountRatioLowerBound; // = 800; // 8%
-    uint32 shockRatio; // = 1000; // 10%
+    uint32 volMultiplier;
 }
 
 // todo: update doc

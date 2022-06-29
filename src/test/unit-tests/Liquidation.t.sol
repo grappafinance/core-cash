@@ -33,7 +33,7 @@ contract TestLiquidateCall is Fixture {
         oracle.setSpotPrice(3500 * UNIT);
 
         // mint option
-        initialCollateral = 700 * 1e6;
+        initialCollateral = 500 * 1e6;
 
         strike = uint64(4000 * UNIT);
 
@@ -127,7 +127,7 @@ contract TestLiquidatePut is Fixture {
         oracle.setSpotPrice(4000 * UNIT);
 
         // mint option
-        initialCollateral = 700 * 1e6;
+        initialCollateral = 500 * 1e6;
 
         strike = uint64(3500 * UNIT);
 
@@ -225,7 +225,7 @@ contract TestLiquidateCallAndPut is Fixture {
         oracle.setSpotPrice(4000 * UNIT);
 
         // mint option
-        initialCollateral = 700 * 1e6;
+        initialCollateral = 600 * 1e6;
 
         callStrike = uint64(4500 * UNIT);
         putStrike = uint64(3500 * UNIT);
@@ -252,14 +252,14 @@ contract TestLiquidateCallAndPut is Fixture {
     }
 
     function testCannotLiquidateWithOnlySpecifyCallAmount() public {
-        oracle.setSpotPrice(3600 * UNIT);
+        oracle.setSpotPrice(3300 * UNIT);
 
         vm.expectRevert(WrongLiquidationAmounts.selector);
         grappa.liquidate(accountId, amount, 0);
     }
 
     function testCannotLiquidateWithImbalancedAmount() public {
-        oracle.setSpotPrice(3600 * UNIT);
+        oracle.setSpotPrice(3300 * UNIT);
 
         vm.expectRevert(WrongLiquidationAmounts.selector);
         grappa.liquidate(accountId, amount, amount - 1);
@@ -269,14 +269,14 @@ contract TestLiquidateCallAndPut is Fixture {
     }
 
     function testCannotLiquidateWithOnlySpecifyPutAmount() public {
-        oracle.setSpotPrice(3600 * UNIT);
+        oracle.setSpotPrice(3300 * UNIT);
 
         vm.expectRevert(WrongLiquidationAmounts.selector);
         grappa.liquidate(accountId, 0, amount);
     }
 
     function testPartiallyLiquidateTheVault() public {
-        oracle.setSpotPrice(3600 * UNIT);
+        oracle.setSpotPrice(3300 * UNIT);
 
         uint256 usdcBalanceBefore = usdc.balanceOf(address(this));
         uint256 callBefore = option.balanceOf(address(this), callId);
@@ -296,7 +296,7 @@ contract TestLiquidateCallAndPut is Fixture {
     }
 
     function testFullyLiquidateTheVault() public {
-        oracle.setSpotPrice(3600 * UNIT);
+        oracle.setSpotPrice(3300 * UNIT);
 
         uint256 usdcBalanceBefore = usdc.balanceOf(address(this));
         uint256 callBefore = option.balanceOf(address(this), callId);

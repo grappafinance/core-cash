@@ -2,8 +2,10 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
-
 import "src/test/mocks/MockERC20.sol";
+
+/* solhint-disable max-states-count */
+/* solhint-disable no-empty-blocks */
 
 // todo: change this to real oracle
 import "src/test/mocks/MockOracle.sol";
@@ -18,8 +20,6 @@ import "src/config/constants.sol";
 import "src/config/errors.sol";
 
 import {ActionHelper} from "src/test/shared/ActionHelper.sol";
-
-import "forge-std/console2.sol";
 
 /**
  * @dev This file doesn't test any of the contract behavior
@@ -70,8 +70,8 @@ contract TestActionGas is Test, Utilities, ActionHelper {
         productId = tester.getProductId(address(weth), address(usdc), address(usdc));
         productIdEthCollat = tester.getProductId(address(weth), address(usdc), address(weth));
 
-        tester.setProductMarginConfig(productId, 180 days, 1 days, 6400, 800, 1000);
-        tester.setProductMarginConfig(productIdEthCollat, 180 days, 1 days, 6400, 800, 1000);
+        tester.setProductMarginConfig(productId, 180 days, 1 days, 6400, 800, 10000);
+        tester.setProductMarginConfig(productIdEthCollat, 180 days, 1 days, 6400, 800, 10000);
 
         // make sure timestamp is not 0
         vm.warp(0xffff);

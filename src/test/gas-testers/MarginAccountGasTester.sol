@@ -10,6 +10,7 @@ import "src/config/types.sol";
  *      so we can better optimize each action functions
  */
 contract MarginAccountGasTester is MarginAccount {
+    // solhint-disable-next-line no-empty-blocks
     constructor(address _optionToken, address _oracle) MarginAccount(_optionToken, _oracle) {}
 
     function addCollateral(address _subAccount, bytes calldata _data) external {

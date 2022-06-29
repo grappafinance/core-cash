@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 pragma solidity =0.8.13;
-import {IMarginAccount} from "src/interfaces/IMarginAccount.sol";
 import {IERC20} from "src/interfaces/IERC20.sol";
 import {IOracle} from "src/interfaces/IOracle.sol";
 import {IOptionToken} from "src/interfaces/IOptionToken.sol";
@@ -27,7 +26,7 @@ import "src/config/errors.sol";
             Interacts with OptionToken to mint / burn and get product information.
             Interacts with Oracle to read spot price.
  */
-contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
+contract MarginAccount is ReentrancyGuard, Settlement {
     using SimpleMarginMath for MarginAccountDetail;
     using SimpleMarginLib for Account;
 
@@ -46,6 +45,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
 
     mapping(uint32 => ProductMarginParams) public productParams;
 
+    // solhint-disable-next-line no-empty-blocks
     constructor(address _optionToken, address _oracle) Settlement(_optionToken, _oracle) {}
 
     /**
@@ -217,7 +217,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
      * @param _discountPeriodLowerBound (sec) min time to expiry to offer a collateral requirement discount
      * @param _discountRatioUpperBound (BPS) discount ratio if the time to expiry is at the upper bound
      * @param _discountRatioLowerBound (BPS) discount ratio if the time to expiry is at the lower bound
-     * @param _shockRatio (BPS) spot shock
+     * @param _volMultiplier (BPS) spot shock
      */
     function setProductMarginConfig(
         uint32 _productId,
@@ -225,7 +225,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
         uint32 _discountPeriodLowerBound,
         uint32 _discountRatioUpperBound,
         uint32 _discountRatioLowerBound,
-        uint32 _shockRatio
+        uint32 _volMultiplier
     ) external onlyOwner {
         productParams[_productId] = ProductMarginParams({
             discountPeriodUpperBound: _discountPeriodUpperBound,
@@ -234,7 +234,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
             sqrtMinDiscountPeriod: uint32(FixedPointMathLib.sqrt(uint256(_discountPeriodLowerBound))),
             discountRatioUpperBound: _discountRatioUpperBound,
             discountRatioLowerBound: _discountRatioLowerBound,
-            shockRatio: _shockRatio
+            volMultiplier: _volMultiplier
         });
     }
 
