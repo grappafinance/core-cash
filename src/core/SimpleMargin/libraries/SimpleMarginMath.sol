@@ -147,7 +147,7 @@ library SimpleMarginMath {
     }
 
     ///@notice get the minimum collateral for a naked short option
-    ///@dev margin = cashValue + decay(t) * v * min(spot, K, max(v, 1) * spot^2 /K)
+    ///@dev margin = cashValue + decay(t) * v * min(spot, K, max(v,1) * spot^2 / strike)
     ///     decay(t) = a multiplier from [0, 1]
     function getMinCollateralForShortCall(
         uint256 _shortAmount,
@@ -164,10 +164,8 @@ library SimpleMarginMath {
 
         uint256 tempMin = min(_strike, _spot);
 
-        uint256 otmReq = _vol.mulDivUp(_spot, UNIT).mulDivUp(_spot, _strike);
+        uint256 otmReq = max(_vol, 1).mulDivUp(_spot, UNIT).mulDivUp(_spot, _strike);
         tempMin = min(tempMin, otmReq);
-
-        if (_vol > UNIT) tempMin = tempMin.mulDivUp(_vol, UNIT);
 
         uint256 requireCollateral = tempMin.mulDivUp(timeValueDecay, BPS) + cashValue;
 
@@ -175,7 +173,7 @@ library SimpleMarginMath {
     }
 
     ///@notice get the minimum collateral for a put option
-    ///@dev margin = cashValue + decay(t) * v * min(spot, K, max(v, 1) * K^2 /spot)
+    ///@dev margin = cashValue + decay(t) * v * min(spot, K, max(v,1) * strike^2 /spot)
     ///     decay(t) = a multiplier from [0, 1]
     function getMinCollateralForShortPut(
         uint256 _shortAmount,
@@ -194,10 +192,8 @@ library SimpleMarginMath {
 
         uint256 tempMin = min(_strike, _spot);
 
-        uint256 otmReq = _vol.mulDivUp(_strike, UNIT).mulDivUp(_strike, _spot);
+        uint256 otmReq = max(_vol, 1).mulDivUp(_strike, UNIT).mulDivUp(_strike, _spot);
         tempMin = min(tempMin, otmReq);
-
-        if (_vol > UNIT) tempMin = tempMin.mulDivUp(_vol, UNIT);
 
         uint256 requireCollateral = tempMin.mulDivUp(timeValueDecay, BPS) + cashValue;
 

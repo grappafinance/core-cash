@@ -2,8 +2,10 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
-
 import "src/test/mocks/MockERC20.sol";
+
+/* solhint-disable max-states-count */
+/* solhint-disable no-empty-blocks */
 
 // todo: change this to real oracle
 import "src/test/mocks/MockOracle.sol";

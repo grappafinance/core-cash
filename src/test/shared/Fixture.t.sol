@@ -108,6 +108,7 @@ abstract contract Fixture is Test, ActionHelper, Utilities {
         ActionArgs[] memory actions = new ActionArgs[](2);
 
         uint8 collateralId;
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             collateralId := shr(8, _productId)
         }

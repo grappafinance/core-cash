@@ -46,6 +46,7 @@ contract MarginAccount is IMarginAccount, ReentrancyGuard, Settlement {
 
     mapping(uint32 => ProductMarginParams) public productParams;
 
+    // solhint-disable-next-line no-empty-blocks
     constructor(address _optionToken, address _oracle) Settlement(_optionToken, _oracle) {}
 
     /**
