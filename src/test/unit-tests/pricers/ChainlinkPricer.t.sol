@@ -17,9 +17,67 @@ import "src/config/errors.sol";
 
 import "forge-std/console2.sol";
 
-contract ChainlinkPricerConfigurationTest is Test {
-    address private accountId;
+/**
+ * @dev test internal function _toPriceWithUnitDecimals
+ */
+contract ChainlinkPricerInternalTests is ChainlinkPricer, Test {
+    // solhint-disable-next-line no-empty-blocks
+    constructor() ChainlinkPricer(address(0)) {}
 
+    function testDecimalConversion0Decimals() public {
+        uint256 base = 1000;
+        uint256 price = _toPriceWithUnitDecimals(base, 1, 0, 0);
+        assertEq(price, base * UNIT);
+    }
+
+    function testDecimalConversionNormalDecimals() public {
+        uint256 chainlinkUnit = 1e8;
+        uint256 base = 3000 * chainlinkUnit;
+        uint256 quote = 1 * chainlinkUnit;
+        uint256 price = _toPriceWithUnitDecimals(base, quote, 8, 8);
+
+        // should return base denominated in 1e6 (UNIT)
+        assertEq(price, 3000 * UNIT);
+    }
+
+    function testDecimalConversionDiffDecimals() public {
+        uint8 baseDecimals = uint8(18);
+        uint8 quoteDecimals = uint8(8);
+        uint256 base = 3000 * (10**baseDecimals);
+        uint256 quote = 1 * (10**quoteDecimals);
+        uint256 price = _toPriceWithUnitDecimals(base, quote, baseDecimals, quoteDecimals);
+
+        // should return base denominated in 1e6 (UNIT)
+        assertEq(price, 3000 * UNIT);
+    }
+
+    function testDecimalConversionDiffDecimals2() public {
+        uint8 baseDecimals = uint8(8);
+        uint8 quoteDecimals = uint8(18);
+        uint256 base = 3000 * (10**baseDecimals);
+        uint256 quote = 1 * (10**quoteDecimals);
+        uint256 price = _toPriceWithUnitDecimals(base, quote, baseDecimals, quoteDecimals);
+
+        // should return base denominated in 1e6 (UNIT)
+        assertEq(price, 3000 * UNIT);
+    }
+
+    function testDecimalConversionDiffDecimalsFuzz(uint8 baseDecimals, uint8 quoteDecimals) public {
+        vm.assume(baseDecimals < 20);
+        vm.assume(quoteDecimals < 20);
+        uint256 base = 3000 * (10**baseDecimals);
+        uint256 quote = 1 * (10**quoteDecimals);
+        uint256 price = _toPriceWithUnitDecimals(base, quote, baseDecimals, quoteDecimals);
+
+        // should return base denominated in 1e6 (UNIT)
+        assertEq(price, 3000 * UNIT);
+    }
+}
+
+/**
+ * @dev test the onlyOwner functions (setAggregator)
+ */
+contract ChainlinkPricerConfigurationTest is Test {
     ChainlinkPricer private pricer;
 
     address private weth;
