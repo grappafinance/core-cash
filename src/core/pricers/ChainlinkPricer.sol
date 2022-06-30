@@ -65,8 +65,10 @@ contract ChainlinkPricer is IPricer, Ownable {
         address _aggregator,
         uint32 _maxDelay
     ) external onlyOwner {
+        if (aggregators[_asset].addr != 0) revert Chainlink_AggregatorAlreadySet();
+
         uint8 decimals = IAggregatorV3(_aggregator).decimals();
-        aggregators[_asset] = AggregatorData(uint160(_asset), decimals, _maxDelay);
+        aggregators[_asset] = AggregatorData(uint160(_aggregator), decimals, _maxDelay);
     }
 
     function _toPriceWithUnitDecimals(

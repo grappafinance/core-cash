@@ -48,6 +48,10 @@ error SplitProductMismatch();
 
 error SplitExpiryMismatch();
 
+// Chainlink Pricer Errors
+
+error Chainlink_AggregatorAlreadySet();
+
 error Chainlink_AggregatorNotSet();
 
 error Chainlink_StaleAnswer();
