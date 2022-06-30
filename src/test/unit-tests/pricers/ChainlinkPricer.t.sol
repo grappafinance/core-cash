@@ -123,3 +123,49 @@ contract ChainlinkPricerConfigurationTest is Test {
         pricer.setAggregator(weth, address(0), 20000);
     }
 }
+
+/**
+ * @dev test public functions
+ */
+contract ChainlinkPricerTest is Test {
+    uint256 private aggregatorUint = 1e8;
+
+    ChainlinkPricer private pricer;
+
+    address private weth;
+    address private usdc;
+
+    address private random;
+
+    MockChainlinkAggregator private wethAggregator;
+    MockChainlinkAggregator private usdcAggregator;
+
+    function setUp() public {
+        random = address(0xaabbff);
+
+        usdc = address(new MockERC20("USDC", "USDC", 6));
+        weth = address(new MockERC20("WETH", "WETH", 18));
+
+        address oracle = address(new MockOracle());
+        pricer = new ChainlinkPricer(oracle);
+
+        wethAggregator = new MockChainlinkAggregator(8);
+        usdcAggregator = new MockChainlinkAggregator(8);
+
+        pricer.setAggregator(weth, address(wethAggregator), 3600);
+        pricer.setAggregator(usdc, address(usdcAggregator), 86400);
+
+        wethAggregator.setMockState(0, int256(4000 * aggregatorUint), block.timestamp);
+        usdcAggregator.setMockState(0, int256(1 * aggregatorUint), block.timestamp);
+    }
+
+    function testSpotPrice() public {
+        uint256 spot = pricer.getSpotPrice(weth, usdc);
+        assertEq(spot, 4000 * UNIT);
+    }
+
+    function testSpotPriceReverse() public {
+        uint256 spot = pricer.getSpotPrice(usdc, weth);
+        assertEq(spot, UNIT / 4000);
+    }
+}

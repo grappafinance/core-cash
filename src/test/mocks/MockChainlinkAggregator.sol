@@ -8,12 +8,12 @@ import "src/interfaces/IAggregatorV3.sol";
 contract MockChainlinkAggregator is IAggregatorV3 {
     uint8 private immutable d;
 
+    // chainlink stored answer and timestamp in single slot
+    // we do the same to stimulate gas cost
     struct StoredData {
         uint80 roundId;
-        int256 answer;
-        uint256 startedAt;
-        uint256 updatedAt;
-        uint80 answeredInRound;
+        int192 answer;
+        uint64 timestamp;
     }
 
     StoredData public state;
@@ -47,7 +47,7 @@ contract MockChainlinkAggregator is IAggregatorV3 {
             uint80 answeredInRound
         )
     {
-        return (state.roundId, state.answer, state.startedAt, state.updatedAt, state.answeredInRound);
+        return (state.roundId, state.answer, state.timestamp, state.timestamp, state.roundId);
     }
 
     function latestRoundData()
@@ -61,15 +61,15 @@ contract MockChainlinkAggregator is IAggregatorV3 {
             uint80 answeredInRound
         )
     {
-        return (state.roundId, state.answer, state.startedAt, state.updatedAt, state.answeredInRound);
+        return (state.roundId, state.answer, state.timestamp, state.timestamp, state.roundId);
     }
 
     function setMockState(
         uint80 roundId,
         int256 answer,
-        uint256 updatedAt
+        uint256 timestamp
     ) external {
         // set unused filed to 1 to have more accurate approximation of gas cost of reading.
-        state = StoredData(roundId, answer, 1, updatedAt, 1);
+        state = StoredData(roundId, int192(answer), uint64(timestamp));
     }
 }
