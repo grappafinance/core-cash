@@ -35,14 +35,14 @@ contract MockOracle is IOracle {
         expiryPrice = _mockedExpiryPrice;
     }
 
-     function setVol(uint256 _vol) external {
+    function setVol(uint256 _vol) external {
         vol = _vol;
     }
 
     function reportExpiryPrice(
-        address /**_base**/,
-        address /**_quote**/,
-        uint256 /**_expiry**/,
+        address, /**_base**/
+        address, /**_quote**/
+        uint256, /**_expiry**/
         uint256 _price
     ) external {
         expiryPrice = _price;

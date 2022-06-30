@@ -23,7 +23,7 @@ contract Oracle is IOracle {
     address public immutable secondaryPricer;
 
     // underlying => strike => expiry => price.
-    mapping(address => mapping(address => mapping(uint256 => ExpiryPrice))) expiryPrices;
+    mapping(address => mapping(address => mapping(uint256 => ExpiryPrice))) public expiryPrices;
 
     constructor(address _primaryPricer, address _secondaryPricer) {
         primaryPricer = _primaryPricer;

@@ -96,10 +96,9 @@ contract ChainlinkPricer is IPricer, Ownable {
             // roundId
             int256 answer, // uint256 startedAt
             ,
-            uint256 updatedAt,
+            uint256 updatedAt, // uint80 answeredInRound
 
-        ) = // uint80 answeredInRound
-            IAggregatorV3(address(aggregator.addr)).latestRoundData();
+        ) = IAggregatorV3(address(aggregator.addr)).latestRoundData();
 
         if (block.timestamp - updatedAt > aggregator.maxDelay) revert Chainlink_StaleAnswer();
 
@@ -115,23 +114,13 @@ contract ChainlinkPricer is IPricer, Ownable {
         if (aggregator.addr == 0) revert Chainlink_AggregatorNotSet();
 
         // request answer from Chainlink
-        (
-            ,
-            int256 answer,
-            ,
-            uint256 updatedAt,
-        ) = IAggregatorV3(address(aggregator.addr)).getRoundData(_roundId);
+        (, int256 answer, , uint256 updatedAt, ) = IAggregatorV3(address(aggregator.addr)).getRoundData(_roundId);
 
         // if expiry < updatedAt, this line will revert
         if (_expiry - updatedAt > aggregator.maxDelay) revert Chainlink_StaleAnswer();
 
         // make sure round + 1 is higher than expiry
-        (
-            ,
-            ,
-            ,
-            uint256 nextRoundUpdatedAt,
-        ) = IAggregatorV3(address(aggregator.addr)).getRoundData(_roundId + 1);
+        (, , , uint256 nextRoundUpdatedAt, ) = IAggregatorV3(address(aggregator.addr)).getRoundData(_roundId + 1);
 
         if (nextRoundUpdatedAt < _expiry) revert Chainlink_RoundIdTooSmall();
 
