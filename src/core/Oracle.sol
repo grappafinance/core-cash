@@ -2,6 +2,7 @@
 pragma solidity =0.8.13;
 
 import {IOracle} from "src/interfaces/IOracle.sol";
+import {IPricer} from "src/interfaces/IPricer.sol";
 import {Ownable} from "openzeppelin/access/Ownable.sol";
 
 import "src/config/errors.sol";
@@ -19,25 +20,29 @@ contract Oracle is IOracle {
 
     uint256 internal constant UNIT = 10**6;
 
-    address public immutable primaryPricer;
-    address public immutable secondaryPricer;
+    IPricer public immutable primaryPricer;
+    IPricer public immutable secondaryPricer;
 
     // underlying => strike => expiry => price.
     mapping(address => mapping(address => mapping(uint256 => ExpiryPrice))) public expiryPrices;
 
     constructor(address _primaryPricer, address _secondaryPricer) {
-        primaryPricer = _primaryPricer;
-        secondaryPricer = _secondaryPricer;
+        primaryPricer = IPricer(_primaryPricer);
+        secondaryPricer = IPricer(_secondaryPricer);
     }
 
     /**
      * @dev get spot price of underlying, denominated in strike asset.
      */
-    function getSpotPrice(
-        address, /*_base*/
-        address /*_quote*/
-    ) external pure override returns (uint256 price) {
-        return 3000 * 1e6;
+    function getSpotPrice(address _base, address _quote) external view override returns (uint256) {
+        try primaryPricer.getSpotPrice(_base, _quote) returns (uint256 price) {
+            return price;
+        } catch (
+            bytes memory /*lowLevelData*/
+        ) {
+            // catch any error from primary pricer, and fallback to secondary pricer
+            return secondaryPricer.getSpotPrice(_base, _quote);
+        }
     }
 
     /**
@@ -61,7 +66,8 @@ contract Oracle is IOracle {
         uint256 _expiry,
         uint256 _price
     ) external {
-        if (msg.sender != primaryPricer && msg.sender != secondaryPricer) revert OC_OnlyPricerCanWrite();
+        if (msg.sender != address(primaryPricer) && msg.sender != address(secondaryPricer))
+            revert OC_OnlyPricerCanWrite();
 
         // revert when trying to set price for the future
         if (_expiry > block.timestamp) revert OC_CannotReportForFuture();

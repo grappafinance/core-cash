@@ -185,10 +185,10 @@ contract ChainlinkPricerTestWriteOracle is Test {
     MockChainlinkAggregator private wethAggregator;
     MockChainlinkAggregator private usdcAggregator;
 
-    uint80 public expiry;
+    uint80 private expiry;
 
-    uint32 constant wethMaxDelay = 3600;
-    uint32 constant usdcMaxDelay = 129600;
+    uint32 private constant wethMaxDelay = 3600;
+    uint32 private constant usdcMaxDelay = 129600;
 
     uint80 private wethRoundIdToReport = 881032;
     uint80 private usdcRoundIdToReport = 125624;
