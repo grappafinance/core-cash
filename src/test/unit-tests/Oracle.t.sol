@@ -60,6 +60,13 @@ contract OracleTest is Test {
         assertEq(price, secondaryAnswer);
     }
 
+    function testFailIfBothPricersAreDown() public {
+        primary.setSpotRevert(true);
+        secondary.setSpotRevert(true);
+        // this should fail
+        oracle.getSpotPrice(weth, usdc);
+    }
+
     function testCannotReportFromNonPricer() public {
         vm.expectRevert(OC_OnlyPricerCanWrite.selector);
         oracle.reportExpiryPrice(weth, usdc, block.timestamp, primaryAnswer);
