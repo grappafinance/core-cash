@@ -10,13 +10,20 @@ contract MockChainlinkAggregator is IAggregatorV3 {
 
     // chainlink stored answer and timestamp in single slot
     // we do the same to stimulate gas cost
-    struct StoredData {
+    struct MockState {
         uint80 roundId;
         int192 answer;
         uint64 timestamp;
     }
 
-    StoredData public state;
+    struct RoundData {
+        int192 answer;
+        uint64 timestamp;
+    }
+
+    MockState public state;
+
+    mapping(uint80 => RoundData) public rounds;
 
     constructor(uint8 _decimals) {
         d = _decimals;
@@ -35,7 +42,7 @@ contract MockChainlinkAggregator is IAggregatorV3 {
     }
 
     function getRoundData(
-        uint80 /*roundId*/
+        uint80 _roundId
     )
         external
         view
@@ -47,7 +54,8 @@ contract MockChainlinkAggregator is IAggregatorV3 {
             uint80 answeredInRound
         )
     {
-        return (state.roundId, state.answer, state.timestamp, state.timestamp, state.roundId);
+        RoundData memory round = rounds[_roundId];
+        return (_roundId, round.answer, round.timestamp, round.timestamp, _roundId);
     }
 
     function latestRoundData()
@@ -70,6 +78,15 @@ contract MockChainlinkAggregator is IAggregatorV3 {
         uint256 timestamp
     ) external {
         // set unused filed to 1 to have more accurate approximation of gas cost of reading.
-        state = StoredData(roundId, int192(answer), uint64(timestamp));
+        state = MockState(roundId, int192(answer), uint64(timestamp));
+    }
+
+    function setMockRound(
+        uint80 roundId,
+        int256 answer,
+        uint256 timestamp
+    ) external {
+        // set unused filed to 1 to have more accurate approximation of gas cost of reading.
+        rounds[roundId] = RoundData(int192(answer), uint64(timestamp));
     }
 }

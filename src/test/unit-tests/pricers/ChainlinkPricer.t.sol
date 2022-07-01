@@ -99,28 +99,27 @@ contract ChainlinkPricerConfigurationTest is Test {
     }
 
     function testOwnerCanSetAggregator() public {
-        pricer.setAggregator(weth, aggregator, 3600);
-        (uint160 addr, uint8 decimals, uint32 maxDelay) = pricer.aggregators(weth);
+        pricer.setAggregator(weth, aggregator, 3600, false);
+        (uint160 addr, uint8 decimals, uint32 maxDelay, bool _isStable) = pricer.aggregators(weth);
 
         assertEq(address(addr), aggregator);
         assertEq(decimals, 8);
         assertEq(maxDelay, 3600);
+        assertEq(_isStable, false);
     }
 
     function testCannotSetAggregatorFromNonOwner() public {
         vm.startPrank(random);
 
         vm.expectRevert("Ownable: caller is not the owner");
-        pricer.setAggregator(weth, aggregator, 3600);
+        pricer.setAggregator(weth, aggregator, 3600, false);
 
         vm.stopPrank();
     }
 
-    function testCannotResetAggregator() public {
-        pricer.setAggregator(weth, aggregator, 3600);
-
-        vm.expectRevert(Chainlink_AggregatorAlreadySet.selector);
-        pricer.setAggregator(weth, address(0), 20000);
+    function testCanResetAggregator() public {
+        pricer.setAggregator(weth, aggregator, 360, false);
+        pricer.setAggregator(weth, aggregator, 20000, false);
     }
 }
 
@@ -152,8 +151,8 @@ contract ChainlinkPricerTest is Test {
         wethAggregator = new MockChainlinkAggregator(8);
         usdcAggregator = new MockChainlinkAggregator(8);
 
-        pricer.setAggregator(weth, address(wethAggregator), 3600);
-        pricer.setAggregator(usdc, address(usdcAggregator), 86400);
+        pricer.setAggregator(weth, address(wethAggregator), 3600, false);
+        pricer.setAggregator(usdc, address(usdcAggregator), 129600, true);
 
         wethAggregator.setMockState(0, int256(4000 * aggregatorUint), block.timestamp);
         usdcAggregator.setMockState(0, int256(1 * aggregatorUint), block.timestamp);
@@ -167,5 +166,98 @@ contract ChainlinkPricerTest is Test {
     function testSpotPriceReverse() public {
         uint256 spot = pricer.getSpotPrice(usdc, weth);
         assertEq(spot, UNIT / 4000);
+    }
+}
+
+/**
+ * @dev test reporting expiry price and interaction with Oracle
+ */
+contract ChainlinkPricerTestWriteOracle is Test {
+    
+    
+    uint256 private aggregatorUint = 1e8;
+
+    ChainlinkPricer private pricer;
+
+    address private weth;
+    address private usdc;
+
+    address private random;
+
+    MockChainlinkAggregator private wethAggregator;
+    MockChainlinkAggregator private usdcAggregator;
+
+    uint80 public expiry;
+
+    uint32 constant wethMaxDelay = 3600;
+    uint32 constant usdcMaxDelay = 129600;
+
+    uint80 private wethRoundIdToReport = 881032;
+    uint80 private usdcRoundIdToReport = 125624;
+
+    function setUp() public {
+        // set an normal number
+        vm.warp(1656680000);
+
+        expiry = uint80(block.timestamp - 1200);
+
+        random = address(0xaabbff);
+
+        usdc = address(new MockERC20("USDC", "USDC", 6));
+        weth = address(new MockERC20("WETH", "WETH", 18));
+
+        address oracle = address(new MockOracle());
+        pricer = new ChainlinkPricer(oracle);
+
+        wethAggregator = new MockChainlinkAggregator(8);
+        usdcAggregator = new MockChainlinkAggregator(8);
+
+        pricer.setAggregator(weth, address(wethAggregator), wethMaxDelay, false);
+        pricer.setAggregator(usdc, address(usdcAggregator), usdcMaxDelay, true);
+
+        // mock 2 answers aruond expiry
+        wethAggregator.setMockRound(wethRoundIdToReport, 4000 * 1e8, expiry - 1);
+        wethAggregator.setMockRound(wethRoundIdToReport + 1, 4003 * 1e8, expiry + 30);
+
+        // mock 1 answer for usdc
+        usdcAggregator.setMockRound(usdcRoundIdToReport, 1 * 1e8, expiry - 12960 + 50);
+    }
+
+    function testCanReportPrice() public {
+        pricer.reportExpiryPrice(weth, usdc, expiry, wethRoundIdToReport, usdcRoundIdToReport);
+    }
+
+    function testCannotReportPriceIfStablePriceIsStale() public {
+        // the usdc price is older than 129600 seconds (1.5 days) before expiry 
+        usdcAggregator.setMockRound(usdcRoundIdToReport, 1 * 1e8, expiry - usdcMaxDelay - 10);
+
+        vm.expectRevert(Chainlink_StaleAnswer.selector);
+        pricer.reportExpiryPrice(weth, usdc, expiry, wethRoundIdToReport, usdcRoundIdToReport);
+    }
+
+    function testCannotReportPriceIfUnderlyingPriceIsStale() public {
+        // the weth price is older than max delay
+        wethAggregator.setMockRound(wethRoundIdToReport, 4001 * 1e8, expiry - wethMaxDelay - 10);
+
+        vm.expectRevert(Chainlink_StaleAnswer.selector);
+        pricer.reportExpiryPrice(weth, usdc, expiry, wethRoundIdToReport, usdcRoundIdToReport);
+    }
+
+    function testCannotReportPriceIfWrongIdIsSpecified() public {
+        // let's assume roundId is too small
+        wethAggregator.setMockRound(wethRoundIdToReport, 4001 * 1e8, expiry - 1200);
+        // answer of roundId +1 is still smaller than expiry
+        wethAggregator.setMockRound(wethRoundIdToReport + 1, 4005 * 1e8, expiry - 2);
+
+        vm.expectRevert(Chainlink_RoundIdTooSmall.selector);
+        pricer.reportExpiryPrice(weth, usdc, expiry, wethRoundIdToReport, usdcRoundIdToReport);
+    }
+
+    function testCannotReportPriceIfRoundIDIsTooHigh() public {
+        // let's assume roundId is too small
+        wethAggregator.setMockRound(wethRoundIdToReport, 4001 * 1e8, expiry + 1);
+        
+        vm.expectRevert(stdError.arithmeticError);
+        pricer.reportExpiryPrice(weth, usdc, expiry, wethRoundIdToReport, usdcRoundIdToReport);
     }
 }

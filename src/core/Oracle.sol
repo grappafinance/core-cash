@@ -62,6 +62,10 @@ contract Oracle is IOracle {
         uint256 _price
     ) external {
         if (msg.sender != primaryPricer && msg.sender != secondaryPricer) revert OC_OnlyPricerCanWrite();
+
+        // revert when trying to set price for the future
+        if (_expiry > block.timestamp) revert OC_CannotReportForFuture();
+
         //todo: safeCast to be extra safe
         expiryPrices[_base][_quote][_expiry] = ExpiryPrice(true, uint128(_price));
     }

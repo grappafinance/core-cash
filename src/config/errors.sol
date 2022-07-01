@@ -62,4 +62,6 @@ error Chainlink_RoundIdTooSmall();
 
 error OC_OnlyPricerCanWrite();
 
+error OC_CannotReportForFuture();
+
 error OC_PriceNotReported();
