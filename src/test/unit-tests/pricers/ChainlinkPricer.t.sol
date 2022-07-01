@@ -171,7 +171,7 @@ contract ChainlinkPricerTest is Test {
 
     function testCannotGetSpotWhenAggregatorIsStale() public {
         wethAggregator.setMockState(0, int256(4000 * aggregatorUint), block.timestamp - 3601);
-        
+
         vm.expectRevert(Chainlink_StaleAnswer.selector);
         pricer.getSpotPrice(usdc, weth);
     }
