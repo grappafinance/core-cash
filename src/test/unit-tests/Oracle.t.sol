@@ -6,7 +6,6 @@ import "forge-std/Test.sol";
 
 import {Oracle} from "src/core/Oracle.sol";
 
-
 import {MockERC20} from "src/test/mocks/MockERC20.sol";
 import {MockPricer} from "src/test/mocks/MockPricer.sol";
 
@@ -23,7 +22,6 @@ import "forge-std/console2.sol";
  * @dev test oracle functions, mocking pricers
  */
 contract OracleTest is Test {
-
     Oracle public oracle;
 
     MockPricer public primary;
@@ -34,7 +32,6 @@ contract OracleTest is Test {
 
     address private weth;
     address private usdc;
-
 
     constructor() {
         vm.warp(1656680000);

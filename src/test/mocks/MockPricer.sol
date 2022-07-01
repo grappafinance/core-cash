@@ -5,16 +5,15 @@ import "src/interfaces/IPricer.sol";
 import "src/interfaces/IOracle.sol";
 
 contract MockPricer is IPricer {
-
     IOracle public oracle;
 
     uint192 public spotPrice;
     bool public shouldRevert;
 
     function setOracle(address _oracle) external {
-      oracle = IOracle(_oracle); 
+        oracle = IOracle(_oracle);
     }
-    
+
     function getSpotPrice(
         address, /*_underlying*/
         address /*_strike*/
@@ -37,6 +36,6 @@ contract MockPricer is IPricer {
         uint256 _expiry,
         uint256 _price
     ) external {
-      oracle.reportExpiryPrice(_base, _quote, _expiry, _price);
+        oracle.reportExpiryPrice(_base, _quote, _expiry, _price);
     }
 }
