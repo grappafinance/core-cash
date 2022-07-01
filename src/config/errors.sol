@@ -47,3 +47,21 @@ error WrongSplitId();
 error SplitProductMismatch();
 
 error SplitExpiryMismatch();
+
+// Chainlink Pricer Errors
+
+error Chainlink_AggregatorAlreadySet();
+
+error Chainlink_AggregatorNotSet();
+
+error Chainlink_StaleAnswer();
+
+error Chainlink_RoundIdTooSmall();
+
+// Oracle Errors
+
+error OC_OnlyPricerCanWrite();
+
+error OC_CannotReportForFuture();
+
+error OC_PriceNotReported();
