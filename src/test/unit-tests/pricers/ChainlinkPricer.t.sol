@@ -140,6 +140,7 @@ contract ChainlinkPricerTest is Test {
     MockChainlinkAggregator private usdcAggregator;
 
     function setUp() public {
+        vm.warp(1656680000);
         random = address(0xaabbff);
 
         usdc = address(new MockERC20("USDC", "USDC", 6));
@@ -166,6 +167,13 @@ contract ChainlinkPricerTest is Test {
     function testSpotPriceReverse() public {
         uint256 spot = pricer.getSpotPrice(usdc, weth);
         assertEq(spot, UNIT / 4000);
+    }
+
+    function testCannotGetSpotWhenAggregatorIsStale() public {
+        wethAggregator.setMockState(0, int256(4000 * aggregatorUint), block.timestamp - 3601);
+        
+        vm.expectRevert(Chainlink_StaleAnswer.selector);
+        pricer.getSpotPrice(usdc, weth);
     }
 }
 
@@ -252,7 +260,7 @@ contract ChainlinkPricerTestWriteOracle is Test {
     }
 
     function testCannotReportPriceIfRoundIDIsTooHigh() public {
-        // let's assume roundId is too small
+        // let's assume roundId is too high: timestamp is higher than expiry
         wethAggregator.setMockRound(wethRoundIdToReport, 4001 * 1e8, expiry + 1);
 
         vm.expectRevert(stdError.arithmeticError);
