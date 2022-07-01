@@ -22,7 +22,7 @@ contract ChainlinkPricer is IPricer, Ownable {
         uint160 addr;
         uint8 decimals;
         uint32 maxDelay;
-        bool isStable; // answer of stable asset can be used as long as the answer is not stale  
+        bool isStable; // answer of stable asset can be used as long as the answer is not stale
     }
 
     uint256 internal constant UNIT = 10**6;

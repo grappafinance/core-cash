@@ -41,9 +41,7 @@ contract MockChainlinkAggregator is IAggregatorV3 {
         return 2;
     }
 
-    function getRoundData(
-        uint80 _roundId
-    )
+    function getRoundData(uint80 _roundId)
         external
         view
         returns (

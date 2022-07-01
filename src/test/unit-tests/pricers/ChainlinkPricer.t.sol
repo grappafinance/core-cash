@@ -173,8 +173,6 @@ contract ChainlinkPricerTest is Test {
  * @dev test reporting expiry price and interaction with Oracle
  */
 contract ChainlinkPricerTestWriteOracle is Test {
-    
-    
     uint256 private aggregatorUint = 1e8;
 
     ChainlinkPricer private pricer;
@@ -228,7 +226,7 @@ contract ChainlinkPricerTestWriteOracle is Test {
     }
 
     function testCannotReportPriceIfStablePriceIsStale() public {
-        // the usdc price is older than 129600 seconds (1.5 days) before expiry 
+        // the usdc price is older than 129600 seconds (1.5 days) before expiry
         usdcAggregator.setMockRound(usdcRoundIdToReport, 1 * 1e8, expiry - usdcMaxDelay - 10);
 
         vm.expectRevert(Chainlink_StaleAnswer.selector);
@@ -256,7 +254,7 @@ contract ChainlinkPricerTestWriteOracle is Test {
     function testCannotReportPriceIfRoundIDIsTooHigh() public {
         // let's assume roundId is too small
         wethAggregator.setMockRound(wethRoundIdToReport, 4001 * 1e8, expiry + 1);
-        
+
         vm.expectRevert(stdError.arithmeticError);
         pricer.reportExpiryPrice(weth, usdc, expiry, wethRoundIdToReport, usdcRoundIdToReport);
     }
