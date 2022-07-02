@@ -396,8 +396,10 @@ contract MarginAccount is ReentrancyGuard, Settlement {
     function _getMinCollateral(MarginAccountDetail memory detail) internal view returns (uint256 minCollateral) {
         ProductAssets memory assets = _getProductAssets(detail.productId);
 
-        // denominated in {UNIT_DECIMALS}
-        uint256 spotPrice = oracle.getSpotPrice(assets.underlying, assets.strike);
+        // read spot price of the product, denominated in {UNIT_DECIMALS}.
+        // Pass in 0 if margin account has not debt
+        uint256 spotPrice;
+        if (detail.productId != 0) spotPrice = oracle.getSpotPrice(assets.underlying, assets.strike);
 
         // need to pass in collateral/strike price. Pass in 0 if collateral is strike to save gas.
         uint256 collateralStrikePrice = 0;

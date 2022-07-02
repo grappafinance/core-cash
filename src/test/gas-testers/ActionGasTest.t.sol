@@ -7,11 +7,14 @@ import "src/test/mocks/MockERC20.sol";
 /* solhint-disable max-states-count */
 /* solhint-disable no-empty-blocks */
 
-// todo: change this to real oracle
-import "src/test/mocks/MockOracle.sol";
-
 import "src/core/OptionToken.sol";
+
+import "src/core/pricers/ChainlinkPricer.sol";
+import "src/core/Oracle.sol";
 import "./MarginAccountGasTester.sol";
+
+// mock aggregator
+import "src/test/mocks/MockChainlinkAggregator.sol";
 
 import "src/test/utils/Utilities.sol";
 import "src/config/enums.sol";
@@ -28,7 +31,13 @@ import {ActionHelper} from "src/test/shared/ActionHelper.sol";
 contract TestActionGas is Test, Utilities, ActionHelper {
     MockERC20 public usdc;
     MockERC20 public weth;
-    MockOracle public oracle;
+
+    Oracle public oracle;
+    ChainlinkPricer public primaryPricer;
+
+    MockChainlinkAggregator public wethAggregator;
+    MockChainlinkAggregator public usdcAggregator;
+
     OptionToken public option;
     MarginAccountGasTester public tester;
 
@@ -50,11 +59,14 @@ contract TestActionGas is Test, Utilities, ActionHelper {
     uint8 private wethId;
 
     constructor() {
+        vm.warp(0xffff);
+
         usdc = new MockERC20("USDC", "USDC", 6); // nonce: 1
 
         weth = new MockERC20("WETH", "WETH", 18); // nonce: 2
 
-        oracle = new MockOracle(); // nonce: 3
+        address pricerAddr = addressFrom(address(this), 6);
+        oracle = new Oracle(pricerAddr, address(0)); // nonce: 3
 
         // predit address of margin account and use it here
         address marginAccountAddr = addressFrom(address(this), 5);
@@ -62,6 +74,17 @@ contract TestActionGas is Test, Utilities, ActionHelper {
 
         // deploy gas tester! (instead of real margin account)
         tester = new MarginAccountGasTester(address(option), address(oracle)); // nonce 5
+
+        primaryPricer = new ChainlinkPricer(address(oracle)); // nonce 6
+
+        wethAggregator = new MockChainlinkAggregator(8); // nonce 7
+        usdcAggregator = new MockChainlinkAggregator(8); // nonce 8
+
+        primaryPricer.setAggregator(address(usdc), address(usdcAggregator), 86400, true);
+        primaryPricer.setAggregator(address(weth), address(wethAggregator), 3600, false);
+
+        wethAggregator.setMockState(1011, 3000 * 1e8, block.timestamp);
+        usdcAggregator.setMockState(101, 1 * 1e8, block.timestamp);
 
         // register products
         usdcId = tester.registerAsset(address(usdc));
@@ -72,9 +95,6 @@ contract TestActionGas is Test, Utilities, ActionHelper {
 
         tester.setProductMarginConfig(productId, 180 days, 1 days, 6400, 800, 10000);
         tester.setProductMarginConfig(productIdEthCollat, 180 days, 1 days, 6400, 800, 10000);
-
-        // make sure timestamp is not 0
-        vm.warp(0xffff);
     }
 
     function setUp() public {
