@@ -10,14 +10,28 @@ jobs:
   analyze:
     runs-on: ubuntu-latest
     steps:
-      - name: Run Slither
-        uses: crytic/slither-action@v0.1.1
-        id: slither
-        continue-on-error: true
+      - uses: actions/checkout@v2
         with:
-          sarif: results.sarif
+          submodules: recursive
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
 
-      - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v2
+      - name: Install dependencies
+        run: forge install
+
+      - name: Compile
+        run: forge build
+
+      - name: Run Slither
+        uses: crytic/slither-action@v0.1.1 
         with:
-          sarif_file: ${{ steps.slither.outputs.sarif }}
+          ignore-compile: true
+          sarif: slither.sarif
+          target: src/core/
+
+      # - name: Upload SARIF file
+      #   uses: github/codeql-action/upload-sarif@v2
+      #   with:
+      #     sarif_file: ${{ steps.slither.outputs.sarif }}
