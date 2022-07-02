@@ -29,15 +29,19 @@ jobs:
       - name: Install solc 
         run: solc-select install 0.8.13 && solc-select use 0.8.13
 
+      - name: Run Slither
+        run: slither src/core/
+
+
       # - name: Compile
       #   run: forge build
 
-      - name: Run Slither
-        uses: crytic/slither-action@main
-        with:
-          sarif: slither.sarif
-          target: "src/core/"
-          slither-config: "slither.config.json"
+      # - name: Run Slither
+      #   uses: crytic/slither-action@main
+      #   with:
+      #     sarif: slither.sarif
+      #     target: "src/core/"
+      #     slither-config: "slither.config.json"
 
       # - name: Upload SARIF file
       #   uses: github/codeql-action/upload-sarif@v2
