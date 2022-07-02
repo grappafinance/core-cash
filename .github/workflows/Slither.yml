@@ -14,14 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: recursive
-      
+        
       - name: Run Slither
         uses: crytic/slither-action@main
         with:
-          sarif: slither.sarif
-          # slither-args: "src/core"
           target: "src/"
           slither-config: "slither.config.json"
 
