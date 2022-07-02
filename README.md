@@ -47,6 +47,24 @@ Pre-configured `solhint` and `prettier-plugin-solidity`. Can be run by
 npm run lint
 ```
 
+## Run Slither
+
+installation
+
+```shell
+pip3 install slither-analyzer
+pip3 install solc-select
+solc-select install 0.8.13
+solc-select use 0.8.13
+```
+
+Run analysis
+
+```shell
+slither ./src/core/SimpleMargin
+slither ./src/core/
+```
+
 ## Contract Architecture
 
 ![](https://i.imgur.com/7LTxemy.png)
