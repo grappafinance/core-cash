@@ -4,6 +4,8 @@ pragma solidity =0.8.13;
 // external librares
 import {ERC1155} from "solmate/tokens/ERC1155.sol";
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
+import {SafeERC20} from "openzeppelin/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 
 // inheriting cotract
 import {AssetRegistry} from "src/core/AssetRegistry.sol";
@@ -15,7 +17,6 @@ import {SimpleMarginMath} from "src/core/SimpleMargin/libraries/SimpleMarginMath
 // interfaces
 import {IOptionToken} from "src/interfaces/IOptionToken.sol";
 import {IOracle} from "src/interfaces/IOracle.sol";
-import {IERC20} from "src/interfaces/IERC20.sol";
 
 // constants / types
 import "src/config/enums.sol";
@@ -29,6 +30,7 @@ import "src/config/types.sol";
             By inheriting AssetRegistry, this module can have easy access to all product / asset details 
  */
 contract Settlement is AssetRegistry {
+    using SafeERC20 for IERC20;
     using FixedPointMathLib for uint256;
 
     /// @dev oracle address
@@ -106,7 +108,7 @@ contract Settlement is AssetRegistry {
 
         optionToken.burn(_account, _tokenId, _amount);
 
-        IERC20(collateral).transfer(_account, payout);
+        IERC20(collateral).safeTransfer(_account, payout);
     }
 
     /**
@@ -139,7 +141,7 @@ contract Settlement is AssetRegistry {
 
         optionToken.batchBurn(_account, _tokenIds, _amounts);
 
-        IERC20(_collateral).transfer(_account, totalPayout);
+        IERC20(_collateral).safeTransfer(_account, totalPayout);
     }
 
     /**

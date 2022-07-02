@@ -1,4 +1,5 @@
 {
+  "detectors_to_exclude": "timestamp,naming-convention,pragma,solc-version,uninitialized-local",
   "filter_paths": "lib",
   "solc_remaps": [
     "openzeppelin/=lib/openzeppelin-contracts/contracts/",

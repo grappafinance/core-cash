@@ -1,15 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity =0.8.13;
-import {IERC20} from "src/interfaces/IERC20.sol";
+
+import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
+import {ReentrancyGuard} from "solmate/utils/ReentrancyGuard.sol";
+
+import {SafeERC20} from "openzeppelin/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
+
+// import {IERC20} from "src/interfaces/IERC20.sol";
 import {IOracle} from "src/interfaces/IOracle.sol";
 import {IOptionToken} from "src/interfaces/IOptionToken.sol";
 
 import {TokenIdUtil} from "src/libraries/TokenIdUtil.sol";
 import {SimpleMarginMath} from "./libraries/SimpleMarginMath.sol";
 import {SimpleMarginLib} from "./libraries/SimpleMarginLib.sol";
-
-import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
-import {ReentrancyGuard} from "solmate/utils/ReentrancyGuard.sol";
 
 import {Settlement} from "src/core/Settlement.sol";
 
@@ -29,6 +33,7 @@ import "src/config/errors.sol";
 contract MarginAccount is ReentrancyGuard, Settlement {
     using SimpleMarginMath for MarginAccountDetail;
     using SimpleMarginLib for Account;
+    using SafeERC20 for IERC20;
 
     /*///////////////////////////////////////////////////////////////
                                   Variables
@@ -164,7 +169,7 @@ contract MarginAccount is ReentrancyGuard, Settlement {
         marginAccounts[_subAccount] = account;
 
         // payout to liquidator
-        IERC20(collateral).transfer(msg.sender, collateralToPay);
+        IERC20(collateral).safeTransfer(msg.sender, collateralToPay);
     }
 
     /**
@@ -188,7 +193,7 @@ contract MarginAccount is ReentrancyGuard, Settlement {
         _assertCallerHasAccess(_newSubAccount);
 
         address collateral = address(assets[account.collateralId].addr);
-        IERC20(collateral).transferFrom(msg.sender, address(this), _additionalCollateral);
+        IERC20(collateral).safeTransferFrom(msg.sender, address(this), _additionalCollateral);
 
         // update account structure.
         account.addCollateral(_additionalCollateral, account.collateralId);
@@ -264,7 +269,7 @@ contract MarginAccount is ReentrancyGuard, Settlement {
 
         // collateral must come from caller or the primary account for this subAccount
         if (from != msg.sender && !_isPrimaryAccountFor(from, subAccount)) revert InvalidFromAddress();
-        IERC20(collateral).transferFrom(from, address(this), amount);
+        IERC20(collateral).safeTransferFrom(from, address(this), amount);
     }
 
     /**
@@ -279,7 +284,7 @@ contract MarginAccount is ReentrancyGuard, Settlement {
         _account.removeCollateral(amount);
 
         // external calls
-        IERC20(collateral).transfer(recipient, amount);
+        IERC20(collateral).safeTransfer(recipient, amount);
     }
 
     /**

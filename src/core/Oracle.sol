@@ -18,8 +18,6 @@ contract Oracle is IOracle {
         uint128 price;
     }
 
-    uint256 internal constant UNIT = 10**6;
-
     IPricer public immutable primaryPricer;
     IPricer public immutable secondaryPricer;
 

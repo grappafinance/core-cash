@@ -8,7 +8,6 @@ import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 // interfaces
 import {IOptionToken} from "src/interfaces/IOptionToken.sol";
 import {IOracle} from "src/interfaces/IOracle.sol";
-import {IERC20} from "src/interfaces/IERC20.sol";
 
 // constants / types
 import "src/config/enums.sol";
