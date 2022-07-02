@@ -21,7 +21,8 @@ jobs:
         uses: crytic/slither-action@main
         with:
           sarif: slither.sarif
-          # target: "src/core/"
+          # slither-args: "src/core"
+          target: "src/"
           slither-config: "slither.config.json"
 
       # - name: Upload SARIF file
