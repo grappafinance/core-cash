@@ -1,5 +1,6 @@
 <div align="center">
   <h1 align="center"> Grappa 🥂</h1>
+
   <h4 align="center"> Don't waste your capital.</h4>
   <p align="center">
     <!-- badge goes here -->
@@ -11,6 +12,8 @@
 <h6 align="center"> Built with Foundry</h6>
   
 </div>
+
+[![Slither Analysis](https://github.com/antoncoding/grappa/actions/workflows/Slither.yml/badge.svg?branch=master)](https://github.com/antoncoding/grappa/actions/workflows/Slither.yml)
 
 # Introduction
 

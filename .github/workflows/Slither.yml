@@ -6,30 +6,38 @@ on:
   pull_request:
     branches: [ master ]
 
+env:
+  SOLC_VERSION: "v0.8.13"
+
 jobs:
   analyze:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          submodules: recursive
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
+          python-version: 3.9
+          architecture: x64
+      
+      - name: Install Slither
+        run: pip3 install slither-analyzer
 
-      - name: Install dependencies
-        run: forge install
+      - name: Install Sol-Selec
+        run: pip3 install solc-select
 
-      - name: Compile
-        run: forge build
+      - name: Install solc 
+        run: solc-select install 0.8.13 && solc-select use 0.8.13
+
+      # - name: Compile
+      #   run: forge build
 
       - name: Run Slither
-        uses: crytic/slither-action@v0.1.1 
+        uses: crytic/slither-action@main
         with:
-          ignore-compile: true
           sarif: slither.sarif
-          target: src/core/
+          target: "src/core/"
+          slither-config: "slither.config.json"
 
       # - name: Upload SARIF file
       #   uses: github/codeql-action/upload-sarif@v2
