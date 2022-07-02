@@ -30,7 +30,7 @@ jobs:
         run: solc-select install 0.8.13 && solc-select use 0.8.13
 
       - name: Run Slither
-        run: slither src/core/
+        run: slither src/core --config-file slither.config.json
 
 
       # - name: Compile
