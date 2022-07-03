@@ -17,6 +17,7 @@ jobs:
         
       - name: Run Slither
         uses: crytic/slither-action@main
+        continue-on-error: true
         with:
           target: "src/core"
           slither-config: "slither.config.json"
