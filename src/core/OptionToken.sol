@@ -25,6 +25,8 @@ contract OptionToken is ERC1155, IOptionToken {
     address public immutable marginAccount;
 
     constructor(address _marginAccount) {
+        // solhint-disable-next-line reason-string
+        if (_marginAccount == address(0)) revert();
         marginAccount = _marginAccount;
     }
 
