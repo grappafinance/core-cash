@@ -192,9 +192,6 @@ contract MarginAccount is ReentrancyGuard, Settlement {
         // make sure caller has access to the new account id.
         _assertCallerHasAccess(_newSubAccount);
 
-        address collateral = address(assets[account.collateralId].addr);
-        IERC20(collateral).safeTransferFrom(msg.sender, address(this), _additionalCollateral);
-
         // update account structure.
         account.addCollateral(_additionalCollateral, account.collateralId);
 
@@ -204,6 +201,10 @@ contract MarginAccount is ReentrancyGuard, Settlement {
         delete marginAccounts[_subAccountToTakeOver];
         if (!marginAccounts[_newSubAccount].isEmpty()) revert AccountIsNotEmpty();
         marginAccounts[_newSubAccount] = account;
+
+        // perform external calls
+        address collateral = address(assets[account.collateralId].addr);
+        IERC20(collateral).safeTransferFrom(msg.sender, address(this), _additionalCollateral);
     }
 
     /**
