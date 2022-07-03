@@ -62,7 +62,7 @@ contract AssetRegistry is Ownable {
         address underlying,
         address strike,
         address collateral
-    ) public view returns (uint32 id) {
+    ) external view returns (uint32 id) {
         id = ProductIdUtil.getProductId(ids[underlying], ids[strike], ids[collateral]);
     }
 
