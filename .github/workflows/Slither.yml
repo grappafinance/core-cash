@@ -36,18 +36,18 @@ jobs:
         with:
           sarif_file: ${{ steps.slither-core.outputs.sarif }}
 
-      - name: Run Slither margin
-        uses: crytic/slither-action@main
-        continue-on-error: true
-        id: slither-margin
-        with:
-          target: "src/core/SimpleMargin"
-          slither-config: "slither.config.json"
-          solc-version: 0.8.13
-          sarif: results.sarif
+      # - name: Run Slither margin
+      #   uses: crytic/slither-action@main
+      #   continue-on-error: true
+      #   id: slither-margin
+      #   with:
+      #     target: "src/core/SimpleMargin"
+      #     slither-config: "slither.config.json"
+      #     solc-version: 0.8.13
+      #     sarif: results.sarif
 
-       - name: Upload SARIF file for Margin
-        uses: github/codeql-action/upload-sarif@v2
-        id: upload-2
-        with:
-          sarif_file: ${{ steps.slither-margin.outputs.sarif }}
+      #  - name: Upload SARIF file for Margin
+      #   uses: github/codeql-action/upload-sarif@v2
+      #   id: upload-2
+      #   with:
+      #     sarif_file: ${{ steps.slither-margin.outputs.sarif }}
