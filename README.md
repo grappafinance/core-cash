@@ -1,6 +1,7 @@
 <div align="center">
   <h1 align="center"> Grappa 🥂</h1>
-
+  <a href=https://github.com/antoncoding/grappa/actions/workflows/Slither.yml""><img src="https://github.com/antoncoding/grappa/actions/workflows/Slither.yml/badge.svg?branch=master" > </a>
+  <a href=https://github.com/antoncoding/grappa/actions/workflows/CI.yml""><img src="https://github.com/antoncoding/grappa/actions/workflows/CI.yml/badge.svg?branch=master"> </a>
   <h4 align="center"> Don't waste your capital.</h4>
   <p align="center">
     <!-- badge goes here -->
@@ -10,10 +11,8 @@
     <img src='https://i.imgur.com/A04IOW6.jpg' alt='grappa' width="500" />
 </p>  
 <h6 align="center"> Built with Foundry</h6>
-  
-</div>
 
-[![Slither Analysis](https://github.com/antoncoding/grappa/actions/workflows/Slither.yml/badge.svg?branch=master)](https://github.com/antoncoding/grappa/actions/workflows/Slither.yml)
+</div>
 
 # Introduction
 
