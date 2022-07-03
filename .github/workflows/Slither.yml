@@ -20,17 +20,32 @@ jobs:
       - name: Install dependencies
         run: forge install
         
-      - name: Run Slither
+      - name: Run Slither on core
         uses: crytic/slither-action@main
         continue-on-error: true
-        id: slither
+        id: slither-core
         with:
           target: "src/core"
           slither-config: "slither.config.json"
           solc-version: 0.8.13
           sarif: results.sarif
 
-      - name: Upload SARIF file
+      - name: Run Slither on SimpleMargin
+        uses: crytic/slither-action@main
+        continue-on-error: true
+        id: slither-margin
+        with:
+          target: "src/core/SimpleMargin"
+          slither-config: "slither.config.json"
+          solc-version: 0.8.13
+          sarif: results.sarif
+
+      - name: Upload SARIF file for core
         uses: github/codeql-action/upload-sarif@v2
         with:
-          sarif_file: ${{ steps.slither.outputs.sarif }}
+          sarif_file: ${{ steps.slither-core.outputs.sarif }}
+
+       - name: Upload SARIF file for Margin
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: ${{ steps.slither-margin.outputs.sarif }}
