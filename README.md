@@ -1,5 +1,7 @@
 <div align="center">
   <h1 align="center"> Grappa 🥂</h1>
+  <a href=https://github.com/antoncoding/grappa/actions/workflows/Slither.yml""><img src="https://github.com/antoncoding/grappa/actions/workflows/Slither.yml/badge.svg?branch=master" > </a>
+  <a href=https://github.com/antoncoding/grappa/actions/workflows/CI.yml""><img src="https://github.com/antoncoding/grappa/actions/workflows/CI.yml/badge.svg?branch=master"> </a>
   <h4 align="center"> Don't waste your capital.</h4>
   <p align="center">
     <!-- badge goes here -->
@@ -9,7 +11,7 @@
     <img src='https://i.imgur.com/A04IOW6.jpg' alt='grappa' width="500" />
 </p>  
 <h6 align="center"> Built with Foundry</h6>
-  
+
 </div>
 
 # Introduction
@@ -45,6 +47,24 @@ Pre-configured `solhint` and `prettier-plugin-solidity`. Can be run by
 
 ```
 npm run lint
+```
+
+## Run Slither
+
+installation
+
+```shell
+pip3 install slither-analyzer
+pip3 install solc-select
+solc-select install 0.8.13
+solc-select use 0.8.13
+```
+
+Run analysis
+
+```shell
+slither ./src/core/SimpleMargin
+slither ./src/core/
 ```
 
 ## Contract Architecture
