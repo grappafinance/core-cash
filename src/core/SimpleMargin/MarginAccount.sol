@@ -400,28 +400,28 @@ contract MarginAccount is ReentrancyGuard, Settlement {
      * @return minCollateral minimum collateral required, in collateral asset's decimals
      */
     function _getMinCollateral(MarginAccountDetail memory detail) internal view returns (uint256 minCollateral) {
-        ProductAssets memory assets = _getProductAssets(detail.productId);
+        ProductAssets memory product = _getProductAssets(detail.productId);
 
         // read spot price of the product, denominated in {UNIT_DECIMALS}.
         // Pass in 0 if margin account has not debt
         uint256 spotPrice;
-        if (detail.productId != 0) spotPrice = oracle.getSpotPrice(assets.underlying, assets.strike);
+        if (detail.productId != 0) spotPrice = oracle.getSpotPrice(product.underlying, product.strike);
 
         // need to pass in collateral/strike price. Pass in 0 if collateral is strike to save gas.
         uint256 collateralStrikePrice = 0;
-        if (assets.collateral == assets.underlying) collateralStrikePrice = spotPrice;
-        else if (assets.collateral != assets.strike) {
-            collateralStrikePrice = oracle.getSpotPrice(assets.collateral, assets.strike);
+        if (product.collateral == product.underlying) collateralStrikePrice = spotPrice;
+        else if (product.collateral != product.strike) {
+            collateralStrikePrice = oracle.getSpotPrice(product.collateral, product.strike);
         }
 
         uint256 minCollateralInUnit = detail.getMinCollateral(
-            assets,
+            product,
             spotPrice,
             collateralStrikePrice,
             productParams[detail.productId]
         );
 
-        minCollateral = _convertDecimals(minCollateralInUnit, UNIT_DECIMALS, assets.collateralDecimals);
+        minCollateral = _convertDecimals(minCollateralInUnit, UNIT_DECIMALS, product.collateralDecimals);
     }
 
     /**
