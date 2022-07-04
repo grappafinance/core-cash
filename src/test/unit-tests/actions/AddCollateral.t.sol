@@ -71,7 +71,7 @@ contract TestAddCollateral is Fixture {
         actions[0] = createAddCollateralAction(usdcId, address(this), usdcAmount);
         actions[1] = createAddCollateralAction(wethId, address(this), wethAmount);
 
-        vm.expectRevert(WrongCollateralId.selector);
+        vm.expectRevert(MA_WrongCollateralId.selector);
         grappa.execute(address(this), actions);
     }
 }

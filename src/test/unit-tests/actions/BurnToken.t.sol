@@ -57,7 +57,7 @@ contract TestBurnCall is Fixture {
         actions[0] = createBurnAction(tokenId, address(this), amount);
 
         // action
-        vm.expectRevert(InvalidTokenId.selector);
+        vm.expectRevert(MA_InvalidToken.selector);
         grappa.execute(subAccount, actions); // execute on subaccount
     }
 
@@ -83,7 +83,7 @@ contract TestBurnCall is Fixture {
         actions[0] = createBurnAction(tokenId, alice, amount);
 
         // expect error
-        vm.expectRevert(InvalidFromAddress.selector);
+        vm.expectRevert(MA_InvalidFromAddress.selector);
         grappa.execute(address(this), actions);
     }
 

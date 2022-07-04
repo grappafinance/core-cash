@@ -57,7 +57,7 @@ contract TestMintVanillaOption is Fixture {
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
 
-        vm.expectRevert(AccountUnderwater.selector);
+        vm.expectRevert(MA_AccountUnderwater.selector);
         grappa.execute(address(this), actions);
     }
 
@@ -73,7 +73,7 @@ contract TestMintVanillaOption is Fixture {
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
 
-        vm.expectRevert(InvalidTokenId.selector);
+        vm.expectRevert(MA_InvalidToken.selector);
         grappa.execute(address(this), actions);
     }
 
@@ -134,7 +134,7 @@ contract TestMintVanillaOption is Fixture {
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
 
-        vm.expectRevert(AccountUnderwater.selector);
+        vm.expectRevert(MA_AccountUnderwater.selector);
         grappa.execute(address(this), actions);
     }
 
@@ -220,7 +220,7 @@ contract TestMintVanillaOption is Fixture {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createMintAction(tokenId, address(this), amount);
 
-        vm.expectRevert(AccountUnderwater.selector);
+        vm.expectRevert(MA_AccountUnderwater.selector);
         grappa.execute(address(this), actions);
     }
 
@@ -244,7 +244,7 @@ contract TestMintVanillaOption is Fixture {
         action2[0] = createMintAction(secondCallId, address(this), amount);
 
         // expect call to revert
-        vm.expectRevert(InvalidTokenId.selector);
+        vm.expectRevert(MA_InvalidToken.selector);
         grappa.execute(address(this), action2);
     }
 }

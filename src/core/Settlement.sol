@@ -55,7 +55,7 @@ contract Settlement is AssetRegistry {
         (TokenType tokenType, uint32 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) = TokenIdUtil
             .parseTokenId(_tokenId);
 
-        if (block.timestamp < expiry) revert NotExpired();
+        if (block.timestamp < expiry) revert MA_NotExpired();
 
         (address underlying, address strike, address collateral, uint8 collatDecimals) = getAssetsFromProductId(
             productId
@@ -124,14 +124,14 @@ contract Settlement is AssetRegistry {
         uint256[] memory _amounts,
         address _collateral
     ) external {
-        if (_tokenIds.length != _amounts.length) revert WrongArgumentLength();
+        if (_tokenIds.length != _amounts.length) revert ST_WrongArgumentLength();
 
         uint256 totalPayout;
 
         for (uint256 i; i < _tokenIds.length; ) {
             (address collateral, uint256 payout) = getOptionPayout(_tokenIds[i], _amounts[i]);
 
-            if (collateral != _collateral) revert WrongSettlementCollateral();
+            if (collateral != _collateral) revert ST_WrongSettlementCollateral();
             totalPayout += payout;
 
             unchecked {

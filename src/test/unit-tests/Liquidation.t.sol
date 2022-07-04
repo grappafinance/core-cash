@@ -52,14 +52,14 @@ contract TestLiquidateCall is Fixture {
     }
 
     function testCannotLiquidateHealthyVault() public {
-        vm.expectRevert(AccountIsHealthy.selector);
+        vm.expectRevert(MA_AccountIsHealthy.selector);
         grappa.liquidate(accountId, amount, 0);
     }
 
     function testCannotLiquidateVaultWithPuts() public {
         oracle.setSpotPrice(3800 * UNIT);
 
-        vm.expectRevert(WrongLiquidationAmounts.selector);
+        vm.expectRevert(MA_WrongRepayAmounts.selector);
         grappa.liquidate(accountId, 0, amount);
     }
 
@@ -146,14 +146,14 @@ contract TestLiquidatePut is Fixture {
     }
 
     function testCannotLiquidateHealthyVault() public {
-        vm.expectRevert(AccountIsHealthy.selector);
+        vm.expectRevert(MA_AccountIsHealthy.selector);
         grappa.liquidate(accountId, 0, amount);
     }
 
     function testCannotLiquidateVaultWithCalls() public {
         oracle.setSpotPrice(3600 * UNIT);
 
-        vm.expectRevert(WrongLiquidationAmounts.selector);
+        vm.expectRevert(MA_WrongRepayAmounts.selector);
         grappa.liquidate(accountId, amount, 0);
     }
 
@@ -247,31 +247,31 @@ contract TestLiquidateCallAndPut is Fixture {
     }
 
     function testCannotLiquidateHealthyVault() public {
-        vm.expectRevert(AccountIsHealthy.selector);
+        vm.expectRevert(MA_AccountIsHealthy.selector);
         grappa.liquidate(accountId, amount, amount);
     }
 
     function testCannotLiquidateWithOnlySpecifyCallAmount() public {
         oracle.setSpotPrice(3300 * UNIT);
 
-        vm.expectRevert(WrongLiquidationAmounts.selector);
+        vm.expectRevert(MA_WrongRepayAmounts.selector);
         grappa.liquidate(accountId, amount, 0);
     }
 
     function testCannotLiquidateWithImbalancedAmount() public {
         oracle.setSpotPrice(3300 * UNIT);
 
-        vm.expectRevert(WrongLiquidationAmounts.selector);
+        vm.expectRevert(MA_WrongRepayAmounts.selector);
         grappa.liquidate(accountId, amount, amount - 1);
 
-        vm.expectRevert(WrongLiquidationAmounts.selector);
+        vm.expectRevert(MA_WrongRepayAmounts.selector);
         grappa.liquidate(accountId, amount - 1, amount);
     }
 
     function testCannotLiquidateWithOnlySpecifyPutAmount() public {
         oracle.setSpotPrice(3300 * UNIT);
 
-        vm.expectRevert(WrongLiquidationAmounts.selector);
+        vm.expectRevert(MA_WrongRepayAmounts.selector);
         grappa.liquidate(accountId, 0, amount);
     }
 

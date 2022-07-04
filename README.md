@@ -67,22 +67,14 @@ slither ./src/core/SimpleMargin
 slither ./src/core/
 ```
 
-## Contract Architecture
+## Basic Contract Architecture
 
-![](https://i.imgur.com/7LTxemy.png)
+![](https://i.imgur.com/nt99kq4.png)
 
 This is the basic diagram of how contracts interact with each other in the draft version. A more detail diagram will be added later.
 
 You can see the 3 contracts that compose Grappa are `Oracle`, `MarginAccount` and `OptionToken`.
 
-### `Oracle`
-
-contract to report spot price and expiry price of an asset.
-
-### `MarginAccount`
-
-Depends on if it lives on mainnet or L2s, `MarginAccount` will have different interface and internal account structure, but they stand the same purpose for sellers to depositing collateral and create the option token.
-
-### `OptionToken`
-
-ERC1155 token that represent the right to claim for a non-negative payout at expiry. It can represent a long call position, a long put position, or debit spreads.
+* `Oracle`: contract to report spot price and expiry price of an asset. Also return an volatility index for min collateral calculation.
+* `MarginAccount`: Depends on if it lives on mainnet or L2s, `MarginAccount` will have different interface and internal account structure, but they stand the same purpose for sellers to depositing collateral and create the option token.
+* `OptionToken`: ERC1155 token that represent the right to claim for a non-negative payout at expiry. It can represent a long call position, a long put position, or debit spreads.

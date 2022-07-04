@@ -67,7 +67,7 @@ contract TestSplitCallSpread is Fixture {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSplitAction(TokenType.CALL_SPREAD, address(this));
 
-        vm.expectRevert(AccountUnderwater.selector);
+        vm.expectRevert(MA_AccountUnderwater.selector);
         grappa.execute(address(this), actions);
     }
 }
@@ -130,7 +130,7 @@ contract TestSplitPutSpread is Fixture {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSplitAction(TokenType.PUT_SPREAD, address(this));
 
-        vm.expectRevert(AccountUnderwater.selector);
+        vm.expectRevert(MA_AccountUnderwater.selector);
         grappa.execute(address(this), actions);
     }
 }
