@@ -3,6 +3,7 @@ pragma solidity ^0.8.13;
 
 // import test base and helpers.
 import {Fixture} from "src/test/shared/Fixture.t.sol";
+import {stdError} from "forge-std/Test.sol";
 
 import "src/config/enums.sol";
 import "src/config/types.sol";
@@ -102,6 +103,13 @@ contract TestLiquidateCall is Fixture {
         assertEq(shortCallAmount, 0);
         assertEq(collateralAmount, 0);
         assertEq(collateralId, 0);
+    }
+
+    function testCannotLiquidateMoreThanDebt() public {
+        oracle.setSpotPrice(3800 * UNIT);
+
+        vm.expectRevert(stdError.arithmeticError);
+        grappa.liquidate(accountId, amount + 1, 0);
     }
 }
 
