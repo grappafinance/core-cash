@@ -107,9 +107,8 @@ contract MarginAccount is ReentrancyGuard, Settlement {
         bool hasShortCall = account.shortCallAmount != 0;
         bool hasShortPut = account.shortPutAmount != 0;
 
-        // portion of the collateral the liquidator is repaying, in BPS.
+        // compute portion of the collateral the liquidator is repaying, in BPS.
         uint256 portionBPS;
-
         if (hasShortCall && hasShortPut) {
             // if the account is short call and put at the same time,
             // amounts to liquidate needs to be the same portion of short call and short put amount.
@@ -117,30 +116,15 @@ contract MarginAccount is ReentrancyGuard, Settlement {
             uint256 putPortionBPS = (_repayPutAmount * BPS) / account.shortPutAmount;
             if (callPortionBPS != putPortionBPS) revert MA_WrongRepayAmounts();
             portionBPS = callPortionBPS;
-
-            // burn the tokens from msg.sender (external call but should not have risk of reentrancy)
-            uint256[] memory tokenIds = new uint256[](2);
-            tokenIds[0] = account.shortCallId;
-            tokenIds[1] = account.shortPutId;
-            uint256[] memory amounts = new uint256[](2);
-            amounts[0] = _repayCallAmount;
-            amounts[1] = _repayPutAmount;
-            optionToken.batchBurn(msg.sender, tokenIds, amounts);
         } else if (hasShortCall) {
             // account only short call
             if (_repayPutAmount != 0) revert MA_WrongRepayAmounts();
             portionBPS = (_repayCallAmount * BPS) / account.shortCallAmount;
-
-            // burn from msg.sender (external call but should not have risk of reentrancy)
-            optionToken.burn(msg.sender, account.shortCallId, _repayCallAmount);
         } else {
             // if account is underwater, it must have shortCall or shortPut. in this branch it will sure have shortPutAmount > 0;
             // account only short put
             if (_repayCallAmount != 0) revert MA_WrongRepayAmounts();
             portionBPS = (_repayPutAmount * BPS) / account.shortPutAmount;
-
-            // burn from msg.sender (external call but should not have risk of reentrancy)
-            optionToken.burn(msg.sender, account.shortPutId, _repayPutAmount);
         }
 
         address collateral = address(assets[account.collateralId].addr);
@@ -150,16 +134,26 @@ contract MarginAccount is ReentrancyGuard, Settlement {
         // if liquidator is trying to remove more collateral than owned, this line will revert
         account.removeCollateral(collateralToPay);
         if (hasShortCall) {
+            // external call: burn token. should be safe to call because it doens't trigger reentrancy
+            // we do it here to save gas, otherwise we might need to cach shortCallId
+            optionToken.burn(msg.sender, account.shortCallId, _repayCallAmount);
+
+            // cacheShortCallId = account.shortCallId;
             account.burnOption(account.shortCallId, _repayCallAmount);
         }
         if (hasShortPut) {
+            // external call: burn token. should be safe to call because it doens't trigger reentrancy
+            // we do it here to save gas, otherwise we might need to cach shortPutId
+            optionToken.burn(msg.sender, account.shortPutId, _repayPutAmount);
+
+            // cacheShortPutId = account.shortPutId;
             account.burnOption(account.shortPutId, _repayPutAmount);
         }
 
         // write new accout to storage
         marginAccounts[_subAccount] = account;
 
-        // payout to liquidator
+        // extenal calls: transfer collateral
         IERC20(collateral).safeTransfer(msg.sender, collateralToPay);
     }
 
@@ -200,8 +194,42 @@ contract MarginAccount is ReentrancyGuard, Settlement {
     }
 
     /**
+     * @notice  top up an account
+     * @dev     expected to be call by account owner
+     * @param   _subAccount sub account id to top up
+     * @param   _collateralAmount sub account id to top up
+     */
+    function topUp(address _subAccount, uint80 _collateralAmount) external {
+        Account memory account = marginAccounts[_subAccount];
+        // update account structure.
+        account.addCollateral(_collateralAmount, account.collateralId);
+        // store account object
+        marginAccounts[_subAccount] = account;
+        // external calls
+        IERC20(address(assets[account.collateralId].addr)).safeTransferFrom(
+            msg.sender,
+            address(this),
+            _collateralAmount
+        );
+    }
+
+    /**
+     * @notice  move an account to someone else
+     * @dev     expected to be call by account owner
+     */
+    function transferAccount(address _subAccount, address _newSubAccount) external {
+        _assertCallerHasAccess(_subAccount);
+
+        if (!marginAccounts[_newSubAccount].isEmpty()) revert MA_AccountIsNotEmpty();
+        marginAccounts[_newSubAccount] = marginAccounts[_subAccount];
+
+        delete marginAccounts[_subAccount];
+    }
+
+    /**
      * @notice  grant or revoke an account access to all your sub-accounts
-     * @dev     usually user should only give access to helper contracts
+     * @dev     expected to be call by account owner
+     *          usually user should only give access to helper contracts
      */
     function setAccountAccess(address _account, bool _isAuthorized) external {
         authorized[uint160(msg.sender) | 0xFF][_account] = _isAuthorized;
