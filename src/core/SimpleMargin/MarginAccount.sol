@@ -7,7 +7,6 @@ import {ReentrancyGuard} from "solmate/utils/ReentrancyGuard.sol";
 import {SafeERC20} from "openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 
-// import {IERC20} from "src/interfaces/IERC20.sol";
 import {IOracle} from "src/interfaces/IOracle.sol";
 import {IOptionToken} from "src/interfaces/IOptionToken.sol";
 
@@ -27,8 +26,8 @@ import "src/config/errors.sol";
  * @author  antoncoding
  * @notice  MarginAccount is in charge of maintaining margin requirement for each "account"
             Users can deposit collateral into MarginAccount and mint optionTokens (debt) out of it.
-            Interacts with OptionToken to mint / burn and get product information.
-            Interacts with Oracle to read spot price.
+            Interacts with OptionToken to mint / burn.
+            Interacts with Oracle to read spot price / and vol.
  */
 contract MarginAccount is ReentrancyGuard, Settlement {
     using SimpleMarginMath for MarginAccountDetail;
@@ -39,12 +38,12 @@ contract MarginAccount is ReentrancyGuard, Settlement {
                                   Variables
     //////////////////////////////////////////////////////////////*/
 
-    ///@dev subAccount => Account.
+    ///@dev subAccount => Account structure.
     ///     subAccount can be an address similar to the primary account, but has the last 8 bits different.
     ///     this give every account access to 256 sub-accounts
     mapping(address => Account) public marginAccounts;
 
-    ///@dev primaryAccountId => operator => authorized
+    ///@dev maskedAccount => operator => authorized
     ///     every account can authorize any amount of addresses to modify all accounts he controls.
     mapping(uint160 => mapping(address => bool)) public authorized;
 
@@ -63,16 +62,6 @@ contract MarginAccount is ReentrancyGuard, Settlement {
         MarginAccountDetail memory detail = _getAccountDetail(account);
 
         minCollateral = _getMinCollateral(detail);
-    }
-
-    /**
-     * @notice get the subAccount address to use
-     * @param primary usually the msg.sender
-     * @return subAccountId number 0 ~ 255
-     */
-    function getSubAccount(address primary, uint256 subAccountId) external pure returns (address) {
-        if (subAccountId >= 256) revert InvalidSubAccountNumber();
-        return address(uint160(primary) ^ uint160(subAccountId));
     }
 
     /**
@@ -118,7 +107,7 @@ contract MarginAccount is ReentrancyGuard, Settlement {
         bool hasShortCall = account.shortCallAmount != 0;
         bool hasShortPut = account.shortPutAmount != 0;
 
-        // portion of the collateral the liquidator is liquidating.
+        // portion of the collateral the liquidator is repaying, in BPS.
         uint256 portionBPS;
 
         if (hasShortCall && hasShortPut) {
@@ -129,7 +118,7 @@ contract MarginAccount is ReentrancyGuard, Settlement {
             if (callPortionBPS != putPortionBPS) revert WrongLiquidationAmounts();
             portionBPS = callPortionBPS;
 
-            // burn the token from msg.sender
+            // burn the tokens from msg.sender (external call but should not have risk of reentrancy)
             uint256[] memory tokenIds = new uint256[](2);
             tokenIds[0] = account.shortCallId;
             tokenIds[1] = account.shortPutId;
@@ -142,7 +131,7 @@ contract MarginAccount is ReentrancyGuard, Settlement {
             if (_repayPutAmount != 0) revert WrongLiquidationAmounts();
             portionBPS = (_repayCallAmount * BPS) / account.shortCallAmount;
 
-            // burn from msg.sender
+            // burn from msg.sender (external call but should not have risk of reentrancy)
             optionToken.burn(msg.sender, account.shortCallId, _repayCallAmount);
         } else {
             // if account is underwater, it must have shortCall or shortPut. in this branch it will sure have shortPutAmount > 0;
@@ -150,7 +139,7 @@ contract MarginAccount is ReentrancyGuard, Settlement {
             if (_repayCallAmount != 0) revert WrongLiquidationAmounts();
             portionBPS = (_repayPutAmount * BPS) / account.shortPutAmount;
 
-            // burn from msg.sender
+            // burn from msg.sender (external call but should not have risk of reentrancy)
             optionToken.burn(msg.sender, account.shortPutId, _repayPutAmount);
         }
 
@@ -165,7 +154,8 @@ contract MarginAccount is ReentrancyGuard, Settlement {
         if (hasShortPut) {
             account.burnOption(account.shortPutId, _repayPutAmount);
         }
-        // write to storage
+
+        // write new accout to storage
         marginAccounts[_subAccount] = account;
 
         // payout to liquidator
@@ -174,12 +164,12 @@ contract MarginAccount is ReentrancyGuard, Settlement {
 
     /**
      * @notice  alternative to liquidation:
-     *          take over someone else's underwater account, tap up collateral to make it healthy.
+     *          take over someone else's underwater account, top up collateral to make it healthy.
      *          effectively equivalent to mint + liquidate + add back collateral got from liquidation
      * @dev     expected to be called by liquidators
      * @param _subAccountToTakeOver account id to be moved
      * @param _newSubAccount new acount Id which will be linked to the margin account structure
-     * @param _additionalCollateral additional collateral to tap up
+     * @param _additionalCollateral additional collateral to top up
      */
     function takeoverPosition(
         address _subAccountToTakeOver,
@@ -199,6 +189,7 @@ contract MarginAccount is ReentrancyGuard, Settlement {
 
         // migrate account storage: delete the old entry and write "account" to new account id
         delete marginAccounts[_subAccountToTakeOver];
+
         if (!marginAccounts[_newSubAccount].isEmpty()) revert AccountIsNotEmpty();
         marginAccounts[_newSubAccount] = account;
 

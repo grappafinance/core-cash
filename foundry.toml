@@ -1,7 +1,7 @@
 [default]
 optimizer = true
-optimizer_runs = 20000
-# via_ir = true temporarily disable for faster snapshot
+optimizer_runs = 10000
+# via_ir = true # temporarily disable for faster snapshot
 
 gas_reports = [
   "*",

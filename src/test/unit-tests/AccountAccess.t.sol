@@ -17,12 +17,7 @@ contract MarginAccountAccessTest is Fixture {
         usdc.mint(address(this), 1000_000 * 1e6);
         usdc.approve(address(grappa), type(uint256).max);
 
-        subAccountIdToModify = grappa.getSubAccount(alice, 1);
-    }
-
-    function testCannotReadSubAccountWithIdTooHigh() public {
-        vm.expectRevert(InvalidSubAccountNumber.selector);
-        grappa.getSubAccount(address(this), 256);
+        subAccountIdToModify = address(uint160(alice) ^ uint160(1));
     }
 
     function testCannotUpdateRandomAccount() public {
