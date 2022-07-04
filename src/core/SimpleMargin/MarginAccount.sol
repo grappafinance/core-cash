@@ -102,7 +102,7 @@ contract MarginAccount is ReentrancyGuard, Settlement {
         uint64 _repayPutAmount
     ) external {
         Account memory account = marginAccounts[_subAccount];
-        if (_isAccountHealthy(account)) revert AccountIsHealthy();
+        if (_isAccountHealthy(account)) revert MA_AccountIsHealthy();
 
         bool hasShortCall = account.shortCallAmount != 0;
         bool hasShortPut = account.shortPutAmount != 0;
@@ -115,7 +115,7 @@ contract MarginAccount is ReentrancyGuard, Settlement {
             // amounts to liquidate needs to be the same portion of short call and short put amount.
             uint256 callPortionBPS = (_repayCallAmount * BPS) / account.shortCallAmount;
             uint256 putPortionBPS = (_repayPutAmount * BPS) / account.shortPutAmount;
-            if (callPortionBPS != putPortionBPS) revert WrongLiquidationAmounts();
+            if (callPortionBPS != putPortionBPS) revert MA_WrongRepayAmounts();
             portionBPS = callPortionBPS;
 
             // burn the tokens from msg.sender (external call but should not have risk of reentrancy)
@@ -128,7 +128,7 @@ contract MarginAccount is ReentrancyGuard, Settlement {
             optionToken.batchBurn(msg.sender, tokenIds, amounts);
         } else if (hasShortCall) {
             // account only short call
-            if (_repayPutAmount != 0) revert WrongLiquidationAmounts();
+            if (_repayPutAmount != 0) revert MA_WrongRepayAmounts();
             portionBPS = (_repayCallAmount * BPS) / account.shortCallAmount;
 
             // burn from msg.sender (external call but should not have risk of reentrancy)
@@ -136,7 +136,7 @@ contract MarginAccount is ReentrancyGuard, Settlement {
         } else {
             // if account is underwater, it must have shortCall or shortPut. in this branch it will sure have shortPutAmount > 0;
             // account only short put
-            if (_repayCallAmount != 0) revert WrongLiquidationAmounts();
+            if (_repayCallAmount != 0) revert MA_WrongRepayAmounts();
             portionBPS = (_repayPutAmount * BPS) / account.shortPutAmount;
 
             // burn from msg.sender (external call but should not have risk of reentrancy)
@@ -147,6 +147,7 @@ contract MarginAccount is ReentrancyGuard, Settlement {
         uint80 collateralToPay = uint80((account.collateralAmount * portionBPS) / BPS);
 
         // update account structure.
+        // if liquidator is trying to remove more collateral than owned, this line will revert
         account.removeCollateral(collateralToPay);
         if (hasShortCall) {
             account.burnOption(account.shortCallId, _repayCallAmount);
@@ -177,7 +178,7 @@ contract MarginAccount is ReentrancyGuard, Settlement {
         uint80 _additionalCollateral
     ) external {
         Account memory account = marginAccounts[_subAccountToTakeOver];
-        if (_isAccountHealthy(account)) revert AccountIsHealthy();
+        if (_isAccountHealthy(account)) revert MA_AccountIsHealthy();
 
         // make sure caller has access to the new account id.
         _assertCallerHasAccess(_newSubAccount);
@@ -190,7 +191,7 @@ contract MarginAccount is ReentrancyGuard, Settlement {
         // migrate account storage: delete the old entry and write "account" to new account id
         delete marginAccounts[_subAccountToTakeOver];
 
-        if (!marginAccounts[_newSubAccount].isEmpty()) revert AccountIsNotEmpty();
+        if (!marginAccounts[_newSubAccount].isEmpty()) revert MA_AccountIsNotEmpty();
         marginAccounts[_newSubAccount] = account;
 
         // perform external calls
@@ -260,7 +261,7 @@ contract MarginAccount is ReentrancyGuard, Settlement {
         address collateral = address(assets[collateralId].addr);
 
         // collateral must come from caller or the primary account for this subAccount
-        if (from != msg.sender && !_isPrimaryAccountFor(from, subAccount)) revert InvalidFromAddress();
+        if (from != msg.sender && !_isPrimaryAccountFor(from, subAccount)) revert MA_InvalidFromAddress();
         IERC20(collateral).safeTransferFrom(from, address(this), amount);
     }
 
@@ -308,7 +309,7 @@ contract MarginAccount is ReentrancyGuard, Settlement {
         _account.burnOption(tokenId, amount);
 
         // token being burn must come from caller or the primary account for this subAccount
-        if (from != msg.sender && !_isPrimaryAccountFor(from, subAccount)) revert InvalidFromAddress();
+        if (from != msg.sender && !_isPrimaryAccountFor(from, subAccount)) revert MA_InvalidFromAddress();
         optionToken.burn(from, tokenId, amount);
     }
 
@@ -327,7 +328,7 @@ contract MarginAccount is ReentrancyGuard, Settlement {
         uint64 amount = _account.merge(tokenId);
 
         // token being burn must come from caller or the primary account for this subAccount
-        if (from != msg.sender && !_isPrimaryAccountFor(from, subAccount)) revert InvalidFromAddress();
+        if (from != msg.sender && !_isPrimaryAccountFor(from, subAccount)) revert MA_InvalidFromAddress();
 
         optionToken.burn(from, tokenId, amount);
     }
@@ -371,7 +372,7 @@ contract MarginAccount is ReentrancyGuard, Settlement {
      * @dev make sure account is above water
      */
     function _assertAccountHealth(Account memory account) internal view {
-        if (!_isAccountHealthy(account)) revert AccountUnderwater();
+        if (!_isAccountHealthy(account)) revert MA_AccountUnderwater();
     }
 
     /**

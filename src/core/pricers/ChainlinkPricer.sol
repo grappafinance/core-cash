@@ -104,12 +104,12 @@ contract ChainlinkPricer is IPricer, Ownable {
 
     function _getSpotPriceFromAggregator(address _asset) internal view returns (uint256 price, uint8 decimals) {
         AggregatorData memory aggregator = aggregators[_asset];
-        if (aggregator.addr == 0) revert Chainlink_AggregatorNotSet();
+        if (aggregator.addr == 0) revert CL_AggregatorNotSet();
 
         // request answer from Chainlink
         (, int256 answer, , uint256 updatedAt, ) = IAggregatorV3(address(aggregator.addr)).latestRoundData();
 
-        if (block.timestamp - updatedAt > aggregator.maxDelay) revert Chainlink_StaleAnswer();
+        if (block.timestamp - updatedAt > aggregator.maxDelay) revert CL_StaleAnswer();
 
         return (uint256(answer), aggregator.decimals);
     }
@@ -126,18 +126,18 @@ contract ChainlinkPricer is IPricer, Ownable {
         uint256 _expiry
     ) internal view returns (uint256 price, uint8 decimals) {
         AggregatorData memory aggregator = aggregators[_asset];
-        if (aggregator.addr == 0) revert Chainlink_AggregatorNotSet();
+        if (aggregator.addr == 0) revert CL_AggregatorNotSet();
 
         // request answer from Chainlink
         (, int256 answer, , uint256 updatedAt, ) = IAggregatorV3(address(aggregator.addr)).getRoundData(_roundId);
 
         // if expiry < updatedAt, this line will revert
-        if (_expiry - updatedAt > aggregator.maxDelay) revert Chainlink_StaleAnswer();
+        if (_expiry - updatedAt > aggregator.maxDelay) revert CL_StaleAnswer();
 
         // it is not a stable asset: make sure timestamp of answer #(round + 1) is higher than expiry
         if (!aggregator.isStable) {
             (, , , uint256 nextRoundUpdatedAt, ) = IAggregatorV3(address(aggregator.addr)).getRoundData(_roundId + 1);
-            if (nextRoundUpdatedAt < _expiry) revert Chainlink_RoundIdTooSmall();
+            if (nextRoundUpdatedAt < _expiry) revert CL_RoundIdTooSmall();
         }
 
         return (uint256(answer), aggregator.decimals);

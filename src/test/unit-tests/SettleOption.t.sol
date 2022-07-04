@@ -497,7 +497,7 @@ contract TestBatchSettleCall is Fixture {
     function testCannotSettleWithWrongCollateral() public {
         oracle.setExpiryPrice(strikes[0] - 1);
 
-        vm.expectRevert(WrongSettlementCollateral.selector);
+        vm.expectRevert(ST_WrongSettlementCollateral.selector);
         grappa.batchSettleOptions(alice, tokenIds, amounts, address(weth));
     }
 

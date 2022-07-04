@@ -54,21 +54,21 @@ contract TestTakeoverPosition is Fixture {
     }
 
     function testCannotTakeoverHealthyVault() public {
-        vm.expectRevert(AccountIsHealthy.selector);
+        vm.expectRevert(MA_AccountIsHealthy.selector);
         grappa.takeoverPosition(accountId, address(this), 0);
     }
 
     function testCannotTakeoverPositionWithoutPayingCollateral() public {
         oracle.setSpotPrice(3800 * UNIT);
 
-        vm.expectRevert(AccountUnderwater.selector);
+        vm.expectRevert(MA_AccountUnderwater.selector);
         grappa.takeoverPosition(accountId, address(this), 0);
     }
 
     function testCannotTakeoverPositionWithoutPayingEnoughCollateral() public {
         oracle.setSpotPrice(3800 * UNIT);
 
-        vm.expectRevert(AccountUnderwater.selector);
+        vm.expectRevert(MA_AccountUnderwater.selector);
         grappa.takeoverPosition(accountId, address(this), uint80(50 * 1e6));
     }
 

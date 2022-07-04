@@ -172,7 +172,7 @@ contract ChainlinkPricerTest is Test {
     function testCannotGetSpotWhenAggregatorIsStale() public {
         wethAggregator.setMockState(0, int256(4000 * aggregatorUint), block.timestamp - 3601);
 
-        vm.expectRevert(Chainlink_StaleAnswer.selector);
+        vm.expectRevert(CL_StaleAnswer.selector);
         pricer.getSpotPrice(usdc, weth);
     }
 }
@@ -237,7 +237,7 @@ contract ChainlinkPricerTestWriteOracle is Test {
         // the usdc price is older than 129600 seconds (1.5 days) before expiry
         usdcAggregator.setMockRound(usdcRoundIdToReport, 1 * 1e8, expiry - usdcMaxDelay - 10);
 
-        vm.expectRevert(Chainlink_StaleAnswer.selector);
+        vm.expectRevert(CL_StaleAnswer.selector);
         pricer.reportExpiryPrice(weth, usdc, expiry, wethRoundIdToReport, usdcRoundIdToReport);
     }
 
@@ -245,7 +245,7 @@ contract ChainlinkPricerTestWriteOracle is Test {
         // the weth price is older than max delay
         wethAggregator.setMockRound(wethRoundIdToReport, 4001 * 1e8, expiry - wethMaxDelay - 10);
 
-        vm.expectRevert(Chainlink_StaleAnswer.selector);
+        vm.expectRevert(CL_StaleAnswer.selector);
         pricer.reportExpiryPrice(weth, usdc, expiry, wethRoundIdToReport, usdcRoundIdToReport);
     }
 
@@ -255,7 +255,7 @@ contract ChainlinkPricerTestWriteOracle is Test {
         // answer of roundId +1 is still smaller than expiry
         wethAggregator.setMockRound(wethRoundIdToReport + 1, 4005 * 1e8, expiry - 2);
 
-        vm.expectRevert(Chainlink_RoundIdTooSmall.selector);
+        vm.expectRevert(CL_RoundIdTooSmall.selector);
         pricer.reportExpiryPrice(weth, usdc, expiry, wethRoundIdToReport, usdcRoundIdToReport);
     }
 

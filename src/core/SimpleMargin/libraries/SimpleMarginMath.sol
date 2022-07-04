@@ -52,7 +52,7 @@ library SimpleMarginMath {
         // don't need collateral
         if (_account.putAmount == 0 && _account.callAmount == 0) return 0;
 
-        if (_params.discountRatioUpperBound == 0) revert InvalidConfig();
+        if (_params.discountRatioUpperBound == 0) revert MA_NoConfig();
 
         // we only have short put
         if (_account.callAmount == 0) {
