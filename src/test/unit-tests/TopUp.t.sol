@@ -53,16 +53,16 @@ contract TestTopupCallAccount is Fixture {
 
     function testAliceCanTopUpHerAccount() public {
         vm.startPrank(alice);
-        
+
         uint256 usdcBalanceBefore = usdc.balanceOf(alice);
         uint256 systemUsdcBalanceBefore = usdc.balanceOf(address(grappa));
-        (, , , , uint80 collateralBefore,) = grappa.marginAccounts(accountId);
+        (, , , , uint80 collateralBefore, ) = grappa.marginAccounts(accountId);
 
         grappa.topUp(accountId, uint80(initialCollateral));
 
         uint256 usdcBalanceAfter = usdc.balanceOf(alice);
         uint256 systemUsdcBalanceAfter = usdc.balanceOf(address(grappa));
-        (, , , , uint80 collateralAfter,) = grappa.marginAccounts(accountId);
+        (, , , , uint80 collateralAfter, ) = grappa.marginAccounts(accountId);
 
         assertEq(usdcBalanceBefore - usdcBalanceAfter, initialCollateral);
         assertEq(systemUsdcBalanceAfter - systemUsdcBalanceBefore, initialCollateral);
@@ -77,13 +77,13 @@ contract TestTopupCallAccount is Fixture {
 
         uint256 usdcBalanceBefore = usdc.balanceOf(address(this));
         uint256 systemUsdcBalanceBefore = usdc.balanceOf(address(grappa));
-        (, , , , uint80 collateralBefore,) = grappa.marginAccounts(accountId);
+        (, , , , uint80 collateralBefore, ) = grappa.marginAccounts(accountId);
 
         grappa.topUp(accountId, uint80(initialCollateral));
 
         uint256 usdcBalanceAfter = usdc.balanceOf(address(this));
         uint256 systemUsdcBalanceAfter = usdc.balanceOf(address(grappa));
-        (, , , , uint80 collateralAfter,) = grappa.marginAccounts(accountId);
+        (, , , , uint80 collateralAfter, ) = grappa.marginAccounts(accountId);
 
         assertEq(usdcBalanceBefore - usdcBalanceAfter, initialCollateral);
         assertEq(systemUsdcBalanceAfter - systemUsdcBalanceBefore, initialCollateral);
