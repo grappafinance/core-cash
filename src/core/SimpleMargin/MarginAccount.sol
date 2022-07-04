@@ -194,6 +194,26 @@ contract MarginAccount is ReentrancyGuard, Settlement {
     }
 
     /**
+     * @notice  top up an account
+     * @dev     expected to be call by account owner
+     * @param   _subAccount sub account id to top up
+     * @param   _collateralAmount sub account id to top up
+     */
+    function topUp(address _subAccount, uint80 _collateralAmount) external {
+        Account memory account = marginAccounts[_subAccount];
+        // update account structure.
+        account.addCollateral(_collateralAmount, account.collateralId);
+        // store account object
+        marginAccounts[_subAccount] = account;
+        // external calls
+        IERC20(address(assets[account.collateralId].addr)).safeTransferFrom(
+            msg.sender,
+            address(this),
+            _collateralAmount
+        );
+    }
+
+    /**
      * @notice  move an account to someone else
      * @dev     expected to be call by account owner
      */
