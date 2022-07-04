@@ -194,7 +194,7 @@ contract MarginAccount is ReentrancyGuard, Settlement {
     }
 
     /**
-     * @notice  move an account to someone else 
+     * @notice  move an account to someone else
      * @dev     expected to be call by account owner
      */
     function transferAccount(address _subAccount, address _newSubAccount) external {
