@@ -21,7 +21,7 @@ contract MarginAccountAccessTest is Fixture {
     }
 
     function testCannotUpdateRandomAccount() public {
-        _assertCanAccessAliceAccount(false);
+        _assertCanAccessAccount(subAccountIdToModify, false);
     }
 
     function testAliceCanGrantAccess() public {
@@ -31,7 +31,7 @@ contract MarginAccountAccessTest is Fixture {
         vm.stopPrank();
 
         // we can update the account now
-        _assertCanAccessAliceAccount(true);
+        _assertCanAccessAccount(subAccountIdToModify, true);
     }
 
     function testAliceCanRevokeAccess() public {
@@ -41,7 +41,7 @@ contract MarginAccountAccessTest is Fixture {
         vm.stopPrank();
 
         // can access subaccount!
-        _assertCanAccessAliceAccount(true);
+        _assertCanAccessAccount(subAccountIdToModify, true);
 
         // alice revoke access to this contract
         vm.startPrank(alice);
@@ -49,16 +49,35 @@ contract MarginAccountAccessTest is Fixture {
         vm.stopPrank();
 
         // no longer has access to subaccount!
-        _assertCanAccessAliceAccount(false);
+        _assertCanAccessAccount(subAccountIdToModify, false);
     }
 
-    function _assertCanAccessAliceAccount(bool _canAccess) internal {
+    function testTransferAccount() public {
+        vm.startPrank(alice);
+        grappa.transferAccount(subAccountIdToModify, address(this));
+        vm.stopPrank();
+
+        // can access subaccount!
+        _assertCanAccessAccount(address(this), true);
+    }
+
+    function testCannotTransferToOverrideAnotherAccount() public {
+        // write something to account "address(this)"
+        _assertCanAccessAccount(address(this), true);
+
+        vm.startPrank(alice);
+        vm.expectRevert(MA_AccountIsNotEmpty.selector);
+        grappa.transferAccount(subAccountIdToModify, address(this));
+        vm.stopPrank();
+    }
+
+    function _assertCanAccessAccount(address subAccountId, bool _canAccess) internal {
         // we can update the account now
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
 
         if (!_canAccess) vm.expectRevert(NoAccess.selector);
 
-        grappa.execute(subAccountIdToModify, actions);
+        grappa.execute(subAccountId, actions);
     }
 }

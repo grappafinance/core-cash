@@ -194,8 +194,22 @@ contract MarginAccount is ReentrancyGuard, Settlement {
     }
 
     /**
+     * @notice  move an account to someone else 
+     * @dev     expected to be call by account owner
+     */
+    function transferAccount(address _subAccount, address _newSubAccount) external {
+        _assertCallerHasAccess(_subAccount);
+
+        if (!marginAccounts[_newSubAccount].isEmpty()) revert MA_AccountIsNotEmpty();
+        marginAccounts[_newSubAccount] = marginAccounts[_subAccount];
+
+        delete marginAccounts[_subAccount];
+    }
+
+    /**
      * @notice  grant or revoke an account access to all your sub-accounts
-     * @dev     usually user should only give access to helper contracts
+     * @dev     expected to be call by account owner
+     *          usually user should only give access to helper contracts
      */
     function setAccountAccess(address _account, bool _isAuthorized) external {
         authorized[uint160(msg.sender) | 0xFF][_account] = _isAuthorized;
