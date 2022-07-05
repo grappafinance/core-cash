@@ -14,5 +14,6 @@ enum ActionType {
     MintShort,
     BurnShort,
     MergeOptionToken,
-    SplitOptionToken
+    SplitOptionToken,
+    SettleAccount
 }

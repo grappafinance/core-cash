@@ -180,4 +180,21 @@ library SimpleMarginLib {
             mintingTokenId = TokenIdUtil.formatTokenId(TokenType.PUT, productId, expiry, shortStrike, 0);
         }
     }
+
+    function settleAtExpiry(Account memory account, uint80 _payout) internal pure {
+        // clear all debt
+        account.shortPutId = 0;
+        account.shortCallId = 0;
+        account.shortCallAmount = 0;
+        account.shortPutAmount = 0;
+
+        if (account.collateralAmount > _payout) {
+            unchecked {
+                account.collateralAmount = account.collateralAmount - _payout;   
+            }
+        } else {
+            // the account doesn't have enough to payout, result in protocol loss
+            account.collateralAmount = 0;
+        }
+    }
 }

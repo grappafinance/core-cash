@@ -80,6 +80,7 @@ contract MarginAccount is ReentrancyGuard, Settlement {
             else if (actions[i].action == ActionType.BurnShort) _burnOption(account, actions[i].data, _subAccount);
             else if (actions[i].action == ActionType.MergeOptionToken) _merge(account, actions[i].data, _subAccount);
             else if (actions[i].action == ActionType.SplitOptionToken) _split(account, actions[i].data);
+            else if (actions[i].action == ActionType.SettleAccount) _settle(account);
 
             // increase i without checking overflow
             unchecked {
@@ -297,6 +298,8 @@ contract MarginAccount is ReentrancyGuard, Settlement {
      * @dev push token to user, decrease collateral in account memory
      */
     function _removeCollateral(Account memory _account, bytes memory _data) internal {
+        // todo: check expiry if has short
+
         // decode parameters
         (uint80 amount, address recipient) = abi.decode(_data, (uint80, address));
         address collateral = address(assets[_account.collateralId].addr);
@@ -374,6 +377,20 @@ contract MarginAccount is ReentrancyGuard, Settlement {
         optionToken.mint(recipient, tokenId, amount);
     }
 
+    /**
+     * @notice  settle the margin account at expiry
+     * @dev     this update the account memory in-place
+     */
+    function _settle(
+        Account memory _account
+    ) internal view {
+        // this will revert if called before expiry
+        uint80 reservedPayout = _getPayoutFromAccount(_account);
+
+        // clear the debt in account, and deduct the collateral with amount
+        _account.settleAtExpiry(reservedPayout);
+    }
+
     /** ========================================================= **
                             Internal Functions
      ** ========================================================= **/
@@ -442,6 +459,18 @@ contract MarginAccount is ReentrancyGuard, Settlement {
         );
 
         minCollateral = _convertDecimals(minCollateralInUnit, UNIT_DECIMALS, product.collateralDecimals);
+    }
+
+    /**
+     * @notice  return amount of collateral that should be reserved to payout long positions
+     * @dev     this function will revert when called before expiry
+     * @param _account account memory
+     */
+    function _getPayoutFromAccount(Account memory _account) internal view returns (uint80 reservedPayout) {
+        (uint256 callPayout, uint256 putPayout) = (0, 0);
+        if (_account.shortCallAmount > 0) (,callPayout) = getOptionPayout(_account.shortCallId, _account.shortCallAmount);
+        if (_account.shortPutAmount > 0) (,putPayout) = getOptionPayout(_account.shortPutId, _account.shortPutAmount);
+        return uint80(callPayout + putPayout);
     }
 
     /**
