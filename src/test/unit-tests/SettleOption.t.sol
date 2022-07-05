@@ -216,7 +216,7 @@ contract TestSettleCoveredCall is Fixture {
         // expires out the money
         uint256 expiryPrice = 5000 * UNIT;
         oracle.setExpiryPrice(expiryPrice);
-        
+
         uint256 expectedPayout = ((uint64(expiryPrice) - strike) / 5000) * (10**(18 - UNIT_DECIMALS));
 
         (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = grappa.marginAccounts(address(this));
@@ -317,7 +317,7 @@ contract TestSettlePut is Fixture {
         grappa.execute(address(this), actions);
 
         //margin account should be reset
-        (,uint256 shortPutId , ,uint64 shortPutAmount , uint80 collateralAfter, uint8 collateralIdAfter) = grappa
+        (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = grappa
             .marginAccounts(address(this));
 
         assertEq(shortPutId, 0);
@@ -341,7 +341,7 @@ contract TestSettlePut is Fixture {
         grappa.execute(address(this), actions);
 
         // margin account should be reset
-        (,uint256 shortPutId , ,uint64 shortPutAmount , uint80 collateralAfter, uint8 collateralIdAfter) = grappa
+        (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = grappa
             .marginAccounts(address(this));
 
         assertEq(shortPutId, 0);
@@ -428,7 +428,7 @@ contract TestSettleETHCollateralizedPut is Fixture {
         grappa.execute(address(this), actions);
 
         //margin account should be reset
-        (,uint256 shortPutId , ,uint64 shortPutAmount , uint80 collateralAfter, uint8 collateralIdAfter) = grappa
+        (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = grappa
             .marginAccounts(address(this));
 
         assertEq(shortPutId, 0);
@@ -452,7 +452,7 @@ contract TestSettleETHCollateralizedPut is Fixture {
         grappa.execute(address(this), actions);
 
         // margin account should be reset
-        (,uint256 shortPutId , ,uint64 shortPutAmount , uint80 collateralAfter, uint8 collateralIdAfter) = grappa
+        (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = grappa
             .marginAccounts(address(this));
 
         assertEq(shortPutId, 0);
@@ -708,7 +708,7 @@ contract TestSettlePutSpread is Fixture {
     function testSellerCanClearDebtIfExpiresOTM() public {
         // expires out the money
         oracle.setExpiryPrice(longStrike);
-        
+
         (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = grappa.marginAccounts(address(this));
 
         // settle marginaccount
@@ -717,7 +717,7 @@ contract TestSettlePutSpread is Fixture {
         grappa.execute(address(this), actions);
 
         //margin account should be reset
-        (,uint256 shortPutId , ,uint64 shortPutAmount , uint80 collateralAfter, uint8 collateralIdAfter) = grappa
+        (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = grappa
             .marginAccounts(address(this));
 
         assertEq(shortPutId, 0);
@@ -742,7 +742,7 @@ contract TestSettlePutSpread is Fixture {
         grappa.execute(address(this), actions);
 
         //margin account should be reset
-        (,uint256 shortPutId , ,uint64 shortPutAmount , uint80 collateralAfter, uint8 collateralIdAfter) = grappa
+        (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = grappa
             .marginAccounts(address(this));
 
         assertEq(shortPutId, 0);
@@ -757,7 +757,7 @@ contract TestSettlePutSpread is Fixture {
         oracle.setExpiryPrice(expiryPrice);
 
         uint256 expectedPayout = longStrike - uint64(shortStrike);
-        
+
         (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = grappa.marginAccounts(address(this));
 
         // settle marginaccount
@@ -766,7 +766,7 @@ contract TestSettlePutSpread is Fixture {
         grappa.execute(address(this), actions);
 
         //margin account should be reset
-        (,uint256 shortPutId , ,uint64 shortPutAmount , uint80 collateralAfter, uint8 collateralIdAfter) = grappa
+        (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = grappa
             .marginAccounts(address(this));
 
         assertEq(shortPutId, 0);
