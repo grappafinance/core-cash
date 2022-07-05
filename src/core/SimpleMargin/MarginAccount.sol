@@ -381,9 +381,7 @@ contract MarginAccount is ReentrancyGuard, Settlement {
      * @notice  settle the margin account at expiry
      * @dev     this update the account memory in-place
      */
-    function _settle(
-        Account memory _account
-    ) internal view {
+    function _settle(Account memory _account) internal view {
         // this will revert if called before expiry
         uint80 reservedPayout = _getPayoutFromAccount(_account);
 
@@ -468,8 +466,9 @@ contract MarginAccount is ReentrancyGuard, Settlement {
      */
     function _getPayoutFromAccount(Account memory _account) internal view returns (uint80 reservedPayout) {
         (uint256 callPayout, uint256 putPayout) = (0, 0);
-        if (_account.shortCallAmount > 0) (,callPayout) = getOptionPayout(_account.shortCallId, _account.shortCallAmount);
-        if (_account.shortPutAmount > 0) (,putPayout) = getOptionPayout(_account.shortPutId, _account.shortPutAmount);
+        if (_account.shortCallAmount > 0)
+            (, callPayout) = getOptionPayout(_account.shortCallId, _account.shortCallAmount);
+        if (_account.shortPutAmount > 0) (, putPayout) = getOptionPayout(_account.shortPutId, _account.shortPutAmount);
         return uint80(callPayout + putPayout);
     }
 

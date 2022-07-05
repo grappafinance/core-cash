@@ -81,14 +81,12 @@ contract TestSettleCall is Fixture {
         // expires out the money
         oracle.setExpiryPrice(strike - 1);
 
-        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = grappa
-            .marginAccounts(address(this));
-        
+        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = grappa.marginAccounts(address(this));
+
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSettleAction();
         grappa.execute(address(this), actions);
-
 
         //margin account should be reset
         (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAfter, uint8 collateralIdAfter) = grappa
@@ -97,7 +95,7 @@ contract TestSettleCall is Fixture {
         assertEq(shortCallId, 0);
         assertEq(shortCallAmount, 0);
         assertEq(collateralAfter, collateralBefore);
-        assertEq(collateralIdAfter, collateralIdBefore);   
+        assertEq(collateralIdAfter, collateralIdBefore);
     }
 
     function testSellerCollateralIsReducedIfExpiresITM() public {
@@ -107,24 +105,21 @@ contract TestSettleCall is Fixture {
 
         uint256 expectedCollateralDeduction = expiryPrice - strike;
 
-        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = grappa
-            .marginAccounts(address(this));
-        
+        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = grappa.marginAccounts(address(this));
+
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSettleAction();
         grappa.execute(address(this), actions);
 
-
         // margin account should be reset
         (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAfter, uint8 collateralIdAfter) = grappa
             .marginAccounts(address(this));
-        
+
         assertEq(shortCallId, 0);
         assertEq(shortCallAmount, 0);
         assertEq(collateralBefore - collateralAfter, expectedCollateralDeduction);
         assertEq(collateralIdAfter, collateralIdBefore);
-        
     }
 }
 

@@ -82,11 +82,7 @@ contract ActionHelper {
         action = ActionArgs({action: ActionType.SplitOptionToken, data: abi.encode(tokenType, recipient)});
     }
 
-    function createSettleAction()
-        internal
-        pure
-        returns (ActionArgs memory action)
-    {
+    function createSettleAction() internal pure returns (ActionArgs memory action) {
         action = ActionArgs({action: ActionType.SettleAccount, data: abi.encode(0)});
     }
 }

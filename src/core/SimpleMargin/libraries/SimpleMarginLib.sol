@@ -190,7 +190,7 @@ library SimpleMarginLib {
 
         if (account.collateralAmount > _payout) {
             unchecked {
-                account.collateralAmount = account.collateralAmount - _payout;   
+                account.collateralAmount = account.collateralAmount - _payout;
             }
         } else {
             // the account doesn't have enough to payout, result in protocol loss
