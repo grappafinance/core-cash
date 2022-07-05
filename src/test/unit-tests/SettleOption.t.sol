@@ -103,7 +103,7 @@ contract TestSettleCall is Fixture {
         uint256 expiryPrice = 5000 * UNIT;
         oracle.setExpiryPrice(expiryPrice);
 
-        uint256 expectedCollateralDeduction = expiryPrice - strike;
+        uint256 expectedPayout = expiryPrice - strike;
 
         (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = grappa.marginAccounts(address(this));
 
@@ -118,7 +118,7 @@ contract TestSettleCall is Fixture {
 
         assertEq(shortCallId, 0);
         assertEq(shortCallAmount, 0);
-        assertEq(collateralBefore - collateralAfter, expectedCollateralDeduction);
+        assertEq(collateralBefore - collateralAfter, expectedPayout);
         assertEq(collateralIdAfter, collateralIdBefore);
     }
 }
@@ -188,6 +188,53 @@ contract TestSettleCoveredCall is Fixture {
         assertEq(wethAfter, wethBefore + expectedPayout);
         assertEq(optionBefore, optionAfter + amount);
     }
+
+    // settlement for sell side
+
+    function testSellerCanClearDebtIfExpiresOTM() public {
+        // expires out the money
+        oracle.setExpiryPrice(strike - 1);
+
+        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = grappa.marginAccounts(address(this));
+
+        // settle marginaccount
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createSettleAction();
+        grappa.execute(address(this), actions);
+
+        //margin account should be reset
+        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAfter, uint8 collateralIdAfter) = grappa
+            .marginAccounts(address(this));
+
+        assertEq(shortCallId, 0);
+        assertEq(shortCallAmount, 0);
+        assertEq(collateralAfter, collateralBefore);
+        assertEq(collateralIdAfter, collateralIdBefore);
+    }
+
+    function testSellerCollateralIsReducedIfExpiresITM() public {
+        // expires out the money
+        uint256 expiryPrice = 5000 * UNIT;
+        oracle.setExpiryPrice(expiryPrice);
+        
+        uint256 expectedPayout = ((uint64(expiryPrice) - strike) / 5000) * (10**(18 - UNIT_DECIMALS));
+
+        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = grappa.marginAccounts(address(this));
+
+        // settle marginaccount
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createSettleAction();
+        grappa.execute(address(this), actions);
+
+        // margin account should be reset
+        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAfter, uint8 collateralIdAfter) = grappa
+            .marginAccounts(address(this));
+
+        assertEq(shortCallId, 0);
+        assertEq(shortCallAmount, 0);
+        assertEq(collateralBefore - collateralAfter, expectedPayout);
+        assertEq(collateralIdAfter, collateralIdBefore);
+    }
 }
 
 contract TestSettlePut is Fixture {
@@ -255,6 +302,53 @@ contract TestSettlePut is Fixture {
         assertEq(usdcBefore + expectedPayout, usdcAfter);
         assertEq(optionBefore, optionAfter + amount);
     }
+
+    // settlement on sell side
+
+    function testSellerCanClearDebtIfExpiresOTM() public {
+        // expires out the money
+        oracle.setExpiryPrice(strike + 1);
+
+        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = grappa.marginAccounts(address(this));
+
+        // settle marginaccount
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createSettleAction();
+        grappa.execute(address(this), actions);
+
+        //margin account should be reset
+        (,uint256 shortPutId , ,uint64 shortPutAmount , uint80 collateralAfter, uint8 collateralIdAfter) = grappa
+            .marginAccounts(address(this));
+
+        assertEq(shortPutId, 0);
+        assertEq(shortPutAmount, 0);
+        assertEq(collateralAfter, collateralBefore);
+        assertEq(collateralIdAfter, collateralIdBefore);
+    }
+
+    function testSellerCollateralIsReducedIfExpiresITM() public {
+        // expires out the money
+        uint256 expiryPrice = 1000 * UNIT;
+        oracle.setExpiryPrice(expiryPrice);
+
+        uint256 expectedPayout = strike - uint64(expiryPrice);
+
+        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = grappa.marginAccounts(address(this));
+
+        // settle marginaccount
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createSettleAction();
+        grappa.execute(address(this), actions);
+
+        // margin account should be reset
+        (,uint256 shortPutId , ,uint64 shortPutAmount , uint80 collateralAfter, uint8 collateralIdAfter) = grappa
+            .marginAccounts(address(this));
+
+        assertEq(shortPutId, 0);
+        assertEq(shortPutAmount, 0);
+        assertEq(collateralBefore - collateralAfter, expectedPayout);
+        assertEq(collateralIdAfter, collateralIdBefore);
+    }
 }
 
 contract TestSettleETHCollateralizedPut is Fixture {
@@ -320,6 +414,51 @@ contract TestSettleETHCollateralizedPut is Fixture {
         uint256 optionAfter = option.balanceOf(alice, tokenId);
         assertEq(wethAfter, wethBefore + expectedPayout);
         assertEq(optionBefore, optionAfter + amount);
+    }
+
+    function testSellerCanClearDebtIfExpiresOTM() public {
+        // expires out the money
+        oracle.setExpiryPrice(strike + 1);
+
+        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = grappa.marginAccounts(address(this));
+
+        // settle marginaccount
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createSettleAction();
+        grappa.execute(address(this), actions);
+
+        //margin account should be reset
+        (,uint256 shortPutId , ,uint64 shortPutAmount , uint80 collateralAfter, uint8 collateralIdAfter) = grappa
+            .marginAccounts(address(this));
+
+        assertEq(shortPutId, 0);
+        assertEq(shortPutAmount, 0);
+        assertEq(collateralAfter, collateralBefore);
+        assertEq(collateralIdAfter, collateralIdBefore);
+    }
+
+    function testSellerCollateralIsReducedIfExpiresITM() public {
+        // expires out the money
+        uint256 expiryPrice = 1600 * UNIT;
+        oracle.setExpiryPrice(expiryPrice);
+
+        uint256 expectedPayout = ((strike - uint64(expiryPrice)) / 1600) * (10**(18 - UNIT_DECIMALS));
+
+        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = grappa.marginAccounts(address(this));
+
+        // settle marginaccount
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createSettleAction();
+        grappa.execute(address(this), actions);
+
+        // margin account should be reset
+        (,uint256 shortPutId , ,uint64 shortPutAmount , uint80 collateralAfter, uint8 collateralIdAfter) = grappa
+            .marginAccounts(address(this));
+
+        assertEq(shortPutId, 0);
+        assertEq(shortPutAmount, 0);
+        assertEq(collateralBefore - collateralAfter, expectedPayout);
+        assertEq(collateralIdAfter, collateralIdBefore);
     }
 }
 
@@ -408,6 +547,75 @@ contract TestSettleCallSpread is Fixture {
         assertEq(usdcBefore + expectedPayout, usdcAfter);
         assertEq(optionBefore, optionAfter + amount);
     }
+
+    function testSellerCanClearDebtIfExpiresOTM() public {
+        // expires out the money
+        oracle.setExpiryPrice(longStrike);
+
+        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = grappa.marginAccounts(address(this));
+
+        // settle marginaccount
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createSettleAction();
+        grappa.execute(address(this), actions);
+
+        //margin account should be reset
+        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAfter, uint8 collateralIdAfter) = grappa
+            .marginAccounts(address(this));
+
+        assertEq(shortCallId, 0);
+        assertEq(shortCallAmount, 0);
+        assertEq(collateralAfter, collateralBefore);
+        assertEq(collateralIdAfter, collateralIdBefore);
+    }
+
+    function testSellerCollateralIsReducedIfExpiresITM() public {
+        // expires out the money
+        uint256 expiryPrice = 4100 * UNIT;
+        oracle.setExpiryPrice(expiryPrice);
+
+        uint256 expectedPayout = (uint64(expiryPrice) - longStrike);
+
+        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = grappa.marginAccounts(address(this));
+
+        // settle marginaccount
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createSettleAction();
+        grappa.execute(address(this), actions);
+
+        // margin account should be reset
+        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAfter, uint8 collateralIdAfter) = grappa
+            .marginAccounts(address(this));
+
+        assertEq(shortCallId, 0);
+        assertEq(shortCallAmount, 0);
+        assertEq(collateralBefore - collateralAfter, expectedPayout);
+        assertEq(collateralIdAfter, collateralIdBefore);
+    }
+
+    function testSellerCollateralReductionIsCapped() public {
+        // expires in the money, higher than upper bond
+        uint256 expiryPrice = 5000 * UNIT;
+        oracle.setExpiryPrice(expiryPrice);
+
+        uint256 expectedPayout = (uint64(shortStrike) - longStrike);
+
+        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = grappa.marginAccounts(address(this));
+
+        // settle marginaccount
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createSettleAction();
+        grappa.execute(address(this), actions);
+
+        // margin account should be reset
+        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAfter, uint8 collateralIdAfter) = grappa
+            .marginAccounts(address(this));
+
+        assertEq(shortCallId, 0);
+        assertEq(shortCallAmount, 0);
+        assertEq(collateralBefore - collateralAfter, expectedPayout);
+        assertEq(collateralIdAfter, collateralIdBefore);
+    }
 }
 
 contract TestSettlePutSpread is Fixture {
@@ -494,6 +702,77 @@ contract TestSettlePutSpread is Fixture {
 
         assertEq(usdcBefore + expectedPayout, usdcAfter);
         assertEq(optionBefore, optionAfter + amount);
+    }
+
+    // settling sell side
+    function testSellerCanClearDebtIfExpiresOTM() public {
+        // expires out the money
+        oracle.setExpiryPrice(longStrike);
+        
+        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = grappa.marginAccounts(address(this));
+
+        // settle marginaccount
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createSettleAction();
+        grappa.execute(address(this), actions);
+
+        //margin account should be reset
+        (,uint256 shortPutId , ,uint64 shortPutAmount , uint80 collateralAfter, uint8 collateralIdAfter) = grappa
+            .marginAccounts(address(this));
+
+        assertEq(shortPutId, 0);
+        assertEq(shortPutAmount, 0);
+        assertEq(collateralAfter, collateralBefore);
+        assertEq(collateralIdAfter, collateralIdBefore);
+    }
+
+    function testSellerCollateralIsReducedIfExpiresITM() public {
+        // expires out the money
+
+        uint256 expiryPrice = 1900 * UNIT;
+        oracle.setExpiryPrice(expiryPrice);
+
+        uint256 expectedPayout = longStrike - uint64(expiryPrice);
+
+        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = grappa.marginAccounts(address(this));
+
+        // settle marginaccount
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createSettleAction();
+        grappa.execute(address(this), actions);
+
+        //margin account should be reset
+        (,uint256 shortPutId , ,uint64 shortPutAmount , uint80 collateralAfter, uint8 collateralIdAfter) = grappa
+            .marginAccounts(address(this));
+
+        assertEq(shortPutId, 0);
+        assertEq(shortPutAmount, 0);
+        assertEq(collateralBefore - collateralAfter, expectedPayout);
+        assertEq(collateralIdAfter, collateralIdBefore);
+    }
+
+    function testSellerCollateralReductionIsCapped() public {
+        // expires in the money, lower than lower bond
+        uint256 expiryPrice = 1000 * UNIT;
+        oracle.setExpiryPrice(expiryPrice);
+
+        uint256 expectedPayout = longStrike - uint64(shortStrike);
+        
+        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = grappa.marginAccounts(address(this));
+
+        // settle marginaccount
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createSettleAction();
+        grappa.execute(address(this), actions);
+
+        //margin account should be reset
+        (,uint256 shortPutId , ,uint64 shortPutAmount , uint80 collateralAfter, uint8 collateralIdAfter) = grappa
+            .marginAccounts(address(this));
+
+        assertEq(shortPutId, 0);
+        assertEq(shortPutAmount, 0);
+        assertEq(collateralBefore - collateralAfter, expectedPayout);
+        assertEq(collateralIdAfter, collateralIdBefore);
     }
 }
 
