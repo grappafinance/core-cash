@@ -887,3 +887,68 @@ contract TestBatchSettleCall is Fixture {
         assertEq(option3After, 0);
     }
 }
+
+contract TestSettlementEdgeCase is Fixture {
+    uint256 public expiry;
+
+    uint64 private amount = uint64(1 * UNIT);
+    uint256 private tokenId;
+    uint64 private strike;
+
+    function setUp() public {
+        usdc.mint(address(this), 1000_000 * 1e6);
+        usdc.approve(address(grappa), type(uint256).max);
+
+        expiry = block.timestamp + 14 days;
+
+        oracle.setSpotPrice(3000 * UNIT);
+
+        // mint option
+        uint256 depositAmount = 1000 * 1e6;
+
+        strike = uint64(4000 * UNIT);
+
+        tokenId = getTokenId(TokenType.CALL, productId, expiry, strike, 0);
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
+        // give optoin to alice
+        actions[1] = createMintAction(tokenId, alice, amount);
+
+        // mint option
+        grappa.execute(address(this), actions);
+    }
+
+    function testLongCannotSettleBeforeExpiry() public {
+        vm.warp(expiry - 1);
+
+        vm.expectRevert(MA_NotExpired.selector);
+        grappa.settleOption(alice, tokenId, amount);
+    }
+
+    function testShortCannotSettleBeforeExpiry() public {
+        vm.warp(expiry - 1);
+
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createSettleAction();
+
+        vm.expectRevert(MA_NotExpired.selector);
+        grappa.execute(address(this), actions);
+    }
+
+    function testRolloverPositionForShort() public {
+        vm.warp(expiry + 1);
+
+        uint256 expiryPrice = strike;
+        oracle.setExpiryPrice(expiryPrice);
+
+        uint256 newTokenId = getTokenId(TokenType.CALL, productId, expiry + 14 days, strike, 0);
+
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        actions[0] = createSettleAction();
+        actions[1] = createMintAction(newTokenId, address(this), amount);
+        grappa.execute(address(this), actions);
+
+        assertEq(option.balanceOf(address(this), newTokenId), amount);
+
+    }
+}
