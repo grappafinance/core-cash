@@ -31,5 +31,8 @@
     "src/*/**.sol": [
       "npm run prettier"
     ]
+  },
+  "dependencies": {
+    "eth-create2-calculator": "^1.1.5"
   }
 }
