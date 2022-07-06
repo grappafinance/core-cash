@@ -949,6 +949,5 @@ contract TestSettlementEdgeCase is Fixture {
         grappa.execute(address(this), actions);
 
         assertEq(option.balanceOf(address(this), newTokenId), amount);
-
     }
 }
