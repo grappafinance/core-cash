@@ -68,7 +68,7 @@ struct ProductAssets {
  *
  *                  sqrt(expiry - now) - sqrt(D_lower)
  * M = (r_lower + -------------------------------------  * (r_upper - r_lower))  * vol + v_multiplier
- *                  sqrt(D_upper) - sqrt(D_lower)
+ *                     sqrt(D_upper) - sqrt(D_lower)
  *
  *                                s^2
  * min_call (s, k) = M * min (s, ----- * max(v, 1), k ) + max (0, s - k)

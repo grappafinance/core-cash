@@ -8,6 +8,22 @@ import "src/config/errors.sol";
 
 import "forge-std/console2.sol";
 
+/**
+ * @title   SimpleMarginMath
+ * @notice  this library is in charge of calculating the min collateral for a given simple margin account
+ *
+ *                  sqrt(expiry - now) - sqrt(D_lower)
+ * M = (r_lower + -------------------------------------  * (r_upper - r_lower))  * vol + v_multiplier
+ *                    sqrt(D_upper) - sqrt(D_lower)
+ *
+ *                                s^2
+ * min_call (s, k) = M * min (s, ----- * max(v, 1), k ) + max (0, s - k)
+ *                                 k
+ *
+ *                                k^2
+ * min_put (s, k)  = M * min (s, ----- * max(v, 1), k ) + max (0, k - s)
+ *                                 s
+ */
 library SimpleMarginMath {
     using FixedPointMathLib for uint256;
 
@@ -146,9 +162,18 @@ library SimpleMarginMath {
         }
     }
 
-    ///@notice get the minimum collateral for a naked short option
-    ///@dev margin = cashValue + decay(t) * v * min(spot, K, max(v,1) * spot^2 / strike)
-    ///     decay(t) = a multiplier from [0, 1]
+    /**
+     * @notice get the minimum collateral for a naked short option
+     * @dev calculated with the following formula:
+     *
+     *  M = timeDecay  * vol + v_multiplier
+     *
+     *                                 s^2
+     *  min_call (s, k) = M * min (s, ----- * max(v, 1), k ) + cashValue
+     *                                  k
+     *
+     * @return collateral denominated in strike asset, with 6 decimals
+     **/
     function getMinCollateralForShortCall(
         uint256 _shortAmount,
         uint256 _strike,
@@ -172,9 +197,18 @@ library SimpleMarginMath {
         return requireCollateral.mulDivUp(_shortAmount, UNIT);
     }
 
-    ///@notice get the minimum collateral for a put option
-    ///@dev margin = cashValue + decay(t) * v * min(spot, K, max(v,1) * strike^2 /spot)
-    ///     decay(t) = a multiplier from [0, 1]
+    /**
+     * @notice get the minimum collateral for a naked put option
+     * @dev calculated with the following formula:
+     *
+     *  M = timeDecay  * vol + v_multiplier
+     *
+     *                                 k^2
+     *  min_call (s, k) = M * min (s, ----- * max(v, 1), k ) + cashValue
+     *                                  s
+     *
+     * @return collateral denominated in strike asset, with 6 decimals
+     **/
     function getMinCollateralForShortPut(
         uint256 _shortAmount,
         uint256 _strike,
@@ -202,15 +236,23 @@ library SimpleMarginMath {
     }
 
     /**
-     * get the time decay value apply to minimum collateral
+     * @notice  get the time decay value
+     * @dev     timeDecay is calculated with the following formula, should be a number between [0, 1]
+     *
+     *                      sqrt(t - now) - sqrt(D_lower)
+     * d(t) = (r_lower + ------------------------------------  * (r_upper - r_lower))
+     *                      sqrt(D_upper) - sqrt(D_lower)
+     *
      * @param _expiry expiry timestamp
+     *
+     * @return timeDecay in BPS
      */
     function getTimeDecay(uint256 _expiry, ProductMarginParams memory params) internal view returns (uint256) {
         if (_expiry <= block.timestamp) return 0;
 
         uint256 timeToExpiry = _expiry - block.timestamp;
-        if (timeToExpiry > params.dUpper) return uint256(params.rUpper); // 80%
-        if (timeToExpiry < params.dLower) return uint256(params.rLower); // 10% of time value
+        if (timeToExpiry > params.dUpper) return uint256(params.rUpper);
+        if (timeToExpiry < params.dLower) return uint256(params.rLower);
 
         return
             uint256(params.rLower) +
@@ -218,20 +260,24 @@ library SimpleMarginMath {
             (params.sqrtDUpper - params.sqrtDLower);
     }
 
-    /// @notice get the cash value of a call option strike
-    /// @dev returns max(spot - strike, 0)
-    /// @param _spot spot price in usd term with 8 decimals
-    /// @param _strike strike price in usd term with 8 decimals
+    /**
+     * @notice   get the cash value of a call option strike
+     * @dev      returns max(spot - strike, 0)
+     * @param _spot  spot price in usd term with 6 decimals
+     * @param _strike strike price in usd term with 6 decimals
+     **/
     function getCallCashValue(uint256 _spot, uint256 _strike) internal pure returns (uint256) {
         unchecked {
             return _spot < _strike ? 0 : _spot - _strike;
         }
     }
 
-    /// @notice get the cash value of a put option strike
-    /// @dev returns max(strike - spot, 0)
-    /// @param _spot spot price in usd term with 8 decimals
-    /// @param _strike strike price in usd term with 8 decimals
+    /**
+     * @notice   get the cash value of a put option strike
+     * @dev      returns max(strike - spot, 0)
+     * @param _spot spot price in usd term with 6 decimals
+     * @param _strike strike price in usd term with 6 decimals
+     **/
     function getPutCashValue(uint256 _spot, uint256 _strike) internal pure returns (uint256) {
         unchecked {
             return _spot > _strike ? 0 : _strike - _spot;
