@@ -65,11 +65,11 @@ contract TestActionGas is Test, Utilities, ActionHelper {
 
         weth = new MockERC20("WETH", "WETH", 18); // nonce: 2
 
-        address pricerAddr = addressFrom(address(this), 6);
+        address pricerAddr = predictAddress(address(this), 6);
         oracle = new Oracle(pricerAddr, address(0)); // nonce: 3
 
         // predit address of margin account and use it here
-        address marginAccountAddr = addressFrom(address(this), 5);
+        address marginAccountAddr = predictAddress(address(this), 5);
         option = new OptionToken(marginAccountAddr); // nonce: 4
 
         // deploy gas tester! (instead of real margin account)

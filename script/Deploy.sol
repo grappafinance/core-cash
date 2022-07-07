@@ -35,25 +35,28 @@ contract Deploy is Script, Utilities {
             address marginAccount
         )
     {
+        uint256 nonce = vm.getNonce(msg.sender);
+        console.log("nonce", nonce);
+
         console.log("deploying with", msg.sender);
         // deploy deployer to use create2
-        Create2Deployer deployer = new Create2Deployer(); // nonce 0
+        Create2Deployer deployer = new Create2Deployer(); // nonce
 
         // prepare bytecode for Oracle
-        address chainlinkPricerAddr = addressFrom(msg.sender, 4);
+        address chainlinkPricerAddr = predictAddress(msg.sender, nonce + 4);
         bytes memory oCreationCode = type(Oracle).creationCode;
         bytes memory oBytecode = abi.encodePacked(oCreationCode, abi.encode(chainlinkPricerAddr, address(0)));
-        oracle = deployWithLeadingZeros(deployer, 0, oBytecode, 2); // nonce 1
+        oracle = deployWithLeadingZeros(deployer, 0, oBytecode, 2); // nonce + 1
         console.log("oracle", oracle);
-        console.log("primary pricer: ", address(Oracle(oracle).primaryPricer()));
+        console.log("primary pricer set (predicted): ", address(Oracle(oracle).primaryPricer()));
 
         // prepare bytecode for MarginAccount
-        address optionTokenAddr = addressFrom(msg.sender, 3);
-        console.log("optionTokenAddr", optionTokenAddr);
+        address optionTokenAddr = predictAddress(msg.sender, nonce + 3);
+        console.log("optionToken address (prediction)", optionTokenAddr);
         // deploy MarginAccount
         bytes memory maCreationCode = type(MarginAccount).creationCode;
         bytes memory maBytecode = abi.encodePacked(maCreationCode, abi.encode(optionTokenAddr, oracle));
-        marginAccount = deployWithLeadingZeros(deployer, 0, maBytecode, 2); // nonce 2
+        marginAccount = deployWithLeadingZeros(deployer, 0, maBytecode, 2); // nonce + 2
         console.log("marginAccount", marginAccount);
 
         // deploy optionToken directly, just so the address is the same as predicted by `create` (optionTokenAddr) 
@@ -91,26 +94,5 @@ contract Deploy is Script, Utilities {
         emit log_bytes32(salt);
 
         addr = deployer.deploy(value, creationCode, salt);
-    }
-
-    function toString(address account) public pure returns(string memory) {
-        return toString(abi.encodePacked(account));
-    }
-
-    function toString(bytes32 value) public pure returns(string memory) {
-        return toString(abi.encodePacked(value));
-    }
-
-    function toString(bytes memory data) public pure returns(string memory) {
-        bytes memory alphabet = "0123456789abcdef";
-
-        bytes memory str = new bytes(2 + data.length * 2);
-        str[0] = "0";
-        str[1] = "x";
-        for (uint i = 0; i < data.length; i++) {
-            str[2+i*2] = alphabet[uint(uint8(data[i] >> 4))];
-            str[3+i*2] = alphabet[uint(uint8(data[i] & 0x0f))];
-        }
-        return string(str);
     }
 }

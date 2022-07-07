@@ -46,7 +46,7 @@ abstract contract Fixture is Test, ActionHelper, Utilities {
         oracle = new MockOracle(); // nonce: 3
 
         // predit address of margin account and use it here
-        address marginAccountAddr = addressFrom(address(this), 5);
+        address marginAccountAddr = predictAddress(address(this), 5);
         option = new OptionToken(marginAccountAddr); // nonce: 4
 
         grappa = new MarginAccount(address(option), address(oracle)); // nonce 5
