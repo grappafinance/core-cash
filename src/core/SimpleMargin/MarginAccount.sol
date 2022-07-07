@@ -109,6 +109,7 @@ contract MarginAccount is ReentrancyGuard, Settlement {
         bool hasShortPut = account.shortPutAmount != 0;
 
         // compute portion of the collateral the liquidator is repaying, in BPS.
+        // @note: expected to lost precision becuase of performing division before multiplication
         uint256 portionBPS;
         if (hasShortCall && hasShortPut) {
             // if the account is short call and put at the same time,
@@ -128,28 +129,26 @@ contract MarginAccount is ReentrancyGuard, Settlement {
             portionBPS = (_repayPutAmount * BPS) / account.shortPutAmount;
         }
 
-        address collateral = address(assets[account.collateralId].addr);
-        uint80 collateralToPay = uint80((account.collateralAmount * portionBPS) / BPS);
-
-        // update account structure.
-        // if liquidator is trying to remove more collateral than owned, this line will revert
-        account.removeCollateral(collateralToPay);
+        // update account's debt and perform "safe" external calls
         if (hasShortCall) {
-            // external call: burn token. should be safe to call because it doens't trigger reentrancy
-            // we do it here to save gas, otherwise we might need to cach shortCallId
+            // @note: expected external call before updating state. this should be safe because it doens't trigger reentrancy
             optionToken.burn(msg.sender, account.shortCallId, _repayCallAmount);
 
-            // cacheShortCallId = account.shortCallId;
             account.burnOption(account.shortCallId, _repayCallAmount);
         }
         if (hasShortPut) {
-            // external call: burn token. should be safe to call because it doens't trigger reentrancy
-            // we do it here to save gas, otherwise we might need to cach shortPutId
+            // @note: expected external call before updating state. this should be safe because it doens't trigger reentrancy
             optionToken.burn(msg.sender, account.shortPutId, _repayPutAmount);
 
             // cacheShortPutId = account.shortPutId;
             account.burnOption(account.shortPutId, _repayPutAmount);
         }
+
+        // update account's collateral
+        address collateral = address(assets[account.collateralId].addr);
+        uint80 collateralToPay = uint80((account.collateralAmount * portionBPS) / BPS);
+        // if liquidator is trying to remove more collateral than owned, this line will revert
+        account.removeCollateral(collateralToPay);
 
         // write new accout to storage
         marginAccounts[_subAccount] = account;

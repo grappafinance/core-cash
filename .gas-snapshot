@@ -24,7 +24,7 @@ MarginAccountAccessTest:testCannotTransferToOverrideAnotherAccount() (gas: 97597
 MarginAccountAccessTest:testCannotUpdateRandomAccount() (gas: 23680)
 MarginAccountAccessTest:testTransferAccount() (gas: 105895)
 TestLiquidateCall:testCannotLiquidateHealthyVault() (gas: 37328)
-TestLiquidateCall:testCannotLiquidateMoreThanDebt() (gas: 50776)
+TestLiquidateCall:testCannotLiquidateMoreThanDebt() (gas: 50153)
 TestLiquidateCall:testCannotLiquidateVaultWithPuts() (gas: 43660)
 TestLiquidateCall:testFullyLiquidateTheVault() (gas: 89114)
 TestLiquidateCall:testPartiallyLiquidateTheVault() (gas: 103282)
