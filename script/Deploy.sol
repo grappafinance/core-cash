@@ -84,7 +84,6 @@ contract Deploy is Script, Utilities {
         inputs[3] = toString(codeHash);
         inputs[4] = Strings.toString(uint256(zerosBytes));
 
-        console.log("executing findSalt.js ...");
         bytes memory res = vm.ffi(inputs);
         bytes32 salt = abi.decode(res, (bytes32));
 
