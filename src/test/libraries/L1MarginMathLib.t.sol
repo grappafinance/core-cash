@@ -137,14 +137,14 @@ contract SimpleMarginMathTest is Test {
         uint256 expiry = today + 8000 seconds;
         ProductMarginParams memory config = getDefaultConfig();
         uint256 decay = SimpleMarginMath.getTimeDecay(expiry, config);
-        assertEq(decay, config.discountRatioLowerBound);
+        assertEq(decay, config.rLower);
     }
 
     function testTimeDecayValueUpperBond() public {
         uint256 expiry = today + 180 days + 10 seconds;
         ProductMarginParams memory config = getDefaultConfig();
         uint256 decay = SimpleMarginMath.getTimeDecay(expiry, config);
-        assertEq(decay, config.discountRatioUpperBound);
+        assertEq(decay, config.rUpper);
     }
 
     function testTimeDecayValue90Days() public {
@@ -196,12 +196,12 @@ contract SimpleMarginMathTest is Test {
     function getDefaultConfig() internal pure returns (ProductMarginParams memory config) {
         return
             ProductMarginParams({
-                discountPeriodUpperBound: 180 days,
-                discountPeriodLowerBound: 1 days,
-                sqrtMaxDiscountPeriod: 3944, // (86400*180).sqrt()
-                sqrtMinDiscountPeriod: 293, // 86400.sqrt()
-                discountRatioUpperBound: 3500, // 35%
-                discountRatioLowerBound: 800, // 8%
+                dUpper: 180 days,
+                dLower: 1 days,
+                sqrtDUpper: 3944, // (86400*180).sqrt()
+                sqrtDLower: 293, // 86400.sqrt()
+                rUpper: 3500, // 35%
+                rLower: 800, // 8%
                 volMultiplier: 10000 // 100%
             });
     }

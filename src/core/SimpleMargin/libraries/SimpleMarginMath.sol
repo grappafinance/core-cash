@@ -52,7 +52,7 @@ library SimpleMarginMath {
         // don't need collateral
         if (_account.putAmount == 0 && _account.callAmount == 0) return 0;
 
-        if (_params.discountRatioUpperBound == 0) revert MA_NoConfig();
+        if (_params.rUpper == 0) revert MA_NoConfig();
 
         // we only have short put
         if (_account.callAmount == 0) {
@@ -209,14 +209,13 @@ library SimpleMarginMath {
         if (_expiry <= block.timestamp) return 0;
 
         uint256 timeToExpiry = _expiry - block.timestamp;
-        if (timeToExpiry > params.discountPeriodUpperBound) return uint256(params.discountRatioUpperBound); // 80%
-        if (timeToExpiry < params.discountPeriodLowerBound) return uint256(params.discountRatioLowerBound); // 10% of time value
+        if (timeToExpiry > params.dUpper) return uint256(params.rUpper); // 80%
+        if (timeToExpiry < params.dLower) return uint256(params.rLower); // 10% of time value
 
         return
-            uint256(params.discountRatioLowerBound) +
-            ((timeToExpiry.sqrt() - params.sqrtMinDiscountPeriod) *
-                (params.discountRatioUpperBound - params.discountRatioLowerBound)) /
-            (params.sqrtMaxDiscountPeriod - params.sqrtMinDiscountPeriod);
+            uint256(params.rLower) +
+            ((timeToExpiry.sqrt() - params.sqrtDLower) * (params.rUpper - params.rLower)) /
+            (params.sqrtDUpper - params.sqrtDLower);
     }
 
     /// @notice get the cash value of a call option strike
