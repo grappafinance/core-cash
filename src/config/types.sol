@@ -62,16 +62,37 @@ struct ProductAssets {
     uint8 collateralDecimals;
 }
 
-// todo: update doc after adopting new formula
+/**
+ * @notice  parameters for calculating min collateral for a speicif product
+ * @dev     this formula and parameter struct is used for SimpleMargin
+ *
+ *                  sqrt(expiry - now) - sqrt(D_lower)
+ * M = (r_lower + -------------------------------------  * (r_upper - r_lower))  * vol + v_multiplier
+ *                     sqrt(D_upper) - sqrt(D_lower)
+ *
+ *                                s^2
+ * min_call (s, k) = M * min (s, ----- * max(v, 1), k ) + max (0, s - k)
+ *                                 k
+ *
+ *                                k^2
+ * min_put (s, k)  = M * min (s, ----- * max(v, 1), k ) + max (0, k - s)
+ *                                 s
+ * @param dUpper discountPeriodUpperBound (D_upper)
+ * @param dLower discountPeriodLowerBound (D_lower)
+ * @param sqrtDUpper stored dUpper.sqrt() to save gas
+ * @param sqrtDLower
+ * @param rUpper (r_upper) percentage in BPS, how much discount if higher than dUpper (min discount)
+ * @param rLower (r_lower) percentage in BPS, how much discount if lower than dLower (max discount)
+ * @param volMultiplier percentage in BPS showing how much vol should be derived from vol index
+ *
+ */
 struct ProductMarginParams {
-    uint32 discountPeriodUpperBound; // = 180 days;
-    uint32 discountPeriodLowerBound; // = 1 days;
-    uint32 sqrtMaxDiscountPeriod; // = 3944; // (86400*180).sqrt()
-    uint32 sqrtMinDiscountPeriod; // 293; // 86400.sqrt()
-    /// @dev percentage of time value required as collateral when time to expiry is higher than upper bond
-    uint32 discountRatioUpperBound; // = 6400; // 64%
-    /// @dev percentage of time value required as collateral when time to expiry is lower than lower bond
-    uint32 discountRatioLowerBound; // = 800; // 8%
+    uint32 dUpper;
+    uint32 dLower;
+    uint32 sqrtDUpper;
+    uint32 sqrtDLower;
+    uint32 rUpper;
+    uint32 rLower;
     uint32 volMultiplier;
 }
 

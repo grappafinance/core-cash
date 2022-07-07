@@ -3,7 +3,6 @@ pragma solidity =0.8.13;
 
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import {ReentrancyGuard} from "solmate/utils/ReentrancyGuard.sol";
-
 import {SafeERC20} from "openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 
@@ -23,11 +22,11 @@ import "src/config/errors.sol";
 
 /**
  * @title   MarginAccount
- * @author  antoncoding
+ * @author  @antoncoding
  * @notice  MarginAccount is in charge of maintaining margin requirement for each "account"
             Users can deposit collateral into MarginAccount and mint optionTokens (debt) out of it.
             Interacts with OptionToken to mint / burn.
-            Interacts with Oracle to read spot price / and vol.
+            Interacts with Oracle to read spot price for assets and vol.
  */
 contract MarginAccount is ReentrancyGuard, Settlement {
     using SimpleMarginMath for MarginAccountDetail;
@@ -44,9 +43,10 @@ contract MarginAccount is ReentrancyGuard, Settlement {
     mapping(address => Account) public marginAccounts;
 
     ///@dev maskedAccount => operator => authorized
-    ///     every account can authorize any amount of addresses to modify all accounts he controls.
+    ///     every account can authorize any amount of addresses to modify all sub-accounts he controls.
     mapping(uint160 => mapping(address => bool)) public authorized;
 
+    ///@dev mapping of productId to SimpleMargin Parameters
     mapping(uint32 => ProductMarginParams) public productParams;
 
     // solhint-disable-next-line no-empty-blocks
@@ -239,27 +239,27 @@ contract MarginAccount is ReentrancyGuard, Settlement {
      * @notice set the margin config for specific productId
      * @dev    expected to be used by Owner or governance
      * @param _productId product id
-     * @param _discountPeriodUpperBound (sec) max time to expiry to offer a collateral requirement discount
-     * @param _discountPeriodLowerBound (sec) min time to expiry to offer a collateral requirement discount
-     * @param _discountRatioUpperBound (BPS) discount ratio if the time to expiry is at the upper bound
-     * @param _discountRatioLowerBound (BPS) discount ratio if the time to expiry is at the lower bound
+     * @param _dUpper (sec) max time to expiry to offer a collateral requirement discount
+     * @param _dLower (sec) min time to expiry to offer a collateral requirement discount
+     * @param _rUpper (BPS) discount ratio if the time to expiry is at the upper bound
+     * @param _rLower (BPS) discount ratio if the time to expiry is at the lower bound
      * @param _volMultiplier (BPS) spot shock
      */
     function setProductMarginConfig(
         uint32 _productId,
-        uint32 _discountPeriodUpperBound,
-        uint32 _discountPeriodLowerBound,
-        uint32 _discountRatioUpperBound,
-        uint32 _discountRatioLowerBound,
+        uint32 _dUpper,
+        uint32 _dLower,
+        uint32 _rUpper,
+        uint32 _rLower,
         uint32 _volMultiplier
     ) external onlyOwner {
         productParams[_productId] = ProductMarginParams({
-            discountPeriodUpperBound: _discountPeriodUpperBound,
-            discountPeriodLowerBound: _discountPeriodLowerBound,
-            sqrtMaxDiscountPeriod: uint32(FixedPointMathLib.sqrt(uint256(_discountPeriodUpperBound))),
-            sqrtMinDiscountPeriod: uint32(FixedPointMathLib.sqrt(uint256(_discountPeriodLowerBound))),
-            discountRatioUpperBound: _discountRatioUpperBound,
-            discountRatioLowerBound: _discountRatioLowerBound,
+            dUpper: _dUpper,
+            dLower: _dLower,
+            sqrtDUpper: uint32(FixedPointMathLib.sqrt(uint256(_dUpper))),
+            sqrtDLower: uint32(FixedPointMathLib.sqrt(uint256(_dLower))),
+            rUpper: _rUpper,
+            rLower: _rLower,
             volMultiplier: _volMultiplier
         });
     }
