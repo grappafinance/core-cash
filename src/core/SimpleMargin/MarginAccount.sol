@@ -109,7 +109,7 @@ contract MarginAccount is ReentrancyGuard, Settlement {
         bool hasShortPut = account.shortPutAmount != 0;
 
         // compute portion of the collateral the liquidator is repaying, in BPS.
-        // @note: expected to lost precision becuase of performing division before multiplication 
+        // @note: expected to lost precision becuase of performing division before multiplication
         uint256 portionBPS;
         if (hasShortCall && hasShortPut) {
             // if the account is short call and put at the same time,
