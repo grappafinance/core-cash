@@ -63,7 +63,9 @@ struct ProductAssets {
 }
 
 /**
- * @notice parameters for calculating min collateral for a speicif product
+ * @notice  parameters for calculating min collateral for a speicif product
+ * @dev     this formula and parameter struct is used for SimpleMargin
+ *
  *                  sqrt(expiry - now) - sqrt(D_lower)
  * M = (r_lower + -------------------------------------  * (r_upper - r_lower))  * vol + v_multiplier
  *                  sqrt(D_upper) - sqrt(D_lower)
