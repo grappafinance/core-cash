@@ -12,11 +12,11 @@ const zeros = Number(zeroBytes) * 2;
 
 while (true) {
   salt = '0x' + crypto.randomBytes(32).toString('hex')
-  const addr = calculateCreate2(deployer, salt, bytecodeHash)
+  const addr = calculateCreate2(deployer, salt, bytecodeHash);
   const leadingBytes = addr.slice(2, 2 + zeros);
-  if (leadingBytes === "0".repeat(zeros))   break
+  if (leadingBytes === "0".repeat(zeros)) break;
   
 }
 
 // print the result so ffi can read it
-console.log(salt)
+console.log(salt);
