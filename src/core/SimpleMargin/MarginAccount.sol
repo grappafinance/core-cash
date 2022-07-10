@@ -1,20 +1,25 @@
 // SPDX-License-Identifier: MIT
 pragma solidity =0.8.13;
 
+// imported contracts and libraries
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import {ReentrancyGuard} from "solmate/utils/ReentrancyGuard.sol";
 import {SafeERC20} from "openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 
+// interfaces
 import {IOracle} from "src/interfaces/IOracle.sol";
 import {IOptionToken} from "src/interfaces/IOptionToken.sol";
 
+// inheriting contract
+import {Settlement} from "src/core/Settlement.sol";
+
+// librarise
 import {TokenIdUtil} from "src/libraries/TokenIdUtil.sol";
 import {SimpleMarginMath} from "./libraries/SimpleMarginMath.sol";
 import {SimpleMarginLib} from "./libraries/SimpleMarginLib.sol";
 
-import {Settlement} from "src/core/Settlement.sol";
-
+// constants and types
 import "src/config/types.sol";
 import "src/config/enums.sol";
 import "src/config/constants.sol";
@@ -216,6 +221,8 @@ contract MarginAccount is ReentrancyGuard, Settlement {
     /**
      * @notice  move an account to someone else
      * @dev     expected to be call by account owner
+     * @param _subAccount the id of subaccount to trnasfer
+     * @param _newSubAccount the id of receiving account
      */
     function transferAccount(address _subAccount, address _newSubAccount) external {
         _assertCallerHasAccess(_subAccount);
@@ -230,6 +237,8 @@ contract MarginAccount is ReentrancyGuard, Settlement {
      * @notice  grant or revoke an account access to all your sub-accounts
      * @dev     expected to be call by account owner
      *          usually user should only give access to helper contracts
+     * @param   _account account to update authorization
+     * @param   _isAuthorized to grant or revoke access
      */
     function setAccountAccess(address _account, bool _isAuthorized) external {
         authorized[uint160(msg.sender) | 0xFF][_account] = _isAuthorized;
@@ -243,7 +252,7 @@ contract MarginAccount is ReentrancyGuard, Settlement {
      * @param _dLower (sec) min time to expiry to offer a collateral requirement discount
      * @param _rUpper (BPS) discount ratio if the time to expiry is at the upper bound
      * @param _rLower (BPS) discount ratio if the time to expiry is at the lower bound
-     * @param _volMultiplier (BPS) spot shock
+     * @param _volMultiplier (BPS) multiplier used to apply to vol from oracle
      */
     function setProductMarginConfig(
         uint32 _productId,
@@ -274,6 +283,10 @@ contract MarginAccount is ReentrancyGuard, Settlement {
 
     /**
      * @dev pull token from user, increase collateral in account memory
+            the collateral has to be provided by either caller, or the primary owner of subaccount
+     * @param _account subaccount structure that will be update in place
+     * @param _data bytes data to decode
+     * @param subAccount the id of the subaccount passed in.
      */
     function _addCollateral(
         Account memory _account,
@@ -295,6 +308,8 @@ contract MarginAccount is ReentrancyGuard, Settlement {
 
     /**
      * @dev push token to user, decrease collateral in account memory
+     * @param _account subaccount structure that will be update in place
+     * @param _data bytes data to decode
      */
     function _removeCollateral(Account memory _account, bytes memory _data) internal {
         // todo: check expiry if has short
@@ -312,6 +327,8 @@ contract MarginAccount is ReentrancyGuard, Settlement {
 
     /**
      * @dev mint option token to user, increase short position (debt) in account memory
+     * @param _account subaccount structure that will be update in place
+     * @param _data bytes data to decode
      */
     function _mintOption(Account memory _account, bytes memory _data) internal {
         // decode parameters
@@ -326,6 +343,10 @@ contract MarginAccount is ReentrancyGuard, Settlement {
 
     /**
      * @dev burn option token from user, decrease short position (debt) in account memory
+            the option has to be provided by either caller, or the primary owner of subaccount
+     * @param _account subaccount structure that will be update in place
+     * @param _data bytes data to decode
+     * @param subAccount the id of the subaccount passed in
      */
     function _burnOption(
         Account memory _account,
@@ -345,6 +366,10 @@ contract MarginAccount is ReentrancyGuard, Settlement {
 
     /**
      * @dev burn option token and change the short position to spread. This will reduce collateral requirement
+            the option has to be provided by either caller, or the primary owner of subaccount
+     * @param _account subaccount structure that will be update in place
+     * @param _data bytes data to decode
+     * @param subAccount the id of the subaccount passed in 
      */
     function _merge(
         Account memory _account,
@@ -365,6 +390,8 @@ contract MarginAccount is ReentrancyGuard, Settlement {
 
     /**
      * @dev Change existing spread position to short, and mint option token for recipient
+     * @param _account subaccount structure that will be update in place
+     * @param _data bytes data to decode
      */
     function _split(Account memory _account, bytes memory _data) internal {
         // decode parameters
@@ -379,12 +406,14 @@ contract MarginAccount is ReentrancyGuard, Settlement {
     /**
      * @notice  settle the margin account at expiry
      * @dev     this update the account memory in-place
+     * @param _account subaccount structure that will be update in place
      */
     function _settle(Account memory _account) internal view {
         // this will revert if called before expiry
         uint80 reservedPayout = _getPayoutFromAccount(_account);
 
-        // clear the debt in account, and deduct the collateral with amount
+        // clear the debt in account, and deduct the collateral with reservedPayout
+        // this will NOT revert even if account has less collateral than it should have reserved for payout.
         _account.settleAtExpiry(reservedPayout);
     }
 

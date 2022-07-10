@@ -18,7 +18,7 @@ import {SimpleMarginMath} from "src/core/SimpleMargin/libraries/SimpleMarginMath
 import {IOptionToken} from "src/interfaces/IOptionToken.sol";
 import {IOracle} from "src/interfaces/IOracle.sol";
 
-// constants / types
+// constants and types
 import "src/config/enums.sol";
 import "src/config/constants.sol";
 import "src/config/errors.sol";
