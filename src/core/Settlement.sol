@@ -18,7 +18,7 @@ import {SimpleMarginMath} from "src/core/SimpleMargin/libraries/SimpleMarginMath
 import {IOptionToken} from "src/interfaces/IOptionToken.sol";
 import {IOracle} from "src/interfaces/IOracle.sol";
 
-// constants / types
+// constants and types
 import "src/config/enums.sol";
 import "src/config/constants.sol";
 import "src/config/errors.sol";
@@ -46,8 +46,10 @@ contract Settlement is AssetRegistry {
 
     /**
      * @dev calculate the payout for an expired option token
+     *
      * @param _tokenId  token id of option token
      * @param _amount   amount to settle
+     *
      * @return collateral asset to settle in
      * @return payout amount paid
      **/
@@ -95,6 +97,7 @@ contract Settlement is AssetRegistry {
 
     /**
      * @notice burn option token and get out cash value at expiry
+     *
      * @param _account who to settle for
      * @param _tokenId  tokenId of option token to burn
      * @param _amount   amount to settle
@@ -113,6 +116,7 @@ contract Settlement is AssetRegistry {
 
     /**
      * @notice burn option token and get out cash value at expiry
+     *
      * @param _account who to settle for
      * @param _tokenIds array of tokenIds to burn
      * @param _amounts   array of amounts to burn
@@ -146,9 +150,12 @@ contract Settlement is AssetRegistry {
 
     /**
      * @notice convert decimals
+     *
      * @param  _amount      number to convert
-     * @param _fromDecimals the decimals _amount is denominated in
-     * @param _toDecimals   the destination decimals
+     * @param _fromDecimals the decimals _amount has
+     * @param _toDecimals   the target decimals
+     *
+     * @return _ number with _toDecimals decimals
      */
     function _convertDecimals(
         uint256 _amount,

@@ -1,16 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity =0.8.13;
 
+// interfaces
 import {IOracle} from "src/interfaces/IOracle.sol";
 import {IPricer} from "src/interfaces/IPricer.sol";
-import {Ownable} from "openzeppelin/access/Ownable.sol";
 
+// constants and types
 import "src/config/errors.sol";
 
 /**
  * @title Oracle
- * @author antoncoding
- * @dev return underlying / strike price, with 6 decimals
+ * @author @antoncoding
+ * @dev return base / quote price, with 6 decimals
+ * @dev return vol index, with 6 decimalss
  */
 contract Oracle is IOracle {
     struct ExpiryPrice {
@@ -21,7 +23,7 @@ contract Oracle is IOracle {
     IPricer public immutable primaryPricer;
     IPricer public immutable secondaryPricer;
 
-    // underlying => strike => expiry => price.
+    ///@dev base => quote => expiry => price.
     mapping(address => mapping(address => mapping(uint256 => ExpiryPrice))) public expiryPrices;
 
     constructor(address _primaryPricer, address _secondaryPricer) {
@@ -30,7 +32,12 @@ contract Oracle is IOracle {
     }
 
     /**
-     * @dev get spot price of underlying, denominated in strike asset.
+     * @notice  get spot price of _base, denominated in _quote.
+     *
+     * @param _base base asset. for ETH/USD price, ETH is the base asset
+     * @param _quote quote asset. for ETH/USD price, USD is the quote asset
+     *
+     * @return price with 6 decimals
      */
     function getSpotPrice(address _base, address _quote) external view override returns (uint256) {
         try primaryPricer.getSpotPrice(_base, _quote) returns (uint256 price) {
@@ -45,7 +52,13 @@ contract Oracle is IOracle {
 
     /**
      * @dev get expiry price of underlying, denominated in strike asset.
-            can revert if expiry is in the future, or the price is not reported by authorized party.
+            can revert if expiry is in the future, or the price has not been reported by authorized party
+     *
+     * @param _base base asset. for ETH/USD price, ETH is the base asset
+     * @param _quote quote asset. for ETH/USD price, USD is the quote asset
+     * @param _expiry expiry timestamp
+     *
+     * @return price with 6 decimals
      */
     function getPriceAtExpiry(
         address _base,
@@ -58,6 +71,15 @@ contract Oracle is IOracle {
         return data.price;
     }
 
+    /**
+     * @dev report expiry price. Should only be called by the 2 pricers
+     *
+     * @param _base base asset. for ETH/USD price, ETH is the base asset
+     * @param _quote quote asset. for ETH/USD price, USD is the quote asset
+     * @param _expiry expiry timestamp
+     * @param _price price in 6 decimals
+     *
+     */
     function reportExpiryPrice(
         address _base,
         address _quote,
