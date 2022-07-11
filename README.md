@@ -2,6 +2,9 @@
   <h1 align="center"> Grappa 🥂</h1>
   <a href=https://github.com/antoncoding/grappa/actions/workflows/Slither.yml""><img src="https://github.com/antoncoding/grappa/actions/workflows/Slither.yml/badge.svg?branch=master" > </a>
   <a href=https://github.com/antoncoding/grappa/actions/workflows/CI.yml""><img src="https://github.com/antoncoding/grappa/actions/workflows/CI.yml/badge.svg?branch=master"> </a>
+  <a href="https://codecov.io/gh/antoncoding/grappa" >
+<img src="https://codecov.io/gh/antoncoding/grappa/branch/master/graph/badge.svg?token=G52EOD1X5B"/>
+</a>
   <h4 align="center"> Don't waste your capital.</h4>
   <p align="center">
     <!-- badge goes here -->
@@ -75,6 +78,6 @@ This is the basic diagram of how contracts interact with each other in the draft
 
 You can see the 3 contracts that compose Grappa are `Oracle`, `MarginAccount` and `OptionToken`.
 
-* `Oracle`: contract to report spot price and expiry price of an asset. Also return an volatility index for min collateral calculation.
-* `MarginAccount`: Depends on if it lives on mainnet or L2s, `MarginAccount` will have different interface and internal account structure, but they stand the same purpose for sellers to depositing collateral and create the option token.
-* `OptionToken`: ERC1155 token that represent the right to claim for a non-negative payout at expiry. It can represent a long call position, a long put position, or debit spreads.
+- `Oracle`: contract to report spot price and expiry price of an asset. Also return an volatility index for min collateral calculation.
+- `MarginAccount`: Depends on if it lives on mainnet or L2s, `MarginAccount` will have different interface and internal account structure, but they stand the same purpose for sellers to depositing collateral and create the option token.
+- `OptionToken`: ERC1155 token that represent the right to claim for a non-negative payout at expiry. It can represent a long call position, a long put position, or debit spreads.

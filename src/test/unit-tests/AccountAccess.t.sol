@@ -9,7 +9,6 @@ import "src/config/errors.sol";
 
 contract MarginAccountAccessTest is Fixture {
     uint256 private depositAmount = 100 * 1e6;
-    uint64 private strike;
 
     address private subAccountIdToModify;
 
