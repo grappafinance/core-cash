@@ -77,11 +77,7 @@ contract ActionHelper {
         action = ActionArgs({action: ActionType.MergeOptionToken, data: abi.encode(tokenId, from)});
     }
 
-    function createSplitAction(TokenType tokenType, address recipient)
-        public
-        pure
-        returns (ActionArgs memory action)
-    {
+    function createSplitAction(TokenType tokenType, address recipient) public pure returns (ActionArgs memory action) {
         action = ActionArgs({action: ActionType.SplitOptionToken, data: abi.encode(tokenType, recipient)});
     }
 
