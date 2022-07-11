@@ -32,3 +32,16 @@ jobs:
           version: nightly
       - name: Run tests
         run: forge test --gas-report
+
+      - name: Run Coverage
+        run: forge coverage --report lcov
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          directory: .
+          env_vars: OS,PYTHON
+          fail_ci_if_error: true
+          files: ./lcov.info
+          name: grappa-coverage
+          verbose: true
