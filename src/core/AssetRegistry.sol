@@ -33,7 +33,7 @@ contract AssetRegistry is Ownable {
      * @param _productId product id
      */
     function getAssetsFromProductId(uint32 _productId)
-        internal
+        public
         view
         returns (
             address underlying,
