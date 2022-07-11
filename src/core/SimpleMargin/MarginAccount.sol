@@ -69,7 +69,12 @@ contract MarginAccount is ReentrancyGuard, Settlement {
         uint32 volMul
     );
 
+    /*///////////////////////////////////////////////////////////////
+                        External Functions
+    //////////////////////////////////////////////////////////////*/
+
     /**
+     * todo: consider movomg this to viewer contract
      * @notice get minimum collateral needed for a margin account
      * @param _subAccount account id.
      * @return minCollateral minimum collateral required, in collateral asset's decimals
