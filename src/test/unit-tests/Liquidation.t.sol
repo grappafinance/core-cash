@@ -52,6 +52,11 @@ contract TestLiquidateCall is Fixture {
         vm.stopPrank();
     }
 
+    function testGetMinCollateralShouldReturnProperValue() public {
+        uint256 minCollateral = grappa.getMinCollateral(accountId);
+        assertTrue(minCollateral < initialCollateral);
+    }
+
     function testCannotLiquidateHealthyVault() public {
         vm.expectRevert(MA_AccountIsHealthy.selector);
         grappa.liquidate(accountId, amount, 0);

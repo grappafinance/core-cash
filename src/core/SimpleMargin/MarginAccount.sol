@@ -57,7 +57,24 @@ contract MarginAccount is ReentrancyGuard, Settlement {
     // solhint-disable-next-line no-empty-blocks
     constructor(address _optionToken, address _oracle) Settlement(_optionToken, _oracle) {}
 
+    /*///////////////////////////////////////////////////////////////
+                                  Events
+    //////////////////////////////////////////////////////////////*/
+    event ProductConfigurationUpdated(
+        uint32 productId,
+        uint32 dUpper,
+        uint32 dLower,
+        uint32 rUpper,
+        uint32 rLower,
+        uint32 volMul
+    );
+
+    /*///////////////////////////////////////////////////////////////
+                        External Functions
+    //////////////////////////////////////////////////////////////*/
+
     /**
+     * todo: consider movomg this to viewer contract
      * @notice get minimum collateral needed for a margin account
      * @param _subAccount account id.
      * @return minCollateral minimum collateral required, in collateral asset's decimals
@@ -271,6 +288,8 @@ contract MarginAccount is ReentrancyGuard, Settlement {
             rLower: _rLower,
             volMultiplier: _volMultiplier
         });
+
+        emit ProductConfigurationUpdated(_productId, _dUpper, _dLower, _rUpper, _rLower, _volMultiplier);
     }
 
     /** ========================================================= **
