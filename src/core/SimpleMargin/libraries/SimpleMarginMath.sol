@@ -6,8 +6,6 @@ import "src/config/constants.sol";
 import "src/config/types.sol";
 import "src/config/errors.sol";
 
-import "forge-std/console2.sol";
-
 /**
  * @title   SimpleMarginMath
  * @notice  this library is in charge of calculating the min collateral for a given simple margin account

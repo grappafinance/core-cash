@@ -25,8 +25,6 @@ import "src/config/enums.sol";
 import "src/config/constants.sol";
 import "src/config/errors.sol";
 
-import "forge-std/console2.sol";
-
 /**
  * @title   MarginAccount
  * @author  @antoncoding

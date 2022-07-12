@@ -9,8 +9,6 @@ import "src/config/types.sol";
 import "src/config/constants.sol";
 import "src/config/errors.sol";
 
-import "forge-std/console2.sol";
-
 import "src/test/mocks/MockERC20.sol";
 
 contract TestMintVanillaOption is Fixture {
@@ -94,9 +92,6 @@ contract TestMintVanillaOption is Fixture {
         (uint256 callId, , uint64 shortCallAmount, , uint80 collatAmount, uint8 collatId) = grappa.marginAccounts(
             address(this)
         );
-
-        uint256 min = grappa.getMinCollateral(address(this));
-        console2.log("min", min);
 
         assertEq(callId, tokenId);
         assertEq(shortCallAmount, amount);
