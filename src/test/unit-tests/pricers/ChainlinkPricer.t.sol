@@ -137,6 +137,12 @@ contract ChainlinkPricerTest is Test {
     MockChainlinkAggregator private wethAggregator;
     MockChainlinkAggregator private usdcAggregator;
 
+    // abnormal aggregators
+    address private usd1;
+    address private usd2;
+    MockChainlinkAggregator private usdAggregatorHighDecimals;
+    MockChainlinkAggregator private usdAggregatorLowDecimals;
+
     function setUp() public {
         vm.warp(1656680000);
         random = address(0xaabbff);
@@ -150,15 +156,35 @@ contract ChainlinkPricerTest is Test {
         wethAggregator = new MockChainlinkAggregator(8);
         usdcAggregator = new MockChainlinkAggregator(8);
 
+        // aggregator with diff decimals
+        usdAggregatorHighDecimals = new MockChainlinkAggregator(18);
+        usdAggregatorLowDecimals = new MockChainlinkAggregator(1);
+
         pricer.setAggregator(weth, address(wethAggregator), 3600, false);
         pricer.setAggregator(usdc, address(usdcAggregator), 129600, true);
 
+        pricer.setAggregator(usd1, address(usdAggregatorHighDecimals), 129600, true);
+        pricer.setAggregator(usd2, address(usdAggregatorLowDecimals), 129600, true);
+
         wethAggregator.setMockState(0, int256(4000 * aggregatorUint), block.timestamp);
         usdcAggregator.setMockState(0, int256(1 * aggregatorUint), block.timestamp);
+
+        usdAggregatorHighDecimals.setMockState(0, int256(1 * 10**18), block.timestamp);
+        usdAggregatorLowDecimals.setMockState(0, int256(1 * 10), block.timestamp);
     }
 
     function testSpotPrice() public {
         uint256 spot = pricer.getSpotPrice(weth, usdc);
+        assertEq(spot, 4000 * UNIT);
+    }
+
+    function testSpotPriceDiffDecimals1() public {
+        uint256 spot = pricer.getSpotPrice(weth, usd1);
+        assertEq(spot, 4000 * UNIT);
+    }
+
+    function testSpotPriceDiffDecimals2() public {
+        uint256 spot = pricer.getSpotPrice(weth, usd2);
         assertEq(spot, 4000 * UNIT);
     }
 
@@ -172,6 +198,11 @@ contract ChainlinkPricerTest is Test {
 
         vm.expectRevert(CL_StaleAnswer.selector);
         pricer.getSpotPrice(usdc, weth);
+    }
+
+    function testCannotGetSpotWhenAggregatorIsNotSet() public {
+        vm.expectRevert(CL_AggregatorNotSet.selector);
+        pricer.getSpotPrice(usdc, address(1234));
     }
 }
 
@@ -229,6 +260,11 @@ contract ChainlinkPricerTestWriteOracle is Test {
 
     function testCanReportPrice() public {
         pricer.reportExpiryPrice(weth, usdc, expiry, wethRoundIdToReport, usdcRoundIdToReport);
+    }
+
+    function testCannotReportWhenAggregatorIsNotSet() public {
+        vm.expectRevert(CL_AggregatorNotSet.selector);
+        pricer.reportExpiryPrice(weth, address(1234), expiry, wethRoundIdToReport, usdcRoundIdToReport);
     }
 
     function testCannotReportPriceIfStablePriceIsStale() public {
