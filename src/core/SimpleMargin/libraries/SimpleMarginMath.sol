@@ -38,10 +38,11 @@ library SimpleMarginMath {
         ProductAssets memory _assets,
         uint256 _spotUnderlyingStrike,
         uint256 _spotCollateralStrike,
+        uint256 _vol,
         ProductMarginParams memory _param
     ) internal view returns (uint256 minCollatUnit) {
         // this is denominated in strike, with {UNIT_DECIMALS} decimals
-        uint256 minCollatValueInStrike = getMinCollateralInStrike(_account, _spotUnderlyingStrike, UNIT, _param);
+        uint256 minCollatValueInStrike = getMinCollateralInStrike(_account, _spotUnderlyingStrike, _vol, _param);
 
         if (_assets.collateral == _assets.strike) return minCollatValueInStrike;
 
