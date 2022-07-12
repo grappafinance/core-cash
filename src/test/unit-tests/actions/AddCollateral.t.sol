@@ -74,4 +74,11 @@ contract TestAddCollateral is Fixture {
         vm.expectRevert(MA_WrongCollateralId.selector);
         grappa.execute(address(this), actions);
     }
+
+    function testCannotAddCollatFromOthers() public {
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createAddCollateralAction(usdcId, address(alice), 100);
+        vm.expectRevert(MA_InvalidFromAddress.selector);
+        grappa.execute(address(this), actions);
+    }
 }
