@@ -31,7 +31,7 @@ contract TestLiquidateCall is Fixture {
 
         expiry = block.timestamp + 7 days;
 
-        oracle.setSpotPrice(3500 * UNIT);
+        oracle.setSpotPrice(address(weth), 3500 * UNIT);
 
         // mint option
         initialCollateral = 500 * 1e6;
@@ -63,14 +63,14 @@ contract TestLiquidateCall is Fixture {
     }
 
     function testCannotLiquidateVaultWithPuts() public {
-        oracle.setSpotPrice(3800 * UNIT);
+        oracle.setSpotPrice(address(weth), 3800 * UNIT);
 
         vm.expectRevert(MA_WrongRepayAmounts.selector);
         grappa.liquidate(accountId, 0, amount);
     }
 
     function testPartiallyLiquidateTheVault() public {
-        oracle.setSpotPrice(3800 * UNIT);
+        oracle.setSpotPrice(address(weth), 3800 * UNIT);
 
         uint256 usdcBalanceBefore = usdc.balanceOf(address(this));
         uint256 optionBalanceBefore = option.balanceOf(address(this), tokenId);
@@ -87,7 +87,7 @@ contract TestLiquidateCall is Fixture {
     }
 
     function testFullyLiquidateTheVault() public {
-        oracle.setSpotPrice(3800 * UNIT);
+        oracle.setSpotPrice(address(weth), 3800 * UNIT);
 
         uint256 usdcBalanceBefore = usdc.balanceOf(address(this));
         uint256 optionBalanceBefore = option.balanceOf(address(this), tokenId);
@@ -111,7 +111,7 @@ contract TestLiquidateCall is Fixture {
     }
 
     function testCannotLiquidateMoreThanDebt() public {
-        oracle.setSpotPrice(3800 * UNIT);
+        oracle.setSpotPrice(address(weth), 3800 * UNIT);
 
         vm.expectRevert(stdError.arithmeticError);
         grappa.liquidate(accountId, amount + 1, 0);
@@ -137,7 +137,7 @@ contract TestLiquidatePut is Fixture {
 
         expiry = block.timestamp + 7 days;
 
-        oracle.setSpotPrice(4000 * UNIT);
+        oracle.setSpotPrice(address(weth), 4000 * UNIT);
 
         // mint option
         initialCollateral = 500 * 1e6;
@@ -164,14 +164,14 @@ contract TestLiquidatePut is Fixture {
     }
 
     function testCannotLiquidateVaultWithCalls() public {
-        oracle.setSpotPrice(3600 * UNIT);
+        oracle.setSpotPrice(address(weth), 3600 * UNIT);
 
         vm.expectRevert(MA_WrongRepayAmounts.selector);
         grappa.liquidate(accountId, amount, 0);
     }
 
     function testPartiallyLiquidateTheVault() public {
-        oracle.setSpotPrice(3600 * UNIT);
+        oracle.setSpotPrice(address(weth), 3600 * UNIT);
 
         uint256 usdcBalanceBefore = usdc.balanceOf(address(this));
         uint256 optionBalanceBefore = option.balanceOf(address(this), tokenId);
@@ -188,7 +188,7 @@ contract TestLiquidatePut is Fixture {
     }
 
     function testFullyLiquidateTheVault() public {
-        oracle.setSpotPrice(3600 * UNIT);
+        oracle.setSpotPrice(address(weth), 3600 * UNIT);
 
         uint256 usdcBalanceBefore = usdc.balanceOf(address(this));
         uint256 optionBalanceBefore = option.balanceOf(address(this), tokenId);
@@ -235,7 +235,7 @@ contract TestLiquidateCallAndPut is Fixture {
 
         expiry = block.timestamp + 7 days;
 
-        oracle.setSpotPrice(4000 * UNIT);
+        oracle.setSpotPrice(address(weth), 4000 * UNIT);
 
         // mint option
         initialCollateral = 600 * 1e6;
@@ -265,14 +265,14 @@ contract TestLiquidateCallAndPut is Fixture {
     }
 
     function testCannotLiquidateWithOnlySpecifyCallAmount() public {
-        oracle.setSpotPrice(3300 * UNIT);
+        oracle.setSpotPrice(address(weth), 3300 * UNIT);
 
         vm.expectRevert(MA_WrongRepayAmounts.selector);
         grappa.liquidate(accountId, amount, 0);
     }
 
     function testCannotLiquidateWithImbalancedAmount() public {
-        oracle.setSpotPrice(3300 * UNIT);
+        oracle.setSpotPrice(address(weth), 3300 * UNIT);
 
         vm.expectRevert(MA_WrongRepayAmounts.selector);
         grappa.liquidate(accountId, amount, amount - 1);
@@ -282,14 +282,14 @@ contract TestLiquidateCallAndPut is Fixture {
     }
 
     function testCannotLiquidateWithOnlySpecifyPutAmount() public {
-        oracle.setSpotPrice(3300 * UNIT);
+        oracle.setSpotPrice(address(weth), 3300 * UNIT);
 
         vm.expectRevert(MA_WrongRepayAmounts.selector);
         grappa.liquidate(accountId, 0, amount);
     }
 
     function testPartiallyLiquidateTheVault() public {
-        oracle.setSpotPrice(3300 * UNIT);
+        oracle.setSpotPrice(address(weth), 3300 * UNIT);
 
         uint256 usdcBalanceBefore = usdc.balanceOf(address(this));
         uint256 callBefore = option.balanceOf(address(this), callId);
@@ -309,7 +309,7 @@ contract TestLiquidateCallAndPut is Fixture {
     }
 
     function testFullyLiquidateTheVault() public {
-        oracle.setSpotPrice(3300 * UNIT);
+        oracle.setSpotPrice(address(weth), 3300 * UNIT);
 
         uint256 usdcBalanceBefore = usdc.balanceOf(address(this));
         uint256 callBefore = option.balanceOf(address(this), callId);

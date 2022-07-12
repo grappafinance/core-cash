@@ -28,7 +28,7 @@ contract TestTopupCallAccount is Fixture {
 
         expiry = block.timestamp + 7 days;
 
-        oracle.setSpotPrice(3500 * UNIT);
+        oracle.setSpotPrice(address(weth), 3500 * UNIT);
 
         // mint option
         initialCollateral = 500 * 1e6;

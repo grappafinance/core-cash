@@ -21,7 +21,7 @@ contract TestMergeOption is Fixture {
 
         expiry = block.timestamp + 14 days;
 
-        oracle.setSpotPrice(3000 * UNIT);
+        oracle.setSpotPrice(address(weth), 3000 * UNIT);
 
         // mint a 3000 strike call first
         uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);

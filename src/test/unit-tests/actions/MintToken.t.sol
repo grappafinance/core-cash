@@ -9,8 +9,9 @@ import "src/config/types.sol";
 import "src/config/constants.sol";
 import "src/config/errors.sol";
 
-
 import "forge-std/console2.sol";
+
+import "src/test/mocks/MockERC20.sol";
 
 contract TestMintVanillaOption is Fixture {
     uint256 public expiry;
@@ -24,7 +25,7 @@ contract TestMintVanillaOption is Fixture {
 
         expiry = block.timestamp + 14 days;
 
-        oracle.setSpotPrice(3000 * UNIT);
+        oracle.setSpotPrice(address(weth), 3000 * UNIT);
     }
 
     function testMintCall() public {
@@ -67,6 +68,40 @@ contract TestMintVanillaOption is Fixture {
         assertEq(shortPutId, 0);
         assertEq(shortCallAmount, amount);
         assertEq(shortPutAmount, 0);
+    }
+
+    function testMintCallWithBTCCollat() public {
+        // create wbtc and mint to user
+        MockERC20 wbtc = new MockERC20("WBTC", "WBTC", 8);
+        wbtc.mint(address(this), 1 * 1e8);
+        wbtc.approve(address(grappa), type(uint256).max);
+        // register wbtc in the system
+        uint8 wbtcId = grappa.registerAsset(address(wbtc));
+        uint32 productIdBtcCollat = grappa.getProductId(address(weth), address(usdc), address(wbtc));
+        grappa.setProductMarginConfig(productIdBtcCollat, 180 days, 1 days, 7000, 1000, 10000);
+        oracle.setSpotPrice(address(wbtc), 40_000 * UNIT); // 10x price of eth
+
+        // prepare arguments
+        uint256 depositAmount = 2 * 1e6; // 0.02 btc
+        uint256 strikePrice = 4000 * UNIT;
+        uint256 amount = 1 * UNIT;
+        uint256 tokenId = getTokenId(TokenType.CALL, productIdBtcCollat, expiry, strikePrice, 0);
+
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        actions[0] = createAddCollateralAction(wbtcId, address(this), depositAmount);
+        actions[1] = createMintAction(tokenId, address(this), amount);
+        grappa.execute(address(this), actions);
+        (uint256 callId, , uint64 shortCallAmount, , uint80 collatAmount, uint8 collatId) = grappa.marginAccounts(
+            address(this)
+        );
+
+        uint256 min = grappa.getMinCollateral(address(this));
+        console2.log("min", min);
+
+        assertEq(callId, tokenId);
+        assertEq(shortCallAmount, amount);
+        assertEq(collatAmount, depositAmount);
+        assertEq(collatId, wbtcId);
     }
 
     function testCannotMintCallWithLittleCollateral() public {

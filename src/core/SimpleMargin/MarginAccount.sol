@@ -495,7 +495,6 @@ contract MarginAccount is ReentrancyGuard, Settlement {
         uint256 collateralStrikePrice = 0;
         if (product.collateral == product.underlying) collateralStrikePrice = spotPrice;
         else if (product.collateral != product.strike) {
-            console2.log("collat != strike nor underlying, collateralizig with another asset");
             collateralStrikePrice = oracle.getSpotPrice(product.collateral, product.strike);
         }
 

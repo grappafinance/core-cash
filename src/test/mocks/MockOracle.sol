@@ -4,15 +4,15 @@ pragma solidity ^0.8.13;
 import "src/interfaces/IOracle.sol";
 
 contract MockOracle is IOracle {
-    uint256 public spotPrice;
+    mapping(address => uint256) public spotPrice;
     uint256 public expiryPrice;
     uint256 public vol = 1e6;
 
     function getSpotPrice(
-        address, /*_underlying*/
+        address _underlying,
         address /*_strike*/
     ) external view returns (uint256) {
-        return spotPrice;
+        return spotPrice[_underlying];
     }
 
     function getPriceAtExpiry(
@@ -27,8 +27,8 @@ contract MockOracle is IOracle {
         return vol;
     }
 
-    function setSpotPrice(uint256 _mockedSpotPrice) external {
-        spotPrice = _mockedSpotPrice;
+    function setSpotPrice(address _asset, uint256 _mockedSpotPrice) external {
+        spotPrice[_asset] = _mockedSpotPrice;
     }
 
     function setExpiryPrice(uint256 _mockedExpiryPrice) external {
