@@ -9,6 +9,9 @@ import "src/config/types.sol";
 import "src/config/constants.sol";
 import "src/config/errors.sol";
 
+
+import "forge-std/console2.sol";
+
 contract TestMintVanillaOption is Fixture {
     uint256 public expiry;
 
@@ -34,6 +37,27 @@ contract TestMintVanillaOption is Fixture {
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
+        actions[1] = createMintAction(tokenId, address(this), amount);
+        grappa.execute(address(this), actions);
+        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = grappa
+            .marginAccounts(address(this));
+
+        assertEq(shortCallId, tokenId);
+        assertEq(shortPutId, 0);
+        assertEq(shortCallAmount, amount);
+        assertEq(shortPutAmount, 0);
+    }
+
+    function testMintCoveredCall() public {
+        uint256 depositAmount = 2 * 1e17; // 0.2 eth
+
+        uint256 strikePrice = 4000 * UNIT;
+        uint256 amount = 1 * UNIT;
+
+        uint256 tokenId = getTokenId(TokenType.CALL, productIdEthCollat, expiry, strikePrice, 0);
+
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
         grappa.execute(address(this), actions);
         (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = grappa

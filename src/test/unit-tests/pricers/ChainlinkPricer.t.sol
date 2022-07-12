@@ -15,7 +15,6 @@ import "src/config/types.sol";
 import "src/config/constants.sol";
 import "src/config/errors.sol";
 
-import "forge-std/console2.sol";
 
 /**
  * @dev test internal function _toPriceWithUnitDecimals

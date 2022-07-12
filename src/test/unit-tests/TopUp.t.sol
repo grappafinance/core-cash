@@ -9,8 +9,6 @@ import "src/config/types.sol";
 import "src/config/constants.sol";
 import "src/config/errors.sol";
 
-import "forge-std/console2.sol";
-
 contract TestTopupCallAccount is Fixture {
     uint256 public expiry;
 

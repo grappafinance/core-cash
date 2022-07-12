@@ -49,7 +49,7 @@ library SimpleMarginMath {
 
         // if collateral is not strike, calculate how much collateral needed by devidede by collat price.
         // will revert if _spotCollateralStrike is 0.
-        minCollatUnit = minCollatValueInStrike.mulDivUp(UNIT_DECIMALS, _spotCollateralStrike);
+        minCollatUnit = minCollatValueInStrike.mulDivUp(UNIT, _spotCollateralStrike);
     }
 
     /**

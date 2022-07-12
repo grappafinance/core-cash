@@ -25,6 +25,8 @@ import "src/config/enums.sol";
 import "src/config/constants.sol";
 import "src/config/errors.sol";
 
+import "forge-std/console2.sol";
+
 /**
  * @title   MarginAccount
  * @author  @antoncoding
@@ -493,6 +495,7 @@ contract MarginAccount is ReentrancyGuard, Settlement {
         uint256 collateralStrikePrice = 0;
         if (product.collateral == product.underlying) collateralStrikePrice = spotPrice;
         else if (product.collateral != product.strike) {
+            console2.log("collat != strike nor underlying, collateralizig with another asset");
             collateralStrikePrice = oracle.getSpotPrice(product.collateral, product.strike);
         }
 
