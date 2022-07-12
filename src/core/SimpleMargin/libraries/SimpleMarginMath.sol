@@ -6,8 +6,6 @@ import "src/config/constants.sol";
 import "src/config/types.sol";
 import "src/config/errors.sol";
 
-import "forge-std/console2.sol";
-
 /**
  * @title   SimpleMarginMath
  * @notice  this library is in charge of calculating the min collateral for a given simple margin account
@@ -40,16 +38,17 @@ library SimpleMarginMath {
         ProductAssets memory _assets,
         uint256 _spotUnderlyingStrike,
         uint256 _spotCollateralStrike,
+        uint256 _vol,
         ProductMarginParams memory _param
     ) internal view returns (uint256 minCollatUnit) {
         // this is denominated in strike, with {UNIT_DECIMALS} decimals
-        uint256 minCollatValueInStrike = getMinCollateralInStrike(_account, _spotUnderlyingStrike, UNIT, _param);
+        uint256 minCollatValueInStrike = getMinCollateralInStrike(_account, _spotUnderlyingStrike, _vol, _param);
 
         if (_assets.collateral == _assets.strike) return minCollatValueInStrike;
 
         // if collateral is not strike, calculate how much collateral needed by devidede by collat price.
         // will revert if _spotCollateralStrike is 0.
-        minCollatUnit = minCollatValueInStrike.mulDivUp(UNIT_DECIMALS, _spotCollateralStrike);
+        minCollatUnit = minCollatValueInStrike.mulDivUp(UNIT, _spotCollateralStrike);
     }
 
     /**

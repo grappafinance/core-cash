@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "forge-std/console2.sol";
 import "src/config/enums.sol";
 import "src/config/types.sol";
 

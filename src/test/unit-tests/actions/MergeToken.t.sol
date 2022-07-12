@@ -21,7 +21,7 @@ contract TestMergeOption is Fixture {
 
         expiry = block.timestamp + 14 days;
 
-        oracle.setSpotPrice(3000 * UNIT);
+        oracle.setSpotPrice(address(weth), 3000 * UNIT);
 
         // mint a 3000 strike call first
         uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
@@ -43,14 +43,50 @@ contract TestMergeOption is Fixture {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createMergeAction(newTokenId, address(this));
         grappa.execute(address(this), actions);
-        (uint256 shortCallId, , , , , ) = grappa.marginAccounts(address(this));
 
         // check result
+        (uint256 shortCallId, , , , , ) = grappa.marginAccounts(address(this));
         (, , , uint64 longStrike, uint64 shortStrike) = parseTokenId(shortCallId);
 
         assertTrue(shortCallId != newTokenId);
         assertEq(longStrike, strikePrice);
         assertEq(shortStrike, higherStrike);
+    }
+
+    function testCanMergeForAccountOwnerFromAuthorizedAccount() public {
+        // mint new call option for "this" address
+        uint256 higherStrike = 5000 * UNIT;
+        uint256 newTokenId = getTokenId(TokenType.CALL, productId, expiry, higherStrike, 0);
+        mintOptionFor(address(this), newTokenId, productId, amount);
+
+        // authorize alice to change subaccount
+        grappa.setAccountAccess(alice, true);
+
+        // merge by alice
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createMergeAction(newTokenId, address(this));
+        vm.prank(alice);
+        grappa.execute(address(this), actions);
+
+        // check result
+        (uint256 shortCallId, , , , , ) = grappa.marginAccounts(address(this));
+        (, , , uint64 longStrike, uint64 shortStrike) = parseTokenId(shortCallId);
+
+        assertTrue(shortCallId != newTokenId);
+        assertEq(longStrike, strikePrice);
+        assertEq(shortStrike, higherStrike);
+    }
+
+    function testCannotMergeWithTokenFromOthers() public {
+        uint256 higherStrike = 5000 * UNIT;
+        uint256 newTokenId = getTokenId(TokenType.CALL, productId, expiry, higherStrike, 0);
+
+        // merge
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createMergeAction(newTokenId, address(alice));
+
+        vm.expectRevert(MA_InvalidFromAddress.selector);
+        grappa.execute(address(this), actions);
     }
 
     function testMergeIntoCreditSpreadCanRemoveCollateral() public {

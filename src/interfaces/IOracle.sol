@@ -17,5 +17,5 @@ interface IOracle {
         uint256 _price
     ) external;
 
-    function getVolIndex() external returns (uint256);
+    function getVolIndex() external view returns (uint256);
 }

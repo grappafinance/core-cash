@@ -33,7 +33,7 @@ contract TestTakeoverPosition is Fixture {
 
         expiry = block.timestamp + 7 days;
 
-        oracle.setSpotPrice(3500 * UNIT);
+        oracle.setSpotPrice(address(weth), 3500 * UNIT);
 
         // mint option
         initialCollateral = 500 * 1e6;
@@ -59,21 +59,21 @@ contract TestTakeoverPosition is Fixture {
     }
 
     function testCannotTakeoverPositionWithoutPayingCollateral() public {
-        oracle.setSpotPrice(3800 * UNIT);
+        oracle.setSpotPrice(address(weth), 3800 * UNIT);
 
         vm.expectRevert(MA_AccountUnderwater.selector);
         grappa.takeoverPosition(accountId, address(this), 0);
     }
 
     function testCannotTakeoverPositionWithoutPayingEnoughCollateral() public {
-        oracle.setSpotPrice(3800 * UNIT);
+        oracle.setSpotPrice(address(weth), 3800 * UNIT);
 
         vm.expectRevert(MA_AccountUnderwater.selector);
         grappa.takeoverPosition(accountId, address(this), uint80(50 * 1e6));
     }
 
     function testTakeoverPosition() public {
-        oracle.setSpotPrice(3800 * UNIT);
+        oracle.setSpotPrice(address(weth), 3800 * UNIT);
 
         uint80 tapUpAmount = 300 * 1e6;
 

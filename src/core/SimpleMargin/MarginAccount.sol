@@ -500,6 +500,7 @@ contract MarginAccount is ReentrancyGuard, Settlement {
             product,
             spotPrice,
             collateralStrikePrice,
+            oracle.getVolIndex(),
             productParams[detail.productId]
         );
 

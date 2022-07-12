@@ -24,7 +24,7 @@ contract TestSettleCall is Fixture {
 
         expiry = block.timestamp + 14 days;
 
-        oracle.setSpotPrice(3000 * UNIT);
+        oracle.setSpotPrice(address(weth), 3000 * UNIT);
 
         // mint option
         uint256 depositAmount = 1000 * 1e6;
@@ -136,7 +136,7 @@ contract TestSettleCoveredCall is Fixture {
 
         expiry = block.timestamp + 14 days;
 
-        oracle.setSpotPrice(3000 * UNIT);
+        oracle.setSpotPrice(address(weth), 3000 * UNIT);
 
         // mint option
         uint256 depositAmount = 1 * 1e18;
@@ -250,7 +250,7 @@ contract TestSettlePut is Fixture {
 
         expiry = block.timestamp + 14 days;
 
-        oracle.setSpotPrice(3000 * UNIT);
+        oracle.setSpotPrice(address(weth), 3000 * UNIT);
 
         // mint option
         uint256 depositAmount = 1000 * 1e6;
@@ -364,7 +364,7 @@ contract TestSettleETHCollateralizedPut is Fixture {
 
         expiry = block.timestamp + 14 days;
 
-        oracle.setSpotPrice(3000 * UNIT);
+        oracle.setSpotPrice(address(weth), 3000 * UNIT);
 
         // mint option
         uint256 depositAmount = 1 * 1e18;
@@ -476,7 +476,7 @@ contract TestSettleCallSpread is Fixture {
 
         expiry = block.timestamp + 14 days;
 
-        oracle.setSpotPrice(3000 * UNIT);
+        oracle.setSpotPrice(address(weth), 3000 * UNIT);
 
         // mint option
         uint256 depositAmount = 1000 * 1e6;
@@ -632,7 +632,7 @@ contract TestSettlePutSpread is Fixture {
 
         expiry = block.timestamp + 14 days;
 
-        oracle.setSpotPrice(3000 * UNIT);
+        oracle.setSpotPrice(address(weth), 3000 * UNIT);
 
         // mint option
         uint256 depositAmount = 1000 * 1e6;
@@ -790,7 +790,7 @@ contract TestBatchSettleCall is Fixture {
 
         expiry = block.timestamp + 14 days;
 
-        oracle.setSpotPrice(3000 * UNIT);
+        oracle.setSpotPrice(address(weth), 3000 * UNIT);
 
         // mint option
         uint256 depositAmount = 1000 * 1e6;
@@ -901,7 +901,7 @@ contract TestSettlementEdgeCase is Fixture {
 
         expiry = block.timestamp + 14 days;
 
-        oracle.setSpotPrice(3000 * UNIT);
+        oracle.setSpotPrice(address(weth), 3000 * UNIT);
 
         // mint option
         uint256 depositAmount = 1000 * 1e6;

@@ -9,8 +9,6 @@ import "src/config/types.sol";
 import "src/config/constants.sol";
 import "src/config/errors.sol";
 
-import "forge-std/console2.sol";
-
 contract TestTopupCallAccount is Fixture {
     uint256 public expiry;
 
@@ -30,7 +28,7 @@ contract TestTopupCallAccount is Fixture {
 
         expiry = block.timestamp + 7 days;
 
-        oracle.setSpotPrice(3500 * UNIT);
+        oracle.setSpotPrice(address(weth), 3500 * UNIT);
 
         // mint option
         initialCollateral = 500 * 1e6;

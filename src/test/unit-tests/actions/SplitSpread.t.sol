@@ -22,7 +22,7 @@ contract TestSplitCallSpread is Fixture {
 
         expiry = block.timestamp + 7 days;
 
-        oracle.setSpotPrice(3000 * UNIT);
+        oracle.setSpotPrice(address(weth), 3000 * UNIT);
 
         // mint a 4000-4100 debit spread
         uint256 tokenId = getTokenId(TokenType.CALL_SPREAD, productId, expiry, strikePriceLow, strikePriceHigh);
@@ -85,7 +85,7 @@ contract TestSplitPutSpread is Fixture {
 
         expiry = block.timestamp + 7 days;
 
-        oracle.setSpotPrice(3000 * UNIT);
+        oracle.setSpotPrice(address(weth), 3000 * UNIT);
 
         // mint a 2000-1900 debit spread
         uint256 tokenId = getTokenId(TokenType.PUT_SPREAD, productId, expiry, strikePriceHigh, strikePriceLow);

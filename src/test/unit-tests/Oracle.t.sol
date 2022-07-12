@@ -88,4 +88,15 @@ contract OracleTest is Test {
         vm.expectRevert(OC_CannotReportForFuture.selector);
         primary.mockSetExpiryPrice(weth, usdc, block.timestamp + 1, primaryAnswer);
     }
+
+    function testCannotGetNonReportPrice() public {
+        vm.expectRevert(OC_PriceNotReported.selector);
+        oracle.getPriceAtExpiry(weth, usdc, block.timestamp - 1);
+    }
+
+    // todo: update this test
+    function testGetVolIndex() public {
+        uint256 vol = oracle.getVolIndex();
+        assertEq(vol, 1000_000);
+    }
 }
