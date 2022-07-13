@@ -5,7 +5,7 @@ import {DSTest} from "ds-test/test.sol";
 import {Vm} from "forge-std/Vm.sol";
 
 //common utilities for forge tests
-contract Utilities is DSTest {
+abstract contract Utilities is DSTest {
     function toString(address account) public pure returns (string memory) {
         return toString(abi.encodePacked(account));
     }
