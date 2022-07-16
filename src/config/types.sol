@@ -104,10 +104,10 @@ struct ActionArgs {
 
 /**
  * @dev asset detail stored per asset id
- * @param addr use uint160 to store address so it can be packed with decimals
+ * @param addr address of the asset
  * @param decimals token decimals
  */
 struct AssetDetail {
-    uint160 addr;
+    address addr;
     uint8 decimals;
 }

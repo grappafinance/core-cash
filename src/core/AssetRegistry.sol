@@ -44,12 +44,7 @@ contract AssetRegistry is Ownable {
     {
         (uint8 underlyingId, uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(_productId);
         AssetDetail memory collateralDetail = assets[collateralId];
-        return (
-            address(assets[underlyingId].addr),
-            address(assets[strikeId].addr),
-            address(collateralDetail.addr),
-            collateralDetail.decimals
-        );
+        return (assets[underlyingId].addr, assets[strikeId].addr, collateralDetail.addr, collateralDetail.decimals);
     }
 
     /**
@@ -77,7 +72,7 @@ contract AssetRegistry is Ownable {
         uint8 decimals = IERC20Metadata(_asset).decimals();
 
         id = ++nextId;
-        assets[id] = AssetDetail({addr: uint160(_asset), decimals: decimals});
+        assets[id] = AssetDetail({addr: _asset, decimals: decimals});
         ids[_asset] = id;
 
         emit AssetRegistered(_asset, id);
