@@ -2,8 +2,9 @@
 pragma solidity ^0.8.13;
 
 // import test base and helpers.
-import {Fixture} from "src/test/shared/Fixture.t.sol";
-import "src/config/errors.sol";
+import {Fixture} from "../shared/Fixture.t.sol";
+
+import "../../config/errors.sol";
 
 contract OptionTokenTest is Fixture {
     function testCannotMint() public {

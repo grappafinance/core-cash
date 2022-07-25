@@ -4,8 +4,8 @@ pragma solidity =0.8.13;
 import {IERC20Metadata} from "openzeppelin/token/ERC20/extensions/IERC20Metadata.sol";
 import {Ownable} from "openzeppelin/access/Ownable.sol";
 
-import {ProductIdUtil} from "src/libraries/ProductIdUtil.sol";
-import {AssetDetail} from "src/config/types.sol";
+import {ProductIdUtil} from "../libraries/ProductIdUtil.sol";
+import {AssetDetail} from "../config/types.sol";
 
 contract AssetRegistry is Ownable {
     error AlreadyRegistered();

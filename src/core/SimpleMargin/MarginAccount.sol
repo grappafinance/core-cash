@@ -8,22 +8,22 @@ import {SafeERC20} from "openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 
 // interfaces
-import {IOracle} from "src/interfaces/IOracle.sol";
-import {IOptionToken} from "src/interfaces/IOptionToken.sol";
+import {IOracle} from "../../interfaces/IOracle.sol";
+import {IOptionToken} from "../../interfaces/IOptionToken.sol";
 
 // inheriting contract
-import {Settlement} from "src/core/Settlement.sol";
+import {Settlement} from "../Settlement.sol";
 
 // librarise
-import {TokenIdUtil} from "src/libraries/TokenIdUtil.sol";
+import {TokenIdUtil} from "../../libraries/TokenIdUtil.sol";
 import {SimpleMarginMath} from "./libraries/SimpleMarginMath.sol";
 import {SimpleMarginLib} from "./libraries/SimpleMarginLib.sol";
 
 // constants and types
-import "src/config/types.sol";
-import "src/config/enums.sol";
-import "src/config/constants.sol";
-import "src/config/errors.sol";
+import "../../config/types.sol";
+import "../../config/enums.sol";
+import "../../config/constants.sol";
+import "../../config/errors.sol";
 
 /**
  * @title   MarginAccount

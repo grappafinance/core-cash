@@ -6,14 +6,14 @@ import "forge-std/Script.sol";
 import "openzeppelin/utils/Create2.sol";
 import "openzeppelin/utils/Strings.sol";
 
-import "src/core/OptionToken.sol";
-import "src/core/SimpleMargin/MarginAccount.sol";
+import "../src/core/OptionToken.sol";
+import "../src/core/SimpleMargin/MarginAccount.sol";
 
 // todo: add fallback pricer too
-import "src/core/Oracle.sol";
-import "src/core/pricers/ChainlinkPricer.sol";
+import "../src/core/Oracle.sol";
+import "../src/core/pricers/ChainlinkPricer.sol";
 
-import "src/test/utils/Utilities.sol";
+import "../src/test/utils/Utilities.sol";
 
 import { Create2Deployer } from "./utils.sol";
 

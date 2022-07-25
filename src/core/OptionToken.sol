@@ -6,13 +6,13 @@ import {ERC1155} from "solmate/tokens/ERC1155.sol";
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 
 // interfaces
-import {IOptionToken} from "src/interfaces/IOptionToken.sol";
-import {IOracle} from "src/interfaces/IOracle.sol";
+import {IOptionToken} from "../interfaces/IOptionToken.sol";
+import {IOracle} from "../interfaces/IOracle.sol";
 
 // constants and types
-import "src/config/enums.sol";
-import "src/config/constants.sol";
-import "src/config/errors.sol";
+import "../config/enums.sol";
+import "../config/constants.sol";
+import "../config/errors.sol";
 
 /**
  * @title   OptionToken

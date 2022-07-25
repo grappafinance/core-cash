@@ -3,18 +3,18 @@ pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
 
-import "src/test/mocks/MockERC20.sol";
-import "src/test/mocks/MockOracle.sol";
+import "../../test/mocks/MockERC20.sol";
+import "../../test/mocks/MockOracle.sol";
 
-import "src/core/SimpleMargin/MarginAccount.sol";
-import "src/core/OptionToken.sol";
+import "../../core/SimpleMargin/MarginAccount.sol";
+import "../../core/OptionToken.sol";
 
-import "src/config/enums.sol";
-import "src/config/types.sol";
+import "../../config/enums.sol";
+import "../../config/types.sol";
 
-import "src/test/utils/Utilities.sol";
+import "../utils/Utilities.sol";
 
-import {ActionHelper} from "src/test/shared/ActionHelper.sol";
+import {ActionHelper} from "../../test/shared/ActionHelper.sol";
 
 abstract contract Fixture is Test, ActionHelper, Utilities {
     MarginAccount internal grappa;

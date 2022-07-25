@@ -4,16 +4,16 @@ pragma solidity ^0.8.13;
 // import test base and helpers.
 import "forge-std/Test.sol";
 
-import {ChainlinkPricer} from "src/core/pricers/ChainlinkPricer.sol";
+import {ChainlinkPricer} from "../../../core/pricers/ChainlinkPricer.sol";
 
-import {MockERC20} from "src/test/mocks/MockERC20.sol";
-import {MockOracle} from "src/test/mocks/MockOracle.sol";
-import {MockChainlinkAggregator} from "src/test/mocks/MockChainlinkAggregator.sol";
+import {MockERC20} from "../../mocks/MockERC20.sol";
+import {MockOracle} from "../../mocks/MockOracle.sol";
+import {MockChainlinkAggregator} from "../../mocks/MockChainlinkAggregator.sol";
 
-import "src/config/enums.sol";
-import "src/config/types.sol";
-import "src/config/constants.sol";
-import "src/config/errors.sol";
+import "../../../config/enums.sol";
+import "../../../config/types.sol";
+import "../../../config/constants.sol";
+import "../../../config/errors.sol";
 
 /**
  * @dev test internal function _toPriceWithUnitDecimals

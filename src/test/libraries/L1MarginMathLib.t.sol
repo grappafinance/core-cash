@@ -3,10 +3,10 @@ pragma solidity =0.8.13;
 
 import {Test} from "forge-std/Test.sol";
 
-import {SimpleMarginMath} from "src/core/SimpleMargin/libraries/SimpleMarginMath.sol";
-import "src/config/constants.sol";
-import "src/config/errors.sol";
-import "src/config/types.sol";
+import {SimpleMarginMath} from "../../core/SimpleMargin/libraries/SimpleMarginMath.sol";
+import "../../config/constants.sol";
+import "../../config/errors.sol";
+import "../../config/types.sol";
 
 /**
  * Test if the formula is working properly for min collateral calculation:

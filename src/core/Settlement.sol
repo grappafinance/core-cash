@@ -8,21 +8,21 @@ import {SafeERC20} from "openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 
 // inheriting cotract
-import {AssetRegistry} from "src/core/AssetRegistry.sol";
+import {AssetRegistry} from "../core/AssetRegistry.sol";
 
 // libraries
-import {TokenIdUtil} from "src/libraries/TokenIdUtil.sol";
-import {SimpleMarginMath} from "src/core/SimpleMargin/libraries/SimpleMarginMath.sol";
+import {TokenIdUtil} from "../libraries/TokenIdUtil.sol";
+import {SimpleMarginMath} from "../core/SimpleMargin/libraries/SimpleMarginMath.sol";
 
 // interfaces
-import {IOptionToken} from "src/interfaces/IOptionToken.sol";
-import {IOracle} from "src/interfaces/IOracle.sol";
+import {IOptionToken} from "../interfaces/IOptionToken.sol";
+import {IOracle} from "../interfaces/IOracle.sol";
 
 // constants and types
-import "src/config/enums.sol";
-import "src/config/constants.sol";
-import "src/config/errors.sol";
-import "src/config/types.sol";
+import "../config/enums.sol";
+import "../config/constants.sol";
+import "../config/errors.sol";
+import "../config/types.sol";
 
 /**
  * @title   Settlement

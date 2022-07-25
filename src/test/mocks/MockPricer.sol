@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import "src/interfaces/IPricer.sol";
-import "src/interfaces/IOracle.sol";
+import "../../interfaces/IPricer.sol";
+import "../../interfaces/IOracle.sol";
 
 contract MockPricer is IPricer {
     IOracle public oracle;
