@@ -2,10 +2,10 @@
 pragma solidity ^0.8.13;
 
 // import test base.
-import {Fixture} from "src/test/shared/Fixture.t.sol";
+import {Fixture} from "../shared/Fixture.t.sol";
 
-import "src/config/constants.sol";
-import "src/core/SimpleMargin/MarginAccount.sol";
+import "../../config/constants.sol";
+import "../../core/SimpleMargin/MarginAccount.sol";
 
 contract OwnerConfiguration is Fixture {
     event ProductConfigurationUpdated(

@@ -4,17 +4,17 @@ pragma solidity ^0.8.13;
 // import test base and helpers.
 import "forge-std/Test.sol";
 
-import {Oracle} from "src/core/Oracle.sol";
+import {Oracle} from "../../core/Oracle.sol";
 
-import {MockERC20} from "src/test/mocks/MockERC20.sol";
-import {MockPricer} from "src/test/mocks/MockPricer.sol";
+import {MockERC20} from "../mocks/MockERC20.sol";
+import {MockPricer} from "../mocks/MockPricer.sol";
 
-import {MockChainlinkAggregator} from "src/test/mocks/MockChainlinkAggregator.sol";
+import {MockChainlinkAggregator} from "../mocks/MockChainlinkAggregator.sol";
 
-import "src/config/enums.sol";
-import "src/config/types.sol";
-import "src/config/constants.sol";
-import "src/config/errors.sol";
+import "../../config/enums.sol";
+import "../../config/types.sol";
+import "../../config/constants.sol";
+import "../../config/errors.sol";
 
 import "forge-std/console2.sol";
 

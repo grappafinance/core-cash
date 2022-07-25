@@ -2,27 +2,27 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
-import "src/test/mocks/MockERC20.sol";
+import "../mocks/MockERC20.sol";
 
 /* solhint-disable max-states-count */
 /* solhint-disable no-empty-blocks */
 
-import "src/core/OptionToken.sol";
+import "../../core/OptionToken.sol";
 
-import "src/core/pricers/ChainlinkPricer.sol";
-import "src/core/Oracle.sol";
+import "../../core/pricers/ChainlinkPricer.sol";
+import "../../core/Oracle.sol";
 import "./MarginAccountGasTester.sol";
 
 // mock aggregator
-import "src/test/mocks/MockChainlinkAggregator.sol";
+import "../mocks/MockChainlinkAggregator.sol";
 
-import "src/test/utils/Utilities.sol";
-import "src/config/enums.sol";
-import "src/config/types.sol";
-import "src/config/constants.sol";
-import "src/config/errors.sol";
+import "../utils/Utilities.sol";
+import "../../config/enums.sol";
+import "../../config/types.sol";
+import "../../config/constants.sol";
+import "../../config/errors.sol";
 
-import {ActionHelper} from "src/test/shared/ActionHelper.sol";
+import {ActionHelper} from "../shared/ActionHelper.sol";
 
 /**
  * @dev This file doesn't test any of the contract behavior

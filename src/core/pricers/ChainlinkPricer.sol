@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity =0.8.13;
 
-import {IOracle} from "src/interfaces/IOracle.sol";
-import {IPricer} from "src/interfaces/IPricer.sol";
-import {IAggregatorV3} from "src/interfaces/IAggregatorV3.sol";
-
 import {Ownable} from "openzeppelin/access/Ownable.sol";
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 
-import "src/config/errors.sol";
+import {IOracle} from "../../interfaces/IOracle.sol";
+import {IPricer} from "../../interfaces/IPricer.sol";
+import {IAggregatorV3} from "../../interfaces/IAggregatorV3.sol";
+
+import "../../config/errors.sol";
 
 /**
  * @title ChainlinkPricer

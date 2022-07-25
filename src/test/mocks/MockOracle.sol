@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import "src/interfaces/IOracle.sol";
+import "../../interfaces/IOracle.sol";
 
 contract MockOracle is IOracle {
     mapping(address => uint256) public spotPrice;

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "src/config/enums.sol";
-import "src/config/types.sol";
+import "../../config/enums.sol";
+import "../../config/types.sol";
 
-import "src/libraries/TokenIdUtil.sol";
+import "../../libraries/TokenIdUtil.sol";
 
 // todo: make this a library?
 abstract contract ActionHelper {

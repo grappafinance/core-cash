@@ -2,11 +2,11 @@
 pragma solidity =0.8.13;
 
 // interfaces
-import {IOracle} from "src/interfaces/IOracle.sol";
-import {IPricer} from "src/interfaces/IPricer.sol";
+import {IOracle} from "../interfaces/IOracle.sol";
+import {IPricer} from "../interfaces/IPricer.sol";
 
 // constants and types
-import "src/config/errors.sol";
+import "../config/errors.sol";
 
 /**
  * @title Oracle
