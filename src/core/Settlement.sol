@@ -8,15 +8,16 @@ import {SafeERC20} from "openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 
 // inheriting cotract
-import {AssetRegistry} from "../core/AssetRegistry.sol";
+import {Registry} from "./Registry.sol";
 
 // libraries
 import {TokenIdUtil} from "../libraries/TokenIdUtil.sol";
-import {SimpleMarginMath} from "../core/SimpleMargin/libraries/SimpleMarginMath.sol";
+import {ProductIdUtil} from "../libraries/ProductIdUtil.sol";
 
 // interfaces
 import {IOptionToken} from "../interfaces/IOptionToken.sol";
 import {IOracle} from "../interfaces/IOracle.sol";
+import {IMarginEngine} from "../interfaces/IMarginEngine.sol";
 
 // constants and types
 import "../config/enums.sol";
@@ -27,72 +28,17 @@ import "../config/types.sol";
 /**
  * @title   Settlement
  * @dev     this module takes care of settling option tokens. 
-            By inheriting AssetRegistry, this module can have easy access to all product / asset details 
+            By inheriting Registry, this module can have easy access to all product / asset details 
  */
-contract Settlement is AssetRegistry {
+contract Settlement is Registry {
     using SafeERC20 for IERC20;
     using FixedPointMathLib for uint256;
-
-    /// @dev oracle address
-    IOracle public immutable oracle;
 
     /// @dev optionToken address
     IOptionToken public immutable optionToken;
 
-    constructor(address _optionToken, address _oracle) {
-        oracle = IOracle(_oracle);
+    constructor(address _optionToken) {
         optionToken = IOptionToken(_optionToken);
-    }
-
-    /**
-     * @dev calculate the payout for an expired option token
-     *
-     * @param _tokenId  token id of option token
-     * @param _amount   amount to settle
-     *
-     * @return collateral asset to settle in
-     * @return payout amount paid
-     **/
-    function getOptionPayout(uint256 _tokenId, uint256 _amount) public view returns (address, uint256 payout) {
-        (TokenType tokenType, uint32 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) = TokenIdUtil
-            .parseTokenId(_tokenId);
-
-        if (block.timestamp < expiry) revert MA_NotExpired();
-
-        (address underlying, address strike, address collateral, uint8 collatDecimals) = getAssetsFromProductId(
-            productId
-        );
-
-        // cash value denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
-        uint256 cashValue;
-
-        // expiry price of underlying, denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
-        uint256 expiryPrice = oracle.getPriceAtExpiry(underlying, strike, expiry);
-
-        if (tokenType == TokenType.CALL) {
-            cashValue = SimpleMarginMath.getCallCashValue(expiryPrice, longStrike);
-        } else if (tokenType == TokenType.CALL_SPREAD) {
-            cashValue = SimpleMarginMath.getCashValueCallDebitSpread(expiryPrice, longStrike, shortStrike);
-        } else if (tokenType == TokenType.PUT) {
-            cashValue = SimpleMarginMath.getPutCashValue(expiryPrice, longStrike);
-        } else if (tokenType == TokenType.PUT_SPREAD) {
-            cashValue = SimpleMarginMath.getCashValuePutDebitSpread(expiryPrice, longStrike, shortStrike);
-        }
-
-        // payout is denominated in strike asset (usually USD), with {UNIT_DECIMALS} decimals
-        payout = cashValue.mulDivDown(_amount, UNIT);
-
-        // the following logic convert payout amount if collateral is not strike:
-        if (collateral == underlying) {
-            // collateral is underlying. payout should be devided by underlying price
-            payout = payout.mulDivDown(UNIT, expiryPrice);
-        } else if (collateral != strike) {
-            // collateral is not underlying nor strike
-            uint256 collateralPrice = oracle.getPriceAtExpiry(collateral, strike, expiry);
-            payout = payout.mulDivDown(UNIT, collateralPrice);
-        }
-
-        return (collateral, _convertDecimals(payout, UNIT_DECIMALS, collatDecimals));
     }
 
     /**
@@ -107,7 +53,7 @@ contract Settlement is AssetRegistry {
         uint256 _tokenId,
         uint256 _amount
     ) external {
-        (address collateral, uint256 payout) = getOptionPayout(_tokenId, _amount);
+        (address collateral, uint256 payout) = getOptionPayout(_tokenId, uint64(_amount));
 
         optionToken.burn(_account, _tokenId, _amount);
 
@@ -133,7 +79,7 @@ contract Settlement is AssetRegistry {
         uint256 totalPayout;
 
         for (uint256 i; i < _tokenIds.length; ) {
-            (address collateral, uint256 payout) = getOptionPayout(_tokenIds[i], _amounts[i]);
+            (address collateral, uint256 payout) = getOptionPayout(_tokenIds[i], uint64(_amounts[i]));
 
             if (collateral != _collateral) revert ST_WrongSettlementCollateral();
             totalPayout += payout;
@@ -148,34 +94,13 @@ contract Settlement is AssetRegistry {
         IERC20(_collateral).safeTransfer(_account, totalPayout);
     }
 
-    /**
-     * @notice convert decimals
-     *
-     * @param  _amount      number to convert
-     * @param _fromDecimals the decimals _amount has
-     * @param _toDecimals   the target decimals
-     *
-     * @return _ number with _toDecimals decimals
-     */
-    function _convertDecimals(
-        uint256 _amount,
-        uint8 _fromDecimals,
-        uint8 _toDecimals
-    ) internal pure returns (uint256) {
-        if (_fromDecimals == _toDecimals) return _amount;
-
-        if (_fromDecimals > _toDecimals) {
-            uint8 diff;
-            unchecked {
-                diff = _fromDecimals - _toDecimals;
-            }
-            return _amount / (10**diff);
-        } else {
-            uint8 diff;
-            unchecked {
-                diff = _toDecimals - _fromDecimals;
-            }
-            return _amount * (10**diff);
-        }
+    function getOptionPayout(uint256 _tokenId, uint64 _amount)
+        public
+        view
+        returns (address collateral, uint256 payout)
+    {
+        (, uint32 productId, , , ) = TokenIdUtil.parseTokenId(_tokenId);
+        (uint8 engineId, , , ) = ProductIdUtil.parseProductId(productId);
+        (collateral, payout) = IMarginEngine(engines[engineId]).getPayout(_tokenId, _amount);
     }
 }

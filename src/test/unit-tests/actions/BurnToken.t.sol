@@ -49,7 +49,7 @@ contract TestBurnCall is Fixture {
         assertEq(option.balanceOf(address(this), tokenId), 0);
     }
 
-    function testCannotBurnForEmptyMarginAccount() public {
+    function testCannotBurnForEmptySimpleMarginEngine() public {
         address subAccount = address(uint160(address(this)) - 1);
 
         // build burn account

@@ -6,7 +6,7 @@ import "forge-std/Test.sol";
 import "../../test/mocks/MockERC20.sol";
 import "../../test/mocks/MockOracle.sol";
 
-import "../../core/SimpleMargin/MarginAccount.sol";
+import "../../core/SimpleMargin/SimpleMarginEngine.sol";
 import "../../core/OptionToken.sol";
 
 import "../../config/enums.sol";
@@ -17,7 +17,7 @@ import "../utils/Utilities.sol";
 import {ActionHelper} from "../../test/shared/ActionHelper.sol";
 
 abstract contract Fixture is Test, ActionHelper, Utilities {
-    MarginAccount internal grappa;
+    SimpleMarginEngine internal grappa;
     OptionToken internal option;
 
     MockERC20 internal usdc;
@@ -49,7 +49,7 @@ abstract contract Fixture is Test, ActionHelper, Utilities {
         address marginAccountAddr = predictAddress(address(this), 5);
         option = new OptionToken(marginAccountAddr); // nonce: 4
 
-        grappa = new MarginAccount(address(option), address(oracle)); // nonce 5
+        grappa = new SimpleMarginEngine(address(option), address(oracle)); // nonce 5
 
         // register products
         usdcId = grappa.registerAsset(address(usdc));
