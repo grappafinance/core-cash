@@ -5,7 +5,7 @@ pragma solidity ^0.8.13;
 import {Fixture} from "../shared/Fixture.t.sol";
 
 import "../../config/constants.sol";
-import "../../core/SimpleMargin/SimpleMarginEngine.sol";
+import "../../core/engines/SimpleMarginEngine.sol";
 
 contract OwnerConfiguration is Fixture {
     event ProductConfigurationUpdated(

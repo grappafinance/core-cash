@@ -17,8 +17,8 @@ import {Settlement} from "./Settlement.sol";
 
 // librarise
 import {TokenIdUtil} from "../libraries/TokenIdUtil.sol";
-import {SimpleMarginMath} from "./SimpleMargin/libraries/SimpleMarginMath.sol";
-import {SimpleMarginLib} from "./SimpleMargin/libraries/SimpleMarginLib.sol";
+import {SimpleMarginMath} from "./engines/libraries/SimpleMarginMath.sol";
+import {SimpleMarginLib} from "./engines/libraries/SimpleMarginLib.sol";
 
 // constants and types
 import "../config/types.sol";
@@ -30,9 +30,8 @@ import "../config/errors.sol";
  * @title   Grappa
  * @author  @antoncoding
  * @notice  Grappa is in the entry point to mint / burn option tokens
-            Users can deposit collateral into SimpleMarginEngine and mint optionTokens (debt) out of it.
+            Interacts with different MarginEngines to mint optionTokens.
             Interacts with OptionToken to mint / burn.
-            Interacts with Oracle to read spot price for assets and vol.
  */
 contract Grappa is ReentrancyGuard, Settlement {
     using SimpleMarginMath for SimpleMarginEngineDetail;

@@ -7,7 +7,7 @@ import "openzeppelin/utils/Create2.sol";
 import "openzeppelin/utils/Strings.sol";
 
 import "../src/core/OptionToken.sol";
-import "../src/core/SimpleMargin/SimpleMarginEngine.sol";
+import "../src/core/engines/SimpleMarginEngine.sol";
 
 // todo: add fallback pricer too
 import "../src/core/Oracle.sol";

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {SimpleMarginEngine} from "../../core/SimpleMargin/SimpleMarginEngine.sol";
+import {SimpleMarginEngine} from "../../core/engines/SimpleMarginEngine.sol";
 import "../../config/types.sol";
 
 /**
