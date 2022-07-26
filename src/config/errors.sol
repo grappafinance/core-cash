@@ -8,6 +8,9 @@ error NoAccess();
 
 // Margin Account Errors
 
+/// token id specified to liquidate mistmch vault debt
+error MA_WrongIdToLiquidate();
+
 /// @dev collateral id is wrong: the id doesn't match the existing sub account
 error MA_WrongCollateralId();
 

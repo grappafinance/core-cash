@@ -38,7 +38,6 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
     using SafeERC20 for IERC20;
     using FixedPointMathLib for uint256;
 
-
     IGrappa public immutable grappa;
     IOracle public immutable oracle;
 
@@ -101,10 +100,17 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
      */
     function liquidate(
         address _subAccount,
-        uint64 _repayCallAmount,
-        uint64 _repayPutAmount
-    ) external {
+        uint256[] memory tokensToBurn,
+        uint256[] memory amountsToBurn
+    ) external returns (uint8[] memory, uint80[] memory) {
+        uint256 repayCallAmount = amountsToBurn[0];
+        uint256 repayPutAmount = amountsToBurn[1];
+
         Account memory account = marginAccounts[_subAccount];
+
+        if (account.shortCallId != tokensToBurn[0]) revert MA_WrongIdToLiquidate();
+        if (account.shortPutId != tokensToBurn[1]) revert MA_WrongIdToLiquidate();
+
         if (_isAccountHealthy(account)) revert MA_AccountIsHealthy();
 
         bool hasShortCall = account.shortCallAmount != 0;
@@ -116,34 +122,32 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
         if (hasShortCall && hasShortPut) {
             // if the account is short call and put at the same time,
             // amounts to liquidate needs to be the same portion of short call and short put amount.
-            uint256 callPortionBPS = (_repayCallAmount * BPS) / account.shortCallAmount;
-            uint256 putPortionBPS = (_repayPutAmount * BPS) / account.shortPutAmount;
+            uint256 callPortionBPS = (repayCallAmount * BPS) / account.shortCallAmount;
+            uint256 putPortionBPS = (repayPutAmount * BPS) / account.shortPutAmount;
             if (callPortionBPS != putPortionBPS) revert MA_WrongRepayAmounts();
             portionBPS = callPortionBPS;
         } else if (hasShortCall) {
             // account only short call
-            if (_repayPutAmount != 0) revert MA_WrongRepayAmounts();
-            portionBPS = (_repayCallAmount * BPS) / account.shortCallAmount;
+            if (repayPutAmount != 0) revert MA_WrongRepayAmounts();
+            portionBPS = (repayCallAmount * BPS) / account.shortCallAmount;
         } else {
             // if account is underwater, it must have shortCall or shortPut. in this branch it will sure have shortPutAmount > 0;
             // account only short put
-            if (_repayCallAmount != 0) revert MA_WrongRepayAmounts();
-            portionBPS = (_repayPutAmount * BPS) / account.shortPutAmount;
+            if (repayCallAmount != 0) revert MA_WrongRepayAmounts();
+            portionBPS = (repayPutAmount * BPS) / account.shortPutAmount;
         }
 
         // update account's debt and perform "safe" external calls
         if (hasShortCall) {
-            
-            account.burnOption(account.shortCallId, _repayCallAmount);
+            account.burnOption(account.shortCallId, uint64(repayCallAmount));
         }
         if (hasShortPut) {
-            
             // cacheShortPutId = account.shortPutId;
-            account.burnOption(account.shortPutId, _repayPutAmount);
+            account.burnOption(account.shortPutId, uint64(repayPutAmount));
         }
 
         // update account's collateral
-        address collateral = grappa.assets(account.collateralId);
+        // address collateral = grappa.assets(account.collateralId);
         uint80 collateralToPay = uint80((account.collateralAmount * portionBPS) / BPS);
         // if liquidator is trying to remove more collateral than owned, this line will revert
         account.removeCollateral(collateralToPay);
@@ -151,65 +155,66 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
         // write new accout to storage
         marginAccounts[_subAccount] = account;
 
-        // extenal calls: transfer collateral
-        IERC20(collateral).safeTransfer(msg.sender, collateralToPay);
+        uint8[] memory ids = new uint8[](1);
+        uint80[] memory amounts = new uint80[](1);
+
+        ids[0] = account.collateralId;
+        amounts[0] = collateralToPay;
+
+        return (ids, amounts);
     }
 
-    /**
-     * @notice  alternative to liquidation:
-     *          take over someone else's underwater account, top up collateral to make it healthy.
-     *          effectively equivalent to mint + liquidate + add back collateral got from liquidation
-     * @dev     expected to be called by liquidators
-     * @param _subAccountToTakeOver account id to be moved
-     * @param _newSubAccount new acount Id which will be linked to the margin account structure
-     * @param _additionalCollateral additional collateral to top up
-     */
-    function takeoverPosition(
-        address _subAccountToTakeOver,
-        address _newSubAccount,
-        uint80 _additionalCollateral
-    ) external {
-        Account memory account = marginAccounts[_subAccountToTakeOver];
-        if (_isAccountHealthy(account)) revert MA_AccountIsHealthy();
+    // /**
+    //  * @notice  alternative to liquidation:
+    //  *          take over someone else's underwater account, top up collateral to make it healthy.
+    //  *          effectively equivalent to mint + liquidate + add back collateral got from liquidation
+    //  * @dev     expected to be called by liquidators
+    //  * @param _subAccountToTakeOver account id to be moved
+    //  * @param _newSubAccount new acount Id which will be linked to the margin account structure
+    //  * @param _additionalCollateral additional collateral to top up
+    //  */
+    // function takeoverPosition(
+    //     address _subAccountToTakeOver,
+    //     address _newSubAccount,
+    //     uint80 _additionalCollateral
+    // ) external {
+    //     Account memory account = marginAccounts[_subAccountToTakeOver];
+    //     if (_isAccountHealthy(account)) revert MA_AccountIsHealthy();
 
-        // make sure caller has access to the new account id.
-        _assertCallerHasAccess(_newSubAccount);
+    //     // make sure caller has access to the new account id.
+    //     _assertCallerHasAccess(_newSubAccount);
 
-        // update account structure.
-        account.addCollateral(_additionalCollateral, account.collateralId);
+    //     // update account structure.
+    //     account.addCollateral(_additionalCollateral, account.collateralId);
 
-        _assertAccountHealth(account);
+    //     _assertAccountHealth(account);
 
-        // migrate account storage: delete the old entry and write "account" to new account id
-        delete marginAccounts[_subAccountToTakeOver];
+    //     // migrate account storage: delete the old entry and write "account" to new account id
+    //     delete marginAccounts[_subAccountToTakeOver];
 
-        if (!marginAccounts[_newSubAccount].isEmpty()) revert MA_AccountIsNotEmpty();
-        marginAccounts[_newSubAccount] = account;
+    //     if (!marginAccounts[_newSubAccount].isEmpty()) revert MA_AccountIsNotEmpty();
+    //     marginAccounts[_newSubAccount] = account;
 
-        // perform external calls
-        address collateral = grappa.assets(account.collateralId);
-        IERC20(collateral).safeTransferFrom(msg.sender, address(this), _additionalCollateral);
-    }
+    //     // perform external calls
+    //     address collateral = grappa.assets(account.collateralId);
+    //     IERC20(collateral).safeTransferFrom(msg.sender, address(this), _additionalCollateral);
+    // }
 
-    /**
-     * @notice  top up an account
-     * @dev     expected to be call by account owner
-     * @param   _subAccount sub account id to top up
-     * @param   _collateralAmount sub account id to top up
-     */
-    function topUp(address _subAccount, uint80 _collateralAmount) external {
-        Account memory account = marginAccounts[_subAccount];
-        // update account structure.
-        account.addCollateral(_collateralAmount, account.collateralId);
-        // store account object
-        marginAccounts[_subAccount] = account;
-        // external calls
-        IERC20(grappa.assets(account.collateralId)).safeTransferFrom(
-            msg.sender,
-            address(this),
-            _collateralAmount
-        );
-    }
+    // /**
+    //  * @notice  top up an account
+    //  * @dev     expected to be call by account owner
+    //  * @param   _subAccount sub account id to top up
+    //  * @param   _collateralAmount sub account id to top up
+    //  */
+    // function topUp(address _subAccount, uint80 _collateralAmount) external {
+    //     Account memory account = marginAccounts[_subAccount];
+    //     // update account structure.
+    //     account.addCollateral(_collateralAmount, account.collateralId);
+    //     // store account object
+    //     marginAccounts[_subAccount] = account;
+    //     // external calls
+    //     IERC20(grappa.assets(account.collateralId)).safeTransferFrom(msg.sender, address(this), _collateralAmount);
+    // }
 
     /**
      * @notice  move an account to someone else
@@ -272,13 +277,9 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
 
         if (block.timestamp < expiry) revert MA_NotExpired();
 
-        (
-            ,
-            address underlying,
-            address strike,
-            address collateral,
-            uint8 collatDecimals
-        ) = getAssetsFromProductId(productId);
+        (, address underlying, address strike, address collateral, uint8 collatDecimals) = getAssetsFromProductId(
+            productId
+        );
 
         // cash value denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
         uint256 cashValue;
@@ -425,7 +426,7 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
      * @notice  settle the margin account at expiry
      * @dev     this update the account memory in-place
      */
-    function settleAtExpiry(address _subAccount) external returns (uint256 payout) {
+    function settleAtExpiry(address _subAccount) external {
         // clear the debt in account, and deduct the collateral with reservedPayout
         // this will NOT revert even if account has less collateral than it should have reserved for payout.
         // todo: only grappa
@@ -513,8 +514,7 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
      */
     function _getPayoutFromAccount(Account memory _account) internal view returns (uint80 reservedPayout) {
         (uint256 callPayout, uint256 putPayout) = (0, 0);
-        if (_account.shortCallAmount > 0)
-            (, callPayout) = getPayout(_account.shortCallId, _account.shortCallAmount);
+        if (_account.shortCallAmount > 0) (, callPayout) = getPayout(_account.shortCallId, _account.shortCallAmount);
         if (_account.shortPutAmount > 0) (, putPayout) = getPayout(_account.shortPutId, _account.shortPutAmount);
         return uint80(callPayout + putPayout);
     }

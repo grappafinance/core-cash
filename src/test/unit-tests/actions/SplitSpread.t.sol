@@ -30,7 +30,7 @@ contract TestSplitCallSpread is Fixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
-        grappa.execute(address(this), actions);
+        grappa.execute(address(this), engineId, actions);
     }
 
     function testSplitCallSpread() public {
@@ -38,10 +38,10 @@ contract TestSplitCallSpread is Fixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createSplitAction(TokenType.CALL_SPREAD, address(this));
         actions[1] = createAddCollateralAction(usdcId, address(this), depositAmount * 5); // will need to add collateral
-        grappa.execute(address(this), actions);
+        grappa.execute(address(this), engineId, actions);
 
         // check result
-        (uint256 shortCallId, , , , , ) = grappa.marginAccounts(address(this));
+        (uint256 shortCallId, , , , , ) = marginEngine.marginAccounts(address(this));
         (TokenType tokenType, , , uint64 longStrike, uint64 shortStrike) = parseTokenId(shortCallId);
 
         assertEq(uint8(tokenType), uint8(TokenType.CALL));
@@ -54,7 +54,7 @@ contract TestSplitCallSpread is Fixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createSplitAction(TokenType.CALL_SPREAD, address(this));
         actions[1] = createAddCollateralAction(usdcId, address(this), depositAmount * 5); // will need to add collateral
-        grappa.execute(address(this), actions);
+        grappa.execute(address(this), engineId, actions);
 
         // check result
         uint256 expectedTokenId = getTokenId(TokenType.CALL, productId, expiry, strikePriceHigh, 0);
@@ -68,7 +68,7 @@ contract TestSplitCallSpread is Fixture {
         actions[0] = createSplitAction(TokenType.CALL_SPREAD, address(this));
 
         vm.expectRevert(MA_AccountUnderwater.selector);
-        grappa.execute(address(this), actions);
+        grappa.execute(address(this), engineId, actions);
     }
 }
 
@@ -93,7 +93,7 @@ contract TestSplitPutSpread is Fixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
-        grappa.execute(address(this), actions);
+        grappa.execute(address(this), engineId, actions);
     }
 
     function testSplitPutSpread() public {
@@ -101,10 +101,10 @@ contract TestSplitPutSpread is Fixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createSplitAction(TokenType.PUT_SPREAD, address(this));
         actions[1] = createAddCollateralAction(usdcId, address(this), depositAmount * 5); // will need to add collateral
-        grappa.execute(address(this), actions);
+        grappa.execute(address(this), engineId, actions);
 
         // check result
-        (, uint256 shortPutId, , , , ) = grappa.marginAccounts(address(this));
+        (, uint256 shortPutId, , , , ) = marginEngine.marginAccounts(address(this));
         (TokenType tokenType, , , uint64 longStrike, uint64 shortStrike) = parseTokenId(shortPutId);
 
         assertEq(uint8(tokenType), uint8(TokenType.PUT));
@@ -117,7 +117,7 @@ contract TestSplitPutSpread is Fixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createSplitAction(TokenType.PUT_SPREAD, address(this));
         actions[1] = createAddCollateralAction(usdcId, address(this), depositAmount * 5); // will need to add collateral
-        grappa.execute(address(this), actions);
+        grappa.execute(address(this), engineId, actions);
 
         // check result
         uint256 expectedTokenId = getTokenId(TokenType.PUT, productId, expiry, strikePriceLow, 0);
@@ -131,6 +131,6 @@ contract TestSplitPutSpread is Fixture {
         actions[0] = createSplitAction(TokenType.PUT_SPREAD, address(this));
 
         vm.expectRevert(MA_AccountUnderwater.selector);
-        grappa.execute(address(this), actions);
+        grappa.execute(address(this), engineId, actions);
     }
 }

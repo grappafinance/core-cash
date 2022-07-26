@@ -24,7 +24,7 @@ contract OwnerConfiguration is Fixture {
         uint32 rLower = uint32(UNIT);
         uint32 volMultiplier = uint32(UNIT);
 
-        grappa.setProductMarginConfig(productId, dUpper, dLower, rUpper, rLower, volMultiplier);
+        marginEngine.setProductMarginConfig(productId, dUpper, dLower, rUpper, rLower, volMultiplier);
 
         // test effect
         (
@@ -35,7 +35,7 @@ contract OwnerConfiguration is Fixture {
             uint32 _rUpper,
             uint32 _rLower,
             uint32 _volMultiplier
-        ) = grappa.productParams(productId);
+        ) = marginEngine.productParams(productId);
 
         assertEq(_dUpper, dUpper);
         assertEq(_dLower, dLower);
@@ -55,15 +55,15 @@ contract OwnerConfiguration is Fixture {
         uint32 rLower = uint32(UNIT / 10);
         uint32 volMultiplier = 1300000; // 130%
 
-        vm.expectEmit(false, false, false, true, address(grappa));
+        vm.expectEmit(false, false, false, true, address(marginEngine));
         emit ProductConfigurationUpdated(productId, dUpper, dLower, rUpper, rLower, volMultiplier);
-        grappa.setProductMarginConfig(productId, dUpper, dLower, rUpper, rLower, volMultiplier);
+        marginEngine.setProductMarginConfig(productId, dUpper, dLower, rUpper, rLower, volMultiplier);
     }
 
     function testCannotUpdateProductConfigFromNonOwner() public {
         vm.startPrank(alice);
         vm.expectRevert("Ownable: caller is not the owner");
-        grappa.setProductMarginConfig(productId, 0, 0, uint32(UNIT), uint32(UNIT), uint32(UNIT));
+        marginEngine.setProductMarginConfig(productId, 0, 0, uint32(UNIT), uint32(UNIT), uint32(UNIT));
         vm.stopPrank();
     }
 }

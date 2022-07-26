@@ -11,89 +11,89 @@ import "../../config/errors.sol";
 
 import "forge-std/console2.sol";
 
-contract TestTakeoverPosition is Fixture {
-    uint256 public expiry;
+// contract TestTakeoverPosition is Fixture {
+//     uint256 public expiry;
 
-    uint64 private amount = uint64(1 * UNIT);
-    uint256 private tokenId;
-    uint64 private strike;
-    uint256 private initialCollateral;
+//     uint64 private amount = uint64(1 * UNIT);
+//     uint256 private tokenId;
+//     uint64 private strike;
+//     uint256 private initialCollateral;
 
-    address private accountId;
+//     address private accountId;
 
-    function setUp() public {
-        usdc.mint(address(this), 1000_000 * 1e6);
-        usdc.approve(address(grappa), type(uint256).max);
+//     function setUp() public {
+//         usdc.mint(address(this), 1000_000 * 1e6);
+//         usdc.approve(address(grappa), type(uint256).max);
 
-        // setup account for alice
-        vm.startPrank(alice);
-        usdc.mint(alice, 1000_000 * 1e6);
+//         // setup account for alice
+//         vm.startPrank(alice);
+//         usdc.mint(alice, 1000_000 * 1e6);
 
-        usdc.approve(address(grappa), type(uint256).max);
+//         usdc.approve(address(grappa), type(uint256).max);
 
-        expiry = block.timestamp + 7 days;
+//         expiry = block.timestamp + 7 days;
 
-        oracle.setSpotPrice(address(weth), 3500 * UNIT);
+//         oracle.setSpotPrice(address(weth), 3500 * UNIT);
 
-        // mint option
-        initialCollateral = 500 * 1e6;
+//         // mint option
+//         initialCollateral = 500 * 1e6;
 
-        strike = uint64(4000 * UNIT);
+//         strike = uint64(4000 * UNIT);
 
-        accountId = alice;
+//         accountId = alice;
 
-        tokenId = getTokenId(TokenType.CALL, productId, expiry, strike, 0);
-        ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createAddCollateralAction(usdcId, alice, initialCollateral);
-        actions[1] = createMintAction(tokenId, alice, amount);
+//         tokenId = getTokenId(TokenType.CALL, productId, expiry, strike, 0);
+//         ActionArgs[] memory actions = new ActionArgs[](2);
+//         actions[0] = createAddCollateralAction(usdcId, alice, initialCollateral);
+//         actions[1] = createMintAction(tokenId, alice, amount);
 
-        // mint option
-        grappa.execute(accountId, actions);
+//         // mint option
+//         grappa.execute(accountId, engineId, actions);
 
-        vm.stopPrank();
-    }
+//         vm.stopPrank();
+//     }
 
-    function testCannotTakeoverHealthyVault() public {
-        vm.expectRevert(MA_AccountIsHealthy.selector);
-        grappa.takeoverPosition(accountId, address(this), 0);
-    }
+//     function testCannotTakeoverHealthyVault() public {
+//         vm.expectRevert(MA_AccountIsHealthy.selector);
+//         marginEngine.takeoverPosition(accountId, address(this), 0);
+//     }
 
-    function testCannotTakeoverPositionWithoutPayingCollateral() public {
-        oracle.setSpotPrice(address(weth), 3800 * UNIT);
+//     function testCannotTakeoverPositionWithoutPayingCollateral() public {
+//         oracle.setSpotPrice(address(weth), 3800 * UNIT);
 
-        vm.expectRevert(MA_AccountUnderwater.selector);
-        grappa.takeoverPosition(accountId, address(this), 0);
-    }
+//         vm.expectRevert(MA_AccountUnderwater.selector);
+//         marginEngine.takeoverPosition(accountId, address(this), 0);
+//     }
 
-    function testCannotTakeoverPositionWithoutPayingEnoughCollateral() public {
-        oracle.setSpotPrice(address(weth), 3800 * UNIT);
+//     function testCannotTakeoverPositionWithoutPayingEnoughCollateral() public {
+//         oracle.setSpotPrice(address(weth), 3800 * UNIT);
 
-        vm.expectRevert(MA_AccountUnderwater.selector);
-        grappa.takeoverPosition(accountId, address(this), uint80(50 * 1e6));
-    }
+//         vm.expectRevert(MA_AccountUnderwater.selector);
+//         marginEngine.takeoverPosition(accountId, address(this), uint80(50 * 1e6));
+//     }
 
-    function testTakeoverPosition() public {
-        oracle.setSpotPrice(address(weth), 3800 * UNIT);
+//     function testTakeoverPosition() public {
+//         oracle.setSpotPrice(address(weth), 3800 * UNIT);
 
-        uint80 tapUpAmount = 300 * 1e6;
+//         uint80 tapUpAmount = 300 * 1e6;
 
-        grappa.takeoverPosition(accountId, address(this), tapUpAmount);
+//         marginEngine.takeoverPosition(accountId, address(this), tapUpAmount);
 
-        // old margin account should be reset
-        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAmount, uint8 collateralId) = grappa
-            .marginAccounts(accountId);
+//         // old margin account should be reset
+//         (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAmount, uint8 collateralId) = marginEngine
+//             .marginAccounts(accountId);
 
-        assertEq(shortCallId, 0);
-        assertEq(shortCallAmount, 0);
-        assertEq(collateralAmount, 0);
-        assertEq(collateralId, 0);
+//         assertEq(shortCallId, 0);
+//         assertEq(shortCallAmount, 0);
+//         assertEq(collateralAmount, 0);
+//         assertEq(collateralId, 0);
 
-        // new margin account should be updated
-        (shortCallId, , shortCallAmount, , collateralAmount, collateralId) = grappa.marginAccounts(address(this));
+//         // new margin account should be updated
+//         (shortCallId, , shortCallAmount, , collateralAmount, collateralId) = marginEngine.marginAccounts(address(this));
 
-        assertEq(shortCallId, tokenId);
-        assertEq(shortCallAmount, amount);
-        assertEq(collateralAmount, initialCollateral + tapUpAmount);
-        assertEq(collateralId, usdcId);
-    }
-}
+//         assertEq(shortCallId, tokenId);
+//         assertEq(shortCallAmount, amount);
+//         assertEq(collateralAmount, initialCollateral + tapUpAmount);
+//         assertEq(collateralId, usdcId);
+//     }
+// }

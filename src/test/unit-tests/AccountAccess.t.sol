@@ -53,7 +53,7 @@ contract SimpleMarginEngineAccessTest is Fixture {
 
     function testTransferAccount() public {
         vm.startPrank(alice);
-        grappa.transferAccount(subAccountIdToModify, address(this));
+        marginEngine.transferAccount(subAccountIdToModify, address(this));
         vm.stopPrank();
 
         // can access subaccount!
@@ -66,7 +66,7 @@ contract SimpleMarginEngineAccessTest is Fixture {
 
         vm.startPrank(alice);
         vm.expectRevert(MA_AccountIsNotEmpty.selector);
-        grappa.transferAccount(subAccountIdToModify, address(this));
+        marginEngine.transferAccount(subAccountIdToModify, address(this));
         vm.stopPrank();
     }
 
@@ -77,6 +77,6 @@ contract SimpleMarginEngineAccessTest is Fixture {
 
         if (!_canAccess) vm.expectRevert(NoAccess.selector);
 
-        grappa.execute(subAccountId, actions);
+        grappa.execute(subAccountId, engineId, actions);
     }
 }

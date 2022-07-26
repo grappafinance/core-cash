@@ -43,7 +43,7 @@ contract Grappa is ReentrancyGuard, Settlement {
     ///     every account can authorize any amount of addresses to modify all sub-accounts he controls.
     mapping(uint160 => mapping(address => bool)) public authorized;
 
-    constructor(address _optionToken, address _oracle) Settlement(_optionToken) {}
+    constructor(address _optionToken) Settlement(_optionToken) {}
 
     /*///////////////////////////////////////////////////////////////
                                   Events
@@ -92,6 +92,28 @@ contract Grappa is ReentrancyGuard, Settlement {
             }
         }
         _assertAccountHealth(engine, _subAccount);
+    }
+
+    function liquidate(
+        address _engine,
+        address _subAccount,
+        uint256[] memory _tokensToBurn,
+        uint256[] memory _amountsToBurn
+    ) external {
+        (uint8[] memory collateralIds, uint80[] memory amountsToPay) = IMarginEngine(_engine).liquidate(
+            _subAccount,
+            _tokensToBurn,
+            _amountsToBurn
+        );
+        optionToken.batchBurn(msg.sender, _tokensToBurn, _amountsToBurn);
+
+        for (uint256 i; i < collateralIds.length; ) {
+            // send collatearl to liquidator
+            IERC20(assets[collateralIds[i]].addr).safeTransfer(msg.sender, amountsToPay[i]);
+            unchecked {
+                i++;
+            }
+        }
     }
 
     /**

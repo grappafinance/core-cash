@@ -36,7 +36,13 @@ interface IMarginEngine {
 
     function split(address _subAccount, TokenType tokenType) external returns (uint256 optionId, uint64 mintAmount);
 
-    function settleAtExpiry(address _subAccount) external returns (uint256 payout);
+    function liquidate(
+        address _subAccount,
+        uint256[] memory tokensToBurn,
+        uint256[] memory amountsToBurn
+    ) external returns (uint8[] memory collateralIds, uint80[] memory amountsToPay);
+
+    function settleAtExpiry(address _subAccount) external;
 
     function getPayout(uint256 tokenId, uint64 amount) external view returns (address collateral, uint256 payout);
 }
