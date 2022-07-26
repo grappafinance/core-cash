@@ -49,12 +49,12 @@ jobs:
       - name: Install dependencies
         run: forge install
         
-      - name: Run Slither on SimpleMargin
+      - name: Run Slither on SimpleMarginEngine
         uses: crytic/slither-action@main
         continue-on-error: true
         id: slither
         with:
-          target: "src/core/SimpleMargin"
+          target: "src/core/engines/SimpleMarginEngine"
           slither-config: "slither.config.json"
           solc-version: 0.8.13
           sarif: results.sarif
