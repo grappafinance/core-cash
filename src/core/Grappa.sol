@@ -109,7 +109,8 @@ contract Grappa is ReentrancyGuard, Settlement {
 
         for (uint256 i; i < collateralIds.length; ) {
             // send collatearl to liquidator
-            IERC20(assets[collateralIds[i]].addr).safeTransfer(msg.sender, amountsToPay[i]);
+            address asset = assets[collateralIds[i]].addr;
+            if (asset != address(0)) IERC20(asset).safeTransfer(msg.sender, amountsToPay[i]);
             unchecked {
                 i++;
             }
@@ -131,8 +132,8 @@ contract Grappa is ReentrancyGuard, Settlement {
      *                 * -------------------- *                    *
      *                 |  Actions  Functions  |                    *
      *                 * -------------------- *                    *
-     *    These functions all update account struct memory and     *
-     *    deal with burning / minting or transfering collateral    *
+     *    These functions all call engine to update account info   *
+     *    & deal with burning / minting or transfering collateral  *
      ** ========================================================= **/
 
     /**

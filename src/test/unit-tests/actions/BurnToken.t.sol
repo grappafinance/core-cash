@@ -93,7 +93,7 @@ contract TestBurnCall is Fixture {
         // build args: burn and remove collateral
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createBurnAction(tokenId, address(this), amount);
-        actions[1] = createRemoveCollateralAction(amount, address(this));
+        actions[1] = createRemoveCollateralAction(amount, usdcId, address(this));
 
         // exeucte
         grappa.execute(address(this), engineId, actions);

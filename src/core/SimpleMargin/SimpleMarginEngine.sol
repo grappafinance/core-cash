@@ -149,16 +149,17 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
         // update account's collateral
         // address collateral = grappa.assets(account.collateralId);
         uint80 collateralToPay = uint80((account.collateralAmount * portionBPS) / BPS);
+
+        uint8[] memory ids = new uint8[](1);
+        ids[0] = account.collateralId;
+
         // if liquidator is trying to remove more collateral than owned, this line will revert
         account.removeCollateral(collateralToPay);
 
         // write new accout to storage
         marginAccounts[_subAccount] = account;
 
-        uint8[] memory ids = new uint8[](1);
         uint80[] memory amounts = new uint80[](1);
-
-        ids[0] = account.collateralId;
         amounts[0] = collateralToPay;
 
         return (ids, amounts);
