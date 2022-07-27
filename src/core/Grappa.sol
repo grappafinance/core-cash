@@ -34,7 +34,7 @@ import "../config/errors.sol";
             Interacts with OptionToken to mint / burn.
  */
 contract Grappa is ReentrancyGuard, Settlement {
-    using SimpleMarginMath for SimpleMarginEngineDetail;
+    using SimpleMarginMath for SimpleMarginDetail;
     using SimpleMarginLib for Account;
     using SafeERC20 for IERC20;
 

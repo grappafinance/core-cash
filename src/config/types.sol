@@ -36,7 +36,7 @@ struct Account {
  * @param collateralAmount  amount of collateral in its native token decimal
  * @param productId         uint32 number representing the productId. 
  */
-struct SimpleMarginEngineDetail {
+struct SimpleMarginDetail {
     uint256 callAmount;
     uint256 putAmount;
     uint256 longCallStrike;

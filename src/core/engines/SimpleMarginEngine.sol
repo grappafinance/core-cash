@@ -33,7 +33,7 @@ import "../../config/errors.sol";
             Interacts with Oracle to read spot price for assets and vol.
  */
 contract SimpleMarginEngine is IMarginEngine, Ownable {
-    using SimpleMarginMath for SimpleMarginEngineDetail;
+    using SimpleMarginMath for SimpleMarginDetail;
     using SimpleMarginLib for Account;
     using SafeERC20 for IERC20;
     using FixedPointMathLib for uint256;
@@ -83,7 +83,7 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
      */
     function getMinCollateral(address _subAccount) external view returns (uint256 minCollateral) {
         Account memory account = marginAccounts[_subAccount];
-        SimpleMarginEngineDetail memory detail = _getAccountDetail(account);
+        SimpleMarginDetail memory detail = _getAccountDetail(account);
 
         minCollateral = _getMinCollateral(detail);
     }
@@ -470,7 +470,7 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
      * @return isHealthy true if account is in good condition, false if it's liquidatable
      */
     function _isAccountHealthy(Account memory account) internal view returns (bool isHealthy) {
-        SimpleMarginEngineDetail memory detail = _getAccountDetail(account);
+        SimpleMarginDetail memory detail = _getAccountDetail(account);
         uint256 minCollateral = _getMinCollateral(detail);
         isHealthy = account.collateralAmount >= minCollateral;
     }
@@ -480,7 +480,7 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
      * @param detail account memory dtail
      * @return minCollateral minimum collateral required, in collateral asset's decimals
      */
-    function _getMinCollateral(SimpleMarginEngineDetail memory detail) internal view returns (uint256 minCollateral) {
+    function _getMinCollateral(SimpleMarginDetail memory detail) internal view returns (uint256 minCollateral) {
         ProductAssets memory product = _getProductAssets(detail.productId);
 
         // read spot price of the product, denominated in {UNIT_DECIMALS}.
@@ -521,8 +521,8 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
     /**
      * @notice  convert Account struct from storage to in-memory detail struct
      */
-    function _getAccountDetail(Account memory account) internal pure returns (SimpleMarginEngineDetail memory detail) {
-        detail = SimpleMarginEngineDetail({
+    function _getAccountDetail(Account memory account) internal pure returns (SimpleMarginDetail memory detail) {
+        detail = SimpleMarginDetail({
             putAmount: account.shortPutAmount,
             callAmount: account.shortCallAmount,
             longPutStrike: 0,
@@ -564,9 +564,8 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
      * @dev get a struct that stores all relevent token addresses, along with collateral asset decimals
      */
     function _getProductAssets(uint32 _productId) internal view returns (ProductAssets memory info) {
-        (, address underlying, address strike, address collateral, uint8 collatDecimals) = grappa.getAssetsFromProductId(
-            _productId
-        );
+        (, address underlying, address strike, address collateral, uint8 collatDecimals) = grappa
+            .getAssetsFromProductId(_productId);
         info.underlying = underlying;
         info.strike = strike;
         info.collateral = collateral;
