@@ -328,7 +328,6 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
         uint80 _amount,
         uint8 _collateralId
     ) external {
-
         _assertCallerIsGrappa();
 
         Account memory account = marginAccounts[_subAccount];
@@ -347,7 +346,6 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
         uint8, /*_collateralId*/
         uint80 _amount
     ) external {
-
         _assertCallerIsGrappa();
 
         Account memory account = marginAccounts[_subAccount];
@@ -368,7 +366,7 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
         uint64 _amount
     ) external {
         _assertCallerIsGrappa();
-        
+
         Account memory account = marginAccounts[_subAccount];
 
         // update the account structure in memory
@@ -387,9 +385,8 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
         uint256 _optionId,
         uint64 _amount
     ) external {
-
         _assertCallerIsGrappa();
-        
+
         Account memory account = marginAccounts[_subAccount];
 
         // update the account structure in memory
