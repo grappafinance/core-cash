@@ -278,13 +278,13 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
 
         if (block.timestamp < expiry) revert MA_NotExpired();
 
-        ProductAssets memory productAssets = _getProductAssets(productId);
+        ProductAssets memory product = _getProductAssets(productId);
 
         // cash value denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
         uint256 cashValue;
 
         // expiry price of underlying, denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
-        uint256 expiryPrice = oracle.getPriceAtExpiry(productAssets.underlying, productAssets.strike, expiry);
+        uint256 expiryPrice = oracle.getPriceAtExpiry(product.underlying, product.strike, expiry);
 
         if (tokenType == TokenType.CALL) {
             cashValue = SimpleMarginMath.getCallCashValue(expiryPrice, longStrike);
@@ -300,24 +300,23 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
         payout = cashValue.mulDivDown(_amount, UNIT);
 
         // the following logic convert payout amount if collateral is not strike:
-        if (productAssets.collateral == productAssets.underlying) {
+        if (product.collateral == product.underlying) {
             // collateral is underlying. payout should be devided by underlying price
             payout = payout.mulDivDown(UNIT, expiryPrice);
-        } else if (productAssets.collateral != productAssets.strike) {
+        } else if (product.collateral != product.strike) {
             // collateral is not underlying nor strike
-            uint256 collateralPrice = oracle.getPriceAtExpiry(productAssets.collateral, productAssets.strike, expiry);
+            uint256 collateralPrice = oracle.getPriceAtExpiry(product.collateral, product.strike, expiry);
             payout = payout.mulDivDown(UNIT, collateralPrice);
         }
 
-        return (productAssets.collateral, _convertDecimals(payout, UNIT_DECIMALS, productAssets.collateralDecimals));
+        return (product.collateral, _convertDecimals(payout, UNIT_DECIMALS, product.collateralDecimals));
     }
 
     /** ========================================================= **
      *                 * -------------------- *                    *
      *                 |  Actions  Functions  |                    *
      *                 * -------------------- *                    *
-     *    These functions all update account struct memory and     *
-     *    deal with burning / minting or transfering collateral    *
+     *       These functions all update account storages           *
      ** ========================================================= **/
 
     /**
@@ -329,7 +328,9 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
         uint80 _amount,
         uint8 _collateralId
     ) external {
-        // todo: only grappa
+
+        _assertCallerIsGrappa();
+
         Account memory account = marginAccounts[_subAccount];
 
         // update the account structure in memory
@@ -346,7 +347,9 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
         uint8, /*_collateralId*/
         uint80 _amount
     ) external {
-        // todo: only grappa
+
+        _assertCallerIsGrappa();
+
         Account memory account = marginAccounts[_subAccount];
 
         // update the account structure in memory
@@ -364,7 +367,8 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
         uint256 _optionId,
         uint64 _amount
     ) external {
-        // todo: only grappa
+        _assertCallerIsGrappa();
+        
         Account memory account = marginAccounts[_subAccount];
 
         // update the account structure in memory
@@ -383,7 +387,9 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
         uint256 _optionId,
         uint64 _amount
     ) external {
-        // todo: only grappa
+
+        _assertCallerIsGrappa();
+        
         Account memory account = marginAccounts[_subAccount];
 
         // update the account structure in memory
@@ -398,7 +404,8 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
             the option has to be provided by either caller, or the primary owner of subaccount
      */
     function merge(address _subAccount, uint256 _optionId) external returns (uint64 burnAmount) {
-        // todo: only grappa
+        _assertCallerIsGrappa();
+
         Account memory account = marginAccounts[_subAccount];
 
         // update the account
@@ -412,7 +419,8 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
      * @dev Change existing spread position to short, and mint option token for recipient
      */
     function split(address _subAccount, TokenType tokenType) external returns (uint256 optionId, uint64 mintAmount) {
-        // todo: only grappa
+        _assertCallerIsGrappa();
+
         Account memory account = marginAccounts[_subAccount];
 
         // update the account
@@ -428,7 +436,8 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
     function settleAtExpiry(address _subAccount) external {
         // clear the debt in account, and deduct the collateral with reservedPayout
         // this will NOT revert even if account has less collateral than it should have reserved for payout.
-        // todo: only grappa
+        _assertCallerIsGrappa();
+
         Account memory account = marginAccounts[_subAccount];
 
         uint80 reservedPayout = _getPayoutFromAccount(account);
@@ -448,6 +457,13 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
      */
     function _isPrimaryAccountFor(address _primary, address _subAccount) internal pure returns (bool) {
         return (uint160(_primary) | 0xFF) == (uint160(_subAccount) | 0xFF);
+    }
+
+    /**
+     * @notice revert if called by non-grappa controller
+     */
+    function _assertCallerIsGrappa() internal view {
+        if (msg.sender != address(grappa)) revert NoAccess();
     }
 
     /**
