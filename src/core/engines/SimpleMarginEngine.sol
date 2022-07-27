@@ -278,15 +278,13 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
 
         if (block.timestamp < expiry) revert MA_NotExpired();
 
-        (, address underlying, address strike, address collateral, uint8 collatDecimals) = getAssetsFromProductId(
-            productId
-        );
+        ProductAssets memory productAssets = _getProductAssets(productId);
 
         // cash value denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
         uint256 cashValue;
 
         // expiry price of underlying, denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
-        uint256 expiryPrice = oracle.getPriceAtExpiry(underlying, strike, expiry);
+        uint256 expiryPrice = oracle.getPriceAtExpiry(productAssets.underlying, productAssets.strike, expiry);
 
         if (tokenType == TokenType.CALL) {
             cashValue = SimpleMarginMath.getCallCashValue(expiryPrice, longStrike);
@@ -302,16 +300,16 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
         payout = cashValue.mulDivDown(_amount, UNIT);
 
         // the following logic convert payout amount if collateral is not strike:
-        if (collateral == underlying) {
+        if (productAssets.collateral == productAssets.underlying) {
             // collateral is underlying. payout should be devided by underlying price
             payout = payout.mulDivDown(UNIT, expiryPrice);
-        } else if (collateral != strike) {
+        } else if (productAssets.collateral != productAssets.strike) {
             // collateral is not underlying nor strike
-            uint256 collateralPrice = oracle.getPriceAtExpiry(collateral, strike, expiry);
+            uint256 collateralPrice = oracle.getPriceAtExpiry(productAssets.collateral, productAssets.strike, expiry);
             payout = payout.mulDivDown(UNIT, collateralPrice);
         }
 
-        return (collateral, _convertDecimals(payout, UNIT_DECIMALS, collatDecimals));
+        return (productAssets.collateral, _convertDecimals(payout, UNIT_DECIMALS, productAssets.collateralDecimals));
     }
 
     /** ========================================================= **
@@ -566,7 +564,7 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
      * @dev get a struct that stores all relevent token addresses, along with collateral asset decimals
      */
     function _getProductAssets(uint32 _productId) internal view returns (ProductAssets memory info) {
-        (, address underlying, address strike, address collateral, uint8 collatDecimals) = getAssetsFromProductId(
+        (, address underlying, address strike, address collateral, uint8 collatDecimals) = grappa.getAssetsFromProductId(
             _productId
         );
         info.underlying = underlying;
@@ -604,19 +602,5 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
             }
             return _amount * (10**diff);
         }
-    }
-
-    function getAssetsFromProductId(uint32 _productId)
-        internal
-        view
-        returns (
-            address marginEngine,
-            address underlying,
-            address strike,
-            address collateral,
-            uint8 collateralDecimals
-        )
-    {
-        return grappa.getAssetsFromProductId(_productId);
     }
 }

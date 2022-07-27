@@ -297,17 +297,4 @@ contract Grappa is ReentrancyGuard, Settlement {
     function _assertAccountHealth(address engine, address _subAccount) internal view {
         if (!IMarginEngine(engine).isAccountHealthy(_subAccount)) revert MA_AccountUnderwater();
     }
-
-    /**
-     * @notice  return amount of collateral that should be reserved to payout long positions
-     * @dev     this function will revert when called before expiry
-     * @param _account account memory
-     */
-    function _getPayoutFromAccount(Account memory _account) internal view returns (uint80 reservedPayout) {
-        (uint256 callPayout, uint256 putPayout) = (0, 0);
-        if (_account.shortCallAmount > 0)
-            (, callPayout) = getOptionPayout(_account.shortCallId, _account.shortCallAmount);
-        if (_account.shortPutAmount > 0) (, putPayout) = getOptionPayout(_account.shortPutId, _account.shortPutAmount);
-        return uint80(callPayout + putPayout);
-    }
 }
