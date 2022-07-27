@@ -13,10 +13,11 @@ import {IOptionToken} from "../interfaces/IOptionToken.sol";
 import {IMarginEngine} from "../interfaces/IMarginEngine.sol";
 
 // inheriting contract
-import {Settlement} from "./Settlement.sol";
+import {Registry} from "./Registry.sol";
 
 // librarise
 import {TokenIdUtil} from "../libraries/TokenIdUtil.sol";
+import {ProductIdUtil} from "../libraries/ProductIdUtil.sol";
 import {SimpleMarginMath} from "./engines/libraries/SimpleMarginMath.sol";
 import {SimpleMarginLib} from "./engines/libraries/SimpleMarginLib.sol";
 
@@ -33,7 +34,7 @@ import "../config/errors.sol";
             Interacts with different MarginEngines to mint optionTokens.
             Interacts with OptionToken to mint / burn.
  */
-contract Grappa is ReentrancyGuard, Settlement {
+contract Grappa is ReentrancyGuard, Registry {
     using SimpleMarginMath for SimpleMarginDetail;
     using SimpleMarginLib for Account;
     using SafeERC20 for IERC20;
@@ -42,7 +43,12 @@ contract Grappa is ReentrancyGuard, Settlement {
     ///     every account can authorize any amount of addresses to modify all sub-accounts he controls.
     mapping(uint160 => mapping(address => bool)) public authorized;
 
-    constructor(address _optionToken) Settlement(_optionToken) {}
+    /// @dev optionToken address
+    IOptionToken public immutable optionToken;
+
+    constructor(address _optionToken) {
+        optionToken = IOptionToken(_optionToken);
+    }
 
     /*///////////////////////////////////////////////////////////////
                                   Events
@@ -114,6 +120,69 @@ contract Grappa is ReentrancyGuard, Settlement {
                 i++;
             }
         }
+    }
+
+    /**
+     * @notice burn option token and get out cash value at expiry
+     *
+     * @param _account who to settle for
+     * @param _tokenId  tokenId of option token to burn
+     * @param _amount   amount to settle
+     */
+    function settleOption(
+        address _account,
+        uint256 _tokenId,
+        uint256 _amount
+    ) external {
+        (address collateral, uint256 payout) = getOptionPayout(_tokenId, uint64(_amount));
+
+        optionToken.burn(_account, _tokenId, _amount);
+
+        IERC20(collateral).safeTransfer(_account, payout);
+    }
+
+    /**
+     * @notice burn option token and get out cash value at expiry
+     *
+     * @param _account who to settle for
+     * @param _tokenIds array of tokenIds to burn
+     * @param _amounts   array of amounts to burn
+     * @param _collateral collateral asset to settle in.
+     */
+    function batchSettleOptions(
+        address _account,
+        uint256[] memory _tokenIds,
+        uint256[] memory _amounts,
+        address _collateral
+    ) external {
+        if (_tokenIds.length != _amounts.length) revert ST_WrongArgumentLength();
+
+        uint256 totalPayout;
+
+        for (uint256 i; i < _tokenIds.length; ) {
+            (address collateral, uint256 payout) = getOptionPayout(_tokenIds[i], uint64(_amounts[i]));
+
+            if (collateral != _collateral) revert ST_WrongSettlementCollateral();
+            totalPayout += payout;
+
+            unchecked {
+                i++;
+            }
+        }
+
+        optionToken.batchBurn(_account, _tokenIds, _amounts);
+
+        IERC20(_collateral).safeTransfer(_account, totalPayout);
+    }
+
+    function getOptionPayout(uint256 _tokenId, uint64 _amount)
+        public
+        view
+        returns (address collateral, uint256 payout)
+    {
+        (, uint32 productId, , , ) = TokenIdUtil.parseTokenId(_tokenId);
+        (uint8 engineId, , , ) = ProductIdUtil.parseProductId(productId);
+        (collateral, payout) = IMarginEngine(engines[engineId]).getPayout(_tokenId, _amount);
     }
 
     /**
