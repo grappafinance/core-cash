@@ -485,7 +485,7 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
      * @dev get a struct that stores all relevent token addresses, along with collateral asset decimals
      */
     function _getProductAssets(uint32 _productId) internal view returns (ProductAssets memory info) {
-        (, address underlying, address strike, address collateral, uint8 collatDecimals) = grappa
+        (address underlying, address strike, address collateral, uint8 collatDecimals) = grappa
             .getAssetsFromProductId(_productId);
         info.underlying = underlying;
         info.strike = strike;

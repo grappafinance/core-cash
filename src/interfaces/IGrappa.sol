@@ -6,7 +6,6 @@ interface IGrappa {
         external
         view
         returns (
-            address marginEngine,
             address underlying,
             address strike,
             address collateral,

@@ -66,8 +66,8 @@ abstract contract Fixture is Test, ActionHelper, Utilities {
 
         // engineId = grappa.registerEngine(address(marginEngine));
 
-        productId = grappa.getProductId(engineId, address(weth), address(usdc), address(usdc));
-        productIdEthCollat = grappa.getProductId(engineId, address(weth), address(usdc), address(weth));
+        productId = grappa.getProductId(address(weth), address(usdc), address(usdc));
+        productIdEthCollat = grappa.getProductId(address(weth), address(usdc), address(weth));
 
         marginEngine.setProductMarginConfig(productId, 180 days, 1 days, 6400, 800, 10000);
         marginEngine.setProductMarginConfig(productIdEthCollat, 180 days, 1 days, 6400, 800, 10000);

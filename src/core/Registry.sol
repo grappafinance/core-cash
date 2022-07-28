@@ -46,24 +46,15 @@ contract Registry is Ownable {
         public
         view
         returns (
-            address marginEngine,
             address underlying,
             address strike,
             address collateral,
             uint8 collateralDecimals
         )
     {
-        (uint8 engineId, uint8 underlyingId, uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(
-            _productId
-        );
+        (, uint8 underlyingId, uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(_productId);
         AssetDetail memory collateralDetail = assets[collateralId];
-        return (
-            engines[engineId],
-            assets[underlyingId].addr,
-            assets[strikeId].addr,
-            collateralDetail.addr,
-            collateralDetail.decimals
-        );
+        return (assets[underlyingId].addr, assets[strikeId].addr, collateralDetail.addr, collateralDetail.decimals);
     }
 
     /**
@@ -74,12 +65,11 @@ contract Registry is Ownable {
      * @param collateral  collateral address
      */
     function getProductId(
-        uint8 engineId,
         address underlying,
         address strike,
         address collateral
     ) external view returns (uint32 id) {
-        id = ProductIdUtil.getProductId(engineId, assetIds[underlying], assetIds[strike], assetIds[collateral]);
+        id = ProductIdUtil.getProductId(0, assetIds[underlying], assetIds[strike], assetIds[collateral]);
     }
 
     /**
