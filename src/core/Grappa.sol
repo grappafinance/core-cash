@@ -206,7 +206,7 @@ contract Grappa is ReentrancyGuard, Registry {
         (address from, uint80 amount, uint8 collateralId) = abi.decode(_data, (address, uint80, uint8));
 
         // update the account structure in memory
-        IMarginEngine(engine).addCollateral(_subAccount, amount, collateralId);
+        IMarginEngine(engine).increaseCollateral(_subAccount, amount, collateralId);
 
         address collateral = address(assets[collateralId].addr);
 
@@ -226,7 +226,7 @@ contract Grappa is ReentrancyGuard, Registry {
         (uint80 amount, address recipient, uint8 collateralId) = abi.decode(_data, (uint80, address, uint8));
 
         // update the account structure in memory
-        IMarginEngine(engine).removeCollateral(_subAccount, collateralId, amount);
+        IMarginEngine(engine).decreaseCollateral(_subAccount, collateralId, amount);
 
         address collateral = address(assets[collateralId].addr);
 
@@ -243,7 +243,7 @@ contract Grappa is ReentrancyGuard, Registry {
         (uint256 tokenId, address recipient, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
 
         // update the account structure in memory
-        IMarginEngine(engine).mintOption(_subAccount, tokenId, amount);
+        IMarginEngine(engine).increaseDebt(_subAccount, tokenId, amount);
 
         // mint the real option token
         optionToken.mint(recipient, tokenId, amount);
@@ -260,7 +260,7 @@ contract Grappa is ReentrancyGuard, Registry {
         (uint256 tokenId, address from, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
 
         // update the account structure in memory
-        IMarginEngine(engine).burnOption(_subAccount, tokenId, amount);
+        IMarginEngine(engine).decreaseDebt(_subAccount, tokenId, amount);
 
         // token being burn must come from caller or the primary account for this subAccount
         if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert MA_InvalidFromAddress();

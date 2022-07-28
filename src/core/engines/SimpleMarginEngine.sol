@@ -268,10 +268,9 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
      ** ========================================================= **/
 
     /**
-     * @dev pull token from user, increase collateral in account memory
-            the collateral has to be provided by either caller, or the primary owner of subaccount
+     * @dev increase the collateral for an account
      */
-    function addCollateral(
+    function increaseCollateral(
         address _subAccount,
         uint80 _amount,
         uint8 _collateralId
@@ -283,9 +282,9 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
     }
 
     /**
-     * @dev push token to user, decrease collateral in account memory
+     * @dev decrease collateral in account
      */
-    function removeCollateral(
+    function decreaseCollateral(
         address _subAccount,
         uint8, /*_collateralId*/
         uint80 _amount
@@ -298,9 +297,9 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
     }
 
     /**
-     * @dev mint option token to user, increase short position (debt) in account memory
+     * @dev increase short position (debt) in account 
      */
-    function mintOption(
+    function increaseDebt(
         address _subAccount,
         uint256 _optionId,
         uint64 _amount
@@ -312,10 +311,9 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
     }
 
     /**
-     * @dev burn option token from user, decrease short position (debt) in account memory
-            the option has to be provided by either caller, or the primary owner of subaccount
+     * @dev decrease the short position (debt) in account
      */
-    function burnOption(
+    function decreaseDebt(
         address _subAccount,
         uint256 _optionId,
         uint64 _amount
@@ -327,8 +325,7 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
     }
 
     /**
-     * @dev burn option token and change the short position to spread. This will reduce collateral requirement
-            the option has to be provided by either caller, or the primary owner of subaccount
+     * @dev change the short position to spread. This will reduce collateral requirement
      */
     function merge(address _subAccount, uint256 _optionId) external returns (uint64 burnAmount) {
         _assertCallerIsGrappa();
@@ -338,7 +335,7 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
     }
 
     /**
-     * @dev Change existing spread position to short, and mint option token for recipient
+     * @dev Change existing spread position to short. This should increase collateral requirement
      */
     function split(address _subAccount, TokenType tokenType) external returns (uint256 optionId, uint64 mintAmount) {
         _assertCallerIsGrappa();
@@ -349,7 +346,6 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
 
     /**
      * @notice  settle the margin account at expiry
-     * @dev     this update the account memory in-place
      */
     function settleAtExpiry(address _subAccount) external {
         // clear the debt in account, and deduct the collateral with reservedPayout

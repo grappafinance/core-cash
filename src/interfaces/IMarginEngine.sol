@@ -8,25 +8,25 @@ interface IMarginEngine {
 
     function getMinCollateral(address _subAccount) external view returns (uint256);
 
-    function addCollateral(
+    function increaseCollateral(
         address _subAccount,
         uint80 _amount,
         uint8 _collateralId
     ) external;
 
-    function removeCollateral(
+    function decreaseCollateral(
         address _subAccount,
         uint8 collateralId,
         uint80 amount
     ) external;
 
-    function mintOption(
+    function increaseDebt(
         address _subAccount,
         uint256 optionId,
         uint64 amount
     ) external;
 
-    function burnOption(
+    function decreaseDebt(
         address _subAccount,
         uint256 optionId,
         uint64 amount
