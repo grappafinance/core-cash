@@ -2,13 +2,13 @@
 pragma solidity ^0.8.13;
 
 // import test base and helpers.
-import {Fixture} from "../shared/Fixture.t.sol";
+import {Fixture} from "../../shared/Fixture.t.sol";
 import {stdError} from "forge-std/Test.sol";
 
-import "../../config/enums.sol";
-import "../../config/types.sol";
-import "../../config/constants.sol";
-import "../../config/errors.sol";
+import "../../../config/enums.sol";
+import "../../../config/types.sol";
+import "../../../config/constants.sol";
+import "../../../config/errors.sol";
 
 contract TestLiquidateCall is Fixture {
     uint256 public expiry;
