@@ -100,21 +100,15 @@ contract Grappa is ReentrancyGuard, Registry {
         uint256[] memory _tokensToBurn,
         uint256[] memory _amountsToBurn
     ) external {
-        (uint8[] memory collateralIds, uint80[] memory amountsToPay) = IMarginEngine(_engine).liquidate(
+        (uint8 collateralId, uint80 amountToPay) = IMarginEngine(_engine).liquidate(
             _subAccount,
             _tokensToBurn,
             _amountsToBurn
         );
         optionToken.batchBurn(msg.sender, _tokensToBurn, _amountsToBurn);
 
-        for (uint256 i; i < collateralIds.length; ) {
-            // send collatearl to liquidator
-            address asset = assets[collateralIds[i]].addr;
-            if (asset != address(0)) IERC20(asset).safeTransfer(msg.sender, amountsToPay[i]);
-            unchecked {
-                i++;
-            }
-        }
+        address asset = assets[collateralId].addr;
+        if (asset != address(0)) IERC20(asset).safeTransfer(msg.sender, amountToPay);
     }
 
     /**

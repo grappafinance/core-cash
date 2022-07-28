@@ -40,7 +40,7 @@ interface IMarginEngine {
         address _subAccount,
         uint256[] memory tokensToBurn,
         uint256[] memory amountsToBurn
-    ) external returns (uint8[] memory collateralIds, uint80[] memory amountsToPay);
+    ) external returns (uint8 collateralId, uint80 amountToPay);
 
     function settleAtExpiry(address _subAccount) external;
 

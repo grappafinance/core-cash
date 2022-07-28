@@ -102,7 +102,7 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
         address _subAccount,
         uint256[] memory tokensToBurn,
         uint256[] memory amountsToBurn
-    ) external returns (uint8[] memory, uint80[] memory) {
+    ) external returns (uint8 collateralId, uint80 collateralToPay) {
         uint256 repayCallAmount = amountsToBurn[0];
         uint256 repayPutAmount = amountsToBurn[1];
 
@@ -148,21 +148,15 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
 
         // update account's collateral
         // address collateral = grappa.assets(account.collateralId);
-        uint80 collateralToPay = uint80((account.collateralAmount * portionBPS) / BPS);
+        collateralToPay = uint80((account.collateralAmount * portionBPS) / BPS);
 
-        uint8[] memory ids = new uint8[](1);
-        ids[0] = account.collateralId;
+        collateralId = account.collateralId;
 
         // if liquidator is trying to remove more collateral than owned, this line will revert
         account.removeCollateralMemory(collateralToPay);
 
         // write new accout to storage
         marginAccounts[_subAccount] = account;
-
-        uint80[] memory amounts = new uint80[](1);
-        amounts[0] = collateralToPay;
-
-        return (ids, amounts);
     }
 
     /**
