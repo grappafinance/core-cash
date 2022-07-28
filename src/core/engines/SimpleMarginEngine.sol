@@ -297,7 +297,7 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
     }
 
     /**
-     * @dev increase short position (debt) in account 
+     * @dev increase short position (debt) in account
      */
     function increaseDebt(
         address _subAccount,
