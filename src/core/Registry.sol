@@ -17,7 +17,7 @@ contract Registry is Ownable {
 
     /// @dev next id used to represent an address
     /// invariant:  any id in tokenId not greater than this number
-    uint8 public nextEngineId;
+    // uint8 public nextEngineId;
 
     /// @dev assetId => asset address
     mapping(uint8 => AssetDetail) public assets;
@@ -28,7 +28,7 @@ contract Registry is Ownable {
     /// @dev address => assetId
     mapping(address => uint8) public assetIds;
     /// @dev address => engineId
-    mapping(address => uint8) public engineIds;
+    // mapping(address => uint8) public engineIds;
 
     /// Events
 
@@ -98,18 +98,18 @@ contract Registry is Ownable {
         emit AssetRegistered(_asset, id);
     }
 
-    /**
-     * @dev register an engine to create / settle options
-     * @param _engine address of the new margin engine
-     **/
-    function registerEngine(address _engine) external onlyOwner returns (uint8 id) {
-        if (engineIds[_engine] != 0) revert MarginEngineAlreadyRegistered();
+    // /**
+    //  * @dev register an engine to create / settle options
+    //  * @param _engine address of the new margin engine
+    //  **/
+    // function registerEngine(address _engine) external onlyOwner returns (uint8 id) {
+    //     if (engineIds[_engine] != 0) revert MarginEngineAlreadyRegistered();
 
-        id = ++nextEngineId;
-        engines[id] = _engine;
+    //     id = ++nextEngineId;
+    //     engines[id] = _engine;
 
-        engineIds[_engine] = id;
+    //     engineIds[_engine] = id;
 
-        emit MarginEngineRegistered(_engine, id);
-    }
+    //     emit MarginEngineRegistered(_engine, id);
+    // }
 }

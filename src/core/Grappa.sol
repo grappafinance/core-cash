@@ -45,9 +45,11 @@ contract Grappa is ReentrancyGuard, Registry {
 
     /// @dev optionToken address
     IOptionToken public immutable optionToken;
+    IMarginEngine public immutable engine;
 
-    constructor(address _optionToken) {
+    constructor(address _optionToken, address _engine) {
         optionToken = IOptionToken(_optionToken);
+        engine = IMarginEngine(_engine);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -70,33 +72,26 @@ contract Grappa is ReentrancyGuard, Registry {
      * @notice  execute array of actions on an account
      * @dev     expected to be called by account owners.
      */
-    function execute(
-        address _subAccount,
-        uint8 _engineId,
-        ActionArgs[] calldata actions
-    ) external nonReentrant {
+    function execute(address _subAccount, ActionArgs[] calldata actions) external nonReentrant {
         _assertCallerHasAccess(_subAccount);
         // Account memory account = marginAccounts[_subAccount];
 
-        address engine = engines[_engineId];
-
         // update the account memory and do external calls on the flight
         for (uint256 i; i < actions.length; ) {
-            if (actions[i].action == ActionType.AddCollateral) _addCollateral(engine, _subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.RemoveCollateral)
-                _removeCollateral(engine, _subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.MintShort) _mintOption(engine, _subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.BurnShort) _burnOption(engine, _subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.MergeOptionToken) _merge(engine, _subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.SplitOptionToken) _split(engine, _subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.SettleAccount) _settle(engine, _subAccount);
+            if (actions[i].action == ActionType.AddCollateral) _addCollateral(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.RemoveCollateral) _removeCollateral(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.MintShort) _mintOption(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.BurnShort) _burnOption(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.MergeOptionToken) _merge(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.SplitOptionToken) _split(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.SettleAccount) _settle(_subAccount);
 
             // increase i without checking overflow
             unchecked {
                 i++;
             }
         }
-        _assertAccountHealth(engine, _subAccount);
+        _assertAccountHealth(_subAccount);
     }
 
     function liquidate(
@@ -180,9 +175,7 @@ contract Grappa is ReentrancyGuard, Registry {
         view
         returns (address collateral, uint256 payout)
     {
-        (, uint32 productId, , , ) = TokenIdUtil.parseTokenId(_tokenId);
-        (uint8 engineId, , , ) = ProductIdUtil.parseProductId(productId);
-        (collateral, payout) = IMarginEngine(engines[engineId]).getPayout(_tokenId, _amount);
+        (collateral, payout) = engine.getPayout(_tokenId, _amount);
     }
 
     /**
@@ -208,11 +201,7 @@ contract Grappa is ReentrancyGuard, Registry {
      * @dev pull token from user, increase collateral in account memory
             the collateral has to be provided by either caller, or the primary owner of subaccount
      */
-    function _addCollateral(
-        address engine,
-        address _subAccount,
-        bytes memory _data
-    ) internal {
+    function _addCollateral(address _subAccount, bytes memory _data) internal {
         // decode parameters
         (address from, uint80 amount, uint8 collateralId) = abi.decode(_data, (address, uint80, uint8));
 
@@ -230,11 +219,7 @@ contract Grappa is ReentrancyGuard, Registry {
      * @dev push token to user, decrease collateral in account memory
      * @param _data bytes data to decode
      */
-    function _removeCollateral(
-        address engine,
-        address _subAccount,
-        bytes memory _data
-    ) internal {
+    function _removeCollateral(address _subAccount, bytes memory _data) internal {
         // todo: check expiry if has short
 
         // decode parameters
@@ -253,11 +238,7 @@ contract Grappa is ReentrancyGuard, Registry {
      * @dev mint option token to user, increase short position (debt) in account memory
      * @param _data bytes data to decode
      */
-    function _mintOption(
-        address engine,
-        address _subAccount,
-        bytes memory _data
-    ) internal {
+    function _mintOption(address _subAccount, bytes memory _data) internal {
         // decode parameters
         (uint256 tokenId, address recipient, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
 
@@ -274,11 +255,7 @@ contract Grappa is ReentrancyGuard, Registry {
      * @param _data bytes data to decode
      * @param _subAccount the id of the subaccount passed in
      */
-    function _burnOption(
-        address engine,
-        address _subAccount,
-        bytes memory _data
-    ) internal {
+    function _burnOption(address _subAccount, bytes memory _data) internal {
         // decode parameters
         (uint256 tokenId, address from, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
 
@@ -295,11 +272,7 @@ contract Grappa is ReentrancyGuard, Registry {
             the option has to be provided by either caller, or the primary owner of subaccount
      * @param _data bytes data to decode
      */
-    function _merge(
-        address engine,
-        address _subAccount,
-        bytes memory _data
-    ) internal {
+    function _merge(address _subAccount, bytes memory _data) internal {
         // decode parameters
         (uint256 tokenId, address from) = abi.decode(_data, (uint256, address));
 
@@ -316,11 +289,7 @@ contract Grappa is ReentrancyGuard, Registry {
      * @dev Change existing spread position to short, and mint option token for recipient
      * @param _subAccount subaccount that will be update in place
      */
-    function _split(
-        address engine,
-        address _subAccount,
-        bytes memory _data
-    ) internal {
+    function _split(address _subAccount, bytes memory _data) internal {
         // decode parameters
         (TokenType tokenType, address recipient) = abi.decode(_data, (TokenType, address));
 
@@ -334,7 +303,7 @@ contract Grappa is ReentrancyGuard, Registry {
      * @dev     this update the account memory in-place
      * @param _subAccount subaccount structure that will be update in place
      */
-    function _settle(address engine, address _subAccount) internal {
+    function _settle(address _subAccount) internal {
         IMarginEngine(engine).settleAtExpiry(_subAccount);
     }
 
@@ -363,7 +332,7 @@ contract Grappa is ReentrancyGuard, Registry {
     /**
      * @dev make sure account is above water
      */
-    function _assertAccountHealth(address engine, address _subAccount) internal view {
-        if (!IMarginEngine(engine).isAccountHealthy(_subAccount)) revert MA_AccountUnderwater();
+    function _assertAccountHealth(address _subAccount) internal view {
+        if (!engine.isAccountHealthy(_subAccount)) revert MA_AccountUnderwater();
     }
 }

@@ -38,7 +38,7 @@ contract TestSettleCall is Fixture {
         actions[1] = createMintAction(tokenId, alice, amount);
 
         // mint option
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
 
         // expire option
         vm.warp(expiry);
@@ -86,7 +86,7 @@ contract TestSettleCall is Fixture {
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSettleAction();
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
 
         //margin account should be reset
         (
@@ -116,7 +116,7 @@ contract TestSettleCall is Fixture {
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSettleAction();
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
 
         // margin account should be reset
         (
@@ -162,7 +162,7 @@ contract TestSettleCoveredCall is Fixture {
         actions[1] = createMintAction(tokenId, alice, amount);
 
         // mint option
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
 
         // expire option
         vm.warp(expiry);
@@ -212,7 +212,7 @@ contract TestSettleCoveredCall is Fixture {
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSettleAction();
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
 
         //margin account should be reset
         (
@@ -242,7 +242,7 @@ contract TestSettleCoveredCall is Fixture {
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSettleAction();
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
 
         // margin account should be reset
         (
@@ -288,7 +288,7 @@ contract TestSettlePut is Fixture {
         actions[1] = createMintAction(tokenId, alice, amount);
 
         // mint option
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
 
         // expire option
         vm.warp(expiry);
@@ -338,7 +338,7 @@ contract TestSettlePut is Fixture {
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSettleAction();
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
 
         //margin account should be reset
         (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = marginEngine
@@ -362,7 +362,7 @@ contract TestSettlePut is Fixture {
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSettleAction();
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
 
         // margin account should be reset
         (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = marginEngine
@@ -402,7 +402,7 @@ contract TestSettleETHCollateralizedPut is Fixture {
         actions[1] = createMintAction(tokenId, alice, amount);
 
         // mint option
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
 
         // expire option
         vm.warp(expiry);
@@ -449,7 +449,7 @@ contract TestSettleETHCollateralizedPut is Fixture {
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSettleAction();
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
 
         //margin account should be reset
         (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = marginEngine
@@ -473,7 +473,7 @@ contract TestSettleETHCollateralizedPut is Fixture {
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSettleAction();
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
 
         // margin account should be reset
         (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = marginEngine
@@ -515,7 +515,7 @@ contract TestSettleCallSpread is Fixture {
         actions[1] = createMintAction(tokenId, alice, amount);
 
         // mint option
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
 
         // expire option
         vm.warp(expiry);
@@ -581,7 +581,7 @@ contract TestSettleCallSpread is Fixture {
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSettleAction();
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
 
         //margin account should be reset
         (
@@ -611,7 +611,7 @@ contract TestSettleCallSpread is Fixture {
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSettleAction();
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
 
         // margin account should be reset
         (
@@ -641,7 +641,7 @@ contract TestSettleCallSpread is Fixture {
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSettleAction();
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
 
         // margin account should be reset
         (
@@ -689,7 +689,7 @@ contract TestSettlePutSpread is Fixture {
         actions[1] = createMintAction(tokenId, alice, amount);
 
         // mint option
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
 
         // expire option
         vm.warp(expiry);
@@ -756,7 +756,7 @@ contract TestSettlePutSpread is Fixture {
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSettleAction();
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
 
         //margin account should be reset
         (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = marginEngine
@@ -781,7 +781,7 @@ contract TestSettlePutSpread is Fixture {
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSettleAction();
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
 
         //margin account should be reset
         (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = marginEngine
@@ -805,7 +805,7 @@ contract TestSettlePutSpread is Fixture {
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSettleAction();
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
 
         //margin account should be reset
         (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = marginEngine
@@ -854,7 +854,7 @@ contract TestBatchSettleCall is Fixture {
             // give optoin to alice
             actions[1] = createMintAction(tokenIds[i], alice, amount);
             // mint option
-            grappa.execute(address(uint160(address(this)) + i), engineId, actions);
+            grappa.execute(address(uint160(address(this)) + i), actions);
         }
         // expire option
         vm.warp(expiry);
@@ -957,7 +957,7 @@ contract TestSettlementEdgeCase is Fixture {
         actions[1] = createMintAction(tokenId, alice, amount);
 
         // mint option
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
     }
 
     function testLongCannotSettleBeforeExpiry() public {
@@ -974,7 +974,7 @@ contract TestSettlementEdgeCase is Fixture {
         actions[0] = createSettleAction();
 
         vm.expectRevert(MA_NotExpired.selector);
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
     }
 
     function testRolloverPositionForShort() public {
@@ -988,7 +988,7 @@ contract TestSettlementEdgeCase is Fixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createSettleAction();
         actions[1] = createMintAction(newTokenId, address(this), amount);
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
 
         assertEq(option.balanceOf(address(this), newTokenId), amount);
     }

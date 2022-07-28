@@ -77,6 +77,6 @@ contract SimpleMarginEngineAccessTest is Fixture {
 
         if (!_canAccess) vm.expectRevert(NoAccess.selector);
 
-        grappa.execute(subAccountId, engineId, actions);
+        grappa.execute(subAccountId, actions);
     }
 }

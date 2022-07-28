@@ -31,7 +31,7 @@ contract TestBurnCall is Fixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
     }
 
     function testBurn() public {
@@ -40,7 +40,7 @@ contract TestBurnCall is Fixture {
         actions[0] = createBurnAction(tokenId, address(this), amount);
 
         // action
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
         (uint256 shortCallId, , uint64 shortCallAmount, , , ) = marginEngine.marginAccounts(address(this));
 
         // check result
@@ -58,7 +58,7 @@ contract TestBurnCall is Fixture {
 
         // action
         vm.expectRevert(MA_InvalidToken.selector);
-        grappa.execute(subAccount, engineId, actions); // execute on subaccount
+        grappa.execute(subAccount, actions); // execute on subaccount
     }
 
     function testCannotBurnWhenOptionTokenBalanceIsLow() public {
@@ -71,7 +71,7 @@ contract TestBurnCall is Fixture {
 
         // expect
         vm.expectRevert(stdError.arithmeticError);
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
     }
 
     function testCannotBurnFromUnAuthorizedAccount() public {
@@ -84,7 +84,7 @@ contract TestBurnCall is Fixture {
 
         // expect error
         vm.expectRevert(MA_InvalidFromAddress.selector);
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
     }
 
     function testCanRemoveCollateralAfterBurn() public {
@@ -96,7 +96,7 @@ contract TestBurnCall is Fixture {
         actions[1] = createRemoveCollateralAction(amount, usdcId, address(this));
 
         // exeucte
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
 
         uint256 collateralAfter = usdc.balanceOf(address(this));
         assertEq(collateralAfter, collateralBefore + amount);

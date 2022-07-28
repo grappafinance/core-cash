@@ -37,7 +37,7 @@ contract TestMintVanillaOption is Fixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
         (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = marginEngine
             .marginAccounts(address(this));
 
@@ -58,7 +58,7 @@ contract TestMintVanillaOption is Fixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
         (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = marginEngine
             .marginAccounts(address(this));
 
@@ -88,7 +88,7 @@ contract TestMintVanillaOption is Fixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wbtcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
         (uint256 callId, , uint64 shortCallAmount, , uint80 collatAmount, uint8 collatId) = marginEngine.marginAccounts(
             address(this)
         );
@@ -112,7 +112,7 @@ contract TestMintVanillaOption is Fixture {
         actions[1] = createMintAction(tokenId, address(this), amount);
 
         vm.expectRevert(MA_AccountUnderwater.selector);
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
     }
 
     function testCannotMintCallWithDifferentCollateralType() public {
@@ -128,7 +128,7 @@ contract TestMintVanillaOption is Fixture {
         actions[1] = createMintAction(tokenId, address(this), amount);
 
         vm.expectRevert(MA_InvalidToken.selector);
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
     }
 
     function testMintCallSpread() public {
@@ -144,7 +144,7 @@ contract TestMintVanillaOption is Fixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
 
         (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = marginEngine
             .marginAccounts(address(this));
@@ -166,7 +166,7 @@ contract TestMintVanillaOption is Fixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
         (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = marginEngine
             .marginAccounts(address(this));
 
@@ -189,7 +189,7 @@ contract TestMintVanillaOption is Fixture {
         actions[1] = createMintAction(tokenId, address(this), amount);
 
         vm.expectRevert(MA_AccountUnderwater.selector);
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
     }
 
     function testMintPutSpread() public {
@@ -205,7 +205,7 @@ contract TestMintVanillaOption is Fixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
 
         (, uint256 shortPutId, , uint64 shortPutAmount, , ) = marginEngine.marginAccounts(address(this));
 
@@ -226,7 +226,7 @@ contract TestMintVanillaOption is Fixture {
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(callId, address(this), amount);
         actions[2] = createMintAction(putId, address(this), amount);
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
 
         (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = marginEngine
             .marginAccounts(address(this));
@@ -251,7 +251,7 @@ contract TestMintVanillaOption is Fixture {
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(callId, address(this), amount);
         actions[2] = createMintAction(putId, address(this), amount);
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
 
         (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = marginEngine
             .marginAccounts(address(this));
@@ -275,7 +275,7 @@ contract TestMintVanillaOption is Fixture {
         actions[0] = createMintAction(tokenId, address(this), amount);
 
         vm.expectRevert(MA_AccountUnderwater.selector);
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
     }
 
     function testCannotMintTwoCalls() public {
@@ -290,7 +290,7 @@ contract TestMintVanillaOption is Fixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
-        grappa.execute(address(this), engineId, actions);
+        grappa.execute(address(this), actions);
 
         // prepare second mint
         ActionArgs[] memory action2 = new ActionArgs[](1);
@@ -299,6 +299,6 @@ contract TestMintVanillaOption is Fixture {
 
         // expect call to revert
         vm.expectRevert(MA_InvalidToken.selector);
-        grappa.execute(address(this), engineId, action2);
+        grappa.execute(address(this), action2);
     }
 }

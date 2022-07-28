@@ -48,7 +48,7 @@ import "forge-std/console2.sol";
 //         actions[1] = createMintAction(tokenId, alice, amount);
 
 //         // mint option
-//         grappa.execute(accountId, engineId, actions);
+//         grappa.execute(accountId, actions);
 
 //         vm.stopPrank();
 //     }

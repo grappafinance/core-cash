@@ -50,9 +50,13 @@ abstract contract Fixture is Test, ActionHelper, Utilities {
         oracle = new MockOracle(); // nonce: 3
 
         // predit address of margin account and use it here
-        address marginAccountAddr = predictAddress(address(this), 5);
-        option = new OptionToken(marginAccountAddr); // nonce: 4
-        grappa = new Grappa(address(option));
+        address grappaAddr = predictAddress(address(this), 5);
+
+        option = new OptionToken(grappaAddr); // nonce: 4
+
+        address marginEngineAddr = predictAddress(address(this), 6);
+
+        grappa = new Grappa(address(option), marginEngineAddr); // nonce: 5
 
         marginEngine = new SimpleMarginEngine(address(grappa), address(oracle)); // nonce 5
 
@@ -60,7 +64,7 @@ abstract contract Fixture is Test, ActionHelper, Utilities {
         usdcId = grappa.registerAsset(address(usdc));
         wethId = grappa.registerAsset(address(weth));
 
-        engineId = grappa.registerEngine(address(marginEngine));
+        // engineId = grappa.registerEngine(address(marginEngine));
 
         productId = grappa.getProductId(engineId, address(weth), address(usdc), address(usdc));
         productIdEthCollat = grappa.getProductId(engineId, address(weth), address(usdc), address(weth));
@@ -122,7 +126,7 @@ abstract contract Fixture is Test, ActionHelper, Utilities {
 
         actions[0] = createAddCollateralAction(collateralId, address(anon), lotOfCollateral);
         actions[1] = createMintAction(_tokenId, address(_recipient), _amount);
-        grappa.execute(address(anon), engineId, actions);
+        grappa.execute(address(anon), actions);
 
         vm.stopPrank();
     }
