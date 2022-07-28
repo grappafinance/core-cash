@@ -29,8 +29,8 @@ import "../../config/errors.sol";
  * @author  @antoncoding
  * @notice  SimpleMarginEngine is in charge of maintaining margin requirement for each "account"
             Users can deposit collateral into SimpleMarginEngine and mint optionTokens (debt) out of it.
-            Interacts with OptionToken to mint / burn.
             Interacts with Oracle to read spot price for assets and vol.
+            Listen to calls from Grappa to update accountings
  */
 contract SimpleMarginEngine is IMarginEngine, Ownable {
     using SimpleMarginMath for SimpleMarginDetail;
@@ -383,13 +383,6 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
      */
     function _assertCallerHasAccess(address _subAccount) internal view {
         if (!_isPrimaryAccountFor(msg.sender, _subAccount)) revert NoAccess();
-    }
-
-    /**
-     * @dev make sure account is above water
-     */
-    function _assertAccountHealth(Account memory account) internal view {
-        if (!_isAccountHealthy(account)) revert MA_AccountUnderwater();
     }
 
     /**
