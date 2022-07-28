@@ -139,11 +139,11 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
 
         // update account's debt and perform "safe" external calls
         if (hasShortCall) {
-            account.burnOption(account.shortCallId, uint64(repayCallAmount));
+            account.burnOptionMemory(account.shortCallId, uint64(repayCallAmount));
         }
         if (hasShortPut) {
             // cacheShortPutId = account.shortPutId;
-            account.burnOption(account.shortPutId, uint64(repayPutAmount));
+            account.burnOptionMemory(account.shortPutId, uint64(repayPutAmount));
         }
 
         // update account's collateral
@@ -154,7 +154,7 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
         ids[0] = account.collateralId;
 
         // if liquidator is trying to remove more collateral than owned, this line will revert
-        account.removeCollateral(collateralToPay);
+        account.removeCollateralMemory(collateralToPay);
 
         // write new accout to storage
         marginAccounts[_subAccount] = account;
@@ -164,58 +164,6 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
 
         return (ids, amounts);
     }
-
-    // /**
-    //  * @notice  alternative to liquidation:
-    //  *          take over someone else's underwater account, top up collateral to make it healthy.
-    //  *          effectively equivalent to mint + liquidate + add back collateral got from liquidation
-    //  * @dev     expected to be called by liquidators
-    //  * @param _subAccountToTakeOver account id to be moved
-    //  * @param _newSubAccount new acount Id which will be linked to the margin account structure
-    //  * @param _additionalCollateral additional collateral to top up
-    //  */
-    // function takeoverPosition(
-    //     address _subAccountToTakeOver,
-    //     address _newSubAccount,
-    //     uint80 _additionalCollateral
-    // ) external {
-    //     Account memory account = marginAccounts[_subAccountToTakeOver];
-    //     if (_isAccountHealthy(account)) revert MA_AccountIsHealthy();
-
-    //     // make sure caller has access to the new account id.
-    //     _assertCallerHasAccess(_newSubAccount);
-
-    //     // update account structure.
-    //     account.addCollateral(_additionalCollateral, account.collateralId);
-
-    //     _assertAccountHealth(account);
-
-    //     // migrate account storage: delete the old entry and write "account" to new account id
-    //     delete marginAccounts[_subAccountToTakeOver];
-
-    //     if (!marginAccounts[_newSubAccount].isEmpty()) revert MA_AccountIsNotEmpty();
-    //     marginAccounts[_newSubAccount] = account;
-
-    //     // perform external calls
-    //     address collateral = grappa.assets(account.collateralId);
-    //     IERC20(collateral).safeTransferFrom(msg.sender, address(this), _additionalCollateral);
-    // }
-
-    // /**
-    //  * @notice  top up an account
-    //  * @dev     expected to be call by account owner
-    //  * @param   _subAccount sub account id to top up
-    //  * @param   _collateralAmount sub account id to top up
-    //  */
-    // function topUp(address _subAccount, uint80 _collateralAmount) external {
-    //     Account memory account = marginAccounts[_subAccount];
-    //     // update account structure.
-    //     account.addCollateral(_collateralAmount, account.collateralId);
-    //     // store account object
-    //     marginAccounts[_subAccount] = account;
-    //     // external calls
-    //     IERC20(grappa.assets(account.collateralId)).safeTransferFrom(msg.sender, address(this), _collateralAmount);
-    // }
 
     /**
      * @notice  move an account to someone else
@@ -330,12 +278,8 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
     ) external {
         _assertCallerIsGrappa();
 
-        Account memory account = marginAccounts[_subAccount];
-
-        // update the account structure in memory
-        account.addCollateral(_amount, _collateralId);
-
-        marginAccounts[_subAccount] = account;
+        // update the account structure in storage
+        marginAccounts[_subAccount].addCollateral(_amount, _collateralId);
     }
 
     /**
@@ -348,13 +292,9 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
     ) external {
         _assertCallerIsGrappa();
 
-        Account memory account = marginAccounts[_subAccount];
-
-        // update the account structure in memory
+        // update the account structure in storage
         // todo: check collateral
-        account.removeCollateral(_amount);
-
-        marginAccounts[_subAccount] = account;
+        marginAccounts[_subAccount].removeCollateral(_amount);
     }
 
     /**
@@ -367,13 +307,8 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
     ) external {
         _assertCallerIsGrappa();
 
-        Account memory account = marginAccounts[_subAccount];
-
-        // update the account structure in memory
-        account.mintOption(_optionId, _amount);
-
-        // mint the real option token
-        marginAccounts[_subAccount] = account;
+        // update the account structure in storage
+        marginAccounts[_subAccount].mintOption(_optionId, _amount);
     }
 
     /**
@@ -387,13 +322,8 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
     ) external {
         _assertCallerIsGrappa();
 
-        Account memory account = marginAccounts[_subAccount];
-
-        // update the account structure in memory
-        account.burnOption(_optionId, _amount);
-
-        // mint the real option token
-        marginAccounts[_subAccount] = account;
+        // update the account structure in storage
+        marginAccounts[_subAccount].burnOption(_optionId, _amount);
     }
 
     /**
@@ -403,13 +333,8 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
     function merge(address _subAccount, uint256 _optionId) external returns (uint64 burnAmount) {
         _assertCallerIsGrappa();
 
-        Account memory account = marginAccounts[_subAccount];
-
-        // update the account
-        burnAmount = account.merge(_optionId);
-
-        // mint the real option token
-        marginAccounts[_subAccount] = account;
+        // update the account in storage
+        burnAmount = marginAccounts[_subAccount].merge(_optionId);
     }
 
     /**
@@ -418,12 +343,8 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
     function split(address _subAccount, TokenType tokenType) external returns (uint256 optionId, uint64 mintAmount) {
         _assertCallerIsGrappa();
 
-        Account memory account = marginAccounts[_subAccount];
-
         // update the account
-        (optionId, mintAmount) = account.split(tokenType);
-
-        marginAccounts[_subAccount] = account;
+        (optionId, mintAmount) = marginAccounts[_subAccount].split(tokenType);
     }
 
     /**
@@ -440,9 +361,7 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
         uint80 reservedPayout = _getPayoutFromAccount(account);
 
         // update the account
-        account.settleAtExpiry(reservedPayout);
-
-        marginAccounts[_subAccount] = account;
+        marginAccounts[_subAccount].settleAtExpiry(reservedPayout);
     }
 
     /** ========================================================= **

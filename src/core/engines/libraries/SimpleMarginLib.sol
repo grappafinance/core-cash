@@ -11,7 +11,7 @@ import "../../../config/errors.sol";
 
 /**
  * @title SimpleMarginLib
- * @dev   This library is in charge of updating the simple account struct memory and do validations
+ * @dev   This library is in charge of updating the simple account storage struct and do validations
  */
 library SimpleMarginLib {
     using TokenIdUtil for uint256;
@@ -27,10 +27,10 @@ library SimpleMarginLib {
     ///@dev Increase the collateral in the account
     ///@param account Account memory that will be updated in-place
     function addCollateral(
-        Account memory account,
+        Account storage account,
         uint80 amount,
         uint8 collateralId
-    ) internal pure {
+    ) internal {
         if (account.collateralId == 0) {
             account.collateralId = collateralId;
         } else {
@@ -41,7 +41,7 @@ library SimpleMarginLib {
 
     ///@dev Reduce the collateral in the account
     ///@param account Account memory that will be updated in-place
-    function removeCollateral(Account memory account, uint80 amount) internal pure {
+    function removeCollateral(Account storage account, uint80 amount) internal {
         account.collateralAmount -= amount;
         if (account.collateralAmount == 0) {
             account.collateralId = 0;
@@ -51,10 +51,10 @@ library SimpleMarginLib {
     ///@dev Increase the amount of short call or put (debt) of the account
     ///@param account Account memory that will be updated in-place
     function mintOption(
-        Account memory account,
+        Account storage account,
         uint256 tokenId,
         uint64 amount
-    ) internal pure {
+    ) internal {
         (TokenType optionType, uint32 productId, , uint64 tokenLongStrike, uint64 tokenShortStrike) = tokenId
             .parseTokenId();
 
@@ -89,10 +89,10 @@ library SimpleMarginLib {
     ///@dev Remove the amount of short call or put (debt) of the account
     ///@param account Account memory that will be updated in-place
     function burnOption(
-        Account memory account,
+        Account storage account,
         uint256 tokenId,
         uint64 amount
-    ) internal pure {
+    ) internal {
         TokenType optionType = tokenId.parseTokenType();
         if (optionType == TokenType.CALL || optionType == TokenType.CALL_SPREAD) {
             // burnning a call or call spread
@@ -112,7 +112,7 @@ library SimpleMarginLib {
     ///@param tokenId token to be "added" into the account. This is expected to have the same time of the exisiting short type.
     ///               e.g: if the account currenly have short call, we can added another "call token" into the account
     ///               and convert the short position to a spread.
-    function merge(Account memory account, uint256 tokenId) internal pure returns (uint64 amount) {
+    function merge(Account storage account, uint256 tokenId) internal returns (uint64 amount) {
         // get token attribute for incoming token
         (TokenType optionType, uint32 productId, uint64 expiry, uint64 mergingStrike, ) = tokenId.parseTokenId();
 
@@ -146,9 +146,8 @@ library SimpleMarginLib {
     ///@dev split an accunt's spread position into short + 1 token
     ///@param account Account memory that will be updated in-place
     ///@param optionType to split call spread or put spread. Must be either
-    function split(Account memory account, TokenType optionType)
+    function split(Account storage account, TokenType optionType)
         internal
-        pure
         returns (uint256 mintingTokenId, uint64 amount)
     {
         // token being added can only be call or put
@@ -181,7 +180,7 @@ library SimpleMarginLib {
         }
     }
 
-    function settleAtExpiry(Account memory account, uint80 _payout) internal pure {
+    function settleAtExpiry(Account storage account, uint80 _payout) internal {
         // clear all debt
         account.shortPutId = 0;
         account.shortCallId = 0;
@@ -195,6 +194,38 @@ library SimpleMarginLib {
         } else {
             // the account doesn't have enough to payout, result in protocol loss
             account.collateralAmount = 0;
+        }
+    }
+
+    // two methods supporting updating memory in-place update, cheaper to use during liquidationf
+
+    ///@dev Reduce the collateral in the account memory
+    ///@param account Account memory that will be updated in-place
+    function removeCollateralMemory(Account memory account, uint80 amount) internal pure {
+        account.collateralAmount -= amount;
+        if (account.collateralAmount == 0) {
+            account.collateralId = 0;
+        }
+    }
+
+    ///@dev Remove the amount of short call or put (debt) of the account
+    ///@param account Account memory that will be updated in-place
+    function burnOptionMemory(
+        Account memory account,
+        uint256 tokenId,
+        uint64 amount
+    ) internal pure {
+        TokenType optionType = tokenId.parseTokenType();
+        if (optionType == TokenType.CALL || optionType == TokenType.CALL_SPREAD) {
+            // burnning a call or call spread
+            if (account.shortCallId != tokenId) revert MA_InvalidToken();
+            account.shortCallAmount -= amount;
+            if (account.shortCallAmount == 0) account.shortCallId = 0;
+        } else {
+            // burning a put or put spread
+            if (account.shortPutId != tokenId) revert MA_InvalidToken();
+            account.shortPutAmount -= amount;
+            if (account.shortPutAmount == 0) account.shortPutId = 0;
         }
     }
 }
