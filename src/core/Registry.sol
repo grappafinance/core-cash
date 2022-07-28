@@ -17,7 +17,7 @@ contract Registry is Ownable {
 
     /// @dev next id used to represent an address
     /// invariant:  any id in tokenId not greater than this number
-    // uint8 public nextEngineId;
+    // uint8 public nextEngineId;c
 
     /// @dev assetId => asset address
     mapping(uint8 => AssetDetail) public assets;
