@@ -129,7 +129,7 @@ contract Grappa is ReentrancyGuard, Registry {
         uint256 _tokenId,
         uint256 _amount
     ) external {
-        (address collateral, uint256 payout) = getOptionPayout(_tokenId, uint64(_amount));
+        (address collateral, uint256 payout) = engine.getPayout(_tokenId, uint64(_amount));
 
         optionToken.burn(_account, _tokenId, _amount);
 
@@ -155,7 +155,7 @@ contract Grappa is ReentrancyGuard, Registry {
         uint256 totalPayout;
 
         for (uint256 i; i < _tokenIds.length; ) {
-            (address collateral, uint256 payout) = getOptionPayout(_tokenIds[i], uint64(_amounts[i]));
+            (address collateral, uint256 payout) = engine.getPayout(_tokenIds[i], uint64(_amounts[i]));
 
             if (collateral != _collateral) revert ST_WrongSettlementCollateral();
             totalPayout += payout;
@@ -168,14 +168,6 @@ contract Grappa is ReentrancyGuard, Registry {
         optionToken.batchBurn(_account, _tokenIds, _amounts);
 
         IERC20(_collateral).safeTransfer(_account, totalPayout);
-    }
-
-    function getOptionPayout(uint256 _tokenId, uint64 _amount)
-        public
-        view
-        returns (address collateral, uint256 payout)
-    {
-        (collateral, payout) = engine.getPayout(_tokenId, _amount);
     }
 
     /**
