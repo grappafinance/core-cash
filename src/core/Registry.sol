@@ -23,7 +23,7 @@ contract Registry is Ownable {
     mapping(uint8 => AssetDetail) public assets;
 
     /// @dev assetId => margin engine address
-    mapping(uint8 => address) public engines;
+    // mapping(uint8 => address) public engines;
 
     /// @dev address => assetId
     mapping(address => uint8) public assetIds;
