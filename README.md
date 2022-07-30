@@ -72,12 +72,18 @@ slither ./src/core/
 
 ## Basic Contract Architecture
 
-![](https://i.imgur.com/nt99kq4.png)
+![](https://i.imgur.com/fj0IPDy.png)
 
 This is the basic diagram of how contracts interact with each other in the draft version. A more detail diagram will be added later.
 
-You can see the 3 contracts that compose Grappa are `Oracle`, `SimpleMarginEngine` and `OptionToken`.
+You can see the 4 contracts that compose Grappa are `Oracle`, `SimpleMarginEngine` `OptionToken` and `Grappa`.
 
-- `Oracle`: contract to report spot price and expiry price of an asset. Also return an volatility index for min collateral calculation.
-- `SimpleMarginEngine`: Depends on if it lives on mainnet or L2s, `SimpleMarginEngine` will have different interface and internal account structure, but they stand the same purpose for sellers to depositing collateral and create the option token.
+- `Grappa`: entry point for all the users. In charge of minting the correct product according to the connected **MarginEngine** rules
 - `OptionToken`: ERC1155 token that represent the right to claim for a non-negative payout at expiry. It can represent a long call position, a long put position, or debit spreads.
+- `Oracle`: contract to report spot price and expiry price of an asset. Also return an volatility index for min collateral calculation.
+- `SimpleMarginEngine`: first version of the margin system that complies with `IMarginEngine` interface that stores account structure. The current **Simple Margin** system is capable of dealing with:
+    * single collateral type
+    * create native spreads
+    * can mint 1 call (or call spread) +  1 put (or put spread) in a single account.
+
+More efficient margin system can be added to Grappa as long as it complies with the interface.
