@@ -15,6 +15,7 @@ import {IMarginEngine} from "../../interfaces/IMarginEngine.sol";
 
 // librarise
 import {TokenIdUtil} from "../../libraries/TokenIdUtil.sol";
+import {NumberUtil} from "../../libraries/NumberUtil.sol";
 import {SimpleMarginMath} from "./libraries/SimpleMarginMath.sol";
 import {SimpleMarginLib} from "./libraries/SimpleMarginLib.sol";
 
@@ -37,6 +38,7 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
     using SimpleMarginLib for Account;
     using SafeERC20 for IERC20;
     using FixedPointMathLib for uint256;
+    using NumberUtil for uint256;
 
     IGrappa public immutable grappa;
     IOracle public immutable oracle;
@@ -251,7 +253,7 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
             payout = payout.mulDivDown(UNIT, collateralPrice);
         }
 
-        return (product.collateral, _convertDecimals(payout, UNIT_DECIMALS, product.collateralDecimals));
+        return (product.collateral, payout.convertDecimals(UNIT_DECIMALS, product.collateralDecimals));
     }
 
     /** ========================================================= **
@@ -418,7 +420,7 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
             productParams[detail.productId]
         );
 
-        minCollateral = _convertDecimals(minCollateralInUnit, UNIT_DECIMALS, product.collateralDecimals);
+        minCollateral = minCollateralInUnit.convertDecimals(UNIT_DECIMALS, product.collateralDecimals);
     }
 
     /**
@@ -486,36 +488,5 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
         info.strike = strike;
         info.collateral = collateral;
         info.collateralDecimals = collatDecimals;
-    }
-
-    /**
-     * @notice convert decimals
-     *
-     * @param  _amount      number to convert
-     * @param _fromDecimals the decimals _amount has
-     * @param _toDecimals   the target decimals
-     *
-     * @return _ number with _toDecimals decimals
-     */
-    function _convertDecimals(
-        uint256 _amount,
-        uint8 _fromDecimals,
-        uint8 _toDecimals
-    ) internal pure returns (uint256) {
-        if (_fromDecimals == _toDecimals) return _amount;
-
-        if (_fromDecimals > _toDecimals) {
-            uint8 diff;
-            unchecked {
-                diff = _fromDecimals - _toDecimals;
-            }
-            return _amount / (10**diff);
-        } else {
-            uint8 diff;
-            unchecked {
-                diff = _toDecimals - _fromDecimals;
-            }
-            return _amount * (10**diff);
-        }
     }
 }
