@@ -5,9 +5,9 @@ optimizer_runs = 10000
 
 gas_reports = [
   "*",
-  # "MarginAccount", 
+  # "SimpleMarginEngine", 
   # "OptionToken", 
-  # "MarginAccountGasTester", # expose internal functions for gas report
+  # "SimpleMarginEngineGasTester", # expose internal functions for gas report
   # "ChainlinkPricer"
 ]
 

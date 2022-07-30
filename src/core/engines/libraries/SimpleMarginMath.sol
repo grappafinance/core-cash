@@ -34,7 +34,7 @@ library SimpleMarginMath {
      * @param _param specific product parameters
      */
     function getMinCollateral(
-        MarginAccountDetail memory _account,
+        SimpleMarginDetail memory _account,
         ProductAssets memory _assets,
         uint256 _spotUnderlyingStrike,
         uint256 _spotCollateralStrike,
@@ -59,7 +59,7 @@ library SimpleMarginMath {
      * @return minCollatValueInStrike minimum collateral in strike (USD) value. with {BASE_UNIT} decimals
      */
     function getMinCollateralInStrike(
-        MarginAccountDetail memory _account,
+        SimpleMarginDetail memory _account,
         uint256 _spot,
         uint256 _vol,
         ProductMarginParams memory _params
@@ -84,7 +84,7 @@ library SimpleMarginMath {
     }
 
     function getMinCollateralForDoubleShort(
-        MarginAccountDetail memory _account,
+        SimpleMarginDetail memory _account,
         uint256 _spot,
         uint256 _vol,
         ProductMarginParams memory params
@@ -107,7 +107,7 @@ library SimpleMarginMath {
     }
 
     function getMinCollateralForCallSpread(
-        MarginAccountDetail memory _account,
+        SimpleMarginDetail memory _account,
         uint256 _spot,
         uint256 _vol,
         ProductMarginParams memory params
@@ -134,7 +134,7 @@ library SimpleMarginMath {
     }
 
     function getMinCollateralForPutSpread(
-        MarginAccountDetail memory _account,
+        SimpleMarginDetail memory _account,
         uint256 _spot,
         uint256 _vol,
         ProductMarginParams memory params

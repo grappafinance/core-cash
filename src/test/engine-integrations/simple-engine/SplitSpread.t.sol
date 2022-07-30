@@ -41,7 +41,7 @@ contract TestSplitCallSpread is Fixture {
         grappa.execute(address(this), actions);
 
         // check result
-        (uint256 shortCallId, , , , , ) = grappa.marginAccounts(address(this));
+        (uint256 shortCallId, , , , , ) = marginEngine.marginAccounts(address(this));
         (TokenType tokenType, , , uint64 longStrike, uint64 shortStrike) = parseTokenId(shortCallId);
 
         assertEq(uint8(tokenType), uint8(TokenType.CALL));
@@ -104,7 +104,7 @@ contract TestSplitPutSpread is Fixture {
         grappa.execute(address(this), actions);
 
         // check result
-        (, uint256 shortPutId, , , , ) = grappa.marginAccounts(address(this));
+        (, uint256 shortPutId, , , , ) = marginEngine.marginAccounts(address(this));
         (TokenType tokenType, , , uint64 longStrike, uint64 shortStrike) = parseTokenId(shortPutId);
 
         assertEq(uint8(tokenType), uint8(TokenType.PUT));

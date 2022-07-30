@@ -7,7 +7,7 @@ import "openzeppelin/utils/Create2.sol";
 import "openzeppelin/utils/Strings.sol";
 
 import "../src/core/OptionToken.sol";
-import "../src/core/SimpleMargin/MarginAccount.sol";
+import "../src/core/engines/SimpleMarginEngine.sol";
 
 // todo: add fallback pricer too
 import "../src/core/Oracle.sol";
@@ -50,11 +50,11 @@ contract Deploy is Script, Utilities {
         console.log("oracle", oracle);
         console.log("primary pricer set (predicted): ", address(Oracle(oracle).primaryPricer()));
 
-        // prepare bytecode for MarginAccount
+        // prepare bytecode for SimpleMarginEngine
         address optionTokenAddr = predictAddress(msg.sender, nonce + 3);
         console.log("optionToken address (prediction)", optionTokenAddr);
-        // deploy MarginAccount
-        bytes memory maCreationCode = type(MarginAccount).creationCode;
+        // deploy SimpleMarginEngine
+        bytes memory maCreationCode = type(SimpleMarginEngine).creationCode;
         bytes memory maBytecode = abi.encodePacked(maCreationCode, abi.encode(optionTokenAddr, oracle));
         marginAccount = deployWithLeadingZeros(deployer, 0, maBytecode, 2); // nonce + 2
         console.log("marginAccount", marginAccount);

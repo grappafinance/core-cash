@@ -41,7 +41,7 @@ contract TestBurnCall is Fixture {
 
         // action
         grappa.execute(address(this), actions);
-        (uint256 shortCallId, , uint64 shortCallAmount, , , ) = grappa.marginAccounts(address(this));
+        (uint256 shortCallId, , uint64 shortCallAmount, , , ) = marginEngine.marginAccounts(address(this));
 
         // check result
         assertEq(shortCallId, 0);
@@ -49,7 +49,7 @@ contract TestBurnCall is Fixture {
         assertEq(option.balanceOf(address(this), tokenId), 0);
     }
 
-    function testCannotBurnForEmptyMarginAccount() public {
+    function testCannotBurnForEmptySimpleMarginEngine() public {
         address subAccount = address(uint160(address(this)) - 1);
 
         // build burn account
@@ -93,7 +93,7 @@ contract TestBurnCall is Fixture {
         // build args: burn and remove collateral
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createBurnAction(tokenId, address(this), amount);
-        actions[1] = createRemoveCollateralAction(amount, address(this));
+        actions[1] = createRemoveCollateralAction(amount, usdcId, address(this));
 
         // exeucte
         grappa.execute(address(this), actions);

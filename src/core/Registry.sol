@@ -7,23 +7,33 @@ import {Ownable} from "openzeppelin/access/Ownable.sol";
 import {ProductIdUtil} from "../libraries/ProductIdUtil.sol";
 import {AssetDetail} from "../config/types.sol";
 
-contract AssetRegistry is Ownable {
-    error AlreadyRegistered();
+contract Registry is Ownable {
+    error AssetAlreadyRegistered();
+    error MarginEngineAlreadyRegistered();
 
     /// @dev next id used to represent an address
     /// invariant:  any id in tokenId not greater than this number
-    uint8 public nextId;
+    uint8 public nextAssetId;
+
+    /// @dev next id used to represent an address
+    /// invariant:  any id in tokenId not greater than this number
+    // uint8 public nextEngineId;c
 
     /// @dev assetId => asset address
     mapping(uint8 => AssetDetail) public assets;
 
+    /// @dev assetId => margin engine address
+    // mapping(uint8 => address) public engines;
+
     /// @dev address => assetId
-    mapping(address => uint8) public ids;
+    mapping(address => uint8) public assetIds;
+    /// @dev address => engineId
+    // mapping(address => uint8) public engineIds;
 
     /// Events
 
-    event MinterUpdated(address minter, bool isMinter);
     event AssetRegistered(address asset, uint8 id);
+    event MarginEngineRegistered(address engine, uint8 id);
 
     // solhint-disable-next-line no-empty-blocks
     constructor() Ownable() {}
@@ -33,7 +43,7 @@ contract AssetRegistry is Ownable {
      * @param _productId product id
      */
     function getAssetsFromProductId(uint32 _productId)
-        public
+        external
         view
         returns (
             address underlying,
@@ -42,7 +52,7 @@ contract AssetRegistry is Ownable {
             uint8 collateralDecimals
         )
     {
-        (uint8 underlyingId, uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(_productId);
+        (, uint8 underlyingId, uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(_productId);
         AssetDetail memory collateralDetail = assets[collateralId];
         return (assets[underlyingId].addr, assets[strikeId].addr, collateralDetail.addr, collateralDetail.decimals);
     }
@@ -59,7 +69,7 @@ contract AssetRegistry is Ownable {
         address strike,
         address collateral
     ) external view returns (uint32 id) {
-        id = ProductIdUtil.getProductId(ids[underlying], ids[strike], ids[collateral]);
+        id = ProductIdUtil.getProductId(0, assetIds[underlying], assetIds[strike], assetIds[collateral]);
     }
 
     /**
@@ -67,14 +77,29 @@ contract AssetRegistry is Ownable {
      * @param _asset address to add
      **/
     function registerAsset(address _asset) external onlyOwner returns (uint8 id) {
-        if (ids[_asset] != 0) revert AlreadyRegistered();
+        if (assetIds[_asset] != 0) revert AssetAlreadyRegistered();
 
         uint8 decimals = IERC20Metadata(_asset).decimals();
 
-        id = ++nextId;
+        id = ++nextAssetId;
         assets[id] = AssetDetail({addr: _asset, decimals: decimals});
-        ids[_asset] = id;
+        assetIds[_asset] = id;
 
         emit AssetRegistered(_asset, id);
     }
+
+    // /**
+    //  * @dev register an engine to create / settle options
+    //  * @param _engine address of the new margin engine
+    //  **/
+    // function registerEngine(address _engine) external onlyOwner returns (uint8 id) {
+    //     if (engineIds[_engine] != 0) revert MarginEngineAlreadyRegistered();
+
+    //     id = ++nextEngineId;
+    //     engines[id] = _engine;
+
+    //     engineIds[_engine] = id;
+
+    //     emit MarginEngineRegistered(_engine, id);
+    // }
 }

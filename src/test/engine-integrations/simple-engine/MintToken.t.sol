@@ -38,7 +38,7 @@ contract TestMintVanillaOption is Fixture {
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
         grappa.execute(address(this), actions);
-        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = grappa
+        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = marginEngine
             .marginAccounts(address(this));
 
         assertEq(shortCallId, tokenId);
@@ -59,7 +59,7 @@ contract TestMintVanillaOption is Fixture {
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
         grappa.execute(address(this), actions);
-        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = grappa
+        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = marginEngine
             .marginAccounts(address(this));
 
         assertEq(shortCallId, tokenId);
@@ -76,7 +76,7 @@ contract TestMintVanillaOption is Fixture {
         // register wbtc in the system
         uint8 wbtcId = grappa.registerAsset(address(wbtc));
         uint32 productIdBtcCollat = grappa.getProductId(address(weth), address(usdc), address(wbtc));
-        grappa.setProductMarginConfig(productIdBtcCollat, 180 days, 1 days, 7000, 1000, 10000);
+        marginEngine.setProductMarginConfig(productIdBtcCollat, 180 days, 1 days, 7000, 1000, 10000);
         oracle.setSpotPrice(address(wbtc), 40_000 * UNIT); // 10x price of eth
 
         // prepare arguments
@@ -89,7 +89,7 @@ contract TestMintVanillaOption is Fixture {
         actions[0] = createAddCollateralAction(wbtcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
         grappa.execute(address(this), actions);
-        (uint256 callId, , uint64 shortCallAmount, , uint80 collatAmount, uint8 collatId) = grappa.marginAccounts(
+        (uint256 callId, , uint64 shortCallAmount, , uint80 collatAmount, uint8 collatId) = marginEngine.marginAccounts(
             address(this)
         );
 
@@ -146,7 +146,7 @@ contract TestMintVanillaOption is Fixture {
         actions[1] = createMintAction(tokenId, address(this), amount);
         grappa.execute(address(this), actions);
 
-        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = grappa
+        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = marginEngine
             .marginAccounts(address(this));
 
         assertEq(shortCallId, tokenId);
@@ -167,7 +167,7 @@ contract TestMintVanillaOption is Fixture {
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
         grappa.execute(address(this), actions);
-        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = grappa
+        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = marginEngine
             .marginAccounts(address(this));
 
         assertEq(shortCallId, 0);
@@ -207,7 +207,7 @@ contract TestMintVanillaOption is Fixture {
         actions[1] = createMintAction(tokenId, address(this), amount);
         grappa.execute(address(this), actions);
 
-        (, uint256 shortPutId, , uint64 shortPutAmount, , ) = grappa.marginAccounts(address(this));
+        (, uint256 shortPutId, , uint64 shortPutAmount, , ) = marginEngine.marginAccounts(address(this));
 
         assertEq(shortPutId, tokenId);
         assertEq(shortPutAmount, amount);
@@ -228,7 +228,7 @@ contract TestMintVanillaOption is Fixture {
         actions[2] = createMintAction(putId, address(this), amount);
         grappa.execute(address(this), actions);
 
-        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = grappa
+        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = marginEngine
             .marginAccounts(address(this));
 
         assertEq(shortCallId, callId);
@@ -253,7 +253,7 @@ contract TestMintVanillaOption is Fixture {
         actions[2] = createMintAction(putId, address(this), amount);
         grappa.execute(address(this), actions);
 
-        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = grappa
+        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = marginEngine
             .marginAccounts(address(this));
 
         assertEq(shortCallId, callId);

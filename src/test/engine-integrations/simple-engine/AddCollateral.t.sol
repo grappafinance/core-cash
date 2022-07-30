@@ -24,7 +24,7 @@ contract TestAddCollateral is Fixture {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         grappa.execute(address(this), actions);
-        (, , , , uint80 _collateralAmount, uint8 _collateralId) = grappa.marginAccounts(address(this));
+        (, , , , uint80 _collateralAmount, uint8 _collateralId) = marginEngine.marginAccounts(address(this));
 
         assertEq(_collateralId, usdcId);
         assertEq(_collateralAmount, depositAmount);

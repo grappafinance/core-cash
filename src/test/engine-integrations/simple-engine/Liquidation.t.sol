@@ -2,13 +2,13 @@
 pragma solidity ^0.8.13;
 
 // import test base and helpers.
-import {Fixture} from "../shared/Fixture.t.sol";
+import {Fixture} from "../../shared/Fixture.t.sol";
 import {stdError} from "forge-std/Test.sol";
 
-import "../../config/enums.sol";
-import "../../config/types.sol";
-import "../../config/constants.sol";
-import "../../config/errors.sol";
+import "../../../config/enums.sol";
+import "../../../config/types.sol";
+import "../../../config/constants.sol";
+import "../../../config/errors.sol";
 
 contract TestLiquidateCall is Fixture {
     uint256 public expiry;
@@ -51,20 +51,29 @@ contract TestLiquidateCall is Fixture {
     }
 
     function testGetMinCollateralShouldReturnProperValue() public {
-        uint256 minCollateral = grappa.getMinCollateral(accountId);
+        uint256 minCollateral = marginEngine.getMinCollateral(accountId);
         assertTrue(minCollateral < initialCollateral);
     }
 
     function testCannotLiquidateHealthyVault() public {
         vm.expectRevert(MA_AccountIsHealthy.selector);
-        grappa.liquidate(accountId, amount, 0);
+        liquidateWithIdAndAmounts(accountId, tokenId, 0, amount, 0);
     }
 
-    function testCannotLiquidateVaultWithPuts() public {
+    function testCannotLiquidateVaultWithPut() public {
+        oracle.setSpotPrice(address(weth), 3600 * UNIT);
+
+        uint256 putId = getTokenId(TokenType.PUT, productId, expiry, strike, 0);
+
+        vm.expectRevert(MA_WrongIdToLiquidate.selector);
+        liquidateWithIdAndAmounts(accountId, 0, putId, 0, amount);
+    }
+
+    function testCannotLiquidateVaultWithPutAmount() public {
         oracle.setSpotPrice(address(weth), 3800 * UNIT);
 
         vm.expectRevert(MA_WrongRepayAmounts.selector);
-        grappa.liquidate(accountId, 0, amount);
+        liquidateWithIdAndAmounts(accountId, tokenId, 0, 0, amount);
     }
 
     function testPartiallyLiquidateTheVault() public {
@@ -74,7 +83,7 @@ contract TestLiquidateCall is Fixture {
         uint256 optionBalanceBefore = option.balanceOf(address(this), tokenId);
 
         uint64 liquidateAmount = amount / 2;
-        grappa.liquidate(accountId, liquidateAmount, 0);
+        liquidateWithIdAndAmounts(accountId, tokenId, 0, liquidateAmount, 0);
 
         uint256 expectCollateralToGet = initialCollateral / 2;
         uint256 usdcBalanceAfter = usdc.balanceOf(address(this));
@@ -90,7 +99,7 @@ contract TestLiquidateCall is Fixture {
         uint256 usdcBalanceBefore = usdc.balanceOf(address(this));
         uint256 optionBalanceBefore = option.balanceOf(address(this), tokenId);
 
-        grappa.liquidate(accountId, amount, 0);
+        liquidateWithIdAndAmounts(accountId, tokenId, 0, amount, 0);
 
         uint256 usdcBalanceAfter = usdc.balanceOf(address(this));
         uint256 optionBalanceAfter = option.balanceOf(address(this), tokenId);
@@ -99,7 +108,7 @@ contract TestLiquidateCall is Fixture {
         assertEq(optionBalanceBefore - optionBalanceAfter, amount);
 
         //margin account should be reset
-        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAmount, uint8 collateralId) = grappa
+        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAmount, uint8 collateralId) = marginEngine
             .marginAccounts(accountId);
 
         assertEq(shortCallId, 0);
@@ -112,7 +121,23 @@ contract TestLiquidateCall is Fixture {
         oracle.setSpotPrice(address(weth), 3800 * UNIT);
 
         vm.expectRevert(stdError.arithmeticError);
-        grappa.liquidate(accountId, amount + 1, 0);
+        liquidateWithIdAndAmounts(accountId, tokenId, 0, amount + 1, 0);
+    }
+
+    function liquidateWithIdAndAmounts(
+        address _accountId,
+        uint256 _callId,
+        uint256 _putId,
+        uint256 _callAmount,
+        uint256 _putAmount
+    ) private {
+        uint256[] memory ids = new uint256[](2);
+        uint256[] memory amounts = new uint256[](2);
+        ids[0] = _callId;
+        ids[1] = _putId;
+        amounts[0] = _callAmount;
+        amounts[1] = _putAmount;
+        grappa.liquidate(address(marginEngine), _accountId, ids, amounts);
     }
 }
 
@@ -156,16 +181,41 @@ contract TestLiquidatePut is Fixture {
         vm.stopPrank();
     }
 
-    function testCannotLiquidateHealthyVault() public {
-        vm.expectRevert(MA_AccountIsHealthy.selector);
-        grappa.liquidate(accountId, 0, amount);
+    function liquidateWithIdAndAmounts(
+        address _accountId,
+        uint256 _callId,
+        uint256 _putId,
+        uint256 _callAmount,
+        uint256 _putAmount
+    ) private {
+        uint256[] memory ids = new uint256[](2);
+        uint256[] memory amounts = new uint256[](2);
+        ids[0] = _callId;
+        ids[1] = _putId;
+        amounts[0] = _callAmount;
+        amounts[1] = _putAmount;
+        grappa.liquidate(address(marginEngine), _accountId, ids, amounts);
     }
 
-    function testCannotLiquidateVaultWithCalls() public {
+    function testCannotLiquidateHealthyVault() public {
+        vm.expectRevert(MA_AccountIsHealthy.selector);
+        liquidateWithIdAndAmounts(accountId, 0, tokenId, 0, amount);
+    }
+
+    function testCannotLiquidateVaultWithCall() public {
+        oracle.setSpotPrice(address(weth), 3600 * UNIT);
+
+        uint256 callId = getTokenId(TokenType.CALL, productId, expiry, strike, 0);
+
+        vm.expectRevert(MA_WrongIdToLiquidate.selector);
+        liquidateWithIdAndAmounts(accountId, 0, callId, 0, amount);
+    }
+
+    function testCannotLiquidateVaultWithCallAmount() public {
         oracle.setSpotPrice(address(weth), 3600 * UNIT);
 
         vm.expectRevert(MA_WrongRepayAmounts.selector);
-        grappa.liquidate(accountId, amount, 0);
+        liquidateWithIdAndAmounts(accountId, 0, tokenId, amount, 0);
     }
 
     function testPartiallyLiquidateTheVault() public {
@@ -175,7 +225,7 @@ contract TestLiquidatePut is Fixture {
         uint256 optionBalanceBefore = option.balanceOf(address(this), tokenId);
 
         uint64 liquidateAmount = amount / 2;
-        grappa.liquidate(accountId, 0, liquidateAmount);
+        liquidateWithIdAndAmounts(accountId, 0, tokenId, 0, liquidateAmount);
 
         uint256 expectCollateralToGet = initialCollateral / 2;
         uint256 usdcBalanceAfter = usdc.balanceOf(address(this));
@@ -191,7 +241,7 @@ contract TestLiquidatePut is Fixture {
         uint256 usdcBalanceBefore = usdc.balanceOf(address(this));
         uint256 optionBalanceBefore = option.balanceOf(address(this), tokenId);
 
-        grappa.liquidate(accountId, 0, amount);
+        liquidateWithIdAndAmounts(accountId, 0, tokenId, 0, amount);
 
         uint256 usdcBalanceAfter = usdc.balanceOf(address(this));
         uint256 optionBalanceAfter = option.balanceOf(address(this), tokenId);
@@ -200,7 +250,7 @@ contract TestLiquidatePut is Fixture {
         assertEq(optionBalanceBefore - optionBalanceAfter, amount);
 
         //margin account should be reset
-        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAmount, uint8 collateralId) = grappa
+        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAmount, uint8 collateralId) = marginEngine
             .marginAccounts(accountId);
 
         assertEq(shortCallId, 0);
@@ -257,33 +307,49 @@ contract TestLiquidateCallAndPut is Fixture {
         vm.stopPrank();
     }
 
+    function liquidateWithIdAndAmounts(
+        address _accountId,
+        uint256 _callId,
+        uint256 _putId,
+        uint256 _callAmount,
+        uint256 _putAmount
+    ) private {
+        uint256[] memory ids = new uint256[](2);
+        uint256[] memory amounts = new uint256[](2);
+        ids[0] = _callId;
+        ids[1] = _putId;
+        amounts[0] = _callAmount;
+        amounts[1] = _putAmount;
+        grappa.liquidate(address(marginEngine), _accountId, ids, amounts);
+    }
+
     function testCannotLiquidateHealthyVault() public {
         vm.expectRevert(MA_AccountIsHealthy.selector);
-        grappa.liquidate(accountId, amount, amount);
+        liquidateWithIdAndAmounts(accountId, callId, putId, amount, amount);
     }
 
     function testCannotLiquidateWithOnlySpecifyCallAmount() public {
         oracle.setSpotPrice(address(weth), 3300 * UNIT);
 
         vm.expectRevert(MA_WrongRepayAmounts.selector);
-        grappa.liquidate(accountId, amount, 0);
+        liquidateWithIdAndAmounts(accountId, callId, putId, amount, 0);
     }
 
     function testCannotLiquidateWithImbalancedAmount() public {
         oracle.setSpotPrice(address(weth), 3300 * UNIT);
 
         vm.expectRevert(MA_WrongRepayAmounts.selector);
-        grappa.liquidate(accountId, amount, amount - 1);
+        liquidateWithIdAndAmounts(accountId, callId, putId, amount, amount - 1);
 
         vm.expectRevert(MA_WrongRepayAmounts.selector);
-        grappa.liquidate(accountId, amount - 1, amount);
+        liquidateWithIdAndAmounts(accountId, callId, putId, amount - 1, amount);
     }
 
     function testCannotLiquidateWithOnlySpecifyPutAmount() public {
         oracle.setSpotPrice(address(weth), 3300 * UNIT);
 
         vm.expectRevert(MA_WrongRepayAmounts.selector);
-        grappa.liquidate(accountId, 0, amount);
+        liquidateWithIdAndAmounts(accountId, callId, putId, 0, amount);
     }
 
     function testPartiallyLiquidateTheVault() public {
@@ -294,7 +360,7 @@ contract TestLiquidateCallAndPut is Fixture {
         uint256 putBefore = option.balanceOf(address(this), putId);
 
         uint64 liquidateAmount = amount / 2;
-        grappa.liquidate(accountId, liquidateAmount, liquidateAmount);
+        liquidateWithIdAndAmounts(accountId, callId, putId, liquidateAmount, liquidateAmount);
 
         uint256 expectCollateralToGet = initialCollateral / 2;
         uint256 usdcBalanceAfter = usdc.balanceOf(address(this));
@@ -313,7 +379,7 @@ contract TestLiquidateCallAndPut is Fixture {
         uint256 callBefore = option.balanceOf(address(this), callId);
         uint256 putBefore = option.balanceOf(address(this), putId);
 
-        grappa.liquidate(accountId, amount, amount);
+        liquidateWithIdAndAmounts(accountId, callId, putId, amount, amount);
 
         uint256 usdcBalanceAfter = usdc.balanceOf(address(this));
         uint256 callAfter = option.balanceOf(address(this), callId);
@@ -331,7 +397,7 @@ contract TestLiquidateCallAndPut is Fixture {
             uint64 shortPutAmount,
             uint80 collateralAmount,
             uint8 collateralId
-        ) = grappa.marginAccounts(accountId);
+        ) = marginEngine.marginAccounts(accountId);
 
         assertEq(shortCallId, 0);
         assertEq(shortPutId, 0);

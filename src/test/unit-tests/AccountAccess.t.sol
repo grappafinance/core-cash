@@ -7,7 +7,7 @@ import {Fixture} from "../shared/Fixture.t.sol";
 import "../../config/types.sol";
 import "../../config/errors.sol";
 
-contract MarginAccountAccessTest is Fixture {
+contract SimpleMarginEngineAccessTest is Fixture {
     uint256 private depositAmount = 100 * 1e6;
 
     address private subAccountIdToModify;
@@ -53,7 +53,7 @@ contract MarginAccountAccessTest is Fixture {
 
     function testTransferAccount() public {
         vm.startPrank(alice);
-        grappa.transferAccount(subAccountIdToModify, address(this));
+        marginEngine.transferAccount(subAccountIdToModify, address(this));
         vm.stopPrank();
 
         // can access subaccount!
@@ -66,7 +66,7 @@ contract MarginAccountAccessTest is Fixture {
 
         vm.startPrank(alice);
         vm.expectRevert(MA_AccountIsNotEmpty.selector);
-        grappa.transferAccount(subAccountIdToModify, address(this));
+        marginEngine.transferAccount(subAccountIdToModify, address(this));
         vm.stopPrank();
     }
 

@@ -2,12 +2,12 @@
 pragma solidity ^0.8.13;
 
 // import test base and helpers.
-import {Fixture} from "../shared/Fixture.t.sol";
+import {Fixture} from "../../shared/Fixture.t.sol";
 
-import "../../config/enums.sol";
-import "../../config/types.sol";
-import "../../config/constants.sol";
-import "../../config/errors.sol";
+import "../../../config/enums.sol";
+import "../../../config/types.sol";
+import "../../../config/constants.sol";
+import "../../../config/errors.sol";
 
 import "forge-std/console2.sol";
 
@@ -81,7 +81,7 @@ contract TestSettleCall is Fixture {
         // expires out the money
         oracle.setExpiryPrice(strike - 1);
 
-        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = grappa.marginAccounts(address(this));
+        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = marginEngine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -89,8 +89,14 @@ contract TestSettleCall is Fixture {
         grappa.execute(address(this), actions);
 
         //margin account should be reset
-        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAfter, uint8 collateralIdAfter) = grappa
-            .marginAccounts(address(this));
+        (
+            uint256 shortCallId,
+            ,
+            uint64 shortCallAmount,
+            ,
+            uint80 collateralAfter,
+            uint8 collateralIdAfter
+        ) = marginEngine.marginAccounts(address(this));
 
         assertEq(shortCallId, 0);
         assertEq(shortCallAmount, 0);
@@ -105,7 +111,7 @@ contract TestSettleCall is Fixture {
 
         uint256 expectedPayout = expiryPrice - strike;
 
-        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = grappa.marginAccounts(address(this));
+        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = marginEngine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -113,8 +119,14 @@ contract TestSettleCall is Fixture {
         grappa.execute(address(this), actions);
 
         // margin account should be reset
-        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAfter, uint8 collateralIdAfter) = grappa
-            .marginAccounts(address(this));
+        (
+            uint256 shortCallId,
+            ,
+            uint64 shortCallAmount,
+            ,
+            uint80 collateralAfter,
+            uint8 collateralIdAfter
+        ) = marginEngine.marginAccounts(address(this));
 
         assertEq(shortCallId, 0);
         assertEq(shortCallAmount, 0);
@@ -195,7 +207,7 @@ contract TestSettleCoveredCall is Fixture {
         // expires out the money
         oracle.setExpiryPrice(strike - 1);
 
-        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = grappa.marginAccounts(address(this));
+        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = marginEngine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -203,8 +215,14 @@ contract TestSettleCoveredCall is Fixture {
         grappa.execute(address(this), actions);
 
         //margin account should be reset
-        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAfter, uint8 collateralIdAfter) = grappa
-            .marginAccounts(address(this));
+        (
+            uint256 shortCallId,
+            ,
+            uint64 shortCallAmount,
+            ,
+            uint80 collateralAfter,
+            uint8 collateralIdAfter
+        ) = marginEngine.marginAccounts(address(this));
 
         assertEq(shortCallId, 0);
         assertEq(shortCallAmount, 0);
@@ -219,7 +237,7 @@ contract TestSettleCoveredCall is Fixture {
 
         uint256 expectedPayout = ((uint64(expiryPrice) - strike) / 5000) * (10**(18 - UNIT_DECIMALS));
 
-        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = grappa.marginAccounts(address(this));
+        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = marginEngine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -227,8 +245,14 @@ contract TestSettleCoveredCall is Fixture {
         grappa.execute(address(this), actions);
 
         // margin account should be reset
-        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAfter, uint8 collateralIdAfter) = grappa
-            .marginAccounts(address(this));
+        (
+            uint256 shortCallId,
+            ,
+            uint64 shortCallAmount,
+            ,
+            uint80 collateralAfter,
+            uint8 collateralIdAfter
+        ) = marginEngine.marginAccounts(address(this));
 
         assertEq(shortCallId, 0);
         assertEq(shortCallAmount, 0);
@@ -309,7 +333,7 @@ contract TestSettlePut is Fixture {
         // expires out the money
         oracle.setExpiryPrice(strike + 1);
 
-        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = grappa.marginAccounts(address(this));
+        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = marginEngine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -317,7 +341,7 @@ contract TestSettlePut is Fixture {
         grappa.execute(address(this), actions);
 
         //margin account should be reset
-        (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = grappa
+        (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = marginEngine
             .marginAccounts(address(this));
 
         assertEq(shortPutId, 0);
@@ -333,7 +357,7 @@ contract TestSettlePut is Fixture {
 
         uint256 expectedPayout = strike - uint64(expiryPrice);
 
-        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = grappa.marginAccounts(address(this));
+        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = marginEngine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -341,7 +365,7 @@ contract TestSettlePut is Fixture {
         grappa.execute(address(this), actions);
 
         // margin account should be reset
-        (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = grappa
+        (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = marginEngine
             .marginAccounts(address(this));
 
         assertEq(shortPutId, 0);
@@ -420,7 +444,7 @@ contract TestSettleETHCollateralizedPut is Fixture {
         // expires out the money
         oracle.setExpiryPrice(strike + 1);
 
-        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = grappa.marginAccounts(address(this));
+        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = marginEngine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -428,7 +452,7 @@ contract TestSettleETHCollateralizedPut is Fixture {
         grappa.execute(address(this), actions);
 
         //margin account should be reset
-        (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = grappa
+        (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = marginEngine
             .marginAccounts(address(this));
 
         assertEq(shortPutId, 0);
@@ -444,7 +468,7 @@ contract TestSettleETHCollateralizedPut is Fixture {
 
         uint256 expectedPayout = ((strike - uint64(expiryPrice)) / 1600) * (10**(18 - UNIT_DECIMALS));
 
-        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = grappa.marginAccounts(address(this));
+        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = marginEngine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -452,7 +476,7 @@ contract TestSettleETHCollateralizedPut is Fixture {
         grappa.execute(address(this), actions);
 
         // margin account should be reset
-        (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = grappa
+        (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = marginEngine
             .marginAccounts(address(this));
 
         assertEq(shortPutId, 0);
@@ -552,7 +576,7 @@ contract TestSettleCallSpread is Fixture {
         // expires out the money
         oracle.setExpiryPrice(longStrike);
 
-        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = grappa.marginAccounts(address(this));
+        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = marginEngine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -560,8 +584,14 @@ contract TestSettleCallSpread is Fixture {
         grappa.execute(address(this), actions);
 
         //margin account should be reset
-        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAfter, uint8 collateralIdAfter) = grappa
-            .marginAccounts(address(this));
+        (
+            uint256 shortCallId,
+            ,
+            uint64 shortCallAmount,
+            ,
+            uint80 collateralAfter,
+            uint8 collateralIdAfter
+        ) = marginEngine.marginAccounts(address(this));
 
         assertEq(shortCallId, 0);
         assertEq(shortCallAmount, 0);
@@ -576,7 +606,7 @@ contract TestSettleCallSpread is Fixture {
 
         uint256 expectedPayout = (uint64(expiryPrice) - longStrike);
 
-        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = grappa.marginAccounts(address(this));
+        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = marginEngine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -584,8 +614,14 @@ contract TestSettleCallSpread is Fixture {
         grappa.execute(address(this), actions);
 
         // margin account should be reset
-        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAfter, uint8 collateralIdAfter) = grappa
-            .marginAccounts(address(this));
+        (
+            uint256 shortCallId,
+            ,
+            uint64 shortCallAmount,
+            ,
+            uint80 collateralAfter,
+            uint8 collateralIdAfter
+        ) = marginEngine.marginAccounts(address(this));
 
         assertEq(shortCallId, 0);
         assertEq(shortCallAmount, 0);
@@ -600,7 +636,7 @@ contract TestSettleCallSpread is Fixture {
 
         uint256 expectedPayout = (uint64(shortStrike) - longStrike);
 
-        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = grappa.marginAccounts(address(this));
+        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = marginEngine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -608,8 +644,14 @@ contract TestSettleCallSpread is Fixture {
         grappa.execute(address(this), actions);
 
         // margin account should be reset
-        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAfter, uint8 collateralIdAfter) = grappa
-            .marginAccounts(address(this));
+        (
+            uint256 shortCallId,
+            ,
+            uint64 shortCallAmount,
+            ,
+            uint80 collateralAfter,
+            uint8 collateralIdAfter
+        ) = marginEngine.marginAccounts(address(this));
 
         assertEq(shortCallId, 0);
         assertEq(shortCallAmount, 0);
@@ -709,7 +751,7 @@ contract TestSettlePutSpread is Fixture {
         // expires out the money
         oracle.setExpiryPrice(longStrike);
 
-        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = grappa.marginAccounts(address(this));
+        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = marginEngine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -717,7 +759,7 @@ contract TestSettlePutSpread is Fixture {
         grappa.execute(address(this), actions);
 
         //margin account should be reset
-        (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = grappa
+        (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = marginEngine
             .marginAccounts(address(this));
 
         assertEq(shortPutId, 0);
@@ -734,7 +776,7 @@ contract TestSettlePutSpread is Fixture {
 
         uint256 expectedPayout = longStrike - uint64(expiryPrice);
 
-        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = grappa.marginAccounts(address(this));
+        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = marginEngine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -742,7 +784,7 @@ contract TestSettlePutSpread is Fixture {
         grappa.execute(address(this), actions);
 
         //margin account should be reset
-        (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = grappa
+        (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = marginEngine
             .marginAccounts(address(this));
 
         assertEq(shortPutId, 0);
@@ -758,7 +800,7 @@ contract TestSettlePutSpread is Fixture {
 
         uint256 expectedPayout = longStrike - uint64(shortStrike);
 
-        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = grappa.marginAccounts(address(this));
+        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = marginEngine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -766,7 +808,7 @@ contract TestSettlePutSpread is Fixture {
         grappa.execute(address(this), actions);
 
         //margin account should be reset
-        (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = grappa
+        (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = marginEngine
             .marginAccounts(address(this));
 
         assertEq(shortPutId, 0);

@@ -6,7 +6,8 @@ import "forge-std/Test.sol";
 import "../../test/mocks/MockERC20.sol";
 import "../../test/mocks/MockOracle.sol";
 
-import "../../core/SimpleMargin/MarginAccount.sol";
+import "../../core/engines/SimpleMarginEngine.sol";
+import "../../core/Grappa.sol";
 import "../../core/OptionToken.sol";
 
 import "../../config/enums.sol";
@@ -17,7 +18,8 @@ import "../utils/Utilities.sol";
 import {ActionHelper} from "../../test/shared/ActionHelper.sol";
 
 abstract contract Fixture is Test, ActionHelper, Utilities {
-    MarginAccount internal grappa;
+    SimpleMarginEngine internal marginEngine;
+    Grappa internal grappa;
     OptionToken internal option;
 
     MockERC20 internal usdc;
@@ -38,6 +40,8 @@ abstract contract Fixture is Test, ActionHelper, Utilities {
     uint8 internal usdcId;
     uint8 internal wethId;
 
+    uint8 internal engineId;
+
     constructor() {
         usdc = new MockERC20("USDC", "USDC", 6); // nonce: 1
 
@@ -46,20 +50,27 @@ abstract contract Fixture is Test, ActionHelper, Utilities {
         oracle = new MockOracle(); // nonce: 3
 
         // predit address of margin account and use it here
-        address marginAccountAddr = predictAddress(address(this), 5);
-        option = new OptionToken(marginAccountAddr); // nonce: 4
+        address grappaAddr = predictAddress(address(this), 5);
 
-        grappa = new MarginAccount(address(option), address(oracle)); // nonce 5
+        option = new OptionToken(grappaAddr); // nonce: 4
+
+        address marginEngineAddr = predictAddress(address(this), 6);
+
+        grappa = new Grappa(address(option), marginEngineAddr); // nonce: 5
+
+        marginEngine = new SimpleMarginEngine(address(grappa), address(oracle)); // nonce 5
 
         // register products
         usdcId = grappa.registerAsset(address(usdc));
         wethId = grappa.registerAsset(address(weth));
 
+        // engineId = grappa.registerEngine(address(marginEngine));
+
         productId = grappa.getProductId(address(weth), address(usdc), address(usdc));
         productIdEthCollat = grappa.getProductId(address(weth), address(usdc), address(weth));
 
-        grappa.setProductMarginConfig(productId, 180 days, 1 days, 6400, 800, 10000);
-        grappa.setProductMarginConfig(productIdEthCollat, 180 days, 1 days, 6400, 800, 10000);
+        marginEngine.setProductMarginConfig(productId, 180 days, 1 days, 6400, 800, 10000);
+        marginEngine.setProductMarginConfig(productIdEthCollat, 180 days, 1 days, 6400, 800, 10000);
 
         charlie = address(0xcccc);
         vm.label(charlie, "Charlie");
