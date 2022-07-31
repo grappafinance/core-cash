@@ -21,7 +21,7 @@ import "forge-std/console2.sol";
 contract RegistryTest is Test {
     Registry public registry;
     MockERC20 private weth;
-    
+
     constructor() {
         weth = new MockERC20("WETH", "WETH", 18);
         registry = new Registry();
@@ -42,7 +42,7 @@ contract RegistryTest is Test {
 
     function testRegisterAssetRecordDecimals() public {
         uint8 id = registry.registerAsset(address(weth));
-        
+
         (address addr, uint8 decimals) = registry.assets(id);
 
         assertEq(addr, address(weth));
@@ -54,5 +54,4 @@ contract RegistryTest is Test {
         vm.expectRevert(Registry.AssetAlreadyRegistered.selector);
         registry.registerAsset(address(weth));
     }
-    
 }
