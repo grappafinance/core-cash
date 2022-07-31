@@ -970,6 +970,16 @@ contract TestBatchSettleCall is Fixture {
         grappa.batchSettleOptions(alice, tokenIds, amounts, address(weth));
     }
 
+    function testCannotSettleWithWrongArgumentLengths() public {
+        oracle.setExpiryPrice(address(weth), address(usdc), strikes[0] - 1);
+
+        uint256[] memory badIds = new uint256[](1);
+        badIds[0] = getTokenId(TokenType.CALL, productId, expiry, strikes[0], 0);
+
+        vm.expectRevert(ST_WrongArgumentLength.selector);
+        grappa.batchSettleOptions(alice, badIds, amounts, address(weth));
+    }
+
     function testShouldGetNothingIfAllOptionsExpiresOTM() public {
         // expires out the money
         oracle.setExpiryPrice(address(weth), address(usdc), strikes[0] - 1);
