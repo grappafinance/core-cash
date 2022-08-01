@@ -54,4 +54,21 @@ contract RegistryTest is Test {
         vm.expectRevert(Registry.AssetAlreadyRegistered.selector);
         registry.registerAsset(address(weth));
     }
+
+    function testReturnAssetsFromProductId() public {
+        registry.registerAsset(address(weth));
+
+        uint32 product = registry.getProductId(address(weth), address(0), address(weth));
+
+        (address underlying, address strike, address collateral, uint8 collatDecimals) = registry
+            .getAssetsFromProductId(product);
+
+        assertEq(underlying, address(weth));
+
+        // strike is empty
+        assertEq(strike, address(0));
+        assertEq(underlying, address(weth));
+        assertEq(collateral, address(weth));
+        assertEq(collatDecimals, 18);
+    }
 }
