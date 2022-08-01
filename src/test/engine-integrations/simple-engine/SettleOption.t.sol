@@ -3,6 +3,7 @@ pragma solidity ^0.8.13;
 
 // import test base and helpers.
 import {Fixture} from "../../shared/Fixture.t.sol";
+import "../../mocks/MockERC20.sol";
 
 import "../../../config/enums.sol";
 import "../../../config/types.sol";
@@ -46,7 +47,7 @@ contract TestSettleCall is Fixture {
 
     function testShouldGetNothingIfExpiresOTM() public {
         // expires out the money
-        oracle.setExpiryPrice(strike - 1);
+        oracle.setExpiryPrice(address(weth), address(usdc), strike - 1);
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
@@ -62,7 +63,7 @@ contract TestSettleCall is Fixture {
     function testShouldGetPayoutIfExpiresIMT() public {
         // expires in the money
         uint256 expiryPrice = 5000 * UNIT;
-        oracle.setExpiryPrice(expiryPrice);
+        oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
 
         uint256 expectedPayout = (uint64(expiryPrice) - strike);
         uint256 usdcBefore = usdc.balanceOf(alice);
@@ -79,7 +80,7 @@ contract TestSettleCall is Fixture {
 
     function testSellerCanClearDebtIfExpiresOTM() public {
         // expires out the money
-        oracle.setExpiryPrice(strike - 1);
+        oracle.setExpiryPrice(address(weth), address(usdc), strike - 1);
 
         (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = marginEngine.marginAccounts(address(this));
 
@@ -107,7 +108,7 @@ contract TestSettleCall is Fixture {
     function testSellerCollateralIsReducedIfExpiresITM() public {
         // expires out the money
         uint256 expiryPrice = 5000 * UNIT;
-        oracle.setExpiryPrice(expiryPrice);
+        oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
 
         uint256 expectedPayout = expiryPrice - strike;
 
@@ -170,7 +171,7 @@ contract TestSettleCoveredCall is Fixture {
 
     function testShouldGetNothingIfExpiresOTM() public {
         // expires out the money
-        oracle.setExpiryPrice(strike - 1);
+        oracle.setExpiryPrice(address(weth), address(usdc), strike - 1);
 
         uint256 wethBefore = weth.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
@@ -187,7 +188,7 @@ contract TestSettleCoveredCall is Fixture {
     function testShouldGetPayoutIfExpiresIMT() public {
         // expires in the money
         uint256 expiryPrice = 5000 * UNIT;
-        oracle.setExpiryPrice(expiryPrice);
+        oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
 
         uint256 expectedPayout = ((uint64(expiryPrice) - strike) / 5000) * (10**(18 - UNIT_DECIMALS));
         uint256 wethBefore = weth.balanceOf(alice);
@@ -205,7 +206,7 @@ contract TestSettleCoveredCall is Fixture {
 
     function testSellerCanClearDebtIfExpiresOTM() public {
         // expires out the money
-        oracle.setExpiryPrice(strike - 1);
+        oracle.setExpiryPrice(address(weth), address(usdc), strike - 1);
 
         (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = marginEngine.marginAccounts(address(this));
 
@@ -233,7 +234,7 @@ contract TestSettleCoveredCall is Fixture {
     function testSellerCollateralIsReducedIfExpiresITM() public {
         // expires out the money
         uint256 expiryPrice = 5000 * UNIT;
-        oracle.setExpiryPrice(expiryPrice);
+        oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
 
         uint256 expectedPayout = ((uint64(expiryPrice) - strike) / 5000) * (10**(18 - UNIT_DECIMALS));
 
@@ -296,7 +297,7 @@ contract TestSettlePut is Fixture {
 
     function testShouldGetNothingIfExpiresOTM() public {
         // expires out the money
-        oracle.setExpiryPrice(strike + 1);
+        oracle.setExpiryPrice(address(weth), address(usdc), strike + 1);
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
@@ -312,7 +313,7 @@ contract TestSettlePut is Fixture {
     function testShouldGetPayoutIfExpiresIMT() public {
         // expires in the money
         uint256 expiryPrice = 1000 * UNIT;
-        oracle.setExpiryPrice(expiryPrice);
+        oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
 
         uint256 expectedPayout = strike - uint64(expiryPrice);
         uint256 usdcBefore = usdc.balanceOf(alice);
@@ -331,7 +332,7 @@ contract TestSettlePut is Fixture {
 
     function testSellerCanClearDebtIfExpiresOTM() public {
         // expires out the money
-        oracle.setExpiryPrice(strike + 1);
+        oracle.setExpiryPrice(address(weth), address(usdc), strike + 1);
 
         (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = marginEngine.marginAccounts(address(this));
 
@@ -353,7 +354,7 @@ contract TestSettlePut is Fixture {
     function testSellerCollateralIsReducedIfExpiresITM() public {
         // expires out the money
         uint256 expiryPrice = 1000 * UNIT;
-        oracle.setExpiryPrice(expiryPrice);
+        oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
 
         uint256 expectedPayout = strike - uint64(expiryPrice);
 
@@ -410,7 +411,7 @@ contract TestSettleETHCollateralizedPut is Fixture {
 
     function testShouldGetNothingIfExpiresOTM() public {
         // expires out the money
-        oracle.setExpiryPrice(strike + 1);
+        oracle.setExpiryPrice(address(weth), address(usdc), strike + 1);
         uint256 wethBefore = weth.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
@@ -426,7 +427,7 @@ contract TestSettleETHCollateralizedPut is Fixture {
     function testShouldGetPayoutIfExpiresIMT() public {
         // expires in the money
         uint256 expiryPrice = 1600 * UNIT;
-        oracle.setExpiryPrice(expiryPrice);
+        oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
 
         uint256 expectedPayout = ((strike - uint64(expiryPrice)) / 1600) * (10**(18 - UNIT_DECIMALS));
         uint256 wethBefore = weth.balanceOf(alice);
@@ -442,7 +443,7 @@ contract TestSettleETHCollateralizedPut is Fixture {
 
     function testSellerCanClearDebtIfExpiresOTM() public {
         // expires out the money
-        oracle.setExpiryPrice(strike + 1);
+        oracle.setExpiryPrice(address(weth), address(usdc), strike + 1);
 
         (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = marginEngine.marginAccounts(address(this));
 
@@ -464,7 +465,7 @@ contract TestSettleETHCollateralizedPut is Fixture {
     function testSellerCollateralIsReducedIfExpiresITM() public {
         // expires out the money
         uint256 expiryPrice = 1600 * UNIT;
-        oracle.setExpiryPrice(expiryPrice);
+        oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
 
         uint256 expectedPayout = ((strike - uint64(expiryPrice)) / 1600) * (10**(18 - UNIT_DECIMALS));
 
@@ -523,7 +524,7 @@ contract TestSettleCallSpread is Fixture {
 
     function testShouldGetNothingIfExpiresOTM() public {
         // expires out the money
-        oracle.setExpiryPrice(longStrike);
+        oracle.setExpiryPrice(address(weth), address(usdc), longStrike);
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
@@ -539,7 +540,7 @@ contract TestSettleCallSpread is Fixture {
     function testShouldGetPayoutDifferenceBetweenSpotAndLongStrike() public {
         // expires in the money, not higher than upper bond
         uint256 expiryPrice = 4100 * UNIT;
-        oracle.setExpiryPrice(expiryPrice);
+        oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
 
         uint256 expectedPayout = (uint64(expiryPrice) - longStrike);
         uint256 usdcBefore = usdc.balanceOf(alice);
@@ -557,7 +558,7 @@ contract TestSettleCallSpread is Fixture {
     function testPayoutShouldBeCappedAtShortStrike() public {
         // expires in the money, higher than upper bond
         uint256 expiryPrice = 5000 * UNIT;
-        oracle.setExpiryPrice(expiryPrice);
+        oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
 
         uint256 expectedPayout = (uint64(shortStrike) - longStrike);
         uint256 usdcBefore = usdc.balanceOf(alice);
@@ -574,7 +575,7 @@ contract TestSettleCallSpread is Fixture {
 
     function testSellerCanClearDebtIfExpiresOTM() public {
         // expires out the money
-        oracle.setExpiryPrice(longStrike);
+        oracle.setExpiryPrice(address(weth), address(usdc), longStrike);
 
         (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = marginEngine.marginAccounts(address(this));
 
@@ -602,7 +603,7 @@ contract TestSettleCallSpread is Fixture {
     function testSellerCollateralIsReducedIfExpiresITM() public {
         // expires out the money
         uint256 expiryPrice = 4100 * UNIT;
-        oracle.setExpiryPrice(expiryPrice);
+        oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
 
         uint256 expectedPayout = (uint64(expiryPrice) - longStrike);
 
@@ -632,7 +633,7 @@ contract TestSettleCallSpread is Fixture {
     function testSellerCollateralReductionIsCapped() public {
         // expires in the money, higher than upper bond
         uint256 expiryPrice = 5000 * UNIT;
-        oracle.setExpiryPrice(expiryPrice);
+        oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
 
         uint256 expectedPayout = (uint64(shortStrike) - longStrike);
 
@@ -697,7 +698,7 @@ contract TestSettlePutSpread is Fixture {
 
     function testShouldGetNothingIfExpiresOTM() public {
         // expires out the money
-        oracle.setExpiryPrice(longStrike);
+        oracle.setExpiryPrice(address(weth), address(usdc), longStrike);
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
@@ -713,7 +714,7 @@ contract TestSettlePutSpread is Fixture {
     function testShouldGetPayoutDifferenceBetweenSpotAndLongStrike() public {
         // expires in the money, not lower than lower bond
         uint256 expiryPrice = 1900 * UNIT;
-        oracle.setExpiryPrice(expiryPrice);
+        oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
 
         uint256 expectedPayout = longStrike - uint64(expiryPrice);
         uint256 usdcBefore = usdc.balanceOf(alice);
@@ -731,7 +732,7 @@ contract TestSettlePutSpread is Fixture {
     function testPayoutShouldBeCappedAtShortStrike() public {
         // expires in the money, lower than lower bond
         uint256 expiryPrice = 1000 * UNIT;
-        oracle.setExpiryPrice(expiryPrice);
+        oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
 
         uint256 expectedPayout = longStrike - uint64(shortStrike);
         uint256 usdcBefore = usdc.balanceOf(alice);
@@ -749,7 +750,7 @@ contract TestSettlePutSpread is Fixture {
     // settling sell side
     function testSellerCanClearDebtIfExpiresOTM() public {
         // expires out the money
-        oracle.setExpiryPrice(longStrike);
+        oracle.setExpiryPrice(address(weth), address(usdc), longStrike);
 
         (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = marginEngine.marginAccounts(address(this));
 
@@ -772,7 +773,7 @@ contract TestSettlePutSpread is Fixture {
         // expires out the money
 
         uint256 expiryPrice = 1900 * UNIT;
-        oracle.setExpiryPrice(expiryPrice);
+        oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
 
         uint256 expectedPayout = longStrike - uint64(expiryPrice);
 
@@ -796,7 +797,7 @@ contract TestSettlePutSpread is Fixture {
     function testSellerCollateralReductionIsCapped() public {
         // expires in the money, lower than lower bond
         uint256 expiryPrice = 1000 * UNIT;
-        oracle.setExpiryPrice(expiryPrice);
+        oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
 
         uint256 expectedPayout = longStrike - uint64(shortStrike);
 
@@ -814,6 +815,108 @@ contract TestSettlePutSpread is Fixture {
         assertEq(shortPutId, 0);
         assertEq(shortPutAmount, 0);
         assertEq(collateralBefore - collateralAfter, expectedPayout);
+        assertEq(collateralIdAfter, collateralIdBefore);
+    }
+}
+
+contract TestSettleBTCCollateralizedCall is Fixture {
+    uint256 public expiry;
+
+    uint64 private amount = uint64(1 * UNIT);
+    uint256 private wbtcbackedTokenId;
+    uint64 private strike;
+
+    MockERC20 private wbtc;
+    uint8 private wbtcId;
+    uint32 private wbtcBackedProductId;
+
+    uint256 private mockedWbtcPrice = 40000 * UNIT;
+
+    function setUp() public {
+        wbtc = new MockERC20("WBTC", "WBTC", 8);
+        wbtcId = grappa.registerAsset(address(wbtc));
+
+        usdc.mint(address(this), 1000_000 * 1e6);
+        usdc.approve(address(grappa), type(uint256).max);
+
+        wbtc.mint(address(this), 1000 * 1e8);
+        wbtc.approve(address(grappa), type(uint256).max);
+
+        expiry = block.timestamp + 14 days;
+
+        // set prices and configs
+        oracle.setSpotPrice(address(weth), 3000 * UNIT);
+        oracle.setSpotPrice(address(wbtc), mockedWbtcPrice);
+
+        strike = uint64(4000 * UNIT);
+
+        wbtcBackedProductId = grappa.getProductId(address(weth), address(usdc), address(wbtc));
+        wbtcbackedTokenId = getTokenId(TokenType.CALL, wbtcBackedProductId, expiry, strike, 0);
+        marginEngine.setProductMarginConfig(wbtcBackedProductId, 180 days, 1 days, 6400, 800, 10000);
+
+        // mint option with 1 wbtc as collateral
+        uint256 depositAmount = 1 * 1e8;
+
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        actions[0] = createAddCollateralAction(wbtcId, address(this), depositAmount);
+        // give optoin to alice
+        actions[1] = createMintAction(wbtcbackedTokenId, alice, amount);
+
+        // mint option
+        grappa.execute(address(this), actions);
+
+        // expire option
+        vm.warp(expiry);
+    }
+
+    function testShouldPayoutWBTCIfExpiresIMT() public {
+        // expires in the money
+        uint256 expiryPrice = 5000 * UNIT;
+        oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
+
+        oracle.setExpiryPrice(address(wbtc), address(usdc), mockedWbtcPrice);
+
+        uint256 expectedPayout = ((uint64(expiryPrice) - strike) * 1e8) / mockedWbtcPrice;
+        uint256 wbtcBefore = wbtc.balanceOf(alice);
+        uint256 optionBefore = option.balanceOf(alice, wbtcbackedTokenId);
+
+        grappa.settleOption(alice, wbtcbackedTokenId, amount);
+
+        uint256 wbtcAfter = wbtc.balanceOf(alice);
+        uint256 optionAfter = option.balanceOf(alice, wbtcbackedTokenId);
+
+        assertEq(wbtcBefore + expectedPayout, wbtcAfter);
+        assertEq(optionBefore, optionAfter + amount);
+    }
+
+    function testSellerCanClearDebtIfExpiresITM() public {
+        uint256 expiryPrice = 5000 * UNIT;
+        oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
+        oracle.setExpiryPrice(address(wbtc), address(usdc), mockedWbtcPrice);
+
+        uint256 expectedPayout = ((uint64(expiryPrice) - strike) * 1e8) / mockedWbtcPrice;
+
+        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = marginEngine.marginAccounts(address(this));
+
+        // settle marginaccount
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createSettleAction();
+        grappa.execute(address(this), actions);
+
+        //margin account should be reset
+        (
+            uint256 shortCallId,
+            ,
+            uint64 shortCallAmount,
+            ,
+            uint80 collateralAfter,
+            uint8 collateralIdAfter
+        ) = marginEngine.marginAccounts(address(this));
+
+        assertEq(shortCallId, 0);
+        assertEq(shortCallAmount, 0);
+        // collateral is reduced
+        assertEq(collateralAfter, collateralBefore - expectedPayout);
         assertEq(collateralIdAfter, collateralIdBefore);
     }
 }
@@ -861,15 +964,25 @@ contract TestBatchSettleCall is Fixture {
     }
 
     function testCannotSettleWithWrongCollateral() public {
-        oracle.setExpiryPrice(strikes[0] - 1);
+        oracle.setExpiryPrice(address(weth), address(usdc), strikes[0] - 1);
 
         vm.expectRevert(ST_WrongSettlementCollateral.selector);
         grappa.batchSettleOptions(alice, tokenIds, amounts, address(weth));
     }
 
+    function testCannotSettleWithWrongArgumentLengths() public {
+        oracle.setExpiryPrice(address(weth), address(usdc), strikes[0] - 1);
+
+        uint256[] memory badIds = new uint256[](1);
+        badIds[0] = getTokenId(TokenType.CALL, productId, expiry, strikes[0], 0);
+
+        vm.expectRevert(ST_WrongArgumentLength.selector);
+        grappa.batchSettleOptions(alice, badIds, amounts, address(weth));
+    }
+
     function testShouldGetNothingIfAllOptionsExpiresOTM() public {
         // expires out the money
-        oracle.setExpiryPrice(strikes[0] - 1);
+        oracle.setExpiryPrice(address(weth), address(usdc), strikes[0] - 1);
 
         uint256 usdcBefore = usdc.balanceOf(alice);
 
@@ -889,7 +1002,7 @@ contract TestBatchSettleCall is Fixture {
     function testShouldGetPayoutIfOneOptionExpiresITM() public {
         // strikes[1] and strikes[2] expries OTM
         // only get 500 out of strikes[0]
-        oracle.setExpiryPrice(strikes[1]);
+        oracle.setExpiryPrice(address(weth), address(usdc), strikes[1]);
 
         uint256 expectedReturn = strikes[1] - strikes[0];
 
@@ -911,7 +1024,7 @@ contract TestBatchSettleCall is Fixture {
         // strikes[1] and strikes[2] expries OTM
         // only get 500 out of strikes[0]
         uint256 expiryPrice = strikes[2] + 500 * UNIT;
-        oracle.setExpiryPrice(expiryPrice);
+        oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
 
         uint256 expectedReturn = 3 * expiryPrice - (strikes[0] + strikes[1] + strikes[2]);
 
@@ -981,7 +1094,7 @@ contract TestSettlementEdgeCase is Fixture {
         vm.warp(expiry + 1);
 
         uint256 expiryPrice = strike;
-        oracle.setExpiryPrice(expiryPrice);
+        oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
 
         uint256 newTokenId = getTokenId(TokenType.CALL, productId, expiry + 14 days, strike, 0);
 
