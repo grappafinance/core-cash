@@ -58,10 +58,10 @@ contract RegistryTest is Test {
     function testReturnAssetsFromProductId() public {
         registry.registerAsset(address(weth));
 
-        uint32 product = registry.getProductId(address(weth), address(0), address(weth));
+        uint32 product = registry.getProductId(0, address(weth), address(0), address(weth));
 
-        (address underlying, address strike, address collateral, uint8 collatDecimals) = registry
-            .getAssetsFromProductId(product);
+        (,address underlying, address strike, address collateral, uint8 collatDecimals) = registry
+            .getDetailFromProductId(product);
 
         assertEq(underlying, address(weth));
 

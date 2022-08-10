@@ -17,18 +17,18 @@ contract Registry is Ownable {
 
     /// @dev next id used to represent an address
     /// invariant:  any id in tokenId not greater than this number
-    // uint8 public nextEngineId;c
+    uint8 public nextEngineId;
 
     /// @dev assetId => asset address
     mapping(uint8 => AssetDetail) public assets;
 
     /// @dev assetId => margin engine address
-    // mapping(uint8 => address) public engines;
+    mapping(uint8 => address) public engines;
 
     /// @dev address => assetId
     mapping(address => uint8) public assetIds;
     /// @dev address => engineId
-    // mapping(address => uint8) public engineIds;
+    mapping(address => uint8) public engineIds;
 
     /// Events
 
@@ -39,22 +39,40 @@ contract Registry is Ownable {
     constructor() Ownable() {}
 
     /**
-     * @dev parse product id into composing asset addresses
+     * @dev parse product id into composing asset and engine addresses
      * @param _productId product id
      */
-    function getAssetsFromProductId(uint32 _productId)
+    function getDetailFromProductId(uint32 _productId)
         public
         view
         returns (
+            address engine,
             address underlying,
             address strike,
             address collateral,
             uint8 collateralDecimals
         )
     {
-        (, uint8 underlyingId, uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(_productId);
+        (uint8 engineId, uint8 underlyingId, uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(
+            _productId
+        );
         AssetDetail memory collateralDetail = assets[collateralId];
-        return (assets[underlyingId].addr, assets[strikeId].addr, collateralDetail.addr, collateralDetail.decimals);
+        return (
+            engines[engineId],
+            assets[underlyingId].addr,
+            assets[strikeId].addr,
+            collateralDetail.addr,
+            collateralDetail.decimals
+        );
+    }
+
+    /**
+     * @dev parse only the engine address from productId
+     * @param _productId product id
+     */
+    function getEngineFromProductId(uint32 _productId) public view returns (address engine) {
+        (uint8 engineId, , , ) = ProductIdUtil.parseProductId(_productId);
+        engine = engines[engineId];
     }
 
     /**
@@ -65,11 +83,12 @@ contract Registry is Ownable {
      * @param collateral  collateral address
      */
     function getProductId(
+        uint8 engineId,
         address underlying,
         address strike,
         address collateral
     ) external view returns (uint32 id) {
-        id = ProductIdUtil.getProductId(0, assetIds[underlying], assetIds[strike], assetIds[collateral]);
+        id = ProductIdUtil.getProductId(engineId, assetIds[underlying], assetIds[strike], assetIds[collateral]);
     }
 
     /**
@@ -88,18 +107,18 @@ contract Registry is Ownable {
         emit AssetRegistered(_asset, id);
     }
 
-    // /**
-    //  * @dev register an engine to create / settle options
-    //  * @param _engine address of the new margin engine
-    //  **/
-    // function registerEngine(address _engine) external onlyOwner returns (uint8 id) {
-    //     if (engineIds[_engine] != 0) revert MarginEngineAlreadyRegistered();
+    /**
+     * @dev register an engine to create / settle options
+     * @param _engine address of the new margin engine
+     **/
+    function registerEngine(address _engine) external onlyOwner returns (uint8 id) {
+        if (engineIds[_engine] != 0) revert MarginEngineAlreadyRegistered();
 
-    //     id = ++nextEngineId;
-    //     engines[id] = _engine;
+        id = ++nextEngineId;
+        engines[id] = _engine;
 
-    //     engineIds[_engine] = id;
+        engineIds[_engine] = id;
 
-    //     emit MarginEngineRegistered(_engine, id);
-    // }
+        emit MarginEngineRegistered(_engine, id);
+    }
 }

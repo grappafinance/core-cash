@@ -29,7 +29,7 @@ contract TestMergeOption is Fixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
-        grappa.execute(address(this), actions);
+        grappa.execute(engineId, address(this), actions);
     }
 
     function testMergeCallChangeStorage() public {
@@ -42,7 +42,7 @@ contract TestMergeOption is Fixture {
         // merge
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createMergeAction(newTokenId, address(this));
-        grappa.execute(address(this), actions);
+        grappa.execute(engineId, address(this), actions);
 
         // check result
         (uint256 shortCallId, , , , , ) = marginEngine.marginAccounts(address(this));
@@ -66,7 +66,7 @@ contract TestMergeOption is Fixture {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createMergeAction(newTokenId, address(this));
         vm.prank(alice);
-        grappa.execute(address(this), actions);
+        grappa.execute(engineId, address(this), actions);
 
         // check result
         (uint256 shortCallId, , , , , ) = marginEngine.marginAccounts(address(this));
@@ -86,7 +86,7 @@ contract TestMergeOption is Fixture {
         actions[0] = createMergeAction(newTokenId, address(alice));
 
         vm.expectRevert(MA_InvalidFromAddress.selector);
-        grappa.execute(address(this), actions);
+        grappa.execute(engineId, address(this), actions);
     }
 
     function testMergeIntoCreditSpreadCanRemoveCollateral() public {
@@ -100,7 +100,7 @@ contract TestMergeOption is Fixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createMergeAction(newTokenId, address(this));
         actions[1] = createRemoveCollateralAction(amountToRemove, usdcId, address(this));
-        grappa.execute(address(this), actions);
+        grappa.execute(engineId, address(this), actions);
 
         //action should not revert
     }
@@ -114,7 +114,7 @@ contract TestMergeOption is Fixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createMergeAction(newTokenId, address(this));
         actions[1] = createRemoveCollateralAction(depositAmount, usdcId, address(this));
-        grappa.execute(address(this), actions);
+        grappa.execute(engineId, address(this), actions);
 
         //action should not revert
     }

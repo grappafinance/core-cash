@@ -45,7 +45,7 @@ contract TestLiquidateCall is Fixture {
         actions[1] = createMintAction(tokenId, address(this), amount);
 
         // mint option
-        grappa.execute(accountId, actions);
+        grappa.execute(engineId, accountId, actions);
 
         vm.stopPrank();
     }
@@ -176,7 +176,7 @@ contract TestLiquidatePut is Fixture {
         actions[1] = createMintAction(tokenId, address(this), amount);
 
         // mint option
-        grappa.execute(accountId, actions);
+        grappa.execute(engineId, accountId, actions);
 
         vm.stopPrank();
     }
@@ -302,7 +302,7 @@ contract TestLiquidateCallAndPut is Fixture {
         actions[2] = createMintAction(putId, address(this), amount);
 
         // mint option
-        grappa.execute(accountId, actions);
+        grappa.execute(engineId, accountId, actions);
 
         vm.stopPrank();
     }
