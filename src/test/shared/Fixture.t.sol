@@ -54,20 +54,20 @@ abstract contract Fixture is Test, ActionHelper, Utilities {
 
         option = new OptionToken(grappaAddr); // nonce: 4
 
-        address marginEngineAddr = predictAddress(address(this), 6);
+        grappa = new Grappa(address(option), address(oracle)); // nonce: 5
 
-        grappa = new Grappa(address(option), marginEngineAddr, address(oracle)); // nonce: 5
-
-        marginEngine = new SimpleMarginEngine(address(grappa), address(oracle)); // nonce 5
+        marginEngine = new SimpleMarginEngine(address(grappa), address(oracle)); // nonce 6
 
         // register products
         usdcId = grappa.registerAsset(address(usdc));
         wethId = grappa.registerAsset(address(weth));
 
+        engineId = grappa.registerEngine(address(marginEngine));
+
         // engineId = grappa.registerEngine(address(marginEngine));
 
-        productId = grappa.getProductId(address(weth), address(usdc), address(usdc));
-        productIdEthCollat = grappa.getProductId(address(weth), address(usdc), address(weth));
+        productId = grappa.getProductId(engineId, address(weth), address(usdc), address(usdc));
+        productIdEthCollat = grappa.getProductId(engineId, address(weth), address(usdc), address(weth));
 
         marginEngine.setProductMarginConfig(productId, 180 days, 1 days, 6400, 800, 10000);
         marginEngine.setProductMarginConfig(productIdEthCollat, 180 days, 1 days, 6400, 800, 10000);
@@ -126,7 +126,7 @@ abstract contract Fixture is Test, ActionHelper, Utilities {
 
         actions[0] = createAddCollateralAction(collateralId, address(anon), lotOfCollateral);
         actions[1] = createMintAction(_tokenId, address(_recipient), _amount);
-        grappa.execute(address(anon), actions);
+        grappa.execute(engineId, address(anon), actions);
 
         vm.stopPrank();
     }

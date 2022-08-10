@@ -23,7 +23,7 @@ contract TestAddCollateral is Fixture {
 
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
-        grappa.execute(address(this), actions);
+        grappa.execute(engineId, address(this), actions);
         (, , , , uint80 _collateralAmount, uint8 _collateralId) = marginEngine.marginAccounts(address(this));
 
         assertEq(_collateralId, usdcId);
@@ -37,7 +37,7 @@ contract TestAddCollateral is Fixture {
 
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
-        grappa.execute(address(this), actions);
+        grappa.execute(engineId, address(this), actions);
 
         uint256 grappaBalanceAfter = usdc.balanceOf(address(grappa));
         uint256 myBalanceAfter = usdc.balanceOf(address(this));
@@ -54,7 +54,7 @@ contract TestAddCollateral is Fixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createAddCollateralAction(usdcId, address(this), depositAmount);
-        grappa.execute(address(this), actions);
+        grappa.execute(engineId, address(this), actions);
 
         uint256 grappaBalanceAfter = usdc.balanceOf(address(grappa));
         uint256 myBalanceAfter = usdc.balanceOf(address(this));
@@ -72,13 +72,13 @@ contract TestAddCollateral is Fixture {
         actions[1] = createAddCollateralAction(wethId, address(this), wethAmount);
 
         vm.expectRevert(MA_WrongCollateralId.selector);
-        grappa.execute(address(this), actions);
+        grappa.execute(engineId, address(this), actions);
     }
 
     function testCannotAddCollatFromOthers() public {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createAddCollateralAction(usdcId, address(alice), 100);
         vm.expectRevert(MA_InvalidFromAddress.selector);
-        grappa.execute(address(this), actions);
+        grappa.execute(engineId, address(this), actions);
     }
 }

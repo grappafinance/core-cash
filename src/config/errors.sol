@@ -6,6 +6,9 @@ pragma solidity =0.8.13;
 // Univeral Errors
 error NoAccess();
 
+// Grappa Main
+error Not_Authorized_Engine();
+
 // Margin Account Errors
 
 /// token id specified to liquidate mistmch vault debt

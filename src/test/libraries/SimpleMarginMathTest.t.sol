@@ -159,40 +159,6 @@ contract SimpleMarginMathTest is Test {
         assertEq(decay, 1773); // 17.73%
     }
 
-    function testCallCashValue() public {
-        uint256 spot = 3000 * base;
-        uint256 strike = 2900 * base;
-        uint256 cash = SimpleMarginMath.getCallCashValue(spot, strike);
-        assertEq(cash, 100 * base);
-
-        // spot < strike
-        spot = 2800 * base;
-        cash = SimpleMarginMath.getCallCashValue(spot, strike);
-        assertEq(cash, 0);
-
-        // spot = strike
-        spot = 2900 * base;
-        cash = SimpleMarginMath.getCallCashValue(spot, strike);
-        assertEq(cash, 0);
-    }
-
-    function testPutCashValue() public {
-        uint256 spot = 3000 * base;
-        uint256 strike = 2900 * base;
-        uint256 cash = SimpleMarginMath.getPutCashValue(spot, strike);
-        assertEq(cash, 0);
-
-        // spot < strike
-        spot = 2800 * base;
-        cash = SimpleMarginMath.getPutCashValue(spot, strike);
-        assertEq(cash, 100 * base);
-
-        // spot = strike
-        spot = 2900 * base;
-        cash = SimpleMarginMath.getPutCashValue(spot, strike);
-        assertEq(cash, 0);
-    }
-
     function getDefaultConfig() internal pure returns (ProductMarginParams memory config) {
         return
             ProductMarginParams({

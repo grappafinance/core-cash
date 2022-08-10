@@ -2,10 +2,11 @@
 pragma solidity ^0.8.0;
 
 interface IGrappa {
-    function getAssetsFromProductId(uint32 _productId)
+    function getDetailFromProductId(uint32 _productId)
         external
         view
         returns (
+            address engine,
             address underlying,
             address strike,
             address collateral,
