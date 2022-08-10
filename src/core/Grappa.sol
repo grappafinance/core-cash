@@ -199,11 +199,11 @@ contract Grappa is ReentrancyGuard, Registry {
         if (tokenType == TokenType.CALL) {
             cashValue = MoneynessLib.getCallCashValue(expiryPrice, longStrike);
         } else if (tokenType == TokenType.CALL_SPREAD) {
-            cashValue = MoneynessLib.getCashValueCallDebitSpread(expiryPrice, longStrike, shortStrike);
+            cashValue = MoneynessLib.getCashValueDebitCallSpread(expiryPrice, longStrike, shortStrike);
         } else if (tokenType == TokenType.PUT) {
             cashValue = MoneynessLib.getPutCashValue(expiryPrice, longStrike);
         } else if (tokenType == TokenType.PUT_SPREAD) {
-            cashValue = MoneynessLib.getCashValuePutDebitSpread(expiryPrice, longStrike, shortStrike);
+            cashValue = MoneynessLib.getCashValueDebitPutSpread(expiryPrice, longStrike, shortStrike);
         }
 
         // payout is denominated in strike asset (usually USD), with {UNIT_DECIMALS} decimals
