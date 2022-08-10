@@ -109,8 +109,7 @@ contract RegisterEngineTest is Test {
 
         uint32 product = registry.getProductId(id, address(0), address(0), address(0));
 
-        (address engine, , , ,) = registry
-            .getDetailFromProductId(product);
+        (address engine, , , , ) = registry.getDetailFromProductId(product);
 
         assertEq(engine, engine1);
     }
