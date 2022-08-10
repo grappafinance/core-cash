@@ -19,8 +19,7 @@ import {Registry} from "./Registry.sol";
 import {TokenIdUtil} from "../libraries/TokenIdUtil.sol";
 import {ProductIdUtil} from "../libraries/ProductIdUtil.sol";
 import {NumberUtil} from "../libraries/NumberUtil.sol";
-import {SimpleMarginMath} from "./engines/libraries/SimpleMarginMath.sol";
-import {SimpleMarginLib} from "./engines/libraries/SimpleMarginLib.sol";
+import {MoneynessLib} from "../libraries/MoneynessLib.sol";
 
 // constants and types
 import "../config/types.sol";
@@ -36,8 +35,6 @@ import "../config/errors.sol";
             Interacts with OptionToken to mint / burn.
  */
 contract Grappa is ReentrancyGuard, Registry {
-    using SimpleMarginMath for SimpleMarginDetail;
-    using SimpleMarginLib for Account;
     using SafeERC20 for IERC20;
     using FixedPointMathLib for uint256;
     using NumberUtil for uint256;
@@ -200,13 +197,13 @@ contract Grappa is ReentrancyGuard, Registry {
         uint256 expiryPrice = oracle.getPriceAtExpiry(underlying, strike, expiry);
 
         if (tokenType == TokenType.CALL) {
-            cashValue = SimpleMarginMath.getCallCashValue(expiryPrice, longStrike);
+            cashValue = MoneynessLib.getCallCashValue(expiryPrice, longStrike);
         } else if (tokenType == TokenType.CALL_SPREAD) {
-            cashValue = SimpleMarginMath.getCashValueCallDebitSpread(expiryPrice, longStrike, shortStrike);
+            cashValue = MoneynessLib.getCashValueCallDebitSpread(expiryPrice, longStrike, shortStrike);
         } else if (tokenType == TokenType.PUT) {
-            cashValue = SimpleMarginMath.getPutCashValue(expiryPrice, longStrike);
+            cashValue = MoneynessLib.getPutCashValue(expiryPrice, longStrike);
         } else if (tokenType == TokenType.PUT_SPREAD) {
-            cashValue = SimpleMarginMath.getCashValuePutDebitSpread(expiryPrice, longStrike, shortStrike);
+            cashValue = MoneynessLib.getCashValuePutDebitSpread(expiryPrice, longStrike, shortStrike);
         }
 
         // payout is denominated in strike asset (usually USD), with {UNIT_DECIMALS} decimals

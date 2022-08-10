@@ -2,9 +2,12 @@
 pragma solidity =0.8.13;
 
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
-import "../../..//config/constants.sol";
-import "../../..//config/types.sol";
-import "../../..//config/errors.sol";
+
+import {MoneynessLib} from "../../../libraries/MoneynessLib.sol";
+
+import "../../../config/constants.sol";
+import "../../../config/types.sol";
+import "../../../config/errors.sol";
 
 /**
  * @title   SimpleMarginMath
@@ -184,7 +187,7 @@ library SimpleMarginMath {
         // todo: make sure strike cannot be 0!
         uint256 timeValueDecay = getTimeDecay(_expiry, params);
 
-        uint256 cashValue = getCallCashValue(_spot, _strike);
+        uint256 cashValue = MoneynessLib.getCallCashValue(_spot, _strike);
 
         uint256 tempMin = min(_strike, _spot);
 
@@ -221,7 +224,7 @@ library SimpleMarginMath {
         // get time decay in BPS
         uint256 timeValueDecay = getTimeDecay(_expiry, params);
 
-        uint256 cashValue = getPutCashValue(_spot, _strike);
+        uint256 cashValue = MoneynessLib.getPutCashValue(_spot, _strike);
 
         uint256 tempMin = min(_strike, _spot);
 
@@ -257,50 +260,6 @@ library SimpleMarginMath {
             uint256(params.rLower) +
             ((timeToExpiry.sqrt() - params.sqrtDLower) * (params.rUpper - params.rLower)) /
             (params.sqrtDUpper - params.sqrtDLower);
-    }
-
-    /**
-     * @notice   get the cash value of a call option strike
-     * @dev      returns max(spot - strike, 0)
-     * @param _spot  spot price in usd term with 6 decimals
-     * @param _strike strike price in usd term with 6 decimals
-     **/
-    function getCallCashValue(uint256 _spot, uint256 _strike) internal pure returns (uint256) {
-        unchecked {
-            return _spot < _strike ? 0 : _spot - _strike;
-        }
-    }
-
-    /**
-     * @notice   get the cash value of a put option strike
-     * @dev      returns max(strike - spot, 0)
-     * @param _spot spot price in usd term with 6 decimals
-     * @param _strike strike price in usd term with 6 decimals
-     **/
-    function getPutCashValue(uint256 _spot, uint256 _strike) internal pure returns (uint256) {
-        unchecked {
-            return _spot > _strike ? 0 : _strike - _spot;
-        }
-    }
-
-    function getCashValueCallDebitSpread(
-        uint256 _spot,
-        uint256 _longStrike,
-        uint256 _shortStrike
-    ) internal pure returns (uint256) {
-        unchecked {
-            return min(getCallCashValue(_spot, _longStrike), _shortStrike - _longStrike);
-        }
-    }
-
-    function getCashValuePutDebitSpread(
-        uint256 _spot,
-        uint256 _longStrike,
-        uint256 _shortStrike
-    ) internal pure returns (uint256) {
-        unchecked {
-            return min(getPutCashValue(_spot, _longStrike), _longStrike - _shortStrike);
-        }
     }
 
     /// @dev return the max of a and b
