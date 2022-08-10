@@ -115,6 +115,23 @@ contract TestMintVanillaOption is Fixture {
         grappa.execute(engineId, address(this), actions);
     }
 
+    function testCannotMintCallWithOtherProductId() public {
+        uint256 depositAmount = 2 * 1e17; // 0.2 eth
+
+        uint256 strikePrice = 4000 * UNIT;
+        uint256 amount = 1 * UNIT;
+
+        // try to mint a tokenId that belongs to another margin engine
+        uint32 fakeProductId = grappa.getProductId(engineId + 1, address(weth), address(usdc), address(weth));
+        uint256 tokenId = getTokenId(TokenType.CALL, fakeProductId, expiry, strikePrice, 0);
+
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
+        actions[1] = createMintAction(tokenId, address(this), amount);
+        vm.expectRevert(Not_Authorized_Engine.selector);
+        grappa.execute(engineId, address(this), actions);
+    }
+
     function testCannotMintCallWithDifferentCollateralType() public {
         uint256 depositAmount = 1 * 1e18;
 
