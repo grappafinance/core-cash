@@ -16,7 +16,7 @@ import "../../config/errors.sol";
 import "forge-std/console2.sol";
 
 /**
- * @dev test oracle functions, mocking pricers
+ * @dev test registry functions
  */
 contract RegistryTest is Test {
     Registry public registry;
@@ -70,5 +70,48 @@ contract RegistryTest is Test {
         assertEq(underlying, address(weth));
         assertEq(collateral, address(weth));
         assertEq(collatDecimals, 18);
+    }
+}
+
+/**
+ * @dev test registry functions around registering engines
+ */
+contract RegisterEngineTest is Test {
+    Registry public registry;
+    address private engine1;
+
+    constructor() {
+        engine1 = address(1);
+        registry = new Registry();
+    }
+
+    function testCannotRegisterFromNonOwner() public {
+        vm.expectRevert("Ownable: caller is not the owner");
+        vm.prank(address(0xaacc));
+        registry.registerEngine(engine1);
+    }
+
+    function testRegisterEngineFromId1() public {
+        uint8 id = registry.registerEngine(engine1);
+        assertEq(id, 1);
+
+        assertEq(registry.engineIds(engine1), id);
+    }
+
+    function testCannotRegistrySameAssetTwice() public {
+        registry.registerEngine(engine1);
+        vm.expectRevert(Registry.MarginEngineAlreadyRegistered.selector);
+        registry.registerEngine(engine1);
+    }
+
+    function testReturnEngineFromProductId() public {
+        uint8 id = registry.registerEngine(engine1);
+
+        uint32 product = registry.getProductId(id, address(0), address(0), address(0));
+
+        (address engine, , , ,) = registry
+            .getDetailFromProductId(product);
+
+        assertEq(engine, engine1);
     }
 }

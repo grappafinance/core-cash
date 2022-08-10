@@ -198,7 +198,7 @@ library SimpleMarginLib {
         }
     }
 
-    // two methods supporting updating memory in-place update, cheaper to use during liquidationf
+    // two methods supporting updating memory in-place update, cheaper to use during liquidation
 
     ///@dev Reduce the collateral in the account memory
     ///@param account Account memory that will be updated in-place
