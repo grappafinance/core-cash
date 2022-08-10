@@ -2,9 +2,11 @@
   <h1 align="center"> Grappa 🥂</h1>
   <a href=https://github.com/antoncoding/grappa/actions/workflows/Slither.yml""><img src="https://github.com/antoncoding/grappa/actions/workflows/Slither.yml/badge.svg?branch=master" > </a>
   <a href=https://github.com/antoncoding/grappa/actions/workflows/CI.yml""><img src="https://github.com/antoncoding/grappa/actions/workflows/CI.yml/badge.svg?branch=master"> </a>
-  <a href="https://codecov.io/gh/antoncoding/grappa" >
+
+  <!-- reopen coverage badge again after foundry official launch coverage -->
+  <!-- <a href="https://codecov.io/gh/antoncoding/grappa" >
 <img src="https://codecov.io/gh/antoncoding/grappa/branch/master/graph/badge.svg?token=G52EOD1X5B"/>
-</a>
+</a> -->
   <h4 align="center"> Don't waste your capital.</h4>
   <p align="center">
     <!-- badge goes here -->
