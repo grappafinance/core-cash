@@ -5,15 +5,7 @@ pragma solidity ^0.8.13;
 import "forge-std/Test.sol";
 
 import {Registry} from "../../core/Registry.sol";
-
 import {MockERC20} from "../mocks/MockERC20.sol";
-
-import "../../config/enums.sol";
-import "../../config/types.sol";
-import "../../config/constants.sol";
-import "../../config/errors.sol";
-
-import "forge-std/console2.sol";
 
 /**
  * @dev test registry functions
