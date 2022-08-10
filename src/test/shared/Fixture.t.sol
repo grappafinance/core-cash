@@ -54,11 +54,9 @@ abstract contract Fixture is Test, ActionHelper, Utilities {
 
         option = new OptionToken(grappaAddr); // nonce: 4
 
-        address v1Margin = predictAddress(address(this), 6);
-
         grappa = new Grappa(address(option), address(oracle)); // nonce: 5
 
-        marginEngine = new SimpleMarginEngine(address(grappa), address(oracle)); // nonce 5
+        marginEngine = new SimpleMarginEngine(address(grappa), address(oracle)); // nonce 6
 
         // register products
         usdcId = grappa.registerAsset(address(usdc));

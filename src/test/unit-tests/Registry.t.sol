@@ -60,7 +60,7 @@ contract RegistryTest is Test {
 
         uint32 product = registry.getProductId(0, address(weth), address(0), address(weth));
 
-        (,address underlying, address strike, address collateral, uint8 collatDecimals) = registry
+        (, address underlying, address strike, address collateral, uint8 collatDecimals) = registry
             .getDetailFromProductId(product);
 
         assertEq(underlying, address(weth));

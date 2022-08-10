@@ -75,7 +75,7 @@ contract TestMintVanillaOption is Fixture {
         wbtc.approve(address(grappa), type(uint256).max);
         // register wbtc in the system
         uint8 wbtcId = grappa.registerAsset(address(wbtc));
-        uint32 productIdBtcCollat = grappa.getProductId(1, address(weth), address(usdc), address(wbtc));
+        uint32 productIdBtcCollat = grappa.getProductId(engineId, address(weth), address(usdc), address(wbtc));
         marginEngine.setProductMarginConfig(productIdBtcCollat, 180 days, 1 days, 7000, 1000, 10000);
         oracle.setSpotPrice(address(wbtc), 40_000 * UNIT); // 10x price of eth
 
