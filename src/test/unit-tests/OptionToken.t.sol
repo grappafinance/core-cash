@@ -2,11 +2,11 @@
 pragma solidity ^0.8.13;
 
 // import test base and helpers.
-import {Fixture} from "../shared/Fixture.t.sol";
+import {AdvancedFixture} from "../shared/AdvancedFixture.t.sol";
 
 import "../../config/errors.sol";
 
-contract OptionTokenTest is Fixture {
+contract OptionTokenTest is AdvancedFixture {
     function testCannotMint() public {
         vm.expectRevert(NoAccess.selector);
         option.mint(address(this), 0, 1000_000_000);

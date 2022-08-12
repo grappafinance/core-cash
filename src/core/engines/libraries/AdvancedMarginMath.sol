@@ -10,7 +10,7 @@ import "../../../config/types.sol";
 import "../../../config/errors.sol";
 
 /**
- * @title   SimpleMarginMath
+ * @title   AdvancedMarginMath
  * @notice  this library is in charge of calculating the min collateral for a given simple margin account
  *
  *                  sqrt(expiry - now) - sqrt(D_lower)
@@ -25,7 +25,7 @@ import "../../../config/errors.sol";
  * min_put (s, k)  = M * min (s, ----- * max(v, 1), k ) + max (0, k - s)
  *                                 s
  */
-library SimpleMarginMath {
+library AdvancedMarginMath {
     using FixedPointMathLib for uint256;
 
     /**
@@ -37,7 +37,7 @@ library SimpleMarginMath {
      * @param _param specific product parameters
      */
     function getMinCollateral(
-        SimpleMarginDetail memory _account,
+        AdvancedMarginDetail memory _account,
         ProductAssets memory _assets,
         uint256 _spotUnderlyingStrike,
         uint256 _spotCollateralStrike,
@@ -62,7 +62,7 @@ library SimpleMarginMath {
      * @return minCollatValueInStrike minimum collateral in strike (USD) value. with {BASE_UNIT} decimals
      */
     function getMinCollateralInStrike(
-        SimpleMarginDetail memory _account,
+        AdvancedMarginDetail memory _account,
         uint256 _spot,
         uint256 _vol,
         ProductMarginParams memory _params
@@ -87,7 +87,7 @@ library SimpleMarginMath {
     }
 
     function getMinCollateralForDoubleShort(
-        SimpleMarginDetail memory _account,
+        AdvancedMarginDetail memory _account,
         uint256 _spot,
         uint256 _vol,
         ProductMarginParams memory params
@@ -110,7 +110,7 @@ library SimpleMarginMath {
     }
 
     function getMinCollateralForCallSpread(
-        SimpleMarginDetail memory _account,
+        AdvancedMarginDetail memory _account,
         uint256 _spot,
         uint256 _vol,
         ProductMarginParams memory params
@@ -137,7 +137,7 @@ library SimpleMarginMath {
     }
 
     function getMinCollateralForPutSpread(
-        SimpleMarginDetail memory _account,
+        AdvancedMarginDetail memory _account,
         uint256 _spot,
         uint256 _vol,
         ProductMarginParams memory params

@@ -6,7 +6,7 @@ import "forge-std/Test.sol";
 import "../../test/mocks/MockERC20.sol";
 import "../../test/mocks/MockOracle.sol";
 
-import "../../core/engines/SimpleMarginEngine.sol";
+import "../../core/engines/AdvancedMarginEngine.sol";
 import "../../core/Grappa.sol";
 import "../../core/OptionToken.sol";
 
@@ -17,8 +17,8 @@ import "../utils/Utilities.sol";
 
 import {ActionHelper} from "../../test/shared/ActionHelper.sol";
 
-abstract contract Fixture is Test, ActionHelper, Utilities {
-    SimpleMarginEngine internal marginEngine;
+abstract contract AdvancedFixture is Test, ActionHelper, Utilities {
+    AdvancedMarginEngine internal marginEngine;
     Grappa internal grappa;
     OptionToken internal option;
 
@@ -56,7 +56,7 @@ abstract contract Fixture is Test, ActionHelper, Utilities {
 
         grappa = new Grappa(address(option), address(oracle)); // nonce: 5
 
-        marginEngine = new SimpleMarginEngine(address(grappa), address(oracle)); // nonce 6
+        marginEngine = new AdvancedMarginEngine(address(grappa), address(oracle)); // nonce 6
 
         // register products
         usdcId = grappa.registerAsset(address(usdc));

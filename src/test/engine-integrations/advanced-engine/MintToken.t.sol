@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 // import test base and helpers.
-import {Fixture} from "../../shared/Fixture.t.sol";
+import {AdvancedFixture} from "../../shared/AdvancedFixture.t.sol";
 
 import "../../../config/enums.sol";
 import "../../../config/types.sol";
@@ -11,7 +11,7 @@ import "../../../config/errors.sol";
 
 import "../../../test/mocks/MockERC20.sol";
 
-contract TestMintVanillaOption is Fixture {
+contract TestMintVanillaOption is AdvancedFixture {
     uint256 public expiry;
 
     function setUp() public {

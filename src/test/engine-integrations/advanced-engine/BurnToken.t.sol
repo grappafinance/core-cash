@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 // import test base and helpers.
-import {Fixture} from "../../shared/Fixture.t.sol";
+import {AdvancedFixture} from "../../shared/AdvancedFixture.t.sol";
 import {stdError} from "forge-std/Test.sol";
 
 import "../../../config/enums.sol";
@@ -10,7 +10,7 @@ import "../../../config/types.sol";
 import "../../../config/constants.sol";
 import "../../../config/errors.sol";
 
-contract TestBurnCall is Fixture {
+contract TestBurnCall is AdvancedFixture {
     uint256 public expiry;
     uint256 public strikePrice = 4000 * UNIT;
     uint256 public depositAmount = 1000 * UNIT;
@@ -49,7 +49,7 @@ contract TestBurnCall is Fixture {
         assertEq(option.balanceOf(address(this), tokenId), 0);
     }
 
-    function testCannotBurnForEmptySimpleMarginEngine() public {
+    function testCannotBurnForEmptyAdvancedMarginEngine() public {
         address subAccount = address(uint160(address(this)) - 1);
 
         // build burn account

@@ -36,7 +36,7 @@ struct Account {
  * @param collateralAmount  amount of collateral in its native token decimal
  * @param productId         uint32 number representing the productId. 
  */
-struct SimpleMarginDetail {
+struct AdvancedMarginDetail {
     uint256 callAmount;
     uint256 putAmount;
     uint256 longCallStrike;
@@ -64,7 +64,7 @@ struct ProductAssets {
 
 /**
  * @notice  parameters for calculating min collateral for a speicif product
- * @dev     this formula and parameter struct is used for SimpleMargin
+ * @dev     this formula and parameter struct is used for AdvancedMargin
  *
  *                  sqrt(expiry - now) - sqrt(D_lower)
  * M = (r_lower + -------------------------------------  * (r_upper - r_lower))  * vol + v_multiplier

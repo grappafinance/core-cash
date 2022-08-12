@@ -16,8 +16,8 @@ import {IMarginEngine} from "../../interfaces/IMarginEngine.sol";
 // librarise
 import {TokenIdUtil} from "../../libraries/TokenIdUtil.sol";
 import {NumberUtil} from "../../libraries/NumberUtil.sol";
-import {SimpleMarginMath} from "./libraries/SimpleMarginMath.sol";
-import {SimpleMarginLib} from "./libraries/SimpleMarginLib.sol";
+import {AdvancedMarginMath} from "./libraries/AdvancedMarginMath.sol";
+import {AdvancedMarginLib} from "./libraries/AdvancedMarginLib.sol";
 
 // constants and types
 import "../../config/types.sol";
@@ -26,16 +26,16 @@ import "../../config/constants.sol";
 import "../../config/errors.sol";
 
 /**
- * @title   SimpleMarginEngine
+ * @title   AdvancedMarginEngine
  * @author  @antoncoding
- * @notice  SimpleMarginEngine is in charge of maintaining margin requirement for each "account"
-            Users can deposit collateral into SimpleMarginEngine and mint optionTokens (debt) out of it.
+ * @notice  AdvancedMarginEngine is in charge of maintaining margin requirement for each "account"
+            Users can deposit collateral into AdvancedMarginEngine and mint optionTokens (debt) out of it.
             Interacts with Oracle to read spot price for assets and vol.
             Listen to calls from Grappa to update accountings
  */
-contract SimpleMarginEngine is IMarginEngine, Ownable {
-    using SimpleMarginMath for SimpleMarginDetail;
-    using SimpleMarginLib for Account;
+contract AdvancedMarginEngine is IMarginEngine, Ownable {
+    using AdvancedMarginMath for AdvancedMarginDetail;
+    using AdvancedMarginLib for Account;
     using SafeERC20 for IERC20;
     using FixedPointMathLib for uint256;
     using NumberUtil for uint256;
@@ -52,7 +52,7 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
     ///     this give every account access to 256 sub-accounts
     mapping(address => Account) public marginAccounts;
 
-    ///@dev mapping of productId to SimpleMargin Parameters
+    ///@dev mapping of productId to AdvancedMargin Parameters
     mapping(uint32 => ProductMarginParams) public productParams;
 
     // solhint-disable-next-line no-empty-blocks
@@ -85,7 +85,7 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
      */
     function getMinCollateral(address _subAccount) external view returns (uint256 minCollateral) {
         Account memory account = marginAccounts[_subAccount];
-        SimpleMarginDetail memory detail = _getAccountDetail(account);
+        AdvancedMarginDetail memory detail = _getAccountDetail(account);
 
         minCollateral = _getMinCollateral(detail);
     }
@@ -338,7 +338,7 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
      * @return isHealthy true if account is in good condition, false if it's liquidatable
      */
     function _isAccountHealthy(Account memory account) internal view returns (bool isHealthy) {
-        SimpleMarginDetail memory detail = _getAccountDetail(account);
+        AdvancedMarginDetail memory detail = _getAccountDetail(account);
         uint256 minCollateral = _getMinCollateral(detail);
         isHealthy = account.collateralAmount >= minCollateral;
     }
@@ -348,7 +348,7 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
      * @param detail account memory dtail
      * @return minCollateral minimum collateral required, in collateral asset's decimals
      */
-    function _getMinCollateral(SimpleMarginDetail memory detail) internal view returns (uint256 minCollateral) {
+    function _getMinCollateral(AdvancedMarginDetail memory detail) internal view returns (uint256 minCollateral) {
         ProductAssets memory product = _getProductAssets(detail.productId);
 
         // read spot price of the product, denominated in {UNIT_DECIMALS}.
@@ -390,8 +390,8 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
     /**
      * @notice  convert Account struct from storage to in-memory detail struct
      */
-    function _getAccountDetail(Account memory account) internal pure returns (SimpleMarginDetail memory detail) {
-        detail = SimpleMarginDetail({
+    function _getAccountDetail(Account memory account) internal pure returns (AdvancedMarginDetail memory detail) {
+        detail = AdvancedMarginDetail({
             putAmount: account.shortPutAmount,
             callAmount: account.shortCallAmount,
             longPutStrike: 0,

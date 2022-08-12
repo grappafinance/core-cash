@@ -3,7 +3,7 @@ pragma solidity =0.8.13;
 
 import {Test} from "forge-std/Test.sol";
 
-import {SimpleMarginMath} from "../../core/engines/libraries/SimpleMarginMath.sol";
+import {AdvancedMarginMath} from "../../core/engines/libraries/AdvancedMarginMath.sol";
 import "../../config/constants.sol";
 import "../../config/errors.sol";
 import "../../config/types.sol";
@@ -13,7 +13,7 @@ import "../../config/types.sol";
  * Desmos file with same parameter can be found here: 
             https://www.desmos.com/calculator/mx6le8msfo
  */
-contract SimpleMarginMathTest is Test {
+contract AdvancedMarginMathTest is Test {
     uint256 public constant base = UNIT;
     uint256 public today;
 
@@ -28,7 +28,7 @@ contract SimpleMarginMathTest is Test {
         uint256 expiry = today + 21 days;
         uint256 vol = UNIT;
 
-        uint256 minCollat = SimpleMarginMath.getMinCollateralForShortCall(
+        uint256 minCollat = AdvancedMarginMath.getMinCollateralForShortCall(
             amount,
             strike,
             expiry,
@@ -40,7 +40,7 @@ contract SimpleMarginMathTest is Test {
 
         // spot decrease, min collateral also decrease
         spot = 2500 * base;
-        uint256 minCollat2 = SimpleMarginMath.getMinCollateralForShortCall(
+        uint256 minCollat2 = AdvancedMarginMath.getMinCollateralForShortCall(
             amount,
             strike,
             expiry,
@@ -57,7 +57,7 @@ contract SimpleMarginMathTest is Test {
         uint256 strike = 3000 * base;
         uint256 expiry = today + 21 days;
 
-        uint256 minCollat = SimpleMarginMath.getMinCollateralForShortCall(
+        uint256 minCollat = AdvancedMarginMath.getMinCollateralForShortCall(
             amount,
             strike,
             expiry,
@@ -69,7 +69,7 @@ contract SimpleMarginMathTest is Test {
 
         // spot increase, min collateral also increase
         spot = 4000 * base;
-        uint256 minCollat2 = SimpleMarginMath.getMinCollateralForShortCall(
+        uint256 minCollat2 = AdvancedMarginMath.getMinCollateralForShortCall(
             amount,
             strike,
             expiry,
@@ -87,7 +87,7 @@ contract SimpleMarginMathTest is Test {
         uint256 expiry = today + 21 days;
         uint256 vol = UNIT;
 
-        uint256 minCollat = SimpleMarginMath.getMinCollateralForShortPut(
+        uint256 minCollat = AdvancedMarginMath.getMinCollateralForShortPut(
             amount,
             strike,
             expiry,
@@ -99,7 +99,7 @@ contract SimpleMarginMathTest is Test {
 
         // increasing spot price, the min collateral stay the same
         spot = 4000 * base;
-        uint256 minCollat2 = SimpleMarginMath.getMinCollateralForShortPut(
+        uint256 minCollat2 = AdvancedMarginMath.getMinCollateralForShortPut(
             amount,
             strike,
             expiry,
@@ -119,43 +119,43 @@ contract SimpleMarginMathTest is Test {
 
         ProductMarginParams memory config = getDefaultConfig();
 
-        uint256 minCollat = SimpleMarginMath.getMinCollateralForShortPut(amount, strike, expiry, spot, vol, config);
+        uint256 minCollat = AdvancedMarginMath.getMinCollateralForShortPut(amount, strike, expiry, spot, vol, config);
         assertEq(minCollat, 973400000); // 973 USD
 
         // decrease spot price, the min collateral increase
         spot = 2000 * base;
-        uint256 minCollat2 = SimpleMarginMath.getMinCollateralForShortPut(amount, strike, expiry, spot, vol, config);
+        uint256 minCollat2 = AdvancedMarginMath.getMinCollateralForShortPut(amount, strike, expiry, spot, vol, config);
         assertEq(minCollat2, 1815600000); // 1815 USD
 
         // capped at strike price
         spot = 0;
-        uint256 minCollat3 = SimpleMarginMath.getMinCollateralForShortPut(amount, strike, expiry, spot, vol, config);
+        uint256 minCollat3 = AdvancedMarginMath.getMinCollateralForShortPut(amount, strike, expiry, spot, vol, config);
         assertEq(minCollat3, 3500000000); // 3500 USD
     }
 
     function testTimeDecayValueLowerBond() public {
         uint256 expiry = today + 8000 seconds;
         ProductMarginParams memory config = getDefaultConfig();
-        uint256 decay = SimpleMarginMath.getTimeDecay(expiry, config);
+        uint256 decay = AdvancedMarginMath.getTimeDecay(expiry, config);
         assertEq(decay, config.rLower);
     }
 
     function testTimeDecayValueUpperBond() public {
         uint256 expiry = today + 180 days + 10 seconds;
         ProductMarginParams memory config = getDefaultConfig();
-        uint256 decay = SimpleMarginMath.getTimeDecay(expiry, config);
+        uint256 decay = AdvancedMarginMath.getTimeDecay(expiry, config);
         assertEq(decay, config.rUpper);
     }
 
     function testTimeDecayValue90Days() public {
         uint256 expiry = today + 90 days;
-        uint256 decay = SimpleMarginMath.getTimeDecay(expiry, getDefaultConfig());
+        uint256 decay = AdvancedMarginMath.getTimeDecay(expiry, getDefaultConfig());
         assertEq(decay, 2645); // 26.45%
     }
 
     function testTimeDecayValue30Days() public {
         uint256 expiry = today + 30 days;
-        uint256 decay = SimpleMarginMath.getTimeDecay(expiry, getDefaultConfig());
+        uint256 decay = AdvancedMarginMath.getTimeDecay(expiry, getDefaultConfig());
         assertEq(decay, 1773); // 17.73%
     }
 
