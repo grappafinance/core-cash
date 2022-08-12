@@ -87,7 +87,7 @@ The 4 pieces that compose Grappa are `Oracle`, `MarginEngine` `OptionToken` and 
 
 ## List of Margin Engines
 
-* `AdvancedMargin`: The first version of the margin system that complies with the `IMarginEngine` interface that stores account structure. The current **Simple Margin** system is capable of dealing with:
+* `AdvancedMargin`: The first version of the margin system that complies with the `IMarginEngine` interface that stores account structure. The current **Advanced Margin** system is capable of dealing with:
     * single collateral type
     * create native spreads
     * can mint 1 call (or call spread) +  1 put (or put spread) in a single account.
