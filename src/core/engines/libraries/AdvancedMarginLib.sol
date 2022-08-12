@@ -10,11 +10,11 @@ import "../../../config/constants.sol";
 import "../../../config/errors.sol";
 
 /**
- * @title SimpleMarginLib
- * @dev   This library is in charge of updating the simple account storage struct and do validations
+ * @title AdvancedMarginLib
+ * @dev   This library is in charge of updating the advanced account storage struct and do validations
  * @dev   also funtions postfixed with 'memory' update the account memory instead of storage
  */
-library SimpleMarginLib {
+library AdvancedMarginLib {
     using TokenIdUtil for uint256;
     using ProductIdUtil for uint32;
 

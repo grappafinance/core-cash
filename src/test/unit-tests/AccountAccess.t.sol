@@ -2,12 +2,12 @@
 pragma solidity ^0.8.13;
 
 // import test base and helpers.
-import {Fixture} from "../shared/Fixture.t.sol";
+import {AdvancedFixture} from "../shared/AdvancedFixture.t.sol";
 
 import "../../config/types.sol";
 import "../../config/errors.sol";
 
-contract SimpleMarginEngineAccessTest is Fixture {
+contract AdvancedMarginEngineAccessTest is AdvancedFixture {
     uint256 private depositAmount = 100 * 1e6;
 
     address private subAccountIdToModify;

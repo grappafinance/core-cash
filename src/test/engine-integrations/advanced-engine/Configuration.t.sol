@@ -2,12 +2,12 @@
 pragma solidity ^0.8.13;
 
 // import test base.
-import {Fixture} from "../../shared/Fixture.t.sol";
+import {AdvancedFixture} from "../../shared/AdvancedFixture.t.sol";
 
 import "../../../config/constants.sol";
-import "../../../core/engines/SimpleMarginEngine.sol";
+import "../../../core/engines/AdvancedMarginEngine.sol";
 
-contract OwnerConfiguration is Fixture {
+contract OwnerConfiguration is AdvancedFixture {
     event ProductConfigurationUpdated(
         uint32 productId,
         uint32 dUpper,

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 // import test base and helpers.
-import {Fixture} from "../../shared/Fixture.t.sol";
+import {AdvancedFixture} from "../../shared/AdvancedFixture.t.sol";
 import {stdError} from "forge-std/Test.sol";
 
 import "../../../config/enums.sol";
@@ -10,7 +10,7 @@ import "../../../config/types.sol";
 import "../../../config/constants.sol";
 import "../../../config/errors.sol";
 
-contract TestLiquidateCall is Fixture {
+contract TestLiquidateCall is AdvancedFixture {
     uint256 public expiry;
 
     uint64 private amount = uint64(1 * UNIT);
@@ -141,7 +141,7 @@ contract TestLiquidateCall is Fixture {
     }
 }
 
-contract TestLiquidatePut is Fixture {
+contract TestLiquidatePut is AdvancedFixture {
     uint256 public expiry;
 
     uint64 private amount = uint64(1 * UNIT);
@@ -260,7 +260,7 @@ contract TestLiquidatePut is Fixture {
     }
 }
 
-contract TestLiquidateCallAndPut is Fixture {
+contract TestLiquidateCallAndPut is AdvancedFixture {
     uint256 public expiry;
 
     uint64 private amount = uint64(1 * UNIT);

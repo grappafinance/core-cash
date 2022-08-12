@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 // import test base and helpers.
-import {Fixture} from "../../shared/Fixture.t.sol";
+import {AdvancedFixture} from "../../shared/AdvancedFixture.t.sol";
 import "../../mocks/MockERC20.sol";
 
 import "../../../config/enums.sol";
@@ -12,7 +12,7 @@ import "../../../config/errors.sol";
 
 import "forge-std/console2.sol";
 
-contract TestSettleCall is Fixture {
+contract TestSettleCall is AdvancedFixture {
     uint256 public expiry;
 
     uint64 private amount = uint64(1 * UNIT);
@@ -136,7 +136,7 @@ contract TestSettleCall is Fixture {
     }
 }
 
-contract TestSettleCoveredCall is Fixture {
+contract TestSettleCoveredCall is AdvancedFixture {
     uint256 public expiry;
 
     uint64 private amount = uint64(1 * UNIT);
@@ -262,7 +262,7 @@ contract TestSettleCoveredCall is Fixture {
     }
 }
 
-contract TestSettlePut is Fixture {
+contract TestSettlePut is AdvancedFixture {
     uint256 public expiry;
 
     uint64 private amount = uint64(1 * UNIT);
@@ -376,7 +376,7 @@ contract TestSettlePut is Fixture {
     }
 }
 
-contract TestSettleETHCollateralizedPut is Fixture {
+contract TestSettleETHCollateralizedPut is AdvancedFixture {
     uint256 public expiry;
 
     uint64 private amount = uint64(1 * UNIT);
@@ -487,7 +487,7 @@ contract TestSettleETHCollateralizedPut is Fixture {
     }
 }
 
-contract TestSettleCallSpread is Fixture {
+contract TestSettleCallSpread is AdvancedFixture {
     uint256 public expiry;
 
     uint64 private amount = uint64(1 * UNIT);
@@ -661,7 +661,7 @@ contract TestSettleCallSpread is Fixture {
     }
 }
 
-contract TestSettlePutSpread is Fixture {
+contract TestSettlePutSpread is AdvancedFixture {
     uint256 public expiry;
 
     uint64 private amount = uint64(1 * UNIT);
@@ -819,7 +819,7 @@ contract TestSettlePutSpread is Fixture {
     }
 }
 
-contract TestSettleBTCCollateralizedCall is Fixture {
+contract TestSettleBTCCollateralizedCall is AdvancedFixture {
     uint256 public expiry;
 
     uint64 private amount = uint64(1 * UNIT);
@@ -921,7 +921,7 @@ contract TestSettleBTCCollateralizedCall is Fixture {
     }
 }
 
-contract TestBatchSettleCall is Fixture {
+contract TestBatchSettleCall is AdvancedFixture {
     uint256 public expiry;
 
     uint64 private amount = uint64(1 * UNIT);
@@ -1043,7 +1043,7 @@ contract TestBatchSettleCall is Fixture {
     }
 }
 
-contract TestSettlementEdgeCase is Fixture {
+contract TestSettlementEdgeCase is AdvancedFixture {
     uint256 public expiry;
 
     uint64 private amount = uint64(1 * UNIT);

@@ -36,7 +36,7 @@ jobs:
         with:
           sarif_file: ${{ steps.slither.outputs.sarif }}
 
-  analyze-simple-margin:
+  analyze-advanced-margin:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -49,7 +49,7 @@ jobs:
       - name: Install dependencies
         run: forge install
         
-      - name: Run Slither on SimpleMarginEngine
+      - name: Run Slither on AdvancedMarginEngine
         uses: crytic/slither-action@main
         continue-on-error: true
         id: slither

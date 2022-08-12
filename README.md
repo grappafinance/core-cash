@@ -68,13 +68,13 @@ solc-select use 0.8.13
 Run analysis
 
 ```shell
-slither ./src/core/SimpleMargin
+slither ./src/core/AdvancedMargin
 slither ./src/core/
 ```
 
 ## Basic Contract Architecture
 
-![](https://i.imgur.com/O1yqTfz.png)
+![](https://i.imgur.com/4SaNx30.png)
 
 This is the basic diagram of how contracts interact with each other in the draft version. A more detail diagram will be added later.
 
@@ -87,14 +87,14 @@ The 4 pieces that compose Grappa are `Oracle`, `MarginEngine` `OptionToken` and 
 
 ## List of Margin Engines
 
-* `SimpleMargin`: The first version of the margin system that complies with the `IMarginEngine` interface that stores account structure. The current **Simple Margin** system is capable of dealing with:
+* `AdvancedMargin`: The first version of the margin system that complies with the `IMarginEngine` interface that stores account structure. The current **Advanced Margin** system is capable of dealing with:
     * single collateral type
     * create native spreads
     * can mint 1 call (or call spread) +  1 put (or put spread) in a single account.
 
 ### Work-in-Progress Margin systems / Ideas
 
-* **Fully Collateralized Margin**: fully collateralized version with minimal oracle needed
+* **Simple Margin**: fully collateralized version with minimal oracle needed and risk associated.
 * **PortfolioMargin**: Support up to 30 positions and calculate max loss as required collateral.
 
 Other margin system can be added to Grappa as long as it complies with the interface.
