@@ -11,7 +11,7 @@ import "../../../config/errors.sol";
 
 /**
  * @title AdvancedMarginLib
- * @dev   This library is in charge of updating the simple account storage struct and do validations
+ * @dev   This library is in charge of updating the advanced account storage struct and do validations
  * @dev   also funtions postfixed with 'memory' update the account memory instead of storage
  */
 library AdvancedMarginLib {
