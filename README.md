@@ -74,7 +74,7 @@ slither ./src/core/
 
 ## Basic Contract Architecture
 
-![](https://i.imgur.com/O1yqTfz.png)
+![](https://i.imgur.com/4SaNx30.png)
 
 This is the basic diagram of how contracts interact with each other in the draft version. A more detail diagram will be added later.
 
