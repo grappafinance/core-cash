@@ -207,11 +207,12 @@ contract Grappa is ReentrancyGuard, Registry {
     }
 
     /**
-     * @dev calculate the payout for an expired option token
+     * @dev calculate the payout for one option token
      *
      * @param _tokenId  token id of option token
      * @param _amount   amount to settle
      *
+     * @return engine engine to settle
      * @return collateral asset to settle in
      * @return payout amount paid
      **/
@@ -219,55 +220,14 @@ contract Grappa is ReentrancyGuard, Registry {
         public
         view
         returns (
-            address,
-            address,
+            address engine,
+            address collateral,
             uint256 payout
         )
     {
-        (TokenType tokenType, uint32 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) = TokenIdUtil
-            .parseTokenId(_tokenId);
-
-        if (block.timestamp < expiry) revert MA_NotExpired();
-
-        (, address underlying, address strike, address collateral, uint8 collateralDecimals) = getDetailFromProductId(
-            productId
-        );
-
-        // cash value denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
-        uint256 cashValue;
-
-        // expiry price of underlying, denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
-        uint256 expiryPrice = oracle.getPriceAtExpiry(underlying, strike, expiry);
-
-        if (tokenType == TokenType.CALL) {
-            cashValue = MoneynessLib.getCallCashValue(expiryPrice, longStrike);
-        } else if (tokenType == TokenType.CALL_SPREAD) {
-            cashValue = MoneynessLib.getCashValueDebitCallSpread(expiryPrice, longStrike, shortStrike);
-        } else if (tokenType == TokenType.PUT) {
-            cashValue = MoneynessLib.getPutCashValue(expiryPrice, longStrike);
-        } else if (tokenType == TokenType.PUT_SPREAD) {
-            cashValue = MoneynessLib.getCashValueDebitPutSpread(expiryPrice, longStrike, shortStrike);
-        }
-
-        // payout is denominated in strike asset (usually USD), with {UNIT_DECIMALS} decimals
-        payout = cashValue.mulDivDown(_amount, UNIT);
-
-        // the following logic convert payout amount if collateral is not strike:
-        if (collateral == underlying) {
-            // collateral is underlying. payout should be devided by underlying price
-            payout = payout.mulDivDown(UNIT, expiryPrice);
-        } else if (collateral != strike) {
-            // collateral is not underlying nor strike
-            uint256 collateralPrice = oracle.getPriceAtExpiry(collateral, strike, expiry);
-            payout = payout.mulDivDown(UNIT, collateralPrice);
-        }
-
-        payout = payout.convertDecimals(UNIT_DECIMALS, collateralDecimals);
-
-        // temp: fetch again here to avoid stack too deep error
-        (address engine, , , , ) = getDetailFromProductId(productId);
-
-        return (engine, collateral, payout);
+        uint256 payoutPerOption;
+        (engine, collateral, payoutPerOption) = _getPayoutPerToken(_tokenId);
+        payout = payoutPerOption.mulDivDown(_amount, UNIT);
     }
 
     /**
@@ -433,6 +393,65 @@ contract Grappa is ReentrancyGuard, Registry {
     /** ========================================================= **
                             Internal Functions
      ** ========================================================= **/
+
+    /**
+     * @dev calculate the payout for one option token
+     *
+     * @param _tokenId  token id of option token
+     *
+     * @return collateral asset to settle in
+     * @return payoutPerOption amount paid
+     **/
+    function _getPayoutPerToken(uint256 _tokenId)
+        internal
+        view
+        returns (
+            address,
+            address,
+            uint256 payoutPerOption
+        )
+    {
+        (TokenType tokenType, uint32 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) = TokenIdUtil
+            .parseTokenId(_tokenId);
+
+        if (block.timestamp < expiry) revert MA_NotExpired();
+
+        (
+            address engine,
+            address underlying,
+            address strike,
+            address collateral,
+            uint8 collateralDecimals
+        ) = getDetailFromProductId(productId);
+
+        // expiry price of underlying, denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
+        uint256 expiryPrice = oracle.getPriceAtExpiry(underlying, strike, expiry);
+
+        // cash value denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
+        uint256 cashValue;
+        if (tokenType == TokenType.CALL) {
+            cashValue = MoneynessLib.getCallCashValue(expiryPrice, longStrike);
+        } else if (tokenType == TokenType.CALL_SPREAD) {
+            cashValue = MoneynessLib.getCashValueDebitCallSpread(expiryPrice, longStrike, shortStrike);
+        } else if (tokenType == TokenType.PUT) {
+            cashValue = MoneynessLib.getPutCashValue(expiryPrice, longStrike);
+        } else if (tokenType == TokenType.PUT_SPREAD) {
+            cashValue = MoneynessLib.getCashValueDebitPutSpread(expiryPrice, longStrike, shortStrike);
+        }
+
+        // the following logic convert cash value (amount worth) if collateral is not strike:
+        if (collateral == underlying) {
+            // collateral is underlying. payout should be devided by underlying price
+            cashValue = cashValue.mulDivDown(UNIT, expiryPrice);
+        } else if (collateral != strike) {
+            // collateral is not underlying nor strike
+            uint256 collateralPrice = oracle.getPriceAtExpiry(collateral, strike, expiry);
+            cashValue = cashValue.mulDivDown(UNIT, collateralPrice);
+        }
+        payoutPerOption = cashValue.convertDecimals(UNIT_DECIMALS, collateralDecimals);
+
+        return (engine, collateral, payoutPerOption);
+    }
 
     /**
      * @notice return if {_primary} address is the primary account for {_subAccount}

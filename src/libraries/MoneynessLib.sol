@@ -1,7 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity =0.8.13;
+import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
+
+import "../config/types.sol";
+import "../config/constants.sol";
 
 library MoneynessLib {
+    using FixedPointMathLib for uint256;
+
     /**
      * @notice   get the cash value of a call option strike
      * @dev      returns max(spot - strike, 0)
