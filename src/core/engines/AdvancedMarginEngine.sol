@@ -168,7 +168,7 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
      * @param _newSubAccount the id of receiving account
      */
     function transferAccount(address _subAccount, address _newSubAccount) external {
-        _assertCallerHasAccess(_subAccount);
+        if (!_isPrimaryAccountFor(msg.sender, _subAccount)) revert NoAccess();
 
         if (!marginAccounts[_newSubAccount].isEmpty()) revert MA_AccountIsNotEmpty();
         marginAccounts[_newSubAccount] = marginAccounts[_subAccount];
@@ -324,13 +324,6 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
      */
     function _assertCallerIsGrappa() internal view {
         if (msg.sender != address(grappa)) revert NoAccess();
-    }
-
-    /**
-     * @notice return if the calling address is eligible to access an subAccount address
-     */
-    function _assertCallerHasAccess(address _subAccount) internal view {
-        if (!_isPrimaryAccountFor(msg.sender, _subAccount)) revert NoAccess();
     }
 
     /**
