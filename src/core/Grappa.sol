@@ -43,6 +43,9 @@ contract Grappa is ReentrancyGuard, Registry {
     ///     every account can authorize any amount of addresses to modify all sub-accounts he controls.
     mapping(uint160 => mapping(address => bool)) public authorized;
 
+    ///@dev engine address => collateral => amount.
+    mapping(address => mapping(address => uint256)) public totalCollateral;
+
     /// @dev optionToken address
     IOptionToken public immutable optionToken;
     // IMarginEngine public immutable engine;
@@ -115,6 +118,10 @@ contract Grappa is ReentrancyGuard, Registry {
         optionToken.batchBurn(msg.sender, _tokensToBurn, _amountsToBurn);
 
         address asset = assets[collateralId].addr;
+
+        // if the engine is already insolvent, this will revert and avoid payout
+        totalCollateral[_engine][asset] -= amountToPay;
+
         if (asset != address(0)) IERC20(asset).safeTransfer(msg.sender, amountToPay);
     }
 
@@ -130,9 +137,12 @@ contract Grappa is ReentrancyGuard, Registry {
         uint256 _tokenId,
         uint256 _amount
     ) external {
-        (address collateral, uint256 payout) = getPayout(_tokenId, uint64(_amount));
+        (address engine, address collateral, uint256 payout) = getPayout(_tokenId, uint64(_amount));
 
         optionToken.burn(_account, _tokenId, _amount);
+
+        // if the engine is already insolvent, this will revert and avoid payout
+        totalCollateral[engine][collateral] -= payout;
 
         IERC20(collateral).safeTransfer(_account, payout);
     }
@@ -143,32 +153,57 @@ contract Grappa is ReentrancyGuard, Registry {
      * @param _account who to settle for
      * @param _tokenIds array of tokenIds to burn
      * @param _amounts   array of amounts to burn
-     * @param _collateral collateral asset to settle in.
+     
      */
     function batchSettleOptions(
         address _account,
         uint256[] memory _tokenIds,
-        uint256[] memory _amounts,
-        address _collateral
+        uint256[] memory _amounts
     ) external {
         if (_tokenIds.length != _amounts.length) revert ST_WrongArgumentLength();
 
-        uint256 totalPayout;
+        if (_tokenIds.length == 0) return;
+
+        optionToken.batchBurn(_account, _tokenIds, _amounts);
+
+        address lastCollateral;
+        address lastEngine;
+
+        uint256 lastTotalPayout;
+        uint256 lastTotalAmountToDecrease;
 
         for (uint256 i; i < _tokenIds.length; ) {
-            (address collateral, uint256 payout) = getPayout(_tokenIds[i], uint64(_amounts[i]));
+            (address engine, address collateral, uint256 payout) = getPayout(_tokenIds[i], uint64(_amounts[i]));
 
-            if (collateral != _collateral) revert ST_WrongSettlementCollateral();
-            totalPayout += payout;
+            // if engine changed, update totalCollateral and clear temp parameters
+            if (lastEngine == address(0)) {
+                lastEngine = engine;
+            } else if (engine != lastEngine || lastCollateral != collateral) {
+                totalCollateral[lastEngine][lastCollateral] -= lastTotalAmountToDecrease;
+                lastEngine = engine;
+                lastTotalAmountToDecrease = 0;
+            }
 
+            lastTotalAmountToDecrease += payout;
+
+            // if collateral asset changed, payout and update total payout
+            if (lastCollateral == address(0)) {
+                lastCollateral = collateral;
+            } else if (collateral != lastCollateral) {
+                IERC20(collateral).safeTransfer(_account, lastTotalPayout);
+                lastCollateral = collateral;
+                lastTotalPayout = 0;
+            }
+
+            lastTotalPayout += payout;
             unchecked {
                 i++;
             }
         }
 
-        optionToken.batchBurn(_account, _tokenIds, _amounts);
+        totalCollateral[lastEngine][lastCollateral] -= lastTotalAmountToDecrease;
 
-        IERC20(_collateral).safeTransfer(_account, totalPayout);
+        IERC20(lastCollateral).safeTransfer(_account, lastTotalPayout);
     }
 
     /**
@@ -180,7 +215,15 @@ contract Grappa is ReentrancyGuard, Registry {
      * @return collateral asset to settle in
      * @return payout amount paid
      **/
-    function getPayout(uint256 _tokenId, uint64 _amount) public view returns (address, uint256 payout) {
+    function getPayout(uint256 _tokenId, uint64 _amount)
+        public
+        view
+        returns (
+            address,
+            address,
+            uint256 payout
+        )
+    {
         (TokenType tokenType, uint32 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) = TokenIdUtil
             .parseTokenId(_tokenId);
 
@@ -219,7 +262,12 @@ contract Grappa is ReentrancyGuard, Registry {
             payout = payout.mulDivDown(UNIT, collateralPrice);
         }
 
-        return (collateral, payout.convertDecimals(UNIT_DECIMALS, collateralDecimals));
+        payout = payout.convertDecimals(UNIT_DECIMALS, collateralDecimals);
+
+        // temp: fetch again here to avoid stack too deep error
+        (address engine, , , , ) = getDetailFromProductId(productId);
+
+        return (engine, collateral, payout);
     }
 
     /**
@@ -253,10 +301,12 @@ contract Grappa is ReentrancyGuard, Registry {
         // decode parameters
         (address from, uint80 amount, uint8 collateralId) = abi.decode(_data, (address, uint80, uint8));
 
-        // update the account structure in memory
+        // update the data structure in corresponding engine
         IMarginEngine(_engine).increaseCollateral(_subAccount, amount, collateralId);
 
         address collateral = address(assets[collateralId].addr);
+
+        totalCollateral[_engine][collateral] += amount;
 
         // collateral must come from caller or the primary account for this subAccount
         if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert MA_InvalidFromAddress();
@@ -272,15 +322,15 @@ contract Grappa is ReentrancyGuard, Registry {
         address _subAccount,
         bytes memory _data
     ) internal {
-        // todo: check expiry if has short
-
         // decode parameters
         (uint80 amount, address recipient, uint8 collateralId) = abi.decode(_data, (uint80, address, uint8));
 
-        // update the account structure in memory
+        // update the data structure in corresponding engine
         IMarginEngine(_engine).decreaseCollateral(_subAccount, collateralId, amount);
 
         address collateral = address(assets[collateralId].addr);
+
+        totalCollateral[_engine][collateral] += amount;
 
         // external calls
         IERC20(collateral).safeTransfer(recipient, amount);
@@ -300,7 +350,7 @@ contract Grappa is ReentrancyGuard, Registry {
 
         _assertIsAuthorizedEngineForToken(_engine, tokenId);
 
-        // update the account structure in memory
+        // update the data structure in corresponding engine
         IMarginEngine(_engine).increaseDebt(_subAccount, tokenId, amount);
 
         // mint the real option token
@@ -321,7 +371,7 @@ contract Grappa is ReentrancyGuard, Registry {
         // decode parameters
         (uint256 tokenId, address from, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
 
-        // update the account structure in memory
+        // update the data structure in corresponding engine
         IMarginEngine(_engine).decreaseDebt(_subAccount, tokenId, amount);
 
         // token being burn must come from caller or the primary account for this subAccount
@@ -342,7 +392,7 @@ contract Grappa is ReentrancyGuard, Registry {
         // decode parameters
         (uint256 tokenId, address from) = abi.decode(_data, (uint256, address));
 
-        // update the account structure in memory
+        // update the data structure in corresponding engine
         uint64 amount = IMarginEngine(_engine).merge(_subAccount, tokenId);
 
         // token being burn must come from caller or the primary account for this subAccount
@@ -363,6 +413,7 @@ contract Grappa is ReentrancyGuard, Registry {
         // decode parameters
         (TokenType tokenType, address recipient) = abi.decode(_data, (TokenType, address));
 
+        // update the data structure in corresponding engine
         (uint256 tokenId, uint64 amount) = IMarginEngine(_engine).split(_subAccount, tokenType);
 
         _assertIsAuthorizedEngineForToken(_engine, tokenId);

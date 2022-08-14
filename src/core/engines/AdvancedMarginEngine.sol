@@ -233,14 +233,15 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
      */
     function decreaseCollateral(
         address _subAccount,
-        uint8, /*_collateralId*/
+        uint8 _collateralId,
         uint80 _amount
     ) external {
         _assertCallerIsGrappa();
 
+        // todo: check if vault has expired short positions
+
         // update the account structure in storage
-        // todo: check collateral
-        marginAccounts[_subAccount].removeCollateral(_amount);
+        marginAccounts[_subAccount].removeCollateral(_amount, _collateralId);
     }
 
     /**
@@ -382,8 +383,8 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
     function _getPayoutFromAccount(Account memory _account) internal view returns (uint80 reservedPayout) {
         (uint256 callPayout, uint256 putPayout) = (0, 0);
         if (_account.shortCallAmount > 0)
-            (, callPayout) = grappa.getPayout(_account.shortCallId, _account.shortCallAmount);
-        if (_account.shortPutAmount > 0) (, putPayout) = grappa.getPayout(_account.shortPutId, _account.shortPutAmount);
+            (,, callPayout) = grappa.getPayout(_account.shortCallId, _account.shortCallAmount);
+        if (_account.shortPutAmount > 0) (,, putPayout) = grappa.getPayout(_account.shortPutId, _account.shortPutAmount);
         return uint80(callPayout + putPayout);
     }
 

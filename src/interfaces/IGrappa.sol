@@ -15,5 +15,12 @@ interface IGrappa {
 
     function assets(uint8 _id) external view returns (address asset);
 
-    function getPayout(uint256 tokenId, uint64 amount) external view returns (address collateral, uint256 payout);
+    function getPayout(uint256 tokenId, uint64 amount)
+        external
+        view
+        returns (
+            address engine,
+            address collateral,
+            uint256 payout
+        );
 }

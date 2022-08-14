@@ -966,8 +966,8 @@ contract TestBatchSettleCall is AdvancedFixture {
     function testCannotSettleWithWrongCollateral() public {
         oracle.setExpiryPrice(address(weth), address(usdc), strikes[0] - 1);
 
-        vm.expectRevert(ST_WrongSettlementCollateral.selector);
-        grappa.batchSettleOptions(alice, tokenIds, amounts, address(weth));
+        // vm.expectRevert(ST_WrongSettlementCollateral.selector);
+        grappa.batchSettleOptions(alice, tokenIds, amounts);
     }
 
     function testCannotSettleWithWrongArgumentLengths() public {
@@ -977,7 +977,7 @@ contract TestBatchSettleCall is AdvancedFixture {
         badIds[0] = getTokenId(TokenType.CALL, productId, expiry, strikes[0], 0);
 
         vm.expectRevert(ST_WrongArgumentLength.selector);
-        grappa.batchSettleOptions(alice, badIds, amounts, address(weth));
+        grappa.batchSettleOptions(alice, badIds, amounts);
     }
 
     function testShouldGetNothingIfAllOptionsExpiresOTM() public {
@@ -986,7 +986,7 @@ contract TestBatchSettleCall is AdvancedFixture {
 
         uint256 usdcBefore = usdc.balanceOf(alice);
 
-        grappa.batchSettleOptions(alice, tokenIds, amounts, address(usdc));
+        grappa.batchSettleOptions(alice, tokenIds, amounts);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 option1After = option.balanceOf(alice, tokenIds[0]);
@@ -1007,7 +1007,7 @@ contract TestBatchSettleCall is AdvancedFixture {
         uint256 expectedReturn = strikes[1] - strikes[0];
 
         uint256 usdcBefore = usdc.balanceOf(alice);
-        grappa.batchSettleOptions(alice, tokenIds, amounts, address(usdc));
+        grappa.batchSettleOptions(alice, tokenIds, amounts);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 option1After = option.balanceOf(alice, tokenIds[0]);
@@ -1029,7 +1029,7 @@ contract TestBatchSettleCall is AdvancedFixture {
         uint256 expectedReturn = 3 * expiryPrice - (strikes[0] + strikes[1] + strikes[2]);
 
         uint256 usdcBefore = usdc.balanceOf(alice);
-        grappa.batchSettleOptions(alice, tokenIds, amounts, address(usdc));
+        grappa.batchSettleOptions(alice, tokenIds, amounts);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 option1After = option.balanceOf(alice, tokenIds[0]);
