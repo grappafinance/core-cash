@@ -106,7 +106,7 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
         address _liquidator,
         uint256[] memory tokensToBurn,
         uint256[] memory amountsToBurn
-    ) external returns (uint8 collateralId, uint80 collateralToPay) {
+    ) external returns (address collateral, uint80 collateralToPay) {
         _assertCallerIsGrappa();
 
         uint256 repayCallAmount = amountsToBurn[0];
@@ -156,7 +156,7 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
         // address collateral = grappa.assets(account.collateralId);
         collateralToPay = uint80((account.collateralAmount * portionBPS) / BPS);
 
-        collateralId = account.collateralId;
+        collateral = grappa.assets(account.collateralId);
 
         // if liquidator is trying to remove more collateral than owned, this line will revert
         account.removeCollateralMemory(collateralToPay);
@@ -164,9 +164,7 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
         // write new accout to storage
         marginAccounts[_subAccount] = account;
 
-        address asset = grappa.assets(collateralId);
-
-        IERC20(asset).safeTransfer(_liquidator, collateralToPay);
+        IERC20(collateral).safeTransfer(_liquidator, collateralToPay);
     }
 
     /**

@@ -45,7 +45,7 @@ interface IMarginEngine {
         address _liquidator,
         uint256[] memory tokensToBurn,
         uint256[] memory amountsToBurn
-    ) external returns (uint8 collateralId, uint80 amountToPay);
+    ) external returns (address collateral, uint80 amountToPay);
 
     function payCashValue(
         address _asset,

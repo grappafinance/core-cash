@@ -43,9 +43,6 @@ contract Grappa is ReentrancyGuard, Registry {
     ///     every account can authorize any amount of addresses to modify all sub-accounts he controls.
     mapping(uint160 => mapping(address => bool)) public authorized;
 
-    ///@dev engine address => collateral => amount.
-    mapping(address => mapping(address => uint256)) public totalCollateral;
-
     /// @dev optionToken address
     IOptionToken public immutable optionToken;
     // IMarginEngine public immutable engine;
@@ -104,14 +101,24 @@ contract Grappa is ReentrancyGuard, Registry {
         _assertAccountHealth(engine, _subAccount);
     }
 
+    /**
+     * @notice burn option token to liquidate an account
+     *
+     */
     function liquidate(
         address _engine,
         address _subAccount,
         uint256[] memory _tokensToBurn,
         uint256[] memory _amountsToBurn
-    ) external {
+    ) external returns (address collateral, uint80 amountToPay) {
         // liquidate account structure and payout
-        IMarginEngine(_engine).liquidate(_subAccount, msg.sender, _tokensToBurn, _amountsToBurn);
+        (collateral, amountToPay) = IMarginEngine(_engine).liquidate(
+            _subAccount,
+            msg.sender,
+            _tokensToBurn,
+            _amountsToBurn
+        );
+        // burn the tokens
         optionToken.batchBurn(msg.sender, _tokensToBurn, _amountsToBurn);
     }
 
@@ -130,9 +137,6 @@ contract Grappa is ReentrancyGuard, Registry {
         (address engine, address collateral, uint256 payout) = getPayout(_tokenId, uint64(_amount));
 
         optionToken.burn(_account, _tokenId, _amount);
-
-        // if the engine is already insolvent, this will revert and avoid payout
-        // totalCollateral[engine][collateral] -= payout;
 
         IMarginEngine(engine).payCashValue(collateral, _account, payout);
     }
@@ -164,7 +168,7 @@ contract Grappa is ReentrancyGuard, Registry {
         for (uint256 i; i < _tokenIds.length; ) {
             (address engine, address collateral, uint256 payout) = getPayout(_tokenIds[i], uint64(_amounts[i]));
 
-            // if engine changed, update totalCollateral and clear temp parameters
+            // if engine or collateral changes, payout and clear temporary parameters
             if (lastEngine == address(0)) {
                 lastEngine = engine;
                 lastCollateral = collateral;
