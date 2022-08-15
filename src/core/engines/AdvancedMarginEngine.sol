@@ -107,7 +107,6 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
         uint256[] memory tokensToBurn,
         uint256[] memory amountsToBurn
     ) external returns (uint8 collateralId, uint80 collateralToPay) {
-
         _assertCallerIsGrappa();
 
         uint256 repayCallAmount = amountsToBurn[0];
@@ -173,7 +172,11 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
     /**
      * @notice payout to user on settlement
      */
-    function payCashValue(address _asset, address _recipient, uint256 _amount) external {
+    function payCashValue(
+        address _asset,
+        address _recipient,
+        uint256 _amount
+    ) external {
         _assertCallerIsGrappa();
 
         IERC20(_asset).safeTransfer(_recipient, _amount);
