@@ -1093,7 +1093,7 @@ contract TestBatchSettleMultipleProduct is AdvancedFixture {
         // only get 500 in eth out of strikes[0]
         oracle.setExpiryPrice(address(weth), address(usdc), strikes[1]);
 
-        uint256 expectedReturn = (strikes[1] - strikes[0]) * UNIT / strikes[1] * 1e12;
+        uint256 expectedReturn = (((strikes[1] - strikes[0]) * UNIT) / strikes[1]) * 1e12;
 
         uint256 wethBefore = weth.balanceOf(alice);
         grappa.batchSettleOptions(alice, tokenIds, amounts);
@@ -1109,18 +1109,16 @@ contract TestBatchSettleMultipleProduct is AdvancedFixture {
         assertEq(option3After, 0);
     }
 
-    function testShouldGetBothCollateralIfBothPutAndCallExpiresITM() public {
+    function testShouldGetMultipleAssetPayoutIfTwoOptionsExpiresITM() public {
         // strikes[1] and strikes[2] expries OTM
         // only get 500 out of strikes[0]
         uint256 expiryPrice = 3750 * UNIT;
         oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
 
         // first 3500 call pays out in eth
-        uint256 wethExpectedReturn = (expiryPrice - strikes[0]) * UNIT / expiryPrice * 1e12;
-
-        console2.log("wethExpectedReturn", wethExpectedReturn);
-
-        uint256 usdcExpectedReturn = (strikes[1] - expiryPrice );
+        uint256 wethExpectedReturn = (((expiryPrice - strikes[0]) * UNIT) / expiryPrice) * 1e12;
+        
+        uint256 usdcExpectedReturn = (strikes[1] - expiryPrice);
 
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 wethBefore = weth.balanceOf(alice);
