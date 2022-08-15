@@ -1117,7 +1117,7 @@ contract TestBatchSettleMultipleProduct is AdvancedFixture {
 
         // first 3500 call pays out in eth
         uint256 wethExpectedReturn = (((expiryPrice - strikes[0]) * UNIT) / expiryPrice) * 1e12;
-        
+
         uint256 usdcExpectedReturn = (strikes[1] - expiryPrice);
 
         uint256 usdcBefore = usdc.balanceOf(alice);
