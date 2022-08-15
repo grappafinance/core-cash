@@ -69,7 +69,7 @@ library AdvancedMarginMath {
         // don't need collateral
         if (_account.putAmount == 0 && _account.callAmount == 0) return 0;
 
-        if (_params.rUpper == 0) revert MA_NoConfig();
+        if (_params.rUpper == 0) revert AM_NoConfig();
 
         // we only have short put
         if (_account.callAmount == 0) {

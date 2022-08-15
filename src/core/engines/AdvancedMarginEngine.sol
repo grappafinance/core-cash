@@ -118,10 +118,10 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
 
         Account memory account = marginAccounts[_subAccount];
 
-        if (account.shortCallId != tokensToBurn[0]) revert MA_WrongIdToLiquidate();
-        if (account.shortPutId != tokensToBurn[1]) revert MA_WrongIdToLiquidate();
+        if (account.shortCallId != tokensToBurn[0]) revert AM_WrongIdToLiquidate();
+        if (account.shortPutId != tokensToBurn[1]) revert AM_WrongIdToLiquidate();
 
-        if (_isAccountHealthy(account)) revert MA_AccountIsHealthy();
+        if (_isAccountHealthy(account)) revert AM_AccountIsHealthy();
 
         bool hasShortCall = account.shortCallAmount != 0;
         bool hasShortPut = account.shortPutAmount != 0;
@@ -134,16 +134,16 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
             // amounts to liquidate needs to be the same portion of short call and short put amount.
             uint256 callPortionBPS = (repayCallAmount * BPS) / account.shortCallAmount;
             uint256 putPortionBPS = (repayPutAmount * BPS) / account.shortPutAmount;
-            if (callPortionBPS != putPortionBPS) revert MA_WrongRepayAmounts();
+            if (callPortionBPS != putPortionBPS) revert AM_WrongRepayAmounts();
             portionBPS = callPortionBPS;
         } else if (hasShortCall) {
             // account only short call
-            if (repayPutAmount != 0) revert MA_WrongRepayAmounts();
+            if (repayPutAmount != 0) revert AM_WrongRepayAmounts();
             portionBPS = (repayCallAmount * BPS) / account.shortCallAmount;
         } else {
             // if account is underwater, it must have shortCall or shortPut. in this branch it will sure have shortPutAmount > 0;
             // account only short put
-            if (repayCallAmount != 0) revert MA_WrongRepayAmounts();
+            if (repayCallAmount != 0) revert AM_WrongRepayAmounts();
             portionBPS = (repayPutAmount * BPS) / account.shortPutAmount;
         }
 
@@ -197,7 +197,7 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
     function transferAccount(address _subAccount, address _newSubAccount) external {
         if (!_isPrimaryAccountFor(msg.sender, _subAccount)) revert NoAccess();
 
-        if (!marginAccounts[_newSubAccount].isEmpty()) revert MA_AccountIsNotEmpty();
+        if (!marginAccounts[_newSubAccount].isEmpty()) revert AM_AccountIsNotEmpty();
         marginAccounts[_newSubAccount] = marginAccounts[_subAccount];
 
         delete marginAccounts[_subAccount];

@@ -152,10 +152,7 @@ library AdvancedMarginLib {
     ///@dev split an accunt's spread position into short + 1 token
     ///@param account Account memory that will be updated in-place
     ///@param spreadId id of spread to be parsed
-    function split(Account storage account, uint256 spreadId)
-        internal
-        returns (uint256 mintingTokenId, uint64 amount)
-    {
+    function split(Account storage account, uint256 spreadId) internal returns (uint256 mintingTokenId, uint64 amount) {
         // token being added can only be call or put
         (TokenType optionType, , , , ) = spreadId.parseTokenId();
         if (optionType != TokenType.CALL_SPREAD && optionType != TokenType.PUT_SPREAD) revert AM_CanOnlySplitSpread();

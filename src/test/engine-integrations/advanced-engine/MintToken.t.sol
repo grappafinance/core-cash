@@ -111,7 +111,7 @@ contract TestMintVanillaOption is AdvancedFixture {
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
 
-        vm.expectRevert(MA_AccountUnderwater.selector);
+        vm.expectRevert(GP_AccountUnderwater.selector);
         grappa.execute(engineId, address(this), actions);
     }
 
@@ -128,7 +128,7 @@ contract TestMintVanillaOption is AdvancedFixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
-        vm.expectRevert(Not_Authorized_Engine.selector);
+        vm.expectRevert(GP_Not_Authorized_Engine.selector);
         grappa.execute(engineId, address(this), actions);
     }
 
@@ -205,7 +205,7 @@ contract TestMintVanillaOption is AdvancedFixture {
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
 
-        vm.expectRevert(MA_AccountUnderwater.selector);
+        vm.expectRevert(GP_AccountUnderwater.selector);
         grappa.execute(engineId, address(this), actions);
     }
 
@@ -291,7 +291,7 @@ contract TestMintVanillaOption is AdvancedFixture {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createMintAction(tokenId, address(this), amount);
 
-        vm.expectRevert(MA_AccountUnderwater.selector);
+        vm.expectRevert(GP_AccountUnderwater.selector);
         grappa.execute(engineId, address(this), actions);
     }
 

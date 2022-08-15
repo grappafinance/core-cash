@@ -54,21 +54,21 @@ import "forge-std/console2.sol";
 //     }
 
 //     function testCannotTakeoverHealthyVault() public {
-//         vm.expectRevert(MA_AccountIsHealthy.selector);
+//         vm.expectRevert(AM_AccountIsHealthy.selector);
 //         marginEngine.takeoverPosition(accountId, address(this), 0);
 //     }
 
 //     function testCannotTakeoverPositionWithoutPayingCollateral() public {
 //         oracle.setSpotPrice(address(weth), 3800 * UNIT);
 
-//         vm.expectRevert(MA_AccountUnderwater.selector);
+//         vm.expectRevert(GP_AccountUnderwater.selector);
 //         marginEngine.takeoverPosition(accountId, address(this), 0);
 //     }
 
 //     function testCannotTakeoverPositionWithoutPayingEnoughCollateral() public {
 //         oracle.setSpotPrice(address(weth), 3800 * UNIT);
 
-//         vm.expectRevert(MA_AccountUnderwater.selector);
+//         vm.expectRevert(GP_AccountUnderwater.selector);
 //         marginEngine.takeoverPosition(accountId, address(this), uint80(50 * 1e6));
 //     }
 

@@ -68,7 +68,7 @@ contract TestSplitCallSpread is AdvancedFixture {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSplitAction(spreadId, address(this));
 
-        vm.expectRevert(MA_AccountUnderwater.selector);
+        vm.expectRevert(GP_AccountUnderwater.selector);
         grappa.execute(engineId, address(this), actions);
     }
 }
@@ -132,7 +132,7 @@ contract TestSplitPutSpread is AdvancedFixture {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSplitAction(spreadId, address(this));
 
-        vm.expectRevert(MA_AccountUnderwater.selector);
+        vm.expectRevert(GP_AccountUnderwater.selector);
         grappa.execute(engineId, address(this), actions);
     }
 }

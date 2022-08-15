@@ -6,37 +6,25 @@ pragma solidity =0.8.13;
 // Univeral Errors
 error NoAccess();
 
-// Grappa Main
-error Not_Authorized_Engine();
+// Erros in Grappa Contracts
+error GP_Not_Authorized_Engine();
 
-// Margin Account Errors
+/// @dev amounts length speicified to batch settle doesn't match with tokenIds
+error GP_WrongArgumentLength();
 
-/// token id specified to liquidate mistmch vault debt
-error MA_WrongIdToLiquidate();
+/// @dev cannot settle an unexpired option
+error GP_NotExpired();
+
+/// @dev account is not healthy / account is underwater
+error GP_AccountUnderwater();
+
+/// @dev msg.sender is not authorized to ask margin account to pull token from {from} address
+error GP_InvalidFromAddress();
+
+// Advanced Margin and AdvancedMarginLib Errors
 
 /// @dev collateral id is wrong: the id doesn't match the existing sub account
 error AM_WrongCollateralId();
-
-/// @dev no config set for this asset.
-error MA_NoConfig();
-
-/// @dev msg.sender is not authorized to ask margin account to pull token from {from} address
-error MA_InvalidFromAddress();
-
-/// @dev invalid tokenId specify to mint / burn actions
-error AM_InvalidToken();
-
-/// @dev cannot liquidate or takeover position: account is healthy
-error MA_AccountIsHealthy();
-
-/// @dev account is not healthy / account is underwater
-error MA_AccountUnderwater();
-
-/// @dev cannot override a non-empty subaccount id
-error MA_AccountIsNotEmpty();
-
-/// @dev amounts to repay in liquidation are not valid. Missing call, put or not proportional to the amount in subaccount.
-error MA_WrongRepayAmounts();
 
 /// @dev can only merge subaccount with put or call.
 error AM_CannotMergeSpread();
@@ -56,16 +44,23 @@ error AM_MergeWithSameStrike();
 /// @dev only spread position can be split
 error AM_CanOnlySplitSpread();
 
-/// @dev cannot settle an unexpired option
-error MA_NotExpired();
+/// @dev invalid tokenId specify to mint / burn actions
+error AM_InvalidToken();
 
-// Erros in Settlement Contract
+/// token id specified to liquidate mistmch vault debt
+error AM_WrongIdToLiquidate();
 
-/// @dev amounts length speicified to batch settle doesn't match with tokenIds
-error ST_WrongArgumentLength();
+/// @dev no config set for this asset.
+error AM_NoConfig();
 
-/// @dev cannot settle multiple options with different collateral at once
-error ST_WrongSettlementCollateral();
+/// @dev cannot liquidate or takeover position: account is healthy
+error AM_AccountIsHealthy();
+
+/// @dev cannot override a non-empty subaccount id
+error AM_AccountIsNotEmpty();
+
+/// @dev amounts to repay in liquidation are not valid. Missing call, put or not proportional to the amount in subaccount.
+error AM_WrongRepayAmounts();
 
 // Chainlink Pricer Errors
 

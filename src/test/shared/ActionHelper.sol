@@ -77,11 +77,7 @@ abstract contract ActionHelper {
         action = ActionArgs({action: ActionType.MergeOptionToken, data: abi.encode(tokenId, from)});
     }
 
-    function createSplitAction(uint256 spreadId, address recipient)
-        internal
-        pure
-        returns (ActionArgs memory action)
-    {
+    function createSplitAction(uint256 spreadId, address recipient) internal pure returns (ActionArgs memory action) {
         action = ActionArgs({action: ActionType.SplitOptionToken, data: abi.encode(spreadId, recipient)});
     }
 

@@ -56,7 +56,7 @@ contract TestLiquidateCall is AdvancedFixture {
     }
 
     function testCannotLiquidateHealthyVault() public {
-        vm.expectRevert(MA_AccountIsHealthy.selector);
+        vm.expectRevert(AM_AccountIsHealthy.selector);
         liquidateWithIdAndAmounts(accountId, tokenId, 0, amount, 0);
     }
 
@@ -65,14 +65,14 @@ contract TestLiquidateCall is AdvancedFixture {
 
         uint256 putId = getTokenId(TokenType.PUT, productId, expiry, strike, 0);
 
-        vm.expectRevert(MA_WrongIdToLiquidate.selector);
+        vm.expectRevert(AM_WrongIdToLiquidate.selector);
         liquidateWithIdAndAmounts(accountId, 0, putId, 0, amount);
     }
 
     function testCannotLiquidateVaultWithPutAmount() public {
         oracle.setSpotPrice(address(weth), 3800 * UNIT);
 
-        vm.expectRevert(MA_WrongRepayAmounts.selector);
+        vm.expectRevert(AM_WrongRepayAmounts.selector);
         liquidateWithIdAndAmounts(accountId, tokenId, 0, 0, amount);
     }
 
@@ -198,7 +198,7 @@ contract TestLiquidatePut is AdvancedFixture {
     }
 
     function testCannotLiquidateHealthyVault() public {
-        vm.expectRevert(MA_AccountIsHealthy.selector);
+        vm.expectRevert(AM_AccountIsHealthy.selector);
         liquidateWithIdAndAmounts(accountId, 0, tokenId, 0, amount);
     }
 
@@ -207,14 +207,14 @@ contract TestLiquidatePut is AdvancedFixture {
 
         uint256 callId = getTokenId(TokenType.CALL, productId, expiry, strike, 0);
 
-        vm.expectRevert(MA_WrongIdToLiquidate.selector);
+        vm.expectRevert(AM_WrongIdToLiquidate.selector);
         liquidateWithIdAndAmounts(accountId, 0, callId, 0, amount);
     }
 
     function testCannotLiquidateVaultWithCallAmount() public {
         oracle.setSpotPrice(address(weth), 3600 * UNIT);
 
-        vm.expectRevert(MA_WrongRepayAmounts.selector);
+        vm.expectRevert(AM_WrongRepayAmounts.selector);
         liquidateWithIdAndAmounts(accountId, 0, tokenId, amount, 0);
     }
 
@@ -324,31 +324,31 @@ contract TestLiquidateCallAndPut is AdvancedFixture {
     }
 
     function testCannotLiquidateHealthyVault() public {
-        vm.expectRevert(MA_AccountIsHealthy.selector);
+        vm.expectRevert(AM_AccountIsHealthy.selector);
         liquidateWithIdAndAmounts(accountId, callId, putId, amount, amount);
     }
 
     function testCannotLiquidateWithOnlySpecifyCallAmount() public {
         oracle.setSpotPrice(address(weth), 3300 * UNIT);
 
-        vm.expectRevert(MA_WrongRepayAmounts.selector);
+        vm.expectRevert(AM_WrongRepayAmounts.selector);
         liquidateWithIdAndAmounts(accountId, callId, putId, amount, 0);
     }
 
     function testCannotLiquidateWithImbalancedAmount() public {
         oracle.setSpotPrice(address(weth), 3300 * UNIT);
 
-        vm.expectRevert(MA_WrongRepayAmounts.selector);
+        vm.expectRevert(AM_WrongRepayAmounts.selector);
         liquidateWithIdAndAmounts(accountId, callId, putId, amount, amount - 1);
 
-        vm.expectRevert(MA_WrongRepayAmounts.selector);
+        vm.expectRevert(AM_WrongRepayAmounts.selector);
         liquidateWithIdAndAmounts(accountId, callId, putId, amount - 1, amount);
     }
 
     function testCannotLiquidateWithOnlySpecifyPutAmount() public {
         oracle.setSpotPrice(address(weth), 3300 * UNIT);
 
-        vm.expectRevert(MA_WrongRepayAmounts.selector);
+        vm.expectRevert(AM_WrongRepayAmounts.selector);
         liquidateWithIdAndAmounts(accountId, callId, putId, 0, amount);
     }
 
