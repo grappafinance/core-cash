@@ -153,23 +153,21 @@ library AdvancedMarginLib {
     ///@param account Account memory that will be updated in-place
     ///@param spreadId id of spread to be parsed
     function split(Account storage account, uint256 spreadId) internal returns (uint256 mintingTokenId, uint64 amount) {
-        // token being added can only be call or put
-        (TokenType optionType, , , , ) = spreadId.parseTokenId();
-        if (optionType != TokenType.CALL_SPREAD && optionType != TokenType.PUT_SPREAD) revert AM_CanOnlySplitSpread();
-
-        // check the existing short position
-        bool isSplitingCallSpread = optionType == TokenType.CALL_SPREAD;
-        uint256 spreadIdInAccount = isSplitingCallSpread ? account.shortCallId : account.shortPutId;
-        if (spreadId != spreadIdInAccount) revert AM_InvalidToken();
-
-        amount = isSplitingCallSpread ? account.shortCallAmount : account.shortPutAmount;
-
-        // we expected the existing "shortId" to be a spread
+        // parse the passed in spread id
         (TokenType spreadType, uint32 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) = spreadId
             .parseTokenId();
 
-        // if exisiting type is not spread, it will revert
-        if (spreadType != optionType) revert AM_MergeTypeMismatch();
+        if (spreadType != TokenType.CALL_SPREAD && spreadType != TokenType.PUT_SPREAD) revert AM_CanOnlySplitSpread();
+
+        // check the existing short position
+        bool isSplitingCallSpread = spreadType == TokenType.CALL_SPREAD;
+
+        uint256 spreadIdInAccount = isSplitingCallSpread ? account.shortCallId : account.shortPutId;
+
+        // passed in spreadId should match the one in account storage (shortCallId or shortPutId)
+        if (spreadId != spreadIdInAccount) revert AM_InvalidToken();
+
+        amount = isSplitingCallSpread ? account.shortCallAmount : account.shortPutAmount;
 
         if (isSplitingCallSpread) {
             // remove the "short strike" field of the shorted "option token"

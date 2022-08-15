@@ -135,4 +135,15 @@ contract TestSplitPutSpread is AdvancedFixture {
         vm.expectRevert(GP_AccountUnderwater.selector);
         grappa.execute(engineId, address(this), actions);
     }
+
+    function testCannotSplitNonExistingSpreadId() public {
+        uint256 fakeLongStrike = strikePriceHigh - (50 * UNIT);
+        uint256 fakeSpreadId = getTokenId(TokenType.PUT_SPREAD, productId, expiry, fakeLongStrike, strikePriceLow);
+
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createSplitAction(fakeSpreadId, address(this));
+
+        vm.expectRevert(AM_InvalidToken.selector);
+        grappa.execute(engineId, address(this), actions);
+    }
 }
