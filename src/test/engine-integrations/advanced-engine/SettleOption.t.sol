@@ -21,7 +21,7 @@ contract TestSettleCall is AdvancedFixture {
 
     function setUp() public {
         usdc.mint(address(this), 1000_000 * 1e6);
-        usdc.approve(address(grappa), type(uint256).max);
+        usdc.approve(address(marginEngine), type(uint256).max);
 
         expiry = block.timestamp + 14 days;
 
@@ -145,7 +145,7 @@ contract TestSettleCoveredCall is AdvancedFixture {
 
     function setUp() public {
         weth.mint(address(this), 1000 * 1e18);
-        weth.approve(address(grappa), type(uint256).max);
+        weth.approve(address(marginEngine), type(uint256).max);
 
         expiry = block.timestamp + 14 days;
 
@@ -271,7 +271,7 @@ contract TestSettlePut is AdvancedFixture {
 
     function setUp() public {
         usdc.mint(address(this), 1000_000 * 1e6);
-        usdc.approve(address(grappa), type(uint256).max);
+        usdc.approve(address(marginEngine), type(uint256).max);
 
         expiry = block.timestamp + 14 days;
 
@@ -385,7 +385,7 @@ contract TestSettleETHCollateralizedPut is AdvancedFixture {
 
     function setUp() public {
         weth.mint(address(this), 1000 * 1e18);
-        weth.approve(address(grappa), type(uint256).max);
+        weth.approve(address(marginEngine), type(uint256).max);
 
         expiry = block.timestamp + 14 days;
 
@@ -497,7 +497,7 @@ contract TestSettleCallSpread is AdvancedFixture {
 
     function setUp() public {
         usdc.mint(address(this), 1000_000 * 1e6);
-        usdc.approve(address(grappa), type(uint256).max);
+        usdc.approve(address(marginEngine), type(uint256).max);
 
         expiry = block.timestamp + 14 days;
 
@@ -671,7 +671,7 @@ contract TestSettlePutSpread is AdvancedFixture {
 
     function setUp() public {
         usdc.mint(address(this), 1000_000 * 1e6);
-        usdc.approve(address(grappa), type(uint256).max);
+        usdc.approve(address(marginEngine), type(uint256).max);
 
         expiry = block.timestamp + 14 days;
 
@@ -837,10 +837,10 @@ contract TestSettleBTCCollateralizedCall is AdvancedFixture {
         wbtcId = grappa.registerAsset(address(wbtc));
 
         usdc.mint(address(this), 1000_000 * 1e6);
-        usdc.approve(address(grappa), type(uint256).max);
+        usdc.approve(address(marginEngine), type(uint256).max);
 
         wbtc.mint(address(this), 1000 * 1e8);
-        wbtc.approve(address(grappa), type(uint256).max);
+        wbtc.approve(address(marginEngine), type(uint256).max);
 
         expiry = block.timestamp + 14 days;
 
@@ -931,7 +931,7 @@ contract TestBatchSettleCall is AdvancedFixture {
 
     function setUp() public {
         usdc.mint(address(this), 1000_000 * 1e6);
-        usdc.approve(address(grappa), type(uint256).max);
+        usdc.approve(address(marginEngine), type(uint256).max);
 
         expiry = block.timestamp + 14 days;
 
@@ -948,7 +948,7 @@ contract TestBatchSettleCall is AdvancedFixture {
         tokenIds[1] = getTokenId(TokenType.CALL, productId, expiry, strikes[1], 0);
         tokenIds[2] = getTokenId(TokenType.CALL, productId, expiry, strikes[2], 0);
 
-        // mint 2 tokens to alice
+        // mint 3 tokens to alice
         for (uint160 i = 0; i < 3; i++) {
             amounts[i] = amount;
 
@@ -963,13 +963,6 @@ contract TestBatchSettleCall is AdvancedFixture {
         vm.warp(expiry);
     }
 
-    function testCannotSettleWithWrongCollateral() public {
-        oracle.setExpiryPrice(address(weth), address(usdc), strikes[0] - 1);
-
-        vm.expectRevert(ST_WrongSettlementCollateral.selector);
-        grappa.batchSettleOptions(alice, tokenIds, amounts, address(weth));
-    }
-
     function testCannotSettleWithWrongArgumentLengths() public {
         oracle.setExpiryPrice(address(weth), address(usdc), strikes[0] - 1);
 
@@ -977,7 +970,7 @@ contract TestBatchSettleCall is AdvancedFixture {
         badIds[0] = getTokenId(TokenType.CALL, productId, expiry, strikes[0], 0);
 
         vm.expectRevert(ST_WrongArgumentLength.selector);
-        grappa.batchSettleOptions(alice, badIds, amounts, address(weth));
+        grappa.batchSettleOptions(alice, badIds, amounts);
     }
 
     function testShouldGetNothingIfAllOptionsExpiresOTM() public {
@@ -986,7 +979,7 @@ contract TestBatchSettleCall is AdvancedFixture {
 
         uint256 usdcBefore = usdc.balanceOf(alice);
 
-        grappa.batchSettleOptions(alice, tokenIds, amounts, address(usdc));
+        grappa.batchSettleOptions(alice, tokenIds, amounts);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 option1After = option.balanceOf(alice, tokenIds[0]);
@@ -1007,7 +1000,7 @@ contract TestBatchSettleCall is AdvancedFixture {
         uint256 expectedReturn = strikes[1] - strikes[0];
 
         uint256 usdcBefore = usdc.balanceOf(alice);
-        grappa.batchSettleOptions(alice, tokenIds, amounts, address(usdc));
+        grappa.batchSettleOptions(alice, tokenIds, amounts);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 option1After = option.balanceOf(alice, tokenIds[0]);
@@ -1029,7 +1022,7 @@ contract TestBatchSettleCall is AdvancedFixture {
         uint256 expectedReturn = 3 * expiryPrice - (strikes[0] + strikes[1] + strikes[2]);
 
         uint256 usdcBefore = usdc.balanceOf(alice);
-        grappa.batchSettleOptions(alice, tokenIds, amounts, address(usdc));
+        grappa.batchSettleOptions(alice, tokenIds, amounts);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 option1After = option.balanceOf(alice, tokenIds[0]);
@@ -1037,6 +1030,110 @@ contract TestBatchSettleCall is AdvancedFixture {
         uint256 option3After = option.balanceOf(alice, tokenIds[2]);
 
         assertEq(usdcBefore + expectedReturn, usdcAfter);
+        assertEq(option1After, 0);
+        assertEq(option2After, 0);
+        assertEq(option3After, 0);
+    }
+}
+
+contract TestBatchSettleMultipleProduct is AdvancedFixture {
+    uint256 public expiry;
+
+    uint64 private amount = uint64(1 * UNIT);
+    uint256[] private tokenIds = new uint256[](3);
+    uint256[] private amounts = new uint256[](3);
+    uint64[] private strikes = new uint64[](3);
+
+    function setUp() public {
+        usdc.mint(address(this), 1000_000 * 1e6);
+        usdc.approve(address(marginEngine), type(uint256).max);
+
+        weth.mint(address(this), 100 * 1e18);
+        weth.approve(address(marginEngine), type(uint256).max);
+
+        expiry = block.timestamp + 14 days;
+
+        oracle.setSpotPrice(address(weth), 3000 * UNIT);
+
+        // mint option
+        uint256 depositAmount = 2000 * 1e6;
+
+        strikes[0] = uint64(3500 * UNIT);
+        strikes[1] = uint64(4000 * UNIT);
+        strikes[2] = uint64(4500 * UNIT);
+
+        // different products
+        // 3500 call
+        // 4000 put
+        // 4500 call
+        tokenIds[0] = getTokenId(TokenType.CALL, productIdEthCollat, expiry, strikes[0], 0);
+        tokenIds[1] = getTokenId(TokenType.PUT, productId, expiry, strikes[1], 0);
+        tokenIds[2] = getTokenId(TokenType.CALL, productId, expiry, strikes[2], 0);
+
+        for (uint160 i = 0; i < 3; i++) {
+            amounts[i] = amount;
+
+            ActionArgs[] memory actions = new ActionArgs[](2);
+
+            uint8 assetId = i == 0 ? wethId : usdcId;
+            uint256 depositAmount_ = i == 0 ? 1e18 : depositAmount;
+
+            actions[0] = createAddCollateralAction(assetId, address(this), depositAmount_);
+            // give optoin to alice
+            actions[1] = createMintAction(tokenIds[i], alice, amount);
+            // mint option
+            grappa.execute(engineId, address(uint160(address(this)) + i), actions);
+        }
+        // expire option
+        vm.warp(expiry);
+    }
+
+    function testShouldGetPayoutIfOneOptionExpiresITM() public {
+        // strikes[1] and strikes[2] expries OTM
+        // only get 500 in eth out of strikes[0]
+        oracle.setExpiryPrice(address(weth), address(usdc), strikes[1]);
+
+        uint256 expectedReturn = (((strikes[1] - strikes[0]) * UNIT) / strikes[1]) * 1e12;
+
+        uint256 wethBefore = weth.balanceOf(alice);
+        grappa.batchSettleOptions(alice, tokenIds, amounts);
+
+        uint256 wethAfter = weth.balanceOf(alice);
+        uint256 option1After = option.balanceOf(alice, tokenIds[0]);
+        uint256 option2After = option.balanceOf(alice, tokenIds[1]);
+        uint256 option3After = option.balanceOf(alice, tokenIds[2]);
+
+        assertEq(wethBefore + expectedReturn, wethAfter);
+        assertEq(option1After, 0);
+        assertEq(option2After, 0);
+        assertEq(option3After, 0);
+    }
+
+    function testShouldGetMultipleAssetPayoutIfTwoOptionsExpiresITM() public {
+        // strikes[1] and strikes[2] expries OTM
+        // only get 500 out of strikes[0]
+        uint256 expiryPrice = 3750 * UNIT;
+        oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
+
+        // first 3500 call pays out in eth
+        uint256 wethExpectedReturn = (((expiryPrice - strikes[0]) * UNIT) / expiryPrice) * 1e12;
+
+        uint256 usdcExpectedReturn = (strikes[1] - expiryPrice);
+
+        uint256 usdcBefore = usdc.balanceOf(alice);
+        uint256 wethBefore = weth.balanceOf(alice);
+
+        grappa.batchSettleOptions(alice, tokenIds, amounts);
+
+        uint256 usdcAfter = usdc.balanceOf(alice);
+        uint256 wethAfter = weth.balanceOf(alice);
+
+        uint256 option1After = option.balanceOf(alice, tokenIds[0]);
+        uint256 option2After = option.balanceOf(alice, tokenIds[1]);
+        uint256 option3After = option.balanceOf(alice, tokenIds[2]);
+
+        assertEq(usdcBefore + usdcExpectedReturn, usdcAfter);
+        assertEq(wethBefore + wethExpectedReturn, wethAfter);
         assertEq(option1After, 0);
         assertEq(option2After, 0);
         assertEq(option3After, 0);
@@ -1052,7 +1149,7 @@ contract TestSettlementEdgeCase is AdvancedFixture {
 
     function setUp() public {
         usdc.mint(address(this), 1000_000 * 1e6);
-        usdc.approve(address(grappa), type(uint256).max);
+        usdc.approve(address(marginEngine), type(uint256).max);
 
         expiry = block.timestamp + 14 days;
 

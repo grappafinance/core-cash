@@ -12,6 +12,7 @@ import {IOracle} from "../../interfaces/IOracle.sol";
 import {IGrappa} from "../../interfaces/IGrappa.sol";
 import {IOptionToken} from "../../interfaces/IOptionToken.sol";
 import {IMarginEngine} from "../../interfaces/IMarginEngine.sol";
+import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 
 // librarise
 import {TokenIdUtil} from "../../libraries/TokenIdUtil.sol";
@@ -99,12 +100,19 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
      *          burning the token the account is shorted (repay the debt),
      *          and get the collateral from the margin account.
      * @dev     expected to be called by liquidators
+     * @param _subAccount account to liquidate
+     * @param _liquidator the account calling liquidate on Grappa
+     * @param tokensToBurn arrays of token burned
+     * @param amountsToBurn amounts burned
      */
     function liquidate(
         address _subAccount,
+        address _liquidator,
         uint256[] memory tokensToBurn,
         uint256[] memory amountsToBurn
-    ) external returns (uint8 collateralId, uint80 collateralToPay) {
+    ) external returns (address collateral, uint80 collateralToPay) {
+        _assertCallerIsGrappa();
+
         uint256 repayCallAmount = amountsToBurn[0];
         uint256 repayPutAmount = amountsToBurn[1];
 
@@ -152,13 +160,32 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
         // address collateral = grappa.assets(account.collateralId);
         collateralToPay = uint80((account.collateralAmount * portionBPS) / BPS);
 
-        collateralId = account.collateralId;
+        collateral = grappa.assets(account.collateralId);
 
         // if liquidator is trying to remove more collateral than owned, this line will revert
         account.removeCollateralMemory(collateralToPay);
 
         // write new accout to storage
         marginAccounts[_subAccount] = account;
+
+        IERC20(collateral).safeTransfer(_liquidator, collateralToPay);
+    }
+
+    /**
+     * @notice payout to user on settlement.
+     * @dev this can only triggered by Grappa, would only be called on settlement.
+     * @param _asset asset to transfer
+     * @param _recipient receiber
+     * @param _amount amount
+     */
+    function payCashValue(
+        address _asset,
+        address _recipient,
+        uint256 _amount
+    ) external {
+        _assertCallerIsGrappa();
+
+        IERC20(_asset).safeTransfer(_recipient, _amount);
     }
 
     /**
@@ -168,7 +195,7 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
      * @param _newSubAccount the id of receiving account
      */
     function transferAccount(address _subAccount, address _newSubAccount) external {
-        _assertCallerHasAccess(_subAccount);
+        if (!_isPrimaryAccountFor(msg.sender, _subAccount)) revert NoAccess();
 
         if (!marginAccounts[_newSubAccount].isEmpty()) revert MA_AccountIsNotEmpty();
         marginAccounts[_newSubAccount] = marginAccounts[_subAccount];
@@ -219,13 +246,17 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
      */
     function increaseCollateral(
         address _subAccount,
-        uint80 _amount,
-        uint8 _collateralId
+        address _from,
+        address _collateral,
+        uint8 _collateralId,
+        uint80 _amount
     ) external {
         _assertCallerIsGrappa();
 
         // update the account structure in storage
         marginAccounts[_subAccount].addCollateral(_amount, _collateralId);
+
+        IERC20(_collateral).safeTransferFrom(_from, address(this), _amount);
     }
 
     /**
@@ -233,14 +264,19 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
      */
     function decreaseCollateral(
         address _subAccount,
-        uint8, /*_collateralId*/
+        address _recipient,
+        address _collateral,
+        uint8 _collateralId,
         uint80 _amount
     ) external {
         _assertCallerIsGrappa();
 
+        // todo: check if vault has expired short positions
+
         // update the account structure in storage
-        // todo: check collateral
-        marginAccounts[_subAccount].removeCollateral(_amount);
+        marginAccounts[_subAccount].removeCollateral(_amount, _collateralId);
+
+        IERC20(_collateral).safeTransfer(_recipient, _amount);
     }
 
     /**
@@ -326,13 +362,6 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
     }
 
     /**
-     * @notice return if the calling address is eligible to access an subAccount address
-     */
-    function _assertCallerHasAccess(address _subAccount) internal view {
-        if (!_isPrimaryAccountFor(msg.sender, _subAccount)) revert NoAccess();
-    }
-
-    /**
      * @dev return whether if an account is healthy.
      * @param account account structure in memory
      * @return isHealthy true if account is in good condition, false if it's liquidatable
@@ -382,8 +411,9 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
     function _getPayoutFromAccount(Account memory _account) internal view returns (uint80 reservedPayout) {
         (uint256 callPayout, uint256 putPayout) = (0, 0);
         if (_account.shortCallAmount > 0)
-            (, callPayout) = grappa.getPayout(_account.shortCallId, _account.shortCallAmount);
-        if (_account.shortPutAmount > 0) (, putPayout) = grappa.getPayout(_account.shortPutId, _account.shortPutAmount);
+            (, , callPayout) = grappa.getPayout(_account.shortCallId, _account.shortCallAmount);
+        if (_account.shortPutAmount > 0)
+            (, , putPayout) = grappa.getPayout(_account.shortPutId, _account.shortPutAmount);
         return uint80(callPayout + putPayout);
     }
 

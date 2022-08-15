@@ -24,7 +24,7 @@ import "../../../config/errors.sol";
 //         usdc.mint(alice, 1000_000 * 1e6);
 
 //         vm.startPrank(alice);
-//         usdc.approve(address(grappa), type(uint256).max);
+//         usdc.approve(address(marginEngine), type(uint256).max);
 
 //         expiry = block.timestamp + 7 days;
 
@@ -71,7 +71,7 @@ import "../../../config/errors.sol";
 
 //     function testAnyoneCanTopUpAliceAccount() public {
 //         usdc.mint(address(this), initialCollateral);
-//         usdc.approve(address(grappa), type(uint256).max);
+//         usdc.approve(address(marginEngine), type(uint256).max);
 
 //         uint256 usdcBalanceBefore = usdc.balanceOf(address(this));
 //         uint256 systemUsdcBalanceBefore = usdc.balanceOf(address(grappa));

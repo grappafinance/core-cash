@@ -10,12 +10,16 @@ interface IMarginEngine {
 
     function increaseCollateral(
         address _subAccount,
-        uint80 _amount,
-        uint8 _collateralId
+        address _from,
+        address _collateral,
+        uint8 _collateralId,
+        uint80 _amount
     ) external;
 
     function decreaseCollateral(
         address _subAccount,
+        address _to,
+        address _collateral,
         uint8 collateralId,
         uint80 amount
     ) external;
@@ -38,9 +42,16 @@ interface IMarginEngine {
 
     function liquidate(
         address _subAccount,
+        address _liquidator,
         uint256[] memory tokensToBurn,
         uint256[] memory amountsToBurn
-    ) external returns (uint8 collateralId, uint80 amountToPay);
+    ) external returns (address collateral, uint80 amountToPay);
+
+    function payCashValue(
+        address _asset,
+        address _recipient,
+        uint256 _amount
+    ) external;
 
     function settleAtExpiry(address _subAccount) external;
 }

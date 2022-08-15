@@ -42,7 +42,12 @@ library AdvancedMarginLib {
 
     ///@dev Reduce the collateral in the account
     ///@param account Account memory that will be updated in-place
-    function removeCollateral(Account storage account, uint80 amount) internal {
+    function removeCollateral(
+        Account storage account,
+        uint80 amount,
+        uint8 collateralId
+    ) internal {
+        if (account.collateralId != collateralId) revert MA_WrongCollateralId();
         account.collateralAmount -= amount;
         if (account.collateralAmount == 0) {
             account.collateralId = 0;

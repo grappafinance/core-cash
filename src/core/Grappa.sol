@@ -101,21 +101,25 @@ contract Grappa is ReentrancyGuard, Registry {
         _assertAccountHealth(engine, _subAccount);
     }
 
+    /**
+     * @notice burn option token to liquidate an account
+     *
+     */
     function liquidate(
         address _engine,
         address _subAccount,
         uint256[] memory _tokensToBurn,
         uint256[] memory _amountsToBurn
-    ) external {
-        (uint8 collateralId, uint80 amountToPay) = IMarginEngine(_engine).liquidate(
+    ) external returns (address collateral, uint80 amountToPay) {
+        // liquidate account structure and payout
+        (collateral, amountToPay) = IMarginEngine(_engine).liquidate(
             _subAccount,
+            msg.sender,
             _tokensToBurn,
             _amountsToBurn
         );
+        // burn the tokens
         optionToken.batchBurn(msg.sender, _tokensToBurn, _amountsToBurn);
-
-        address asset = assets[collateralId].addr;
-        if (asset != address(0)) IERC20(asset).safeTransfer(msg.sender, amountToPay);
     }
 
     /**
@@ -130,11 +134,11 @@ contract Grappa is ReentrancyGuard, Registry {
         uint256 _tokenId,
         uint256 _amount
     ) external {
-        (address collateral, uint256 payout) = getPayout(_tokenId, uint64(_amount));
+        (address engine, address collateral, uint256 payout) = getPayout(_tokenId, uint64(_amount));
 
         optionToken.burn(_account, _tokenId, _amount);
 
-        IERC20(collateral).safeTransfer(_account, payout);
+        IMarginEngine(engine).payCashValue(collateral, _account, payout);
     }
 
     /**
@@ -143,83 +147,69 @@ contract Grappa is ReentrancyGuard, Registry {
      * @param _account who to settle for
      * @param _tokenIds array of tokenIds to burn
      * @param _amounts   array of amounts to burn
-     * @param _collateral collateral asset to settle in.
+     
      */
     function batchSettleOptions(
         address _account,
         uint256[] memory _tokenIds,
-        uint256[] memory _amounts,
-        address _collateral
+        uint256[] memory _amounts
     ) external {
         if (_tokenIds.length != _amounts.length) revert ST_WrongArgumentLength();
 
-        uint256 totalPayout;
+        if (_tokenIds.length == 0) return;
+
+        optionToken.batchBurn(_account, _tokenIds, _amounts);
+
+        address lastCollateral;
+        address lastEngine;
+
+        uint256 lastTotalPayout;
 
         for (uint256 i; i < _tokenIds.length; ) {
-            (address collateral, uint256 payout) = getPayout(_tokenIds[i], uint64(_amounts[i]));
+            (address engine, address collateral, uint256 payout) = getPayout(_tokenIds[i], uint64(_amounts[i]));
 
-            if (collateral != _collateral) revert ST_WrongSettlementCollateral();
-            totalPayout += payout;
+            // if engine or collateral changes, payout and clear temporary parameters
+            if (lastEngine == address(0)) {
+                lastEngine = engine;
+                lastCollateral = collateral;
+            } else if (engine != lastEngine || lastCollateral != collateral) {
+                IMarginEngine(lastEngine).payCashValue(lastCollateral, _account, lastTotalPayout);
+                lastTotalPayout = 0;
+                lastEngine = engine;
+                lastCollateral = collateral;
+            }
 
+            lastTotalPayout += payout;
             unchecked {
                 i++;
             }
         }
 
-        optionToken.batchBurn(_account, _tokenIds, _amounts);
-
-        IERC20(_collateral).safeTransfer(_account, totalPayout);
+        IMarginEngine(lastEngine).payCashValue(lastCollateral, _account, lastTotalPayout);
     }
 
     /**
-     * @dev calculate the payout for an expired option token
+     * @dev calculate the payout for one option token
      *
      * @param _tokenId  token id of option token
      * @param _amount   amount to settle
      *
+     * @return engine engine to settle
      * @return collateral asset to settle in
      * @return payout amount paid
      **/
-    function getPayout(uint256 _tokenId, uint64 _amount) public view returns (address, uint256 payout) {
-        (TokenType tokenType, uint32 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) = TokenIdUtil
-            .parseTokenId(_tokenId);
-
-        if (block.timestamp < expiry) revert MA_NotExpired();
-
-        (, address underlying, address strike, address collateral, uint8 collateralDecimals) = getDetailFromProductId(
-            productId
-        );
-
-        // cash value denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
-        uint256 cashValue;
-
-        // expiry price of underlying, denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
-        uint256 expiryPrice = oracle.getPriceAtExpiry(underlying, strike, expiry);
-
-        if (tokenType == TokenType.CALL) {
-            cashValue = MoneynessLib.getCallCashValue(expiryPrice, longStrike);
-        } else if (tokenType == TokenType.CALL_SPREAD) {
-            cashValue = MoneynessLib.getCashValueDebitCallSpread(expiryPrice, longStrike, shortStrike);
-        } else if (tokenType == TokenType.PUT) {
-            cashValue = MoneynessLib.getPutCashValue(expiryPrice, longStrike);
-        } else if (tokenType == TokenType.PUT_SPREAD) {
-            cashValue = MoneynessLib.getCashValueDebitPutSpread(expiryPrice, longStrike, shortStrike);
-        }
-
-        // payout is denominated in strike asset (usually USD), with {UNIT_DECIMALS} decimals
-        payout = cashValue.mulDivDown(_amount, UNIT);
-
-        // the following logic convert payout amount if collateral is not strike:
-        if (collateral == underlying) {
-            // collateral is underlying. payout should be devided by underlying price
-            payout = payout.mulDivDown(UNIT, expiryPrice);
-        } else if (collateral != strike) {
-            // collateral is not underlying nor strike
-            uint256 collateralPrice = oracle.getPriceAtExpiry(collateral, strike, expiry);
-            payout = payout.mulDivDown(UNIT, collateralPrice);
-        }
-
-        return (collateral, payout.convertDecimals(UNIT_DECIMALS, collateralDecimals));
+    function getPayout(uint256 _tokenId, uint64 _amount)
+        public
+        view
+        returns (
+            address engine,
+            address collateral,
+            uint256 payout
+        )
+    {
+        uint256 payoutPerOption;
+        (engine, collateral, payoutPerOption) = _getPayoutPerToken(_tokenId);
+        payout = payoutPerOption.mulDivDown(_amount, UNIT);
     }
 
     /**
@@ -253,14 +243,12 @@ contract Grappa is ReentrancyGuard, Registry {
         // decode parameters
         (address from, uint80 amount, uint8 collateralId) = abi.decode(_data, (address, uint80, uint8));
 
-        // update the account structure in memory
-        IMarginEngine(_engine).increaseCollateral(_subAccount, amount, collateralId);
+        if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert MA_InvalidFromAddress();
 
         address collateral = address(assets[collateralId].addr);
 
-        // collateral must come from caller or the primary account for this subAccount
-        if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert MA_InvalidFromAddress();
-        IERC20(collateral).safeTransferFrom(from, address(this), amount);
+        // update the data structure in corresponding engine, and pull asset to the engine
+        IMarginEngine(_engine).increaseCollateral(_subAccount, from, collateral, collateralId, amount);
     }
 
     /**
@@ -272,18 +260,13 @@ contract Grappa is ReentrancyGuard, Registry {
         address _subAccount,
         bytes memory _data
     ) internal {
-        // todo: check expiry if has short
-
         // decode parameters
         (uint80 amount, address recipient, uint8 collateralId) = abi.decode(_data, (uint80, address, uint8));
 
-        // update the account structure in memory
-        IMarginEngine(_engine).decreaseCollateral(_subAccount, collateralId, amount);
-
         address collateral = address(assets[collateralId].addr);
 
-        // external calls
-        IERC20(collateral).safeTransfer(recipient, amount);
+        // update the data structure in corresponding engine
+        IMarginEngine(_engine).decreaseCollateral(_subAccount, recipient, collateral, collateralId, amount);
     }
 
     /**
@@ -300,7 +283,7 @@ contract Grappa is ReentrancyGuard, Registry {
 
         _assertIsAuthorizedEngineForToken(_engine, tokenId);
 
-        // update the account structure in memory
+        // update the data structure in corresponding engine
         IMarginEngine(_engine).increaseDebt(_subAccount, tokenId, amount);
 
         // mint the real option token
@@ -321,7 +304,7 @@ contract Grappa is ReentrancyGuard, Registry {
         // decode parameters
         (uint256 tokenId, address from, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
 
-        // update the account structure in memory
+        // update the data structure in corresponding engine
         IMarginEngine(_engine).decreaseDebt(_subAccount, tokenId, amount);
 
         // token being burn must come from caller or the primary account for this subAccount
@@ -342,7 +325,7 @@ contract Grappa is ReentrancyGuard, Registry {
         // decode parameters
         (uint256 tokenId, address from) = abi.decode(_data, (uint256, address));
 
-        // update the account structure in memory
+        // update the data structure in corresponding engine
         uint64 amount = IMarginEngine(_engine).merge(_subAccount, tokenId);
 
         // token being burn must come from caller or the primary account for this subAccount
@@ -363,6 +346,7 @@ contract Grappa is ReentrancyGuard, Registry {
         // decode parameters
         (TokenType tokenType, address recipient) = abi.decode(_data, (TokenType, address));
 
+        // update the data structure in corresponding engine
         (uint256 tokenId, uint64 amount) = IMarginEngine(_engine).split(_subAccount, tokenType);
 
         _assertIsAuthorizedEngineForToken(_engine, tokenId);
@@ -382,6 +366,65 @@ contract Grappa is ReentrancyGuard, Registry {
     /** ========================================================= **
                             Internal Functions
      ** ========================================================= **/
+
+    /**
+     * @dev calculate the payout for one option token
+     *
+     * @param _tokenId  token id of option token
+     *
+     * @return collateral asset to settle in
+     * @return payoutPerOption amount paid
+     **/
+    function _getPayoutPerToken(uint256 _tokenId)
+        internal
+        view
+        returns (
+            address,
+            address,
+            uint256 payoutPerOption
+        )
+    {
+        (TokenType tokenType, uint32 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) = TokenIdUtil
+            .parseTokenId(_tokenId);
+
+        if (block.timestamp < expiry) revert MA_NotExpired();
+
+        (
+            address engine,
+            address underlying,
+            address strike,
+            address collateral,
+            uint8 collateralDecimals
+        ) = getDetailFromProductId(productId);
+
+        // expiry price of underlying, denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
+        uint256 expiryPrice = oracle.getPriceAtExpiry(underlying, strike, expiry);
+
+        // cash value denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
+        uint256 cashValue;
+        if (tokenType == TokenType.CALL) {
+            cashValue = MoneynessLib.getCallCashValue(expiryPrice, longStrike);
+        } else if (tokenType == TokenType.CALL_SPREAD) {
+            cashValue = MoneynessLib.getCashValueDebitCallSpread(expiryPrice, longStrike, shortStrike);
+        } else if (tokenType == TokenType.PUT) {
+            cashValue = MoneynessLib.getPutCashValue(expiryPrice, longStrike);
+        } else if (tokenType == TokenType.PUT_SPREAD) {
+            cashValue = MoneynessLib.getCashValueDebitPutSpread(expiryPrice, longStrike, shortStrike);
+        }
+
+        // the following logic convert cash value (amount worth) if collateral is not strike:
+        if (collateral == underlying) {
+            // collateral is underlying. payout should be devided by underlying price
+            cashValue = cashValue.mulDivDown(UNIT, expiryPrice);
+        } else if (collateral != strike) {
+            // collateral is not underlying nor strike
+            uint256 collateralPrice = oracle.getPriceAtExpiry(collateral, strike, expiry);
+            cashValue = cashValue.mulDivDown(UNIT, collateralPrice);
+        }
+        payoutPerOption = cashValue.convertDecimals(UNIT_DECIMALS, collateralDecimals);
+
+        return (engine, collateral, payoutPerOption);
+    }
 
     /**
      * @notice return if {_primary} address is the primary account for {_subAccount}
