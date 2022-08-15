@@ -18,7 +18,7 @@ contract TestSplitCallSpread is AdvancedFixture {
 
     function setUp() public {
         usdc.mint(address(this), 1000_000 * 1e6);
-        usdc.approve(address(grappa), type(uint256).max);
+        usdc.approve(address(marginEngine), type(uint256).max);
 
         expiry = block.timestamp + 7 days;
 
@@ -81,7 +81,7 @@ contract TestSplitPutSpread is AdvancedFixture {
 
     function setUp() public {
         usdc.mint(address(this), 1000_000 * 1e6);
-        usdc.approve(address(grappa), type(uint256).max);
+        usdc.approve(address(marginEngine), type(uint256).max);
 
         expiry = block.timestamp + 7 days;
 

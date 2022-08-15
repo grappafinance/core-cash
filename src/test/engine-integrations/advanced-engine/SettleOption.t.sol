@@ -21,7 +21,7 @@ contract TestSettleCall is AdvancedFixture {
 
     function setUp() public {
         usdc.mint(address(this), 1000_000 * 1e6);
-        usdc.approve(address(grappa), type(uint256).max);
+        usdc.approve(address(marginEngine), type(uint256).max);
 
         expiry = block.timestamp + 14 days;
 
@@ -145,7 +145,7 @@ contract TestSettleCoveredCall is AdvancedFixture {
 
     function setUp() public {
         weth.mint(address(this), 1000 * 1e18);
-        weth.approve(address(grappa), type(uint256).max);
+        weth.approve(address(marginEngine), type(uint256).max);
 
         expiry = block.timestamp + 14 days;
 
@@ -271,7 +271,7 @@ contract TestSettlePut is AdvancedFixture {
 
     function setUp() public {
         usdc.mint(address(this), 1000_000 * 1e6);
-        usdc.approve(address(grappa), type(uint256).max);
+        usdc.approve(address(marginEngine), type(uint256).max);
 
         expiry = block.timestamp + 14 days;
 
@@ -385,7 +385,7 @@ contract TestSettleETHCollateralizedPut is AdvancedFixture {
 
     function setUp() public {
         weth.mint(address(this), 1000 * 1e18);
-        weth.approve(address(grappa), type(uint256).max);
+        weth.approve(address(marginEngine), type(uint256).max);
 
         expiry = block.timestamp + 14 days;
 
@@ -497,7 +497,7 @@ contract TestSettleCallSpread is AdvancedFixture {
 
     function setUp() public {
         usdc.mint(address(this), 1000_000 * 1e6);
-        usdc.approve(address(grappa), type(uint256).max);
+        usdc.approve(address(marginEngine), type(uint256).max);
 
         expiry = block.timestamp + 14 days;
 
@@ -671,7 +671,7 @@ contract TestSettlePutSpread is AdvancedFixture {
 
     function setUp() public {
         usdc.mint(address(this), 1000_000 * 1e6);
-        usdc.approve(address(grappa), type(uint256).max);
+        usdc.approve(address(marginEngine), type(uint256).max);
 
         expiry = block.timestamp + 14 days;
 
@@ -837,10 +837,10 @@ contract TestSettleBTCCollateralizedCall is AdvancedFixture {
         wbtcId = grappa.registerAsset(address(wbtc));
 
         usdc.mint(address(this), 1000_000 * 1e6);
-        usdc.approve(address(grappa), type(uint256).max);
+        usdc.approve(address(marginEngine), type(uint256).max);
 
         wbtc.mint(address(this), 1000 * 1e8);
-        wbtc.approve(address(grappa), type(uint256).max);
+        wbtc.approve(address(marginEngine), type(uint256).max);
 
         expiry = block.timestamp + 14 days;
 
@@ -931,7 +931,7 @@ contract TestBatchSettleCall is AdvancedFixture {
 
     function setUp() public {
         usdc.mint(address(this), 1000_000 * 1e6);
-        usdc.approve(address(grappa), type(uint256).max);
+        usdc.approve(address(marginEngine), type(uint256).max);
 
         expiry = block.timestamp + 14 days;
 
@@ -1052,7 +1052,7 @@ contract TestSettlementEdgeCase is AdvancedFixture {
 
     function setUp() public {
         usdc.mint(address(this), 1000_000 * 1e6);
-        usdc.approve(address(grappa), type(uint256).max);
+        usdc.approve(address(marginEngine), type(uint256).max);
 
         expiry = block.timestamp + 14 days;
 

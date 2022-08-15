@@ -16,10 +16,10 @@ contract TestMintVanillaOption is AdvancedFixture {
 
     function setUp() public {
         usdc.mint(address(this), 1000_000 * 1e6);
-        usdc.approve(address(grappa), type(uint256).max);
+        usdc.approve(address(marginEngine), type(uint256).max);
 
         weth.mint(address(this), 100 * 1e18);
-        weth.approve(address(grappa), type(uint256).max);
+        weth.approve(address(marginEngine), type(uint256).max);
 
         expiry = block.timestamp + 14 days;
 
@@ -72,7 +72,7 @@ contract TestMintVanillaOption is AdvancedFixture {
         // create wbtc and mint to user
         MockERC20 wbtc = new MockERC20("WBTC", "WBTC", 8);
         wbtc.mint(address(this), 1 * 1e8);
-        wbtc.approve(address(grappa), type(uint256).max);
+        wbtc.approve(address(marginEngine), type(uint256).max);
         // register wbtc in the system
         uint8 wbtcId = grappa.registerAsset(address(wbtc));
         uint32 productIdBtcCollat = grappa.getProductId(engineId, address(weth), address(usdc), address(wbtc));

@@ -25,7 +25,7 @@ contract TestLiquidateCall is AdvancedFixture {
         usdc.mint(alice, 1000_000 * 1e6);
 
         vm.startPrank(alice);
-        usdc.approve(address(grappa), type(uint256).max);
+        usdc.approve(address(marginEngine), type(uint256).max);
 
         expiry = block.timestamp + 7 days;
 
@@ -156,7 +156,7 @@ contract TestLiquidatePut is AdvancedFixture {
         usdc.mint(alice, 1000_000 * 1e6);
 
         vm.startPrank(alice);
-        usdc.approve(address(grappa), type(uint256).max);
+        usdc.approve(address(marginEngine), type(uint256).max);
 
         expiry = block.timestamp + 7 days;
 
@@ -279,7 +279,7 @@ contract TestLiquidateCallAndPut is AdvancedFixture {
         usdc.mint(alice, 1000_000 * 1e6);
 
         vm.startPrank(alice);
-        usdc.approve(address(grappa), type(uint256).max);
+        usdc.approve(address(marginEngine), type(uint256).max);
 
         expiry = block.timestamp + 7 days;
 

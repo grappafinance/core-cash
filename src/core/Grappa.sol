@@ -110,19 +110,9 @@ contract Grappa is ReentrancyGuard, Registry {
         uint256[] memory _tokensToBurn,
         uint256[] memory _amountsToBurn
     ) external {
-        (uint8 collateralId, uint80 amountToPay) = IMarginEngine(_engine).liquidate(
-            _subAccount,
-            _tokensToBurn,
-            _amountsToBurn
-        );
+        // liquidate account structure and payout
+        IMarginEngine(_engine).liquidate(_subAccount, msg.sender, _tokensToBurn, _amountsToBurn);
         optionToken.batchBurn(msg.sender, _tokensToBurn, _amountsToBurn);
-
-        address asset = assets[collateralId].addr;
-
-        // if the engine is already insolvent, this will revert and avoid payout
-        totalCollateral[_engine][asset] -= amountToPay;
-
-        if (asset != address(0)) IERC20(asset).safeTransfer(msg.sender, amountToPay);
     }
 
     /**
@@ -142,9 +132,9 @@ contract Grappa is ReentrancyGuard, Registry {
         optionToken.burn(_account, _tokenId, _amount);
 
         // if the engine is already insolvent, this will revert and avoid payout
-        totalCollateral[engine][collateral] -= payout;
+        // totalCollateral[engine][collateral] -= payout;
 
-        IERC20(collateral).safeTransfer(_account, payout);
+        IMarginEngine(engine).payCashValue(collateral, _account, payout);
     }
 
     /**
@@ -170,7 +160,6 @@ contract Grappa is ReentrancyGuard, Registry {
         address lastEngine;
 
         uint256 lastTotalPayout;
-        uint256 lastTotalAmountToDecrease;
 
         for (uint256 i; i < _tokenIds.length; ) {
             (address engine, address collateral, uint256 payout) = getPayout(_tokenIds[i], uint64(_amounts[i]));
@@ -178,21 +167,12 @@ contract Grappa is ReentrancyGuard, Registry {
             // if engine changed, update totalCollateral and clear temp parameters
             if (lastEngine == address(0)) {
                 lastEngine = engine;
+                lastCollateral = collateral;
             } else if (engine != lastEngine || lastCollateral != collateral) {
-                totalCollateral[lastEngine][lastCollateral] -= lastTotalAmountToDecrease;
-                lastEngine = engine;
-                lastTotalAmountToDecrease = 0;
-            }
-
-            lastTotalAmountToDecrease += payout;
-
-            // if collateral asset changed, payout and update total payout
-            if (lastCollateral == address(0)) {
-                lastCollateral = collateral;
-            } else if (collateral != lastCollateral) {
-                IERC20(collateral).safeTransfer(_account, lastTotalPayout);
-                lastCollateral = collateral;
+                IMarginEngine(lastEngine).payCashValue(lastCollateral, _account, lastTotalPayout);
                 lastTotalPayout = 0;
+                lastEngine = engine;
+                lastCollateral = collateral;
             }
 
             lastTotalPayout += payout;
@@ -201,9 +181,7 @@ contract Grappa is ReentrancyGuard, Registry {
             }
         }
 
-        totalCollateral[lastEngine][lastCollateral] -= lastTotalAmountToDecrease;
-
-        IERC20(lastCollateral).safeTransfer(_account, lastTotalPayout);
+        IMarginEngine(lastEngine).payCashValue(lastCollateral, _account, lastTotalPayout);
     }
 
     /**
@@ -261,16 +239,12 @@ contract Grappa is ReentrancyGuard, Registry {
         // decode parameters
         (address from, uint80 amount, uint8 collateralId) = abi.decode(_data, (address, uint80, uint8));
 
-        // update the data structure in corresponding engine
-        IMarginEngine(_engine).increaseCollateral(_subAccount, amount, collateralId);
+        if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert MA_InvalidFromAddress();
 
         address collateral = address(assets[collateralId].addr);
 
-        totalCollateral[_engine][collateral] += amount;
-
-        // collateral must come from caller or the primary account for this subAccount
-        if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert MA_InvalidFromAddress();
-        IERC20(collateral).safeTransferFrom(from, address(this), amount);
+        // update the data structure in corresponding engine, and pull asset to the engine
+        IMarginEngine(_engine).increaseCollateral(_subAccount, from, collateral, collateralId, amount);
     }
 
     /**
@@ -285,15 +259,10 @@ contract Grappa is ReentrancyGuard, Registry {
         // decode parameters
         (uint80 amount, address recipient, uint8 collateralId) = abi.decode(_data, (uint80, address, uint8));
 
-        // update the data structure in corresponding engine
-        IMarginEngine(_engine).decreaseCollateral(_subAccount, collateralId, amount);
-
         address collateral = address(assets[collateralId].addr);
 
-        totalCollateral[_engine][collateral] += amount;
-
-        // external calls
-        IERC20(collateral).safeTransfer(recipient, amount);
+        // update the data structure in corresponding engine
+        IMarginEngine(_engine).decreaseCollateral(_subAccount, recipient, collateral, collateralId, amount);
     }
 
     /**

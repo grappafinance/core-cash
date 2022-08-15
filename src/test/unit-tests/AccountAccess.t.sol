@@ -14,7 +14,7 @@ contract AdvancedMarginEngineAccessTest is AdvancedFixture {
 
     function setUp() public {
         usdc.mint(address(this), 1000_000 * 1e6);
-        usdc.approve(address(grappa), type(uint256).max);
+        usdc.approve(address(marginEngine), type(uint256).max);
 
         subAccountIdToModify = address(uint160(alice) ^ uint160(1));
     }

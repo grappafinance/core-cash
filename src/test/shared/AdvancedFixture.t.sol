@@ -113,8 +113,8 @@ abstract contract AdvancedFixture is Test, ActionHelper, Utilities {
 
         usdc.mint(anon, lotOfCollateral);
         weth.mint(anon, lotOfCollateral);
-        usdc.approve(address(grappa), type(uint256).max);
-        weth.approve(address(grappa), type(uint256).max);
+        usdc.approve(address(marginEngine), type(uint256).max);
+        weth.approve(address(marginEngine), type(uint256).max);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
 

@@ -2,7 +2,6 @@
 pragma solidity =0.8.13;
 
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
-
 import {MoneynessLib} from "../../../libraries/MoneynessLib.sol";
 
 import "../../../config/constants.sol";

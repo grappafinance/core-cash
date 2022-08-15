@@ -12,6 +12,7 @@ import {IOracle} from "../../interfaces/IOracle.sol";
 import {IGrappa} from "../../interfaces/IGrappa.sol";
 import {IOptionToken} from "../../interfaces/IOptionToken.sol";
 import {IMarginEngine} from "../../interfaces/IMarginEngine.sol";
+import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 
 // librarise
 import {TokenIdUtil} from "../../libraries/TokenIdUtil.sol";
@@ -102,9 +103,13 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
      */
     function liquidate(
         address _subAccount,
+        address _liquidator,
         uint256[] memory tokensToBurn,
         uint256[] memory amountsToBurn
     ) external returns (uint8 collateralId, uint80 collateralToPay) {
+
+        _assertCallerIsGrappa();
+
         uint256 repayCallAmount = amountsToBurn[0];
         uint256 repayPutAmount = amountsToBurn[1];
 
@@ -159,6 +164,19 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
 
         // write new accout to storage
         marginAccounts[_subAccount] = account;
+
+        address asset = grappa.assets(collateralId);
+
+        IERC20(asset).safeTransfer(_liquidator, collateralToPay);
+    }
+
+    /**
+     * @notice payout to user on settlement
+     */
+    function payCashValue(address _asset, address _recipient, uint256 _amount) external {
+        _assertCallerIsGrappa();
+
+        IERC20(_asset).safeTransfer(_recipient, _amount);
     }
 
     /**
@@ -219,13 +237,17 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
      */
     function increaseCollateral(
         address _subAccount,
-        uint80 _amount,
-        uint8 _collateralId
+        address _from,
+        address _collateral,
+        uint8 _collateralId,
+        uint80 _amount
     ) external {
         _assertCallerIsGrappa();
 
         // update the account structure in storage
         marginAccounts[_subAccount].addCollateral(_amount, _collateralId);
+
+        IERC20(_collateral).safeTransferFrom(_from, address(this), _amount);
     }
 
     /**
@@ -233,6 +255,8 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
      */
     function decreaseCollateral(
         address _subAccount,
+        address _recipient,
+        address _collateral,
         uint8 _collateralId,
         uint80 _amount
     ) external {
@@ -242,6 +266,8 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
 
         // update the account structure in storage
         marginAccounts[_subAccount].removeCollateral(_amount, _collateralId);
+
+        IERC20(_collateral).safeTransfer(_recipient, _amount);
     }
 
     /**

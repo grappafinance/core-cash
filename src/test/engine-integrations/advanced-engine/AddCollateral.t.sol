@@ -12,10 +12,10 @@ import "../../../config/errors.sol";
 contract TestAddCollateral is AdvancedFixture {
     function setUp() public {
         usdc.mint(address(this), 10000 * 1e6);
-        usdc.approve(address(grappa), type(uint256).max);
+        usdc.approve(address(marginEngine), type(uint256).max);
 
         weth.mint(address(this), 100 * 1e18);
-        weth.approve(address(grappa), type(uint256).max);
+        weth.approve(address(marginEngine), type(uint256).max);
     }
 
     function testAddCollateralChangeStorage() public {
@@ -31,7 +31,7 @@ contract TestAddCollateral is AdvancedFixture {
     }
 
     function testAddCollateralMoveBalance() public {
-        uint256 grappaBalanceBefoe = usdc.balanceOf(address(grappa));
+        uint256 engineBalanceBefoe = usdc.balanceOf(address(marginEngine));
         uint256 myBalanceBefoe = usdc.balanceOf(address(this));
         uint256 depositAmount = 1000 * 1e6;
 
@@ -39,15 +39,15 @@ contract TestAddCollateral is AdvancedFixture {
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         grappa.execute(engineId, address(this), actions);
 
-        uint256 grappaBalanceAfter = usdc.balanceOf(address(grappa));
+        uint256 engineBalanceAfter = usdc.balanceOf(address(marginEngine));
         uint256 myBalanceAfter = usdc.balanceOf(address(this));
 
         assertEq(myBalanceBefoe - myBalanceAfter, depositAmount);
-        assertEq(grappaBalanceAfter - grappaBalanceBefoe, depositAmount);
+        assertEq(engineBalanceAfter - engineBalanceBefoe, depositAmount);
     }
 
     function testAddCollateralLoopMoveBalances() public {
-        uint256 grappaBalanceBefoe = usdc.balanceOf(address(grappa));
+        uint256 engineBalanceBefoe = usdc.balanceOf(address(marginEngine));
         uint256 myBalanceBefoe = usdc.balanceOf(address(this));
         uint256 depositAmount = 500 * 1e6;
 
@@ -56,11 +56,11 @@ contract TestAddCollateral is AdvancedFixture {
         actions[1] = createAddCollateralAction(usdcId, address(this), depositAmount);
         grappa.execute(engineId, address(this), actions);
 
-        uint256 grappaBalanceAfter = usdc.balanceOf(address(grappa));
+        uint256 engineBalanceAfter = usdc.balanceOf(address(marginEngine));
         uint256 myBalanceAfter = usdc.balanceOf(address(this));
 
         assertEq(myBalanceBefoe - myBalanceAfter, depositAmount * 2);
-        assertEq(grappaBalanceAfter - grappaBalanceBefoe, depositAmount * 2);
+        assertEq(engineBalanceAfter - engineBalanceBefoe, depositAmount * 2);
     }
 
     function testCannotAddDifferentProductToSameAccount() public {
