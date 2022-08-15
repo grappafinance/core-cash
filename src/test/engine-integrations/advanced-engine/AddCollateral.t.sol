@@ -71,7 +71,7 @@ contract TestAddCollateral is AdvancedFixture {
         actions[0] = createAddCollateralAction(usdcId, address(this), usdcAmount);
         actions[1] = createAddCollateralAction(wethId, address(this), wethAmount);
 
-        vm.expectRevert(MA_WrongCollateralId.selector);
+        vm.expectRevert(AM_WrongCollateralId.selector);
         grappa.execute(engineId, address(this), actions);
     }
 

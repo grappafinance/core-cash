@@ -144,7 +144,7 @@ contract TestMintVanillaOption is AdvancedFixture {
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
 
-        vm.expectRevert(MA_InvalidToken.selector);
+        vm.expectRevert(AM_InvalidToken.selector);
         grappa.execute(engineId, address(this), actions);
     }
 
@@ -315,7 +315,7 @@ contract TestMintVanillaOption is AdvancedFixture {
         action2[0] = createMintAction(secondCallId, address(this), amount);
 
         // expect call to revert
-        vm.expectRevert(MA_InvalidToken.selector);
+        vm.expectRevert(AM_InvalidToken.selector);
         grappa.execute(engineId, address(this), action2);
     }
 }

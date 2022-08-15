@@ -35,7 +35,7 @@ library AdvancedMarginLib {
         if (account.collateralId == 0) {
             account.collateralId = collateralId;
         } else {
-            if (account.collateralId != collateralId) revert MA_WrongCollateralId();
+            if (account.collateralId != collateralId) revert AM_WrongCollateralId();
         }
         account.collateralAmount += amount;
     }
@@ -47,7 +47,7 @@ library AdvancedMarginLib {
         uint80 amount,
         uint8 collateralId
     ) internal {
-        if (account.collateralId != collateralId) revert MA_WrongCollateralId();
+        if (account.collateralId != collateralId) revert AM_WrongCollateralId();
         account.collateralAmount -= amount;
         if (account.collateralAmount == 0) {
             account.collateralId = 0;
@@ -69,25 +69,25 @@ library AdvancedMarginLib {
         if (account.collateralId == 0) {
             account.collateralId = collateralId;
         } else {
-            if (account.collateralId != collateralId) revert MA_InvalidToken();
+            if (account.collateralId != collateralId) revert AM_InvalidToken();
         }
 
         // check that vanilla options doesnt have a shortStrike argument
         if ((optionType == TokenType.CALL || optionType == TokenType.PUT) && (tokenShortStrike != 0))
-            revert MA_InvalidToken();
+            revert AM_InvalidToken();
         // check that you cannot mint a "credit spread" token
-        if (optionType == TokenType.CALL_SPREAD && (tokenShortStrike < tokenLongStrike)) revert MA_InvalidToken();
-        if (optionType == TokenType.PUT_SPREAD && (tokenShortStrike > tokenLongStrike)) revert MA_InvalidToken();
+        if (optionType == TokenType.CALL_SPREAD && (tokenShortStrike < tokenLongStrike)) revert AM_InvalidToken();
+        if (optionType == TokenType.PUT_SPREAD && (tokenShortStrike > tokenLongStrike)) revert AM_InvalidToken();
 
         if (optionType == TokenType.CALL || optionType == TokenType.CALL_SPREAD) {
             // minting a short
             if (account.shortCallId == 0) account.shortCallId = tokenId;
-            else if (account.shortCallId != tokenId) revert MA_InvalidToken();
+            else if (account.shortCallId != tokenId) revert AM_InvalidToken();
             account.shortCallAmount += amount;
         } else {
             // minting a put or put spread
             if (account.shortPutId == 0) account.shortPutId = tokenId;
-            else if (account.shortPutId != tokenId) revert MA_InvalidToken();
+            else if (account.shortPutId != tokenId) revert AM_InvalidToken();
             account.shortPutAmount += amount;
         }
     }
@@ -102,12 +102,12 @@ library AdvancedMarginLib {
         TokenType optionType = tokenId.parseTokenType();
         if (optionType == TokenType.CALL || optionType == TokenType.CALL_SPREAD) {
             // burnning a call or call spread
-            if (account.shortCallId != tokenId) revert MA_InvalidToken();
+            if (account.shortCallId != tokenId) revert AM_InvalidToken();
             account.shortCallAmount -= amount;
             if (account.shortCallAmount == 0) account.shortCallId = 0;
         } else {
             // burning a put or put spread
-            if (account.shortPutId != tokenId) revert MA_InvalidToken();
+            if (account.shortPutId != tokenId) revert AM_InvalidToken();
             account.shortPutAmount -= amount;
             if (account.shortPutAmount == 0) account.shortPutId = 0;
         }
@@ -123,7 +123,7 @@ library AdvancedMarginLib {
         (TokenType optionType, uint32 productId, uint64 expiry, uint64 mergingStrike, ) = tokenId.parseTokenId();
 
         // token being added can only be call or put
-        if (optionType != TokenType.CALL && optionType != TokenType.PUT) revert MA_CannotMergeSpread();
+        if (optionType != TokenType.CALL && optionType != TokenType.PUT) revert AM_CannotMergeSpread();
 
         // check the existing short position
         bool isMergingCall = optionType == TokenType.CALL;
@@ -133,12 +133,12 @@ library AdvancedMarginLib {
         (TokenType shortType, uint32 productId_, uint64 expiry_, uint64 tokenLongStrike_, ) = shortId.parseTokenId();
 
         // if exisiting type is SPREAD, will revert
-        if (shortType != optionType) revert MA_MergeTypeMismatch();
+        if (shortType != optionType) revert AM_MergeTypeMismatch();
 
-        if (productId_ != productId) revert MA_MergeProductMismatch();
-        if (expiry_ != expiry) revert MA_MergeExpiryMismatch();
+        if (productId_ != productId) revert AM_MergeProductMismatch();
+        if (expiry_ != expiry) revert AM_MergeExpiryMismatch();
 
-        if (tokenLongStrike_ == mergingStrike) revert MA_MergeWithSameStrike();
+        if (tokenLongStrike_ == mergingStrike) revert AM_MergeWithSameStrike();
 
         if (optionType == TokenType.CALL) {
             // adding the "strike of the adding token" to the "short strike" field of the existing "option token"
@@ -151,17 +151,20 @@ library AdvancedMarginLib {
 
     ///@dev split an accunt's spread position into short + 1 token
     ///@param account Account memory that will be updated in-place
-    ///@param optionType to split call spread or put spread. Must be either
-    function split(Account storage account, TokenType optionType)
+    ///@param spreadId id of spread to be parsed
+    function split(Account storage account, uint256 spreadId)
         internal
         returns (uint256 mintingTokenId, uint64 amount)
     {
         // token being added can only be call or put
-        if (optionType != TokenType.CALL_SPREAD && optionType != TokenType.PUT_SPREAD) revert MA_CanOnlySplitSpread();
+        (TokenType optionType, , , , ) = spreadId.parseTokenId();
+        if (optionType != TokenType.CALL_SPREAD && optionType != TokenType.PUT_SPREAD) revert AM_CanOnlySplitSpread();
 
         // check the existing short position
         bool isSplitingCallSpread = optionType == TokenType.CALL_SPREAD;
-        uint256 spreadId = isSplitingCallSpread ? account.shortCallId : account.shortPutId;
+        uint256 spreadIdInAccount = isSplitingCallSpread ? account.shortCallId : account.shortPutId;
+        if (spreadId != spreadIdInAccount) revert AM_InvalidToken();
+
         amount = isSplitingCallSpread ? account.shortCallAmount : account.shortPutAmount;
 
         // we expected the existing "shortId" to be a spread
@@ -169,7 +172,7 @@ library AdvancedMarginLib {
             .parseTokenId();
 
         // if exisiting type is not spread, it will revert
-        if (spreadType != optionType) revert MA_MergeTypeMismatch();
+        if (spreadType != optionType) revert AM_MergeTypeMismatch();
 
         if (isSplitingCallSpread) {
             // remove the "short strike" field of the shorted "option token"
@@ -224,12 +227,12 @@ library AdvancedMarginLib {
         TokenType optionType = tokenId.parseTokenType();
         if (optionType == TokenType.CALL || optionType == TokenType.CALL_SPREAD) {
             // burnning a call or call spread
-            if (account.shortCallId != tokenId) revert MA_InvalidToken();
+            if (account.shortCallId != tokenId) revert AM_InvalidToken();
             account.shortCallAmount -= amount;
             if (account.shortCallAmount == 0) account.shortCallId = 0;
         } else {
             // burning a put or put spread
-            if (account.shortPutId != tokenId) revert MA_InvalidToken();
+            if (account.shortPutId != tokenId) revert AM_InvalidToken();
             account.shortPutAmount -= amount;
             if (account.shortPutAmount == 0) account.shortPutId = 0;
         }

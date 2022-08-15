@@ -344,10 +344,10 @@ contract Grappa is ReentrancyGuard, Registry {
         bytes memory _data
     ) internal {
         // decode parameters
-        (TokenType tokenType, address recipient) = abi.decode(_data, (TokenType, address));
+        (uint256 spreadId, address recipient) = abi.decode(_data, (uint256, address));
 
         // update the data structure in corresponding engine
-        (uint256 tokenId, uint64 amount) = IMarginEngine(_engine).split(_subAccount, tokenType);
+        (uint256 tokenId, uint64 amount) = IMarginEngine(_engine).split(_subAccount, spreadId);
 
         _assertIsAuthorizedEngineForToken(_engine, tokenId);
 

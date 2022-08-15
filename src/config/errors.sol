@@ -15,7 +15,7 @@ error Not_Authorized_Engine();
 error MA_WrongIdToLiquidate();
 
 /// @dev collateral id is wrong: the id doesn't match the existing sub account
-error MA_WrongCollateralId();
+error AM_WrongCollateralId();
 
 /// @dev no config set for this asset.
 error MA_NoConfig();
@@ -24,7 +24,7 @@ error MA_NoConfig();
 error MA_InvalidFromAddress();
 
 /// @dev invalid tokenId specify to mint / burn actions
-error MA_InvalidToken();
+error AM_InvalidToken();
 
 /// @dev cannot liquidate or takeover position: account is healthy
 error MA_AccountIsHealthy();
@@ -39,22 +39,22 @@ error MA_AccountIsNotEmpty();
 error MA_WrongRepayAmounts();
 
 /// @dev can only merge subaccount with put or call.
-error MA_CannotMergeSpread();
+error AM_CannotMergeSpread();
 
 /// @dev existing short position in account doesn't match the incoming token
-error MA_MergeTypeMismatch();
+error AM_MergeTypeMismatch();
 
 /// @dev existing product type in account doesn't match the incoming token
-error MA_MergeProductMismatch();
+error AM_MergeProductMismatch();
 
 /// @dev existing expiry in account doesn't match the incoming token
-error MA_MergeExpiryMismatch();
+error AM_MergeExpiryMismatch();
 
 /// @dev cannot merge type with the same strike. (should use burn instead)
-error MA_MergeWithSameStrike();
+error AM_MergeWithSameStrike();
 
 /// @dev only spread position can be split
-error MA_CanOnlySplitSpread();
+error AM_CanOnlySplitSpread();
 
 /// @dev cannot settle an unexpired option
 error MA_NotExpired();
