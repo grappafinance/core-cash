@@ -100,6 +100,10 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
      *          burning the token the account is shorted (repay the debt),
      *          and get the collateral from the margin account.
      * @dev     expected to be called by liquidators
+     * @param _subAccount account to liquidate
+     * @param _liquidator the account calling liquidate on Grappa
+     * @param tokensToBurn arrays of token burned
+     * @param amountsToBurn amounts burned
      */
     function liquidate(
         address _subAccount,
@@ -168,7 +172,11 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
     }
 
     /**
-     * @notice payout to user on settlement
+     * @notice payout to user on settlement.
+     * @dev this can only triggered by Grappa, would only be called on settlement.
+     * @param _asset asset to transfer
+     * @param _recipient receiber
+     * @param _amount amount
      */
     function payCashValue(
         address _asset,
