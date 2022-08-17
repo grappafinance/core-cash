@@ -54,7 +54,7 @@ jobs:
         continue-on-error: true
         id: slither
         with:
-          target: "src/core/engines"
+          target: "src/core/engines/advanced-margin"
           slither-config: "slither.config.json"
           solc-version: 0.8.13
           sarif: results.sarif
