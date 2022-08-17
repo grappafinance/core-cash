@@ -57,7 +57,7 @@ contract TestBurnCall is AdvancedFixture {
         actions[0] = createBurnAction(tokenId, address(this), amount);
 
         // action
-        vm.expectRevert(MA_InvalidToken.selector);
+        vm.expectRevert(AM_InvalidToken.selector);
         grappa.execute(engineId, subAccount, actions); // execute on subaccount
     }
 
@@ -83,7 +83,7 @@ contract TestBurnCall is AdvancedFixture {
         actions[0] = createBurnAction(tokenId, alice, amount);
 
         // expect error
-        vm.expectRevert(MA_InvalidFromAddress.selector);
+        vm.expectRevert(GP_InvalidFromAddress.selector);
         grappa.execute(engineId, address(this), actions);
     }
 

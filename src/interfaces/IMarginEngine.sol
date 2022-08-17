@@ -20,31 +20,31 @@ interface IMarginEngine {
         address _subAccount,
         address _to,
         address _collateral,
-        uint8 collateralId,
-        uint80 amount
+        uint8 _collateralId,
+        uint80 _amount
     ) external;
 
     function increaseDebt(
         address _subAccount,
-        uint256 optionId,
-        uint64 amount
+        uint256 _optionId,
+        uint64 _amount
     ) external;
 
     function decreaseDebt(
         address _subAccount,
-        uint256 optionId,
-        uint64 amount
+        uint256 _optionId,
+        uint64 _amount
     ) external;
 
     function merge(address _subAccount, uint256 _optionId) external returns (uint64 burnAmount);
 
-    function split(address _subAccount, TokenType tokenType) external returns (uint256 optionId, uint64 mintAmount);
+    function split(address _subAccount, uint256 _spreadId) external returns (uint256 optionId, uint64 mintAmount);
 
     function liquidate(
         address _subAccount,
         address _liquidator,
-        uint256[] memory tokensToBurn,
-        uint256[] memory amountsToBurn
+        uint256[] memory _tokensToBurn,
+        uint256[] memory _amountsToBurn
     ) external returns (address collateral, uint80 amountToPay);
 
     function payCashValue(

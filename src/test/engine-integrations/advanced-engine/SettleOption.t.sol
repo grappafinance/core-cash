@@ -969,7 +969,7 @@ contract TestBatchSettleCall is AdvancedFixture {
         uint256[] memory badIds = new uint256[](1);
         badIds[0] = getTokenId(TokenType.CALL, productId, expiry, strikes[0], 0);
 
-        vm.expectRevert(ST_WrongArgumentLength.selector);
+        vm.expectRevert(GP_WrongArgumentLength.selector);
         grappa.batchSettleOptions(alice, badIds, amounts);
     }
 
@@ -1173,7 +1173,7 @@ contract TestSettlementEdgeCase is AdvancedFixture {
     function testLongCannotSettleBeforeExpiry() public {
         vm.warp(expiry - 1);
 
-        vm.expectRevert(MA_NotExpired.selector);
+        vm.expectRevert(GP_NotExpired.selector);
         grappa.settleOption(alice, tokenId, amount);
     }
 
@@ -1183,7 +1183,7 @@ contract TestSettlementEdgeCase is AdvancedFixture {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSettleAction();
 
-        vm.expectRevert(MA_NotExpired.selector);
+        vm.expectRevert(GP_NotExpired.selector);
         grappa.execute(engineId, address(this), actions);
     }
 

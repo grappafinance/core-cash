@@ -71,14 +71,14 @@ contract TestAddCollateral is AdvancedFixture {
         actions[0] = createAddCollateralAction(usdcId, address(this), usdcAmount);
         actions[1] = createAddCollateralAction(wethId, address(this), wethAmount);
 
-        vm.expectRevert(MA_WrongCollateralId.selector);
+        vm.expectRevert(AM_WrongCollateralId.selector);
         grappa.execute(engineId, address(this), actions);
     }
 
     function testCannotAddCollatFromOthers() public {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createAddCollateralAction(usdcId, address(alice), 100);
-        vm.expectRevert(MA_InvalidFromAddress.selector);
+        vm.expectRevert(GP_InvalidFromAddress.selector);
         grappa.execute(engineId, address(this), actions);
     }
 }

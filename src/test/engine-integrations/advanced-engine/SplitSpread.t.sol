@@ -15,6 +15,7 @@ contract TestSplitCallSpread is AdvancedFixture {
     uint256 public strikePriceHigh = 4100 * UNIT;
     uint256 public depositAmount = 100 * UNIT;
     uint256 public amount = 1 * UNIT;
+    uint256 public spreadId;
 
     function setUp() public {
         usdc.mint(address(this), 1000_000 * 1e6);
@@ -25,18 +26,18 @@ contract TestSplitCallSpread is AdvancedFixture {
         oracle.setSpotPrice(address(weth), 3000 * UNIT);
 
         // mint a 4000-4100 debit spread
-        uint256 tokenId = getTokenId(TokenType.CALL_SPREAD, productId, expiry, strikePriceLow, strikePriceHigh);
+        spreadId = getTokenId(TokenType.CALL_SPREAD, productId, expiry, strikePriceLow, strikePriceHigh);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
-        actions[1] = createMintAction(tokenId, address(this), amount);
+        actions[1] = createMintAction(spreadId, address(this), amount);
         grappa.execute(engineId, address(this), actions);
     }
 
     function testSplitCallSpread() public {
         // split
         ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createSplitAction(TokenType.CALL_SPREAD, address(this));
+        actions[0] = createSplitAction(spreadId, address(this));
         actions[1] = createAddCollateralAction(usdcId, address(this), depositAmount * 5); // will need to add collateral
         grappa.execute(engineId, address(this), actions);
 
@@ -52,7 +53,7 @@ contract TestSplitCallSpread is AdvancedFixture {
     function testSplitCallSpreadCreateNewCallToken() public {
         // split
         ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createSplitAction(TokenType.CALL_SPREAD, address(this));
+        actions[0] = createSplitAction(spreadId, address(this));
         actions[1] = createAddCollateralAction(usdcId, address(this), depositAmount * 5); // will need to add collateral
         grappa.execute(engineId, address(this), actions);
 
@@ -65,9 +66,9 @@ contract TestSplitCallSpread is AdvancedFixture {
     function testCannotSplitCallSpreadWithoutAddingCollateral() public {
         // only split
         ActionArgs[] memory actions = new ActionArgs[](1);
-        actions[0] = createSplitAction(TokenType.CALL_SPREAD, address(this));
+        actions[0] = createSplitAction(spreadId, address(this));
 
-        vm.expectRevert(MA_AccountUnderwater.selector);
+        vm.expectRevert(GP_AccountUnderwater.selector);
         grappa.execute(engineId, address(this), actions);
     }
 }
@@ -78,6 +79,7 @@ contract TestSplitPutSpread is AdvancedFixture {
     uint256 public strikePriceLow = 1900 * UNIT;
     uint256 public depositAmount = 100 * UNIT;
     uint256 public amount = 1 * UNIT;
+    uint256 public spreadId;
 
     function setUp() public {
         usdc.mint(address(this), 1000_000 * 1e6);
@@ -88,18 +90,18 @@ contract TestSplitPutSpread is AdvancedFixture {
         oracle.setSpotPrice(address(weth), 3000 * UNIT);
 
         // mint a 2000-1900 debit spread
-        uint256 tokenId = getTokenId(TokenType.PUT_SPREAD, productId, expiry, strikePriceHigh, strikePriceLow);
+        spreadId = getTokenId(TokenType.PUT_SPREAD, productId, expiry, strikePriceHigh, strikePriceLow);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
-        actions[1] = createMintAction(tokenId, address(this), amount);
+        actions[1] = createMintAction(spreadId, address(this), amount);
         grappa.execute(engineId, address(this), actions);
     }
 
     function testSplitPutSpread() public {
         // split
         ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createSplitAction(TokenType.PUT_SPREAD, address(this));
+        actions[0] = createSplitAction(spreadId, address(this));
         actions[1] = createAddCollateralAction(usdcId, address(this), depositAmount * 5); // will need to add collateral
         grappa.execute(engineId, address(this), actions);
 
@@ -115,7 +117,7 @@ contract TestSplitPutSpread is AdvancedFixture {
     function testSplitCallSpreadCreateNewCallToken() public {
         // split
         ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createSplitAction(TokenType.PUT_SPREAD, address(this));
+        actions[0] = createSplitAction(spreadId, address(this));
         actions[1] = createAddCollateralAction(usdcId, address(this), depositAmount * 5); // will need to add collateral
         grappa.execute(engineId, address(this), actions);
 
@@ -128,9 +130,20 @@ contract TestSplitPutSpread is AdvancedFixture {
     function testCannotSplitCallSpreadWithoutAddingCollateral() public {
         // only split
         ActionArgs[] memory actions = new ActionArgs[](1);
-        actions[0] = createSplitAction(TokenType.PUT_SPREAD, address(this));
+        actions[0] = createSplitAction(spreadId, address(this));
 
-        vm.expectRevert(MA_AccountUnderwater.selector);
+        vm.expectRevert(GP_AccountUnderwater.selector);
+        grappa.execute(engineId, address(this), actions);
+    }
+
+    function testCannotSplitNonExistingSpreadId() public {
+        uint256 fakeLongStrike = strikePriceHigh - (50 * UNIT);
+        uint256 fakeSpreadId = getTokenId(TokenType.PUT_SPREAD, productId, expiry, fakeLongStrike, strikePriceLow);
+
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createSplitAction(fakeSpreadId, address(this));
+
+        vm.expectRevert(AM_InvalidToken.selector);
         grappa.execute(engineId, address(this), actions);
     }
 }

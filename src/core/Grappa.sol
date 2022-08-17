@@ -154,7 +154,7 @@ contract Grappa is ReentrancyGuard, Registry {
         uint256[] memory _tokenIds,
         uint256[] memory _amounts
     ) external {
-        if (_tokenIds.length != _amounts.length) revert ST_WrongArgumentLength();
+        if (_tokenIds.length != _amounts.length) revert GP_WrongArgumentLength();
 
         if (_tokenIds.length == 0) return;
 
@@ -243,7 +243,7 @@ contract Grappa is ReentrancyGuard, Registry {
         // decode parameters
         (address from, uint80 amount, uint8 collateralId) = abi.decode(_data, (address, uint80, uint8));
 
-        if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert MA_InvalidFromAddress();
+        if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert GP_InvalidFromAddress();
 
         address collateral = address(assets[collateralId].addr);
 
@@ -308,7 +308,7 @@ contract Grappa is ReentrancyGuard, Registry {
         IMarginEngine(_engine).decreaseDebt(_subAccount, tokenId, amount);
 
         // token being burn must come from caller or the primary account for this subAccount
-        if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert MA_InvalidFromAddress();
+        if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert GP_InvalidFromAddress();
         optionToken.burn(from, tokenId, amount);
     }
 
@@ -329,7 +329,7 @@ contract Grappa is ReentrancyGuard, Registry {
         uint64 amount = IMarginEngine(_engine).merge(_subAccount, tokenId);
 
         // token being burn must come from caller or the primary account for this subAccount
-        if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert MA_InvalidFromAddress();
+        if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert GP_InvalidFromAddress();
 
         optionToken.burn(from, tokenId, amount);
     }
@@ -344,10 +344,10 @@ contract Grappa is ReentrancyGuard, Registry {
         bytes memory _data
     ) internal {
         // decode parameters
-        (TokenType tokenType, address recipient) = abi.decode(_data, (TokenType, address));
+        (uint256 spreadId, address recipient) = abi.decode(_data, (uint256, address));
 
         // update the data structure in corresponding engine
-        (uint256 tokenId, uint64 amount) = IMarginEngine(_engine).split(_subAccount, tokenType);
+        (uint256 tokenId, uint64 amount) = IMarginEngine(_engine).split(_subAccount, spreadId);
 
         _assertIsAuthorizedEngineForToken(_engine, tokenId);
 
@@ -387,7 +387,7 @@ contract Grappa is ReentrancyGuard, Registry {
         (TokenType tokenType, uint32 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) = TokenIdUtil
             .parseTokenId(_tokenId);
 
-        if (block.timestamp < expiry) revert MA_NotExpired();
+        if (block.timestamp < expiry) revert GP_NotExpired();
 
         (
             address engine,
@@ -448,7 +448,7 @@ contract Grappa is ReentrancyGuard, Registry {
      * @dev make sure account is above water
      */
     function _assertAccountHealth(address _engine, address _subAccount) internal view {
-        if (!IMarginEngine(_engine).isAccountHealthy(_subAccount)) revert MA_AccountUnderwater();
+        if (!IMarginEngine(_engine).isAccountHealthy(_subAccount)) revert GP_AccountUnderwater();
     }
 
     /**
@@ -457,6 +457,6 @@ contract Grappa is ReentrancyGuard, Registry {
     function _assertIsAuthorizedEngineForToken(address _engine, uint256 _tokenId) internal view {
         (, uint32 productId, , , ) = TokenIdUtil.parseTokenId(_tokenId);
         address engine = getEngineFromProductId(productId);
-        if (_engine != engine) revert Not_Authorized_Engine();
+        if (_engine != engine) revert GP_Not_Authorized_Engine();
     }
 }

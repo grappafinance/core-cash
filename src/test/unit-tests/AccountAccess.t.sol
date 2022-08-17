@@ -65,7 +65,7 @@ contract AdvancedMarginEngineAccessTest is AdvancedFixture {
         _assertCanAccessAccount(address(this), true);
 
         vm.startPrank(alice);
-        vm.expectRevert(MA_AccountIsNotEmpty.selector);
+        vm.expectRevert(AM_AccountIsNotEmpty.selector);
         marginEngine.transferAccount(subAccountIdToModify, address(this));
         vm.stopPrank();
     }

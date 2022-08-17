@@ -85,7 +85,7 @@ contract TestMergeOption is AdvancedFixture {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createMergeAction(newTokenId, address(alice));
 
-        vm.expectRevert(MA_InvalidFromAddress.selector);
+        vm.expectRevert(GP_InvalidFromAddress.selector);
         grappa.execute(engineId, address(this), actions);
     }
 
