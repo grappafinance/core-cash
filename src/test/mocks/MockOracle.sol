@@ -6,7 +6,7 @@ import "../../interfaces/IOracle.sol";
 contract MockOracle is IOracle {
     mapping(address => uint256) public spotPrice;
     mapping(address => mapping(address => uint256)) public expiryPrice;
-    
+
     function getSpotPrice(
         address _underlying,
         address /*_strike*/
