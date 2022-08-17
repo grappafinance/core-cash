@@ -25,31 +25,30 @@ contract AdvancedMarginLibTest is Test {
     uint80 public amount = uint80(UNIT);
 
     function setUp() public {
-      nonEmptyAccount.addCollateral(amount, collateralId1);
+        nonEmptyAccount.addCollateral(amount, collateralId1);
     }
 
     function testAddCollateral() public {
-      emptyAccount.addCollateral(amount, collateralId1);
+        emptyAccount.addCollateral(amount, collateralId1);
 
-      assertEq(emptyAccount.collateralId, collateralId1);
-      assertEq(emptyAccount.collateralAmount, amount);
+        assertEq(emptyAccount.collateralId, collateralId1);
+        assertEq(emptyAccount.collateralAmount, amount);
     }
 
     function testCannotAddDiffCollateral() public {
-      vm.expectRevert(AM_WrongCollateralId.selector);
-      nonEmptyAccount.addCollateral(amount, collateralId2);
+        vm.expectRevert(AM_WrongCollateralId.selector);
+        nonEmptyAccount.addCollateral(amount, collateralId2);
     }
 
     function testRemoveHalfCollateral() public {
-      nonEmptyAccount.removeCollateral((amount / 2), collateralId1);
-      assertEq(nonEmptyAccount.collateralId, collateralId1);
-      assertEq(nonEmptyAccount.collateralAmount, (amount / 2));
+        nonEmptyAccount.removeCollateral((amount / 2), collateralId1);
+        assertEq(nonEmptyAccount.collateralId, collateralId1);
+        assertEq(nonEmptyAccount.collateralAmount, (amount / 2));
     }
 
     function testRemoveAllCollateral() public {
-      nonEmptyAccount.removeCollateral(amount, collateralId1);
-      assertEq(emptyAccount.collateralId, 0);
-      assertEq(emptyAccount.collateralAmount, 0);
+        nonEmptyAccount.removeCollateral(amount, collateralId1);
+        assertEq(emptyAccount.collateralId, 0);
+        assertEq(emptyAccount.collateralAmount, 0);
     }
-
 }
