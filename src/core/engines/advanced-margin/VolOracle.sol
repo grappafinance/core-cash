@@ -36,10 +36,10 @@ contract VolOracle is IVolOracle, Ownable {
     /**
      * @dev update aggregator asset for an asset
      */
-    function setAssetAggregator(address _asset, address _aggregator) external onlyOwner {
+    function setAssetAggregator(address _asset, address _clAggregator) external onlyOwner {
         if (aggregators[_asset] != address(0)) revert VO_AggregatorAlreadySet();
-        aggregators[_asset] = _aggregator;
+        aggregators[_asset] = _clAggregator;
 
-        emit AggregatorUpdated(_asset, _aggregator);
+        emit AggregatorUpdated(_asset, _clAggregator);
     }
 }
