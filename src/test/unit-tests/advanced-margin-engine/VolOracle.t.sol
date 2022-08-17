@@ -13,7 +13,6 @@ import "../../../config/errors.sol";
 import "../../../config/types.sol";
 
 contract VolOracleTest is Test {
-
     event AggregatorUpdated(address _asset, address _aggregator);
 
     VolOracle public volOracle;
