@@ -58,7 +58,11 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
     mapping(uint32 => ProductMarginParams) public productParams;
 
     // solhint-disable-next-line no-empty-blocks
-    constructor(address _grappa, address _oracle, address _volOracle) {
+    constructor(
+        address _grappa,
+        address _oracle,
+        address _volOracle
+    ) {
         grappa = IGrappa(_grappa);
         oracle = IOracle(_oracle);
         volOracle = IVolOracle(_volOracle);

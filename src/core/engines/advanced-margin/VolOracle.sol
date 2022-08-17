@@ -16,7 +16,6 @@ import "../../../config/errors.sol";
  *      the vol is calculated by reading Chainlink oracle
  */
 contract VolOracle is IVolOracle, Ownable {
-
     /// @dev asset address to chainlink aggregator
     mapping(address => address) public aggregators;
 

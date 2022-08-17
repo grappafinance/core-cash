@@ -19,6 +19,8 @@ import "../utils/Utilities.sol";
 
 import {ActionHelper} from "../../test/shared/ActionHelper.sol";
 
+// solhint-disable max-states-count
+
 abstract contract AdvancedFixture is Test, ActionHelper, Utilities {
     AdvancedMarginEngine internal marginEngine;
     Grappa internal grappa;
