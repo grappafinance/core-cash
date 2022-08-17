@@ -12,7 +12,6 @@ import "../config/errors.sol";
  * @title Oracle
  * @author @antoncoding
  * @dev return base / quote price, with 6 decimals
- * @dev return vol index, with 6 decimalss
  */
 contract Oracle is IOracle {
     struct ExpiryPrice {
@@ -94,12 +93,5 @@ contract Oracle is IOracle {
 
         //todo: safeCast to be extra safe
         expiryPrices[_base][_quote][_expiry] = ExpiryPrice(true, uint128(_price));
-    }
-
-    /**
-     * @dev get volatility index
-     */
-    function getVolIndex() external pure returns (uint256) {
-        return 1 * 1e6;
     }
 }

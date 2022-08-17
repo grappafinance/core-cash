@@ -16,6 +16,4 @@ interface IOracle {
         uint256 _expiry,
         uint256 _price
     ) external;
-
-    function getVolIndex() external view returns (uint256);
 }

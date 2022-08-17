@@ -8,7 +8,8 @@ import "openzeppelin/utils/Strings.sol";
 
 import "../src/core/OptionToken.sol";
 import "../src/core/Grappa.sol";
-import "../src/core/engines/AdvancedMarginEngine.sol";
+import "../src/core/engines/advanced-margin/AdvancedMarginEngine.sol";
+import "../src/core/engines/advanced-margin/VolOracle.sol";
 
 // todo: add fallback pricer too
 import "../src/core/Oracle.sol";
@@ -62,12 +63,15 @@ contract Deploy is Script, Utilities {
         optionToken = address(new OptionToken(address(grappa))); // nonce: 3
         console.log("optionToken", optionToken);
         
+        address volOracle = address(new VolOracle()); // nonce: 4
         
-        advancedMarginEngine = address(new AdvancedMarginEngine(address(grappa), address(oracle))); // nonce: 4
+        advancedMarginEngine = address(new AdvancedMarginEngine(address(grappa), address(oracle), volOracle)); // nonce: 5
         console.log("advancedMarginEngine", advancedMarginEngine);
 
         // setup
         uint8 engineId1 = Grappa(grappa).registerEngine(advancedMarginEngine);
         console.log("advancedMargin engine registered, id:", engineId1);
+
+        // todo: setup vol oracles
     }
 }

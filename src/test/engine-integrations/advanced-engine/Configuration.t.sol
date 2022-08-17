@@ -5,7 +5,7 @@ pragma solidity ^0.8.13;
 import {AdvancedFixture} from "../../shared/AdvancedFixture.t.sol";
 
 import "../../../config/constants.sol";
-import "../../../core/engines/AdvancedMarginEngine.sol";
+import "../../../core/engines/advanced-margin/AdvancedMarginEngine.sol";
 
 contract OwnerConfiguration is AdvancedFixture {
     event ProductConfigurationUpdated(

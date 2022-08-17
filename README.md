@@ -86,7 +86,7 @@ slither ./src/core/
 
 ## Basic Contract Architecture
 
-![architecture](https://i.imgur.com/4SaNx30.png)
+![architecture](https://i.imgur.com/ZuG0kdG.png)
 
 This is the basic diagram of how contracts interact with each other in the draft version. A more detail diagram will be added later.
 
@@ -94,14 +94,14 @@ The 4 pieces that compose Grappa are `Oracle`, `MarginEngine` `OptionToken` and 
 
 - `Grappa`: entry point for all the users. In charge of minting the correct product according to the connected **MarginEngine** rules
 - `OptionToken`: ERC1155 token that represent the right to claim for a non-negative payout at expiry. It can represent a long call position, a long put position, or debit spreads.
-- `Oracle`: contract to report spot price and expiry price of an asset. Also return an volatility index for min collateral calculation.
+- `Oracle`: contract to report spot price and expiry price of an asset.
 - `MarginEngine`: each margin engine can mint different option token by keeping the collateral and do internal accounting. There should be multiple margin engines working together to provide user flexibilities to choose from, based on user preference such as gas fee, capital efficiency, composability and risk.
 
 ## List of Margin Engines
 
 - `AdvancedMargin`: The first version of the margin system that complies with the `IMarginEngine` interface that stores account structure. The current **Advanced Margin** system is capable of dealing with:
   - single collateral type
-  - can mint 1 call (or call spread) +  1 put (or put spread) in a single account.
+  - can mint 1 call (or call spread) + 1 put (or put spread) in a single account.
 
 ### Work-in-Progress Margin systems / Ideas
 
