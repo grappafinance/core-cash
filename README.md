@@ -86,7 +86,7 @@ slither ./src/core/
 
 ## Basic Contract Architecture
 
-![architecture](https://i.imgur.com/4SaNx30.png)
+![architecture](https://i.imgur.com/ZuG0kdG.png)
 
 This is the basic diagram of how contracts interact with each other in the draft version. A more detail diagram will be added later.
 
@@ -101,7 +101,7 @@ The 4 pieces that compose Grappa are `Oracle`, `MarginEngine` `OptionToken` and 
 
 - `AdvancedMargin`: The first version of the margin system that complies with the `IMarginEngine` interface that stores account structure. The current **Advanced Margin** system is capable of dealing with:
   - single collateral type
-  - can mint 1 call (or call spread) +  1 put (or put spread) in a single account.
+  - can mint 1 call (or call spread) + 1 put (or put spread) in a single account.
 
 ### Work-in-Progress Margin systems / Ideas
 
