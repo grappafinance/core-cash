@@ -38,7 +38,7 @@ For auto linting and running gas snapshot, you will also need to setup npm envir
 npm i
 ```
 
-### Testing locally
+### Test locally
 
 ```shell
 forge test
@@ -46,8 +46,16 @@ forge test
 
 ### Run Coverage
 
-```
+```shell
 forge coverage
+```
+
+### Deployment
+
+Stimulate deployment
+
+```shell
+forge script script/Deploy.sol --private-key <your PK> --fork-url <RPC-endpoint> --ffi -vvv
 ```
 
 ## Linting
