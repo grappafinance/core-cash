@@ -48,8 +48,9 @@ library AdvancedMarginLib {
         uint8 collateralId
     ) internal {
         if (account.collateralId != collateralId) revert AM_WrongCollateralId();
-        account.collateralAmount -= amount;
-        if (account.collateralAmount == 0) {
+        uint80 newAmount = account.collateralAmount - amount;
+        account.collateralAmount = newAmount;
+        if (newAmount == 0) {
             account.collateralId = 0;
         }
     }
