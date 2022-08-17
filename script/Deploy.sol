@@ -7,6 +7,7 @@ import "openzeppelin/utils/Create2.sol";
 import "openzeppelin/utils/Strings.sol";
 
 import "../src/core/OptionToken.sol";
+import "../src/core/Grappa.sol";
 import "../src/core/engines/AdvancedMarginEngine.sol";
 
 // todo: add fallback pricer too
@@ -15,7 +16,6 @@ import "../src/core/pricers/ChainlinkPricer.sol";
 
 import "../src/test/utils/Utilities.sol";
 
-import { Create2Deployer } from "./utils.sol";
 
 contract Deploy is Script, Utilities {
     function run() external {
@@ -30,69 +30,44 @@ contract Deploy is Script, Utilities {
     function deploy()
         public
         returns (
-            address oracle,
+            Grappa grappa,
+            Oracle oracle,
             address optionToken,
-            address marginAccount
+            address advancedMarginEngine
         )
     {
         uint256 nonce = vm.getNonce(msg.sender);
         console.log("nonce", nonce);
 
         console.log("deploying with", msg.sender);
-        // deploy deployer to use create2
-        Create2Deployer deployer = new Create2Deployer(); // nonce
+        console.log("---- START ----");
 
-        // prepare bytecode for Oracle
-        address chainlinkPricerAddr = predictAddress(msg.sender, nonce + 4);
-        bytes memory oCreationCode = type(Oracle).creationCode;
-        bytes memory oBytecode = abi.encodePacked(oCreationCode, abi.encode(chainlinkPricerAddr, address(0)));
-        oracle = deployWithLeadingZeros(deployer, 0, oBytecode, 2); // nonce + 1
-        console.log("oracle", oracle);
-        console.log("primary pricer set (predicted): ", address(Oracle(oracle).primaryPricer()));
+        address oracleAddr = predictAddress(msg.sender, nonce + 1);
 
-        // prepare bytecode for AdvancedMarginEngine
+        address chainlinkPricer = address(new ChainlinkPricer(oracleAddr)); // nonce + 0
+        console.log("chainlinkPricer", address(chainlinkPricer));
+
+        oracle = new Oracle(chainlinkPricer, address(0)); // nonce + 1
+        console.log("oracle", address(oracle));
+        console.log("primary pricer set: ", address(Oracle(oracle).primaryPricer()));
+
+        // prepare bytecode for Grappa
         address optionTokenAddr = predictAddress(msg.sender, nonce + 3);
         console.log("optionToken address (prediction)", optionTokenAddr);
-        // deploy AdvancedMarginEngine
-        bytes memory maCreationCode = type(AdvancedMarginEngine).creationCode;
-        bytes memory maBytecode = abi.encodePacked(maCreationCode, abi.encode(optionTokenAddr, oracle));
-        marginAccount = deployWithLeadingZeros(deployer, 0, maBytecode, 2); // nonce + 2
-        console.log("marginAccount", marginAccount);
+        
+        grappa = new Grappa(optionTokenAddr, address(oracle)); // nonce + 2
+        console.log("grappa", address(grappa));
 
-        // deploy optionToken directly, just so the address is the same as predicted by `create` (optionTokenAddr) 
-        optionToken = address(new OptionToken(marginAccount)); // nonce: 3
+        // deploy following contracts directly, just so the address is the same as predicted by `create` (optionTokenAddr) 
+        optionToken = address(new OptionToken(address(grappa))); // nonce: 3
         console.log("optionToken", optionToken);
         
-        address chainlinkPricer = address(new ChainlinkPricer(oracle)); // nonce: 4
-        console.log("chainlinkPricer", chainlinkPricer);
-    }
-
-    function deployWithLeadingZeros(
-        Create2Deployer deployer, 
-        uint256 value, 
-        bytes memory creationCode,
-        uint8 zerosBytes
-    ) 
-        internal 
-        returns (address addr) 
-    {
-        // pass in codeHash so the js library doesn't have to do it in every iteration
-        bytes32 codeHash = keccak256(creationCode);
-
-        string[] memory inputs = new string[](5);
-        inputs[0] = "node";
-        inputs[1] = "script/findSalt.js";
         
-        inputs[2] = toString(address(deployer));
-        inputs[3] = toString(codeHash);
-        inputs[4] = Strings.toString(uint256(zerosBytes));
+        advancedMarginEngine = address(new AdvancedMarginEngine(address(grappa), address(oracle))); // nonce: 4
+        console.log("advancedMarginEngine", advancedMarginEngine);
 
-        bytes memory res = vm.ffi(inputs);
-        bytes32 salt = abi.decode(res, (bytes32));
-
-        console.log("deploying with salt:");
-        emit log_bytes32(salt);
-
-        addr = deployer.deploy(value, creationCode, salt);
+        // setup
+        uint8 engineId1 = Grappa(grappa).registerEngine(advancedMarginEngine);
+        console.log("advancedMargin engine registered, id:", engineId1);
     }
 }
