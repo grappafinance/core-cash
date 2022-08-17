@@ -77,3 +77,9 @@ error OC_OnlyPricerCanWrite();
 error OC_CannotReportForFuture();
 
 error OC_PriceNotReported();
+
+// Vol Oracle
+
+error VO_AggregatorAlreadySet();
+
+error VO_AggregatorNotSet();

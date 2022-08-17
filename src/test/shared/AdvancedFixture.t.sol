@@ -5,8 +5,10 @@ import "forge-std/Test.sol";
 
 import "../../test/mocks/MockERC20.sol";
 import "../../test/mocks/MockOracle.sol";
+import "../../test/mocks/MockChainlinkAggregator.sol";
 
 import "../../core/engines/advanced-margin/AdvancedMarginEngine.sol";
+import "../../core/engines/advanced-margin/VolOracle.sol";
 import "../../core/Grappa.sol";
 import "../../core/OptionToken.sol";
 
@@ -26,6 +28,10 @@ abstract contract AdvancedFixture is Test, ActionHelper, Utilities {
     MockERC20 internal weth;
 
     MockOracle internal oracle;
+
+    VolOracle public volOracle;
+    MockChainlinkAggregator public ethVolAggregator;
+    MockChainlinkAggregator public wbtcVolAggregator;
 
     address internal alice;
     address internal charlie;
@@ -56,7 +62,15 @@ abstract contract AdvancedFixture is Test, ActionHelper, Utilities {
 
         grappa = new Grappa(address(option), address(oracle)); // nonce: 5
 
-        marginEngine = new AdvancedMarginEngine(address(grappa), address(oracle)); // nonce 6
+        volOracle = new VolOracle();
+
+        marginEngine = new AdvancedMarginEngine(address(grappa), address(oracle), address(volOracle)); // nonce 6
+
+        // mock vol oracles
+        ethVolAggregator = new MockChainlinkAggregator(6);
+        // wbtcVolAggregator = new MockChainlinkAggregator(6);
+        volOracle.setAssetAggregator(address(weth), address(ethVolAggregator));
+        ethVolAggregator.setMockState(0, 1e6, block.timestamp);
 
         // register products
         usdcId = grappa.registerAsset(address(usdc));

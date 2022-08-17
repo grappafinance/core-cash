@@ -10,8 +10,8 @@ import {Ownable} from "openzeppelin/access/Ownable.sol";
 // interfaces
 import {IOracle} from "../../../interfaces/IOracle.sol";
 import {IGrappa} from "../../../interfaces/IGrappa.sol";
-import {IOptionToken} from "../../../interfaces/IOptionToken.sol";
 import {IMarginEngine} from "../../../interfaces/IMarginEngine.sol";
+import {IVolOracle} from "../../../interfaces/IVolOracle.sol";
 import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 
 // librarise
@@ -43,6 +43,7 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
 
     IGrappa public immutable grappa;
     IOracle public immutable oracle;
+    IVolOracle public immutable volOracle;
 
     /*///////////////////////////////////////////////////////////////
                                   Variables
@@ -57,9 +58,10 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
     mapping(uint32 => ProductMarginParams) public productParams;
 
     // solhint-disable-next-line no-empty-blocks
-    constructor(address _grappa, address _oracle) {
+    constructor(address _grappa, address _oracle, address _volOracle) {
         grappa = IGrappa(_grappa);
         oracle = IOracle(_oracle);
+        volOracle = IVolOracle(_volOracle);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -383,7 +385,11 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
         // read spot price of the product, denominated in {UNIT_DECIMALS}.
         // Pass in 0 if margin account has not debt
         uint256 spotPrice;
-        if (detail.productId != 0) spotPrice = oracle.getSpotPrice(product.underlying, product.strike);
+        uint256 vol;
+        if (detail.productId != 0) {
+            spotPrice = oracle.getSpotPrice(product.underlying, product.strike);
+            vol = volOracle.getImpliedVol(product.underlying);
+        }
 
         // need to pass in collateral/strike price. Pass in 0 if collateral is strike to save gas.
         uint256 collateralStrikePrice = 0;
@@ -396,7 +402,7 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
             product,
             spotPrice,
             collateralStrikePrice,
-            UNIT, // todo: update to get vol
+            vol,
             productParams[detail.productId]
         );
 

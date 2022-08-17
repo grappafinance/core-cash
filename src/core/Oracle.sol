@@ -12,7 +12,6 @@ import "../config/errors.sol";
  * @title Oracle
  * @author @antoncoding
  * @dev return base / quote price, with 6 decimals
- * @dev return vol index, with 6 decimalss
  */
 contract Oracle is IOracle {
     struct ExpiryPrice {
