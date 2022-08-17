@@ -25,13 +25,12 @@ contract VolOracle is IVolOracle, Ownable {
      * @dev return base implied vol for an asset
      */
     function getImpliedVol(address _asset) external view returns (uint256 vol) {
-        address aggregator = aggregators[_asset];
-        if (aggregator == address(0)) revert VO_AggregatorNotSet();
-        vol = 1e6;
+        address aggregatorAddr = aggregators[_asset];
+        if (aggregatorAddr == address(0)) revert VO_AggregatorNotSet();
 
-        (, int256 answer, , , ) = IAggregatorV3(address(aggregator)).latestRoundData();
+        (, int256 answer, , , ) = IAggregatorV3(aggregatorAddr).latestRoundData();
         // todo: convert decimals
-        return uint256(answer);
+        vol = uint256(answer);
     }
 
     /**
