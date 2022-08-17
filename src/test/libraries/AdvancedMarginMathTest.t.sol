@@ -3,7 +3,7 @@ pragma solidity =0.8.13;
 
 import {Test} from "forge-std/Test.sol";
 
-import {AdvancedMarginMath} from "../../core/engines/libraries/AdvancedMarginMath.sol";
+import {AdvancedMarginMath} from "../../core/engines/advanced-margin/AdvancedMarginMath.sol";
 import "../../config/constants.sol";
 import "../../config/errors.sol";
 import "../../config/types.sol";

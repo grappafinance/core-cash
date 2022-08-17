@@ -6,8 +6,7 @@ import "../../interfaces/IOracle.sol";
 contract MockOracle is IOracle {
     mapping(address => uint256) public spotPrice;
     mapping(address => mapping(address => uint256)) public expiryPrice;
-    uint256 public vol = 1e6;
-
+    
     function getSpotPrice(
         address _underlying,
         address /*_strike*/
@@ -23,10 +22,6 @@ contract MockOracle is IOracle {
         return expiryPrice[base][quote];
     }
 
-    function getVolIndex() external view returns (uint256) {
-        return vol;
-    }
-
     function setSpotPrice(address _asset, uint256 _mockedSpotPrice) external {
         spotPrice[_asset] = _mockedSpotPrice;
     }
@@ -37,10 +32,6 @@ contract MockOracle is IOracle {
         uint256 _mockedExpiryPrice
     ) external {
         expiryPrice[base][quote] = _mockedExpiryPrice;
-    }
-
-    function setVol(uint256 _vol) external {
-        vol = _vol;
     }
 
     function reportExpiryPrice(

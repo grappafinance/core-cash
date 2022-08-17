@@ -93,10 +93,4 @@ contract OracleTest is Test {
         vm.expectRevert(OC_PriceNotReported.selector);
         oracle.getPriceAtExpiry(weth, usdc, block.timestamp - 1);
     }
-
-    // todo: update this test
-    function testGetVolIndex() public {
-        uint256 vol = oracle.getVolIndex();
-        assertEq(vol, 1000_000);
-    }
 }

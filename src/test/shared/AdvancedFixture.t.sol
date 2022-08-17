@@ -6,7 +6,7 @@ import "forge-std/Test.sol";
 import "../../test/mocks/MockERC20.sol";
 import "../../test/mocks/MockOracle.sol";
 
-import "../../core/engines/AdvancedMarginEngine.sol";
+import "../../core/engines/advanced-margin/AdvancedMarginEngine.sol";
 import "../../core/Grappa.sol";
 import "../../core/OptionToken.sol";
 
