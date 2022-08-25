@@ -71,6 +71,12 @@ contract Grappa is ReentrancyGuard, Registry {
 
     event CollateralAdded(address engine, address subAccount, address collateral, uint256 amount);
 
+    event CollateralRemoved(address engine, address subAccount, address collateral, uint256 amount);
+
+    event OptionTokenMinted(address engine, address subAccount, uint256 tokenId, uint256 amount);
+
+    event OptionTokenBurned(address engine, address subAccount, uint256 tokenId, uint256 amount);
+
     /*///////////////////////////////////////////////////////////////
                         External Functions
     //////////////////////////////////////////////////////////////*/
@@ -282,6 +288,8 @@ contract Grappa is ReentrancyGuard, Registry {
 
         // update the data structure in corresponding engine
         IMarginEngine(_engine).decreaseCollateral(_subAccount, recipient, collateral, collateralId, amount);
+
+        emit CollateralRemoved(_engine, _subAccount, collateral, amount);
     }
 
     /**
@@ -303,6 +311,8 @@ contract Grappa is ReentrancyGuard, Registry {
 
         // mint the real option token
         optionToken.mint(recipient, tokenId, amount);
+
+        emit OptionTokenMinted(_engine, _subAccount, tokenId, amount);
     }
 
     /**
@@ -325,6 +335,8 @@ contract Grappa is ReentrancyGuard, Registry {
         // token being burn must come from caller or the primary account for this subAccount
         if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert GP_InvalidFromAddress();
         optionToken.burn(from, tokenId, amount);
+
+        emit OptionTokenBurned(_engine, _subAccount, tokenId, amount);
     }
 
     /**
