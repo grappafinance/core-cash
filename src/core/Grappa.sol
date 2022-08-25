@@ -65,6 +65,8 @@ contract Grappa is ReentrancyGuard, Registry {
         uint32 volMul
     );
 
+    event AccountAuthorizationUpdate(address account, address spender, bool isAuthorized);
+
     event OptionSettled(address account, uint256 tokenId, uint256 amountSettled, uint256 payout);
 
     event CollateralAdded(address engine, address subAccount, address collateral, uint256 amount);
@@ -230,6 +232,8 @@ contract Grappa is ReentrancyGuard, Registry {
      */
     function setAccountAccess(address _account, bool _isAuthorized) external {
         authorized[uint160(msg.sender) | 0xFF][_account] = _isAuthorized;
+
+        emit AccountAuthorizationUpdate(msg.sender, _account, _isAuthorized);
     }
 
     /** ========================================================= **
