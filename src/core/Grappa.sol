@@ -65,6 +65,10 @@ contract Grappa is ReentrancyGuard, Registry {
         uint32 volMul
     );
 
+    event OptionSettled(address account, uint256 tokenId, uint256 amountSettled, uint256 payout);
+
+    event CollateralAdded(address engine, address subAccount, address collateral, uint256 amount);
+
     /*///////////////////////////////////////////////////////////////
                         External Functions
     //////////////////////////////////////////////////////////////*/
@@ -139,6 +143,8 @@ contract Grappa is ReentrancyGuard, Registry {
         optionToken.burn(_account, _tokenId, _amount);
 
         IMarginEngine(engine).payCashValue(collateral, _account, payout);
+
+        emit OptionSettled(_account, _tokenId, _amount, payout);
     }
 
     /**
@@ -180,6 +186,9 @@ contract Grappa is ReentrancyGuard, Registry {
             }
 
             lastTotalPayout += payout;
+
+            emit OptionSettled(_account, _tokenIds[i], _amounts[i], payout);
+
             unchecked {
                 i++;
             }
@@ -249,6 +258,8 @@ contract Grappa is ReentrancyGuard, Registry {
 
         // update the data structure in corresponding engine, and pull asset to the engine
         IMarginEngine(_engine).increaseCollateral(_subAccount, from, collateral, collateralId, amount);
+
+        emit CollateralAdded(_engine, _subAccount, collateral, amount);
     }
 
     /**
@@ -434,7 +445,8 @@ contract Grappa is ReentrancyGuard, Registry {
     }
 
     /**
-     * @notice return if the calling address is eligible to access an subAccount address
+     * @notice revert if the msg.sender is not authorized to access an subAccount id
+     * @param _subAccount subaccount id
      */
     function _assertCallerHasAccess(address _subAccount) internal view {
         if (_isPrimaryAccountFor(msg.sender, _subAccount)) return;
@@ -446,13 +458,17 @@ contract Grappa is ReentrancyGuard, Registry {
 
     /**
      * @dev make sure account is above water
+     * @param _engine address of the margin engine
+     * @param _subAccount sub account id
      */
     function _assertAccountHealth(address _engine, address _subAccount) internal view {
         if (!IMarginEngine(_engine).isAccountHealthy(_subAccount)) revert GP_AccountUnderwater();
     }
 
     /**
-     * @dev make sure the calling engine can mint the token.
+     * @dev revert if the calling engine can not mint the token.
+     * @param _engine address of the engine
+     * @param _tokenId tokenid
      */
     function _assertIsAuthorizedEngineForToken(address _engine, uint256 _tokenId) internal view {
         (, uint32 productId, , , ) = TokenIdUtil.parseTokenId(_tokenId);
