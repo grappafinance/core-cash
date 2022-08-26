@@ -21,28 +21,37 @@ error GP_AccountUnderwater();
 /// @dev msg.sender is not authorized to ask margin account to pull token from {from} address
 error GP_InvalidFromAddress();
 
+/// @dev can only merge subaccount with put or call.
+error GP_CannotMergeSpread();
+
+/// @dev type of existing short token doesn't match the incoming token
+error GP_MergeTypeMismatch();
+
+/// @dev product type of existing short token doesn't match the incoming token
+error GP_MergeProductMismatch();
+
+/// @dev expiry of existing short token doesn't match the incoming token
+error GP_MergeExpiryMismatch();
+
+/// @dev cannot merge type with the same strike. (should use burn instead)
+error GP_MergeWithSameStrike();
+
+/// @dev only spread position can be split
+error GP_CanOnlySplitSpread();
+
 // Advanced Margin and AdvancedMarginLib Errors
 
 /// @dev collateral id is wrong: the id doesn't match the existing sub account
 error AM_WrongCollateralId();
 
-/// @dev can only merge subaccount with put or call.
-error AM_CannotMergeSpread();
+/// @dev trying to merge an long with a non-existant short position
+error AM_ShortDoesnotExist();
 
-/// @dev existing short position in account doesn't match the incoming token
-error AM_MergeTypeMismatch();
+/// @dev can only merge same amount of long and short
+error AM_MergeAmountMisMatch();
 
-/// @dev existing product type in account doesn't match the incoming token
-error AM_MergeProductMismatch();
-
-/// @dev existing expiry in account doesn't match the incoming token
-error AM_MergeExpiryMismatch();
-
-/// @dev cannot merge type with the same strike. (should use burn instead)
-error AM_MergeWithSameStrike();
-
-/// @dev only spread position can be split
-error AM_CanOnlySplitSpread();
+/// @dev can only split same amount of existing spread into short + long
+error AM_SplitAmountMisMatch();
 
 /// @dev invalid tokenId specify to mint / burn actions
 error AM_InvalidToken();

@@ -15,6 +15,8 @@ contract TestMergeOption is AdvancedFixture {
     uint256 public depositAmount = 1000 * UNIT;
     uint256 public amount = 1 * UNIT;
 
+    uint256 public existingTokenId;
+
     function setUp() public {
         usdc.mint(address(this), 1000_000 * 1e6);
         usdc.approve(address(marginEngine), type(uint256).max);
@@ -24,11 +26,11 @@ contract TestMergeOption is AdvancedFixture {
         oracle.setSpotPrice(address(weth), 3000 * UNIT);
 
         // mint a 3000 strike call first
-        uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
+        existingTokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
-        actions[1] = createMintAction(tokenId, address(this), amount);
+        actions[1] = createMintAction(existingTokenId, address(this), amount);
         grappa.execute(engineId, address(this), actions);
     }
 
@@ -41,7 +43,7 @@ contract TestMergeOption is AdvancedFixture {
 
         // merge
         ActionArgs[] memory actions = new ActionArgs[](1);
-        actions[0] = createMergeAction(newTokenId, address(this));
+        actions[0] = createMergeAction(newTokenId, existingTokenId, address(this), amount);
         grappa.execute(engineId, address(this), actions);
 
         // check result
@@ -51,6 +53,35 @@ contract TestMergeOption is AdvancedFixture {
         assertTrue(shortCallId != newTokenId);
         assertEq(longStrike, strikePrice);
         assertEq(shortStrike, higherStrike);
+    }
+
+    function testCannotMergeWithWrongAmount() public {
+        uint256 higherStrike = 5000 * UNIT;
+        uint256 newTokenId = getTokenId(TokenType.CALL, productId, expiry, higherStrike, 0);
+        mintOptionFor(address(this), newTokenId, productId, amount);
+
+        // merge
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        uint256 wrongAmount = 2 * UNIT;
+        actions[0] = createMergeAction(newTokenId, existingTokenId, address(this), wrongAmount);
+
+        vm.expectRevert(AM_MergeAmountMisMatch.selector);
+        grappa.execute(engineId, address(this), actions);
+    }
+
+    function testCannotMergeWithWrongShortId() public {
+        uint256 higherStrike = 5000 * UNIT;
+        uint256 newTokenId = getTokenId(TokenType.CALL, productId, expiry, higherStrike, 0);
+        mintOptionFor(address(this), newTokenId, productId, amount);
+
+        // merge
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        // shortId should be existingTokenId
+        uint256 wrongShort = getTokenId(TokenType.CALL, productId, expiry, 2000 * UNIT, 0);
+        actions[0] = createMergeAction(newTokenId, wrongShort, address(this), amount);
+
+        vm.expectRevert(AM_ShortDoesnotExist.selector);
+        grappa.execute(engineId, address(this), actions);
     }
 
     function testCanMergeForAccountOwnerFromAuthorizedAccount() public {
@@ -64,7 +95,7 @@ contract TestMergeOption is AdvancedFixture {
 
         // merge by alice
         ActionArgs[] memory actions = new ActionArgs[](1);
-        actions[0] = createMergeAction(newTokenId, address(this));
+        actions[0] = createMergeAction(newTokenId, existingTokenId, address(this), amount);
         vm.prank(alice);
         grappa.execute(engineId, address(this), actions);
 
@@ -83,7 +114,7 @@ contract TestMergeOption is AdvancedFixture {
 
         // merge
         ActionArgs[] memory actions = new ActionArgs[](1);
-        actions[0] = createMergeAction(newTokenId, address(alice));
+        actions[0] = createMergeAction(newTokenId, existingTokenId, address(alice), amount);
 
         vm.expectRevert(GP_InvalidFromAddress.selector);
         grappa.execute(engineId, address(this), actions);
@@ -98,7 +129,7 @@ contract TestMergeOption is AdvancedFixture {
         uint256 amountToRemove = depositAmount - (higherStrike - strikePrice);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createMergeAction(newTokenId, address(this));
+        actions[0] = createMergeAction(newTokenId, existingTokenId, address(this), amount);
         actions[1] = createRemoveCollateralAction(amountToRemove, usdcId, address(this));
         grappa.execute(engineId, address(this), actions);
 
@@ -112,7 +143,7 @@ contract TestMergeOption is AdvancedFixture {
         mintOptionFor(address(this), newTokenId, productId, amount);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createMergeAction(newTokenId, address(this));
+        actions[0] = createMergeAction(newTokenId, existingTokenId, address(this), amount);
         actions[1] = createRemoveCollateralAction(depositAmount, usdcId, address(this));
         grappa.execute(engineId, address(this), actions);
 

@@ -38,6 +38,8 @@ contract Grappa is ReentrancyGuard, Registry {
     using SafeERC20 for IERC20;
     using FixedPointMathLib for uint256;
     using NumberUtil for uint256;
+    using TokenIdUtil for uint256;
+    using ProductIdUtil for uint32;
 
     ///@dev maskedAccount => operator => authorized
     ///     every account can authorize any amount of addresses to modify all sub-accounts he controls.
@@ -64,6 +66,22 @@ contract Grappa is ReentrancyGuard, Registry {
         uint32 rLower,
         uint32 volMul
     );
+
+    event AccountAuthorizationUpdate(address account, address spender, bool isAuthorized);
+
+    event OptionSettled(address account, uint256 tokenId, uint256 amountSettled, uint256 payout);
+
+    event CollateralAdded(address engine, address subAccount, address collateral, uint256 amount);
+
+    event CollateralRemoved(address engine, address subAccount, address collateral, uint256 amount);
+
+    event OptionTokenMinted(address subAccount, uint256 tokenId, uint256 amount);
+
+    event OptionTokenBurned(address subAccount, uint256 tokenId, uint256 amount);
+
+    event OptionTokenMerged(address subAccount, uint256 longToken, uint256 shortToken, uint64 amount);
+
+    event OptionTokenSplit(address subAccount, uint256 spreadId, uint64 amount);
 
     /*///////////////////////////////////////////////////////////////
                         External Functions
@@ -139,6 +157,8 @@ contract Grappa is ReentrancyGuard, Registry {
         optionToken.burn(_account, _tokenId, _amount);
 
         IMarginEngine(engine).payCashValue(collateral, _account, payout);
+
+        emit OptionSettled(_account, _tokenId, _amount, payout);
     }
 
     /**
@@ -180,6 +200,9 @@ contract Grappa is ReentrancyGuard, Registry {
             }
 
             lastTotalPayout += payout;
+
+            emit OptionSettled(_account, _tokenIds[i], _amounts[i], payout);
+
             unchecked {
                 i++;
             }
@@ -221,6 +244,8 @@ contract Grappa is ReentrancyGuard, Registry {
      */
     function setAccountAccess(address _account, bool _isAuthorized) external {
         authorized[uint160(msg.sender) | 0xFF][_account] = _isAuthorized;
+
+        emit AccountAuthorizationUpdate(msg.sender, _account, _isAuthorized);
     }
 
     /** ========================================================= **
@@ -249,6 +274,8 @@ contract Grappa is ReentrancyGuard, Registry {
 
         // update the data structure in corresponding engine, and pull asset to the engine
         IMarginEngine(_engine).increaseCollateral(_subAccount, from, collateral, collateralId, amount);
+
+        emit CollateralAdded(_engine, _subAccount, collateral, amount);
     }
 
     /**
@@ -267,6 +294,8 @@ contract Grappa is ReentrancyGuard, Registry {
 
         // update the data structure in corresponding engine
         IMarginEngine(_engine).decreaseCollateral(_subAccount, recipient, collateral, collateralId, amount);
+
+        emit CollateralRemoved(_engine, _subAccount, collateral, amount);
     }
 
     /**
@@ -288,6 +317,8 @@ contract Grappa is ReentrancyGuard, Registry {
 
         // mint the real option token
         optionToken.mint(recipient, tokenId, amount);
+
+        emit OptionTokenMinted(_subAccount, tokenId, amount);
     }
 
     /**
@@ -310,6 +341,8 @@ contract Grappa is ReentrancyGuard, Registry {
         // token being burn must come from caller or the primary account for this subAccount
         if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert GP_InvalidFromAddress();
         optionToken.burn(from, tokenId, amount);
+
+        emit OptionTokenBurned(_subAccount, tokenId, amount);
     }
 
     /**
@@ -323,15 +356,22 @@ contract Grappa is ReentrancyGuard, Registry {
         bytes memory _data
     ) internal {
         // decode parameters
-        (uint256 tokenId, address from) = abi.decode(_data, (uint256, address));
+        (uint256 longTokenId, uint256 shortTokenId, address from, uint64 amount) = abi.decode(
+            _data,
+            (uint256, uint256, address, uint64)
+        );
+
+        _verifyMergeTokenIds(longTokenId, shortTokenId);
 
         // update the data structure in corresponding engine
-        uint64 amount = IMarginEngine(_engine).merge(_subAccount, tokenId);
+        IMarginEngine(_engine).merge(_subAccount, shortTokenId, longTokenId, amount);
 
         // token being burn must come from caller or the primary account for this subAccount
         if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert GP_InvalidFromAddress();
 
-        optionToken.burn(from, tokenId, amount);
+        optionToken.burn(from, longTokenId, amount);
+
+        emit OptionTokenMerged(_subAccount, longTokenId, shortTokenId, amount);
     }
 
     /**
@@ -344,14 +384,18 @@ contract Grappa is ReentrancyGuard, Registry {
         bytes memory _data
     ) internal {
         // decode parameters
-        (uint256 spreadId, address recipient) = abi.decode(_data, (uint256, address));
+        (uint256 spreadId, uint64 amount, address recipient) = abi.decode(_data, (uint256, uint64, address));
+
+        uint256 tokenId = _verifySpreadIdAndGetLong(spreadId);
 
         // update the data structure in corresponding engine
-        (uint256 tokenId, uint64 amount) = IMarginEngine(_engine).split(_subAccount, spreadId);
+        IMarginEngine(_engine).split(_subAccount, spreadId, amount);
 
         _assertIsAuthorizedEngineForToken(_engine, tokenId);
 
         optionToken.mint(recipient, tokenId, amount);
+
+        emit OptionTokenSplit(_subAccount, spreadId, amount);
     }
 
     /**
@@ -434,7 +478,8 @@ contract Grappa is ReentrancyGuard, Registry {
     }
 
     /**
-     * @notice return if the calling address is eligible to access an subAccount address
+     * @notice revert if the msg.sender is not authorized to access an subAccount id
+     * @param _subAccount subaccount id
      */
     function _assertCallerHasAccess(address _subAccount) internal view {
         if (_isPrimaryAccountFor(msg.sender, _subAccount)) return;
@@ -446,17 +491,52 @@ contract Grappa is ReentrancyGuard, Registry {
 
     /**
      * @dev make sure account is above water
+     * @param _engine address of the margin engine
+     * @param _subAccount sub account id
      */
     function _assertAccountHealth(address _engine, address _subAccount) internal view {
         if (!IMarginEngine(_engine).isAccountHealthy(_subAccount)) revert GP_AccountUnderwater();
     }
 
     /**
-     * @dev make sure the calling engine can mint the token.
+     * @dev revert if the calling engine can not mint the token.
+     * @param _engine address of the engine
+     * @param _tokenId tokenid
      */
     function _assertIsAuthorizedEngineForToken(address _engine, uint256 _tokenId) internal view {
         (, uint32 productId, , , ) = TokenIdUtil.parseTokenId(_tokenId);
         address engine = getEngineFromProductId(productId);
         if (_engine != engine) revert GP_Not_Authorized_Engine();
+    }
+
+    /**
+     * @dev make sure the user can merge 2 tokens (1 long and 1 short) into a spread
+     * @param longId id of the incoming token to be merged
+     * @param shortId id of the existing short position
+     */
+    function _verifyMergeTokenIds(uint256 longId, uint256 shortId) internal pure {
+        // get token attribute for incoming token
+        (TokenType longType, uint32 productId, uint64 expiry, uint64 longStrike, ) = longId.parseTokenId();
+
+        // token being added can only be call or put
+        if (longType != TokenType.CALL && longType != TokenType.PUT) revert GP_CannotMergeSpread();
+
+        (TokenType shortType, uint32 productId_, uint64 expiry_, uint64 shortStrike, ) = shortId.parseTokenId();
+
+        // check that the merging token (long) has the same property as existing short
+        if (shortType != longType) revert GP_MergeTypeMismatch();
+        if (productId_ != productId) revert GP_MergeProductMismatch();
+        if (expiry_ != expiry) revert GP_MergeExpiryMismatch();
+        if (longStrike == shortStrike) revert GP_MergeWithSameStrike();
+    }
+
+    function _verifySpreadIdAndGetLong(uint256 _spreadId) internal pure returns (uint256 longId) {
+        // parse the passed in spread id
+        (TokenType spreadType, uint32 productId, uint64 expiry, , uint64 shortStrike) = _spreadId.parseTokenId();
+
+        if (spreadType != TokenType.CALL_SPREAD && spreadType != TokenType.PUT_SPREAD) revert GP_CanOnlySplitSpread();
+
+        TokenType newType = spreadType == TokenType.CALL_SPREAD ? TokenType.CALL : TokenType.PUT;
+        longId = TokenIdUtil.formatTokenId(newType, productId, expiry, shortStrike, 0);
     }
 }
