@@ -316,11 +316,16 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
     /**
      * @dev change the short position to spread. This will reduce collateral requirement
      */
-    function merge(address _subAccount, uint256 _shortTokenId, uint256 _longTokenId) external returns (uint64 burnAmount) {
+    function merge(
+        address _subAccount,
+        uint256 _shortTokenId,
+        uint256 _longTokenId,
+        uint64 _amount
+    ) external {
         _assertCallerIsGrappa();
 
         // update the account in storage
-        burnAmount = marginAccounts[_subAccount].merge(_shortTokenId, _longTokenId);
+        marginAccounts[_subAccount].merge(_shortTokenId, _longTokenId, _amount);
     }
 
     /**

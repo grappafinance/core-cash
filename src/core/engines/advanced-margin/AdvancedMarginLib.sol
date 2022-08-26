@@ -124,22 +124,21 @@ library AdvancedMarginLib {
     function merge(
         Account storage account,
         uint256 shortId,
-        uint256 longId
-    ) internal returns (uint64 amount) {
+        uint256 longId,
+        uint64 amount
+    ) internal {
         // get token attribute for incoming token
         (TokenType optionType, , , uint64 mergingStrike, ) = longId.parseTokenId();
 
-        // check the existing short position
-        bool isMergingCall = optionType == TokenType.CALL;
-        amount = isMergingCall ? account.shortCallAmount : account.shortPutAmount;
-
         if (optionType == TokenType.CALL) {
             if (account.shortCallId != shortId) revert AM_ShortDoesnotExist();
+            if (account.shortCallAmount != amount) revert AM_MergeAmountMisMatch();
             // adding the "strike of the adding token" to the "short strike" field of the existing "option token"
             account.shortCallId = shortId + mergingStrike;
         } else {
             // adding the "strike of the adding token" to the "short strike" field of the existing "option token"
             if (account.shortPutId != shortId) revert AM_ShortDoesnotExist();
+            if (account.shortPutAmount != amount) revert AM_MergeAmountMisMatch();
             account.shortPutId = shortId + mergingStrike;
         }
     }

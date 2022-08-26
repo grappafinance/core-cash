@@ -79,6 +79,8 @@ contract Grappa is ReentrancyGuard, Registry {
 
     event OptionTokenBurned(address engine, address subAccount, uint256 tokenId, uint256 amount);
 
+    event OptionTokenMerged(address engine, address subAccount, uint256 longToken, uint256 shortToken, uint64 amount);
+
     /*///////////////////////////////////////////////////////////////
                         External Functions
     //////////////////////////////////////////////////////////////*/
@@ -352,17 +354,22 @@ contract Grappa is ReentrancyGuard, Registry {
         bytes memory _data
     ) internal {
         // decode parameters
-        (uint256 longTokenId, uint256 shortTokenId, address from) = abi.decode(_data, (uint256, uint256, address));
+        (uint256 longTokenId, uint256 shortTokenId, address from, uint64 amount) = abi.decode(
+            _data,
+            (uint256, uint256, address, uint64)
+        );
 
         _verifyMergeTokenIds(longTokenId, shortTokenId);
 
         // update the data structure in corresponding engine
-        uint64 amount = IMarginEngine(_engine).merge(_subAccount, shortTokenId, longTokenId);
+        IMarginEngine(_engine).merge(_subAccount, shortTokenId, longTokenId, amount);
 
         // token being burn must come from caller or the primary account for this subAccount
         if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert GP_InvalidFromAddress();
 
         optionToken.burn(from, longTokenId, amount);
+
+        emit OptionTokenMerged(_engine, _subAccount, longTokenId, shortTokenId, amount);
     }
 
     /**
@@ -510,7 +517,7 @@ contract Grappa is ReentrancyGuard, Registry {
 
         (TokenType shortType, uint32 productId_, uint64 expiry_, uint64 shortStrike, ) = shortId.parseTokenId();
 
-        // if short type is SPREAD, will revert
+        // check that the merging token (long) has the same property as existing short
         if (shortType != longType) revert AM_MergeTypeMismatch();
         if (productId_ != productId) revert AM_MergeProductMismatch();
         if (expiry_ != expiry) revert AM_MergeExpiryMismatch();

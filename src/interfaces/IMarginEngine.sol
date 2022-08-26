@@ -39,8 +39,9 @@ interface IMarginEngine {
     function merge(
         address _subAccount,
         uint256 _shortTokenId,
-        uint256 _longTokenId
-    ) external returns (uint64 burnAmount);
+        uint256 _longTokenId,
+        uint64 _amount
+    ) external;
 
     function split(address _subAccount, uint256 _spreadId) external returns (uint256 optionId, uint64 mintAmount);
 

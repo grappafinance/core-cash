@@ -44,6 +44,9 @@ error AM_MergeWithSameStrike();
 /// @dev trying to merge an long with a non-existant short position
 error AM_ShortDoesnotExist();
 
+/// @dev can only merge same amount of long and short
+error AM_MergeAmountMisMatch();
+
 /// @dev only spread position can be split
 error AM_CanOnlySplitSpread();
 
