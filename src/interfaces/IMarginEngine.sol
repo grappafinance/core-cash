@@ -43,7 +43,11 @@ interface IMarginEngine {
         uint64 _amount
     ) external;
 
-    function split(address _subAccount, uint256 _spreadId) external returns (uint256 optionId, uint64 mintAmount);
+    function split(
+        address _subAccount,
+        uint256 _spreadId,
+        uint64 _amount
+    ) external;
 
     function liquidate(
         address _subAccount,

@@ -382,10 +382,12 @@ contract Grappa is ReentrancyGuard, Registry {
         bytes memory _data
     ) internal {
         // decode parameters
-        (uint256 spreadId, address recipient) = abi.decode(_data, (uint256, address));
+        (uint256 spreadId, uint64 amount, address recipient) = abi.decode(_data, (uint256, uint64, address));
 
         // update the data structure in corresponding engine
-        (uint256 tokenId, uint64 amount) = IMarginEngine(_engine).split(_subAccount, spreadId);
+        IMarginEngine(_engine).split(_subAccount, spreadId, amount);
+
+        uint256 tokenId = _verifySpreadIdAndGetLong(spreadId);
 
         _assertIsAuthorizedEngineForToken(_engine, tokenId);
 
@@ -522,5 +524,15 @@ contract Grappa is ReentrancyGuard, Registry {
         if (productId_ != productId) revert GP_MergeProductMismatch();
         if (expiry_ != expiry) revert GP_MergeExpiryMismatch();
         if (longStrike == shortStrike) revert GP_MergeWithSameStrike();
+    }
+
+    function _verifySpreadIdAndGetLong(uint256 _spreadId) internal pure returns (uint256 longId) {
+        // parse the passed in spread id
+        (TokenType spreadType, uint32 productId, uint64 expiry, , uint64 shortStrike) = _spreadId.parseTokenId();
+
+        if (spreadType != TokenType.CALL_SPREAD && spreadType != TokenType.PUT_SPREAD) revert GP_CanOnlySplitSpread();
+
+        TokenType newType = spreadType == TokenType.CALL_SPREAD ? TokenType.CALL : TokenType.PUT;
+        longId = TokenIdUtil.formatTokenId(newType, productId, expiry, shortStrike, 0);
     }
 }

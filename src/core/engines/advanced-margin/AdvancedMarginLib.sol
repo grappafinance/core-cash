@@ -146,12 +146,12 @@ library AdvancedMarginLib {
     ///@dev split an accunt's spread position into short + 1 token
     ///@param account Account memory that will be updated in-place
     ///@param spreadId id of spread to be parsed
-    function split(Account storage account, uint256 spreadId) internal returns (uint256 mintingTokenId, uint64 amount) {
+    function split(Account storage account, uint256 spreadId, uint64 amount) internal {
         // parse the passed in spread id
-        (TokenType spreadType, uint32 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) = spreadId
+        (TokenType spreadType, uint32 productId, uint64 expiry, uint64 longStrike,) = spreadId
             .parseTokenId();
 
-        if (spreadType != TokenType.CALL_SPREAD && spreadType != TokenType.PUT_SPREAD) revert AM_CanOnlySplitSpread();
+        // if (spreadType != TokenType.CALL_SPREAD && spreadType != TokenType.PUT_SPREAD) revert GP_CanOnlySplitSpread();
 
         // check the existing short position
         bool isSplitingCallSpread = spreadType == TokenType.CALL_SPREAD;
@@ -161,20 +161,16 @@ library AdvancedMarginLib {
         // passed in spreadId should match the one in account storage (shortCallId or shortPutId)
         if (spreadId != spreadIdInAccount) revert AM_InvalidToken();
 
-        amount = isSplitingCallSpread ? account.shortCallAmount : account.shortPutAmount;
+        // amount = isSplitingCallSpread ? account.shortCallAmount : account.shortPutAmount;
 
         if (isSplitingCallSpread) {
+            if (amount != account.shortCallAmount) revert AM_SplitAmountMisMatch();
             // remove the "short strike" field of the shorted "option token"
             account.shortCallId = TokenIdUtil.formatTokenId(TokenType.CALL, productId, expiry, longStrike, 0);
-
-            // token to be "minted" is removed "short strike" of shorted token as the new "long strike"
-            mintingTokenId = TokenIdUtil.formatTokenId(TokenType.CALL, productId, expiry, shortStrike, 0);
         } else {
+            if (amount != account.shortPutAmount) revert AM_SplitAmountMisMatch();
             // remove the "short strike" field of the shorted "option token"
             account.shortPutId = TokenIdUtil.formatTokenId(TokenType.PUT, productId, expiry, longStrike, 0);
-
-            // token to be "minted" is removed "short strike" of shorted token as the new "long strike"
-            mintingTokenId = TokenIdUtil.formatTokenId(TokenType.PUT, productId, expiry, shortStrike, 0);
         }
     }
 

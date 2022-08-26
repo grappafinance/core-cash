@@ -36,6 +36,9 @@ error GP_MergeExpiryMismatch();
 /// @dev cannot merge type with the same strike. (should use burn instead)
 error GP_MergeWithSameStrike();
 
+/// @dev only spread position can be split
+error GP_CanOnlySplitSpread();
+
 // Advanced Margin and AdvancedMarginLib Errors
 
 /// @dev collateral id is wrong: the id doesn't match the existing sub account
@@ -47,8 +50,8 @@ error AM_ShortDoesnotExist();
 /// @dev can only merge same amount of long and short
 error AM_MergeAmountMisMatch();
 
-/// @dev only spread position can be split
-error AM_CanOnlySplitSpread();
+/// @dev can only split same amount of existing spread into short + long
+error AM_SplitAmountMisMatch();
 
 /// @dev invalid tokenId specify to mint / burn actions
 error AM_InvalidToken();
