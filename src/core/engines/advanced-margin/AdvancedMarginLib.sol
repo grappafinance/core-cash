@@ -115,38 +115,32 @@ library AdvancedMarginLib {
     }
 
     ///@dev merge an OptionToken into the accunt, changing existing short to spread
+    ///@dev shortId and longId already have the same optionType, productId, expiry
     ///@param account Account memory that will be updated in-place
-    ///@param tokenId token to be "added" into the account. This is expected to have the same time of the exisiting short type.
+    ///@param shortId existing short position to be converted into spread
+    ///@param longId token to be "added" into the account. This is expected to have the same time of the exisiting short type.
     ///               e.g: if the account currenly have short call, we can added another "call token" into the account
     ///               and convert the short position to a spread.
-    function merge(Account storage account, uint256 tokenId) internal returns (uint64 amount) {
+    function merge(
+        Account storage account,
+        uint256 shortId,
+        uint256 longId
+    ) internal returns (uint64 amount) {
         // get token attribute for incoming token
-        (TokenType optionType, uint32 productId, uint64 expiry, uint64 mergingStrike, ) = tokenId.parseTokenId();
-
-        // token being added can only be call or put
-        if (optionType != TokenType.CALL && optionType != TokenType.PUT) revert AM_CannotMergeSpread();
+        (TokenType optionType, , , uint64 mergingStrike, ) = longId.parseTokenId();
 
         // check the existing short position
         bool isMergingCall = optionType == TokenType.CALL;
-        uint256 shortId = isMergingCall ? account.shortCallId : account.shortPutId;
         amount = isMergingCall ? account.shortCallAmount : account.shortPutAmount;
 
-        (TokenType shortType, uint32 productId_, uint64 expiry_, uint64 tokenLongStrike_, ) = shortId.parseTokenId();
-
-        // if exisiting type is SPREAD, will revert
-        if (shortType != optionType) revert AM_MergeTypeMismatch();
-
-        if (productId_ != productId) revert AM_MergeProductMismatch();
-        if (expiry_ != expiry) revert AM_MergeExpiryMismatch();
-
-        if (tokenLongStrike_ == mergingStrike) revert AM_MergeWithSameStrike();
-
         if (optionType == TokenType.CALL) {
+            if (account.shortCallId != shortId) revert AM_ShortDoesnotExist();
             // adding the "strike of the adding token" to the "short strike" field of the existing "option token"
-            account.shortCallId = account.shortCallId + mergingStrike;
+            account.shortCallId = shortId + mergingStrike;
         } else {
             // adding the "strike of the adding token" to the "short strike" field of the existing "option token"
-            account.shortPutId = account.shortPutId + mergingStrike;
+            if (account.shortPutId != shortId) revert AM_ShortDoesnotExist();
+            account.shortPutId = shortId + mergingStrike;
         }
     }
 

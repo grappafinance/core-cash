@@ -38,6 +38,8 @@ contract Grappa is ReentrancyGuard, Registry {
     using SafeERC20 for IERC20;
     using FixedPointMathLib for uint256;
     using NumberUtil for uint256;
+    using TokenIdUtil for uint256;
+    using ProductIdUtil for uint32;
 
     ///@dev maskedAccount => operator => authorized
     ///     every account can authorize any amount of addresses to modify all sub-accounts he controls.
@@ -350,15 +352,17 @@ contract Grappa is ReentrancyGuard, Registry {
         bytes memory _data
     ) internal {
         // decode parameters
-        (uint256 tokenId, address from) = abi.decode(_data, (uint256, address));
+        (uint256 longTokenId, uint256 shortTokenId, address from) = abi.decode(_data, (uint256, uint256, address));
+
+        _verifyMergeTokenIds(longTokenId, shortTokenId);
 
         // update the data structure in corresponding engine
-        uint64 amount = IMarginEngine(_engine).merge(_subAccount, tokenId);
+        uint64 amount = IMarginEngine(_engine).merge(_subAccount, shortTokenId, longTokenId);
 
         // token being burn must come from caller or the primary account for this subAccount
         if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert GP_InvalidFromAddress();
 
-        optionToken.burn(from, tokenId, amount);
+        optionToken.burn(from, longTokenId, amount);
     }
 
     /**
@@ -490,5 +494,26 @@ contract Grappa is ReentrancyGuard, Registry {
         (, uint32 productId, , , ) = TokenIdUtil.parseTokenId(_tokenId);
         address engine = getEngineFromProductId(productId);
         if (_engine != engine) revert GP_Not_Authorized_Engine();
+    }
+
+    /**
+     * @dev make sure the user can merge 2 tokens (1 long and 1 short) into a spread
+     * @param longId id of the incoming token to be merged
+     * @param shortId id of the existing short position
+     */
+    function _verifyMergeTokenIds(uint256 longId, uint256 shortId) internal pure {
+        // get token attribute for incoming token
+        (TokenType longType, uint32 productId, uint64 expiry, uint64 longStrike, ) = longId.parseTokenId();
+
+        // token being added can only be call or put
+        if (longType != TokenType.CALL && longType != TokenType.PUT) revert AM_CannotMergeSpread();
+
+        (TokenType shortType, uint32 productId_, uint64 expiry_, uint64 shortStrike, ) = shortId.parseTokenId();
+
+        // if short type is SPREAD, will revert
+        if (shortType != longType) revert AM_MergeTypeMismatch();
+        if (productId_ != productId) revert AM_MergeProductMismatch();
+        if (expiry_ != expiry) revert AM_MergeExpiryMismatch();
+        if (longStrike == shortStrike) revert AM_MergeWithSameStrike();
     }
 }

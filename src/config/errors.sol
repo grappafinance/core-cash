@@ -41,6 +41,9 @@ error AM_MergeExpiryMismatch();
 /// @dev cannot merge type with the same strike. (should use burn instead)
 error AM_MergeWithSameStrike();
 
+/// @dev trying to merge an long with a non-existant short position
+error AM_ShortDoesnotExist();
+
 /// @dev only spread position can be split
 error AM_CanOnlySplitSpread();
 
