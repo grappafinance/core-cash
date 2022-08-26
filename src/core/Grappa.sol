@@ -513,14 +513,14 @@ contract Grappa is ReentrancyGuard, Registry {
         (TokenType longType, uint32 productId, uint64 expiry, uint64 longStrike, ) = longId.parseTokenId();
 
         // token being added can only be call or put
-        if (longType != TokenType.CALL && longType != TokenType.PUT) revert AM_CannotMergeSpread();
+        if (longType != TokenType.CALL && longType != TokenType.PUT) revert GP_CannotMergeSpread();
 
         (TokenType shortType, uint32 productId_, uint64 expiry_, uint64 shortStrike, ) = shortId.parseTokenId();
 
         // check that the merging token (long) has the same property as existing short
-        if (shortType != longType) revert AM_MergeTypeMismatch();
-        if (productId_ != productId) revert AM_MergeProductMismatch();
-        if (expiry_ != expiry) revert AM_MergeExpiryMismatch();
-        if (longStrike == shortStrike) revert AM_MergeWithSameStrike();
+        if (shortType != longType) revert GP_MergeTypeMismatch();
+        if (productId_ != productId) revert GP_MergeProductMismatch();
+        if (expiry_ != expiry) revert GP_MergeExpiryMismatch();
+        if (longStrike == shortStrike) revert GP_MergeWithSameStrike();
     }
 }

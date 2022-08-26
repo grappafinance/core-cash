@@ -21,25 +21,25 @@ error GP_AccountUnderwater();
 /// @dev msg.sender is not authorized to ask margin account to pull token from {from} address
 error GP_InvalidFromAddress();
 
+/// @dev can only merge subaccount with put or call.
+error GP_CannotMergeSpread();
+
+/// @dev type of existing short token doesn't match the incoming token
+error GP_MergeTypeMismatch();
+
+/// @dev product type of existing short token doesn't match the incoming token
+error GP_MergeProductMismatch();
+
+/// @dev expiry of existing short token doesn't match the incoming token
+error GP_MergeExpiryMismatch();
+
+/// @dev cannot merge type with the same strike. (should use burn instead)
+error GP_MergeWithSameStrike();
+
 // Advanced Margin and AdvancedMarginLib Errors
 
 /// @dev collateral id is wrong: the id doesn't match the existing sub account
 error AM_WrongCollateralId();
-
-/// @dev can only merge subaccount with put or call.
-error AM_CannotMergeSpread();
-
-/// @dev existing short position in account doesn't match the incoming token
-error AM_MergeTypeMismatch();
-
-/// @dev existing product type in account doesn't match the incoming token
-error AM_MergeProductMismatch();
-
-/// @dev existing expiry in account doesn't match the incoming token
-error AM_MergeExpiryMismatch();
-
-/// @dev cannot merge type with the same strike. (should use burn instead)
-error AM_MergeWithSameStrike();
 
 /// @dev trying to merge an long with a non-existant short position
 error AM_ShortDoesnotExist();
