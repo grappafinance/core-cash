@@ -75,11 +75,13 @@ contract Grappa is ReentrancyGuard, Registry {
 
     event CollateralRemoved(address engine, address subAccount, address collateral, uint256 amount);
 
-    event OptionTokenMinted(address engine, address subAccount, uint256 tokenId, uint256 amount);
+    event OptionTokenMinted(address subAccount, uint256 tokenId, uint256 amount);
 
-    event OptionTokenBurned(address engine, address subAccount, uint256 tokenId, uint256 amount);
+    event OptionTokenBurned(address subAccount, uint256 tokenId, uint256 amount);
 
-    event OptionTokenMerged(address engine, address subAccount, uint256 longToken, uint256 shortToken, uint64 amount);
+    event OptionTokenMerged(address subAccount, uint256 longToken, uint256 shortToken, uint64 amount);
+
+    event OptionTokenSplit(address subAccount, uint256 spreadId, uint64 amount);
 
     /*///////////////////////////////////////////////////////////////
                         External Functions
@@ -316,7 +318,7 @@ contract Grappa is ReentrancyGuard, Registry {
         // mint the real option token
         optionToken.mint(recipient, tokenId, amount);
 
-        emit OptionTokenMinted(_engine, _subAccount, tokenId, amount);
+        emit OptionTokenMinted(_subAccount, tokenId, amount);
     }
 
     /**
@@ -340,7 +342,7 @@ contract Grappa is ReentrancyGuard, Registry {
         if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert GP_InvalidFromAddress();
         optionToken.burn(from, tokenId, amount);
 
-        emit OptionTokenBurned(_engine, _subAccount, tokenId, amount);
+        emit OptionTokenBurned(_subAccount, tokenId, amount);
     }
 
     /**
@@ -369,7 +371,7 @@ contract Grappa is ReentrancyGuard, Registry {
 
         optionToken.burn(from, longTokenId, amount);
 
-        emit OptionTokenMerged(_engine, _subAccount, longTokenId, shortTokenId, amount);
+        emit OptionTokenMerged(_subAccount, longTokenId, shortTokenId, amount);
     }
 
     /**
@@ -392,6 +394,8 @@ contract Grappa is ReentrancyGuard, Registry {
         _assertIsAuthorizedEngineForToken(_engine, tokenId);
 
         optionToken.mint(recipient, tokenId, amount);
+
+        emit OptionTokenSplit(_subAccount, spreadId, amount);
     }
 
     /**
