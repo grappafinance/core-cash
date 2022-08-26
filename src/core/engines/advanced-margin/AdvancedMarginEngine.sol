@@ -331,7 +331,11 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
     /**
      * @dev Change existing spread position to short. This should increase collateral requirement
      */
-    function split(address _subAccount, uint256 _spreadId, uint64 _amount) external {
+    function split(
+        address _subAccount,
+        uint256 _spreadId,
+        uint64 _amount
+    ) external {
         _assertCallerIsGrappa();
 
         // update the account

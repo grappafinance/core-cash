@@ -146,10 +146,13 @@ library AdvancedMarginLib {
     ///@dev split an accunt's spread position into short + 1 token
     ///@param account Account memory that will be updated in-place
     ///@param spreadId id of spread to be parsed
-    function split(Account storage account, uint256 spreadId, uint64 amount) internal {
+    function split(
+        Account storage account,
+        uint256 spreadId,
+        uint64 amount
+    ) internal {
         // parse the passed in spread id
-        (TokenType spreadType, uint32 productId, uint64 expiry, uint64 longStrike,) = spreadId
-            .parseTokenId();
+        (TokenType spreadType, uint32 productId, uint64 expiry, uint64 longStrike, ) = spreadId.parseTokenId();
 
         // if (spreadType != TokenType.CALL_SPREAD && spreadType != TokenType.PUT_SPREAD) revert GP_CanOnlySplitSpread();
 
