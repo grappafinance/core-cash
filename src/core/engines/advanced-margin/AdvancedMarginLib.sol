@@ -134,6 +134,7 @@ library AdvancedMarginLib {
             if (account.shortCallId != shortId) revert AM_ShortDoesnotExist();
             if (account.shortCallAmount != amount) revert AM_MergeAmountMisMatch();
             // adding the "strike of the adding token" to the "short strike" field of the existing "option token"
+            // todo: update type
             account.shortCallId = shortId + mergingStrike;
         } else {
             // adding the "strike of the adding token" to the "short strike" field of the existing "option token"
@@ -152,7 +153,7 @@ library AdvancedMarginLib {
         uint64 amount
     ) internal {
         // parse the passed in spread id
-        (TokenType spreadType, uint32 productId, uint64 expiry, uint64 longStrike, ) = spreadId.parseTokenId();
+        TokenType spreadType = spreadId.parseTokenType();
 
         // check the existing short position
         bool isSplitingCallSpread = spreadType == TokenType.CALL_SPREAD;
@@ -164,12 +165,13 @@ library AdvancedMarginLib {
 
         if (isSplitingCallSpread) {
             if (amount != account.shortCallAmount) revert AM_SplitAmountMisMatch();
-            // remove the "short strike" field of the shorted "option token"
-            account.shortCallId = TokenIdUtil.formatTokenId(TokenType.CALL, productId, expiry, longStrike, 0);
+
+            // convert to call: remove the "short strike" and update "tokenType" field
+            account.shortCallId = TokenIdUtil.convertToVanillaId(spreadId, TokenType.CALL);
         } else {
             if (amount != account.shortPutAmount) revert AM_SplitAmountMisMatch();
-            // remove the "short strike" field of the shorted "option token"
-            account.shortPutId = TokenIdUtil.formatTokenId(TokenType.PUT, productId, expiry, longStrike, 0);
+            // convert to put: remove the "short strike" and update "tokenType" field
+            account.shortPutId = TokenIdUtil.convertToVanillaId(spreadId, TokenType.PUT);
         }
     }
 
