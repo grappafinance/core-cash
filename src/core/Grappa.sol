@@ -83,6 +83,8 @@ contract Grappa is ReentrancyGuard, Registry {
 
     event OptionTokenSplit(address subAccount, uint256 spreadId, uint64 amount);
 
+    event AccountSettled(address engine, address subAccount);
+
     /*///////////////////////////////////////////////////////////////
                         External Functions
     //////////////////////////////////////////////////////////////*/
@@ -154,11 +156,11 @@ contract Grappa is ReentrancyGuard, Registry {
     ) external {
         (address engine, address collateral, uint256 payout) = getPayout(_tokenId, uint64(_amount));
 
+        emit OptionSettled(_account, _tokenId, _amount, payout);
+
         optionToken.burn(_account, _tokenId, _amount);
 
         IMarginEngine(engine).payCashValue(collateral, _account, payout);
-
-        emit OptionSettled(_account, _tokenId, _amount, payout);
     }
 
     /**
@@ -292,10 +294,10 @@ contract Grappa is ReentrancyGuard, Registry {
 
         address collateral = address(assets[collateralId].addr);
 
+        emit CollateralRemoved(_engine, _subAccount, collateral, amount);
+
         // update the data structure in corresponding engine
         IMarginEngine(_engine).decreaseCollateral(_subAccount, recipient, collateral, collateralId, amount);
-
-        emit CollateralRemoved(_engine, _subAccount, collateral, amount);
     }
 
     /**
@@ -312,13 +314,13 @@ contract Grappa is ReentrancyGuard, Registry {
 
         _assertIsAuthorizedEngineForToken(_engine, tokenId);
 
+        emit OptionTokenMinted(_subAccount, tokenId, amount);
+
         // update the data structure in corresponding engine
         IMarginEngine(_engine).increaseDebt(_subAccount, tokenId, amount);
 
         // mint the real option token
         optionToken.mint(recipient, tokenId, amount);
-
-        emit OptionTokenMinted(_subAccount, tokenId, amount);
     }
 
     /**
@@ -335,14 +337,15 @@ contract Grappa is ReentrancyGuard, Registry {
         // decode parameters
         (uint256 tokenId, address from, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
 
+        // token being burn must come from caller or the primary account for this subAccount
+        if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert GP_InvalidFromAddress();
+
+        emit OptionTokenBurned(_subAccount, tokenId, amount);
+
         // update the data structure in corresponding engine
         IMarginEngine(_engine).decreaseDebt(_subAccount, tokenId, amount);
 
-        // token being burn must come from caller or the primary account for this subAccount
-        if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert GP_InvalidFromAddress();
         optionToken.burn(from, tokenId, amount);
-
-        emit OptionTokenBurned(_subAccount, tokenId, amount);
     }
 
     /**
@@ -361,17 +364,17 @@ contract Grappa is ReentrancyGuard, Registry {
             (uint256, uint256, address, uint64)
         );
 
+        // token being burn must come from caller or the primary account for this subAccount
+        if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert GP_InvalidFromAddress();
+
         _verifyMergeTokenIds(longTokenId, shortTokenId);
+
+        emit OptionTokenMerged(_subAccount, longTokenId, shortTokenId, amount);
 
         // update the data structure in corresponding engine
         IMarginEngine(_engine).merge(_subAccount, shortTokenId, longTokenId, amount);
 
-        // token being burn must come from caller or the primary account for this subAccount
-        if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert GP_InvalidFromAddress();
-
         optionToken.burn(from, longTokenId, amount);
-
-        emit OptionTokenMerged(_subAccount, longTokenId, shortTokenId, amount);
     }
 
     /**
@@ -388,14 +391,14 @@ contract Grappa is ReentrancyGuard, Registry {
 
         uint256 tokenId = _verifySpreadIdAndGetLong(spreadId);
 
+        _assertIsAuthorizedEngineForToken(_engine, tokenId);
+
+        emit OptionTokenSplit(_subAccount, spreadId, amount);
+
         // update the data structure in corresponding engine
         IMarginEngine(_engine).split(_subAccount, spreadId, amount);
 
-        _assertIsAuthorizedEngineForToken(_engine, tokenId);
-
         optionToken.mint(recipient, tokenId, amount);
-
-        emit OptionTokenSplit(_subAccount, spreadId, amount);
     }
 
     /**
@@ -404,6 +407,8 @@ contract Grappa is ReentrancyGuard, Registry {
      * @param _subAccount subaccount structure that will be update in place
      */
     function _settle(address _engine, address _subAccount) internal {
+        emit AccountSettled(_engine, _subAccount);
+
         IMarginEngine(_engine).settleAtExpiry(_subAccount);
     }
 
