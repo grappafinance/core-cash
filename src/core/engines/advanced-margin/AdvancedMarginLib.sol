@@ -154,8 +154,6 @@ library AdvancedMarginLib {
         // parse the passed in spread id
         (TokenType spreadType, uint32 productId, uint64 expiry, uint64 longStrike, ) = spreadId.parseTokenId();
 
-        // if (spreadType != TokenType.CALL_SPREAD && spreadType != TokenType.PUT_SPREAD) revert GP_CanOnlySplitSpread();
-
         // check the existing short position
         bool isSplitingCallSpread = spreadType == TokenType.CALL_SPREAD;
 
@@ -163,8 +161,6 @@ library AdvancedMarginLib {
 
         // passed in spreadId should match the one in account storage (shortCallId or shortPutId)
         if (spreadId != spreadIdInAccount) revert AM_InvalidToken();
-
-        // amount = isSplitingCallSpread ? account.shortCallAmount : account.shortPutAmount;
 
         if (isSplitingCallSpread) {
             if (amount != account.shortCallAmount) revert AM_SplitAmountMisMatch();
