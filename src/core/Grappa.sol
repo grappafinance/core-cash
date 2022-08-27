@@ -156,11 +156,11 @@ contract Grappa is ReentrancyGuard, Registry {
     ) external {
         (address engine, address collateral, uint256 payout) = getPayout(_tokenId, uint64(_amount));
 
+        emit OptionSettled(_account, _tokenId, _amount, payout);
+
         optionToken.burn(_account, _tokenId, _amount);
 
         IMarginEngine(engine).payCashValue(collateral, _account, payout);
-
-        emit OptionSettled(_account, _tokenId, _amount, payout);
     }
 
     /**
@@ -391,12 +391,12 @@ contract Grappa is ReentrancyGuard, Registry {
 
         uint256 tokenId = _verifySpreadIdAndGetLong(spreadId);
 
-        // update the data structure in corresponding engine
-        IMarginEngine(_engine).split(_subAccount, spreadId, amount);
-
         _assertIsAuthorizedEngineForToken(_engine, tokenId);
 
         emit OptionTokenSplit(_subAccount, spreadId, amount);
+
+        // update the data structure in corresponding engine
+        IMarginEngine(_engine).split(_subAccount, spreadId, amount);
 
         optionToken.mint(recipient, tokenId, amount);
     }
