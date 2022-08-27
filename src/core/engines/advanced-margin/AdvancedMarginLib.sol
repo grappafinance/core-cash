@@ -134,13 +134,13 @@ library AdvancedMarginLib {
             if (account.shortCallId != shortId) revert AM_ShortDoesnotExist();
             if (account.shortCallAmount != amount) revert AM_MergeAmountMisMatch();
             // adding the "strike of the adding token" to the "short strike" field of the existing "option token"
-            // todo: update type
-            account.shortCallId = shortId + mergingStrike;
+            account.shortCallId = TokenIdUtil.convertToSpreadId(shortId, mergingStrike);
         } else {
             // adding the "strike of the adding token" to the "short strike" field of the existing "option token"
             if (account.shortPutId != shortId) revert AM_ShortDoesnotExist();
             if (account.shortPutAmount != amount) revert AM_MergeAmountMisMatch();
-            account.shortPutId = shortId + mergingStrike;
+
+            account.shortPutId = TokenIdUtil.convertToSpreadId(shortId, mergingStrike);
         }
     }
 
@@ -167,11 +167,11 @@ library AdvancedMarginLib {
             if (amount != account.shortCallAmount) revert AM_SplitAmountMisMatch();
 
             // convert to call: remove the "short strike" and update "tokenType" field
-            account.shortCallId = TokenIdUtil.convertToVanillaId(spreadId, TokenType.CALL);
+            account.shortCallId = TokenIdUtil.convertToVanillaId(spreadId);
         } else {
             if (amount != account.shortPutAmount) revert AM_SplitAmountMisMatch();
             // convert to put: remove the "short strike" and update "tokenType" field
-            account.shortPutId = TokenIdUtil.convertToVanillaId(spreadId, TokenType.PUT);
+            account.shortPutId = TokenIdUtil.convertToVanillaId(spreadId);
         }
     }
 

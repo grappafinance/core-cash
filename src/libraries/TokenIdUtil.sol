@@ -23,12 +23,14 @@ library TokenIdUtil {
         uint64 longStrike,
         uint64 shortStrike
     ) internal pure returns (uint256 tokenId) {
-        tokenId =
-            (uint256(tokenType) << 224) +
-            (uint256(productId) << 192) +
-            (uint256(expiry) << 128) +
-            (uint256(longStrike) << 64) +
-            uint256(shortStrike);
+        unchecked {
+            tokenId =
+                (uint256(tokenType) << 224) +
+                (uint256(productId) << 192) +
+                (uint256(expiry) << 128) +
+                (uint256(longStrike) << 64) +
+                uint256(shortStrike);
+        }
     }
 
     /**
@@ -89,17 +91,35 @@ library TokenIdUtil {
      *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
      * @dev   this function will: override tokenType, remove shortStrike.
      * @param _tokenId token id to change
-     * @param _type put or call
      */
-    function convertToVanillaId(uint256 _tokenId, TokenType _type) internal pure returns (uint256 newId) {
+    function convertToVanillaId(uint256 _tokenId) internal pure returns (uint256 newId) {
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            newId := shl(32, _tokenId) // step 1: << 32 to wipe out tokenType
-            newId := shr(96, newId) // step 2: >> 96 (32 to go back, and 64 to wipe out shortStrike)
-            newId := shl(64, newId) // step 3: << 64 go back
+            newId := shr(64, _tokenId) // step 1: >> 64 to wipe out shortStrike
+            newId := shl(64, newId) // step 2: << 64 go back
 
-            _type := shl(224, _type)
-            newId := add(newId, _type) // step 4: add _type
+            newId := sub(newId, shl(224, 1)) // step 3: new tokenType = spread type - 1
+        }
+    }
+
+    /**
+     * @notice convert an spread tokenId back to put or call.
+     *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
+     * @dev   oldId =   | call or put type    | productId (32 bits) | expiry (64 bits) | longStrike (64 bits) | 0           (64 bits) |
+     *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
+     *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
+     * @dev   newId =   | spread type         | productId (32 bits) | expiry (64 bits) | longStrike (64 bits) | shortStrike (64 bits) |
+     *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
+     *
+     * this function convert put or call type to spread type, add shortStrike.
+     * @param _tokenId token id to change
+     * @param _shortStrike strike to add
+     */
+    function convertToSpreadId(uint256 _tokenId, uint256 _shortStrike) internal pure returns (uint256 newId) {
+        // solhint-disable-next-line no-inline-assembly
+        unchecked {
+            newId = _tokenId + _shortStrike;
+            return newId + (1 << 224);
         }
     }
 }
