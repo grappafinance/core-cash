@@ -48,8 +48,9 @@ contract TestMergeOption is AdvancedFixture {
 
         // check result
         (uint256 shortCallId, , , , , ) = marginEngine.marginAccounts(address(this));
-        (, , , uint64 longStrike, uint64 shortStrike) = parseTokenId(shortCallId);
+        (TokenType newType, , , uint64 longStrike, uint64 shortStrike) = parseTokenId(shortCallId);
 
+        assertEq(uint8(newType), uint8(TokenType.CALL_SPREAD));
         assertTrue(shortCallId != newTokenId);
         assertEq(longStrike, strikePrice);
         assertEq(shortStrike, higherStrike);
@@ -104,6 +105,7 @@ contract TestMergeOption is AdvancedFixture {
         (, , , uint64 longStrike, uint64 shortStrike) = parseTokenId(shortCallId);
 
         assertTrue(shortCallId != newTokenId);
+        assertEq(longStrike, strikePrice);
         assertEq(longStrike, strikePrice);
         assertEq(shortStrike, higherStrike);
     }
