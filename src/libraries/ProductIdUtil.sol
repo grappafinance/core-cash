@@ -55,6 +55,12 @@ library ProductIdUtil {
         uint8 strikeId,
         uint8 collateralId
     ) internal pure returns (uint32 id) {
-        id = (uint32(engineId) << 24) + (uint32(underlyingId) << 16) + (uint32(strikeId) << 8) + (uint32(collateralId));
+        unchecked {
+            id =
+                (uint32(engineId) << 24) +
+                (uint32(underlyingId) << 16) +
+                (uint32(strikeId) << 8) +
+                (uint32(collateralId));
+        }
     }
 }
