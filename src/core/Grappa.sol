@@ -94,13 +94,13 @@ contract Grappa is ReentrancyGuard, Registry {
      * @dev     expected to be called by account owners.
      */
     function execute(
-        uint8 _amEngineId,
+        uint8 _engineId,
         address _subAccount,
         ActionArgs[] calldata actions
     ) external nonReentrant {
         _assertCallerHasAccess(_subAccount);
 
-        address engine = engines[_amEngineId];
+        address engine = engines[_engineId];
 
         // update the account memory and do external calls on the flight
         for (uint256 i; i < actions.length; ) {

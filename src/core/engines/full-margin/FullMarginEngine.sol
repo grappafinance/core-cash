@@ -2,7 +2,6 @@
 pragma solidity =0.8.13;
 
 // imported contracts and libraries
-import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import {SafeERC20} from "openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 import {Ownable} from "openzeppelin/access/Ownable.sol";
@@ -17,7 +16,6 @@ import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 // librarise
 import {TokenIdUtil} from "../../../libraries/TokenIdUtil.sol";
 import {ProductIdUtil} from "../../../libraries/ProductIdUtil.sol";
-import {NumberUtil} from "../../../libraries/NumberUtil.sol";
 
 import {FullMarginMath} from "./FullMarginMath.sol";
 import {FullMarginLib} from "./FullMarginLib.sol";
@@ -39,8 +37,6 @@ contract FullMarginEngine is IMarginEngine, Ownable {
     using FullMarginLib for FullMarginAccount;
     using FullMarginMath for FullMarginDetail;
     using SafeERC20 for IERC20;
-    using FixedPointMathLib for uint256;
-    using NumberUtil for uint256;
 
     IGrappa public immutable grappa;
     /*///////////////////////////////////////////////////////////////
@@ -56,18 +52,6 @@ contract FullMarginEngine is IMarginEngine, Ownable {
     constructor(address _grappa) {
         grappa = IGrappa(_grappa);
     }
-
-    /*///////////////////////////////////////////////////////////////
-                                  Events
-    //////////////////////////////////////////////////////////////*/
-    event ProductConfigurationUpdated(
-        uint32 productId,
-        uint32 dUpper,
-        uint32 dLower,
-        uint32 rUpper,
-        uint32 rLower,
-        uint32 volMul
-    );
 
     /*///////////////////////////////////////////////////////////////
                         External Functions
