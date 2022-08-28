@@ -26,7 +26,7 @@ library AdvancedMarginLib {
     }
 
     ///@dev Increase the collateral in the account
-    ///@param account Account memory that will be updated in-place
+    ///@param account Account storage that will be updated in-place
     function addCollateral(
         Account storage account,
         uint80 amount,
@@ -41,7 +41,7 @@ library AdvancedMarginLib {
     }
 
     ///@dev Reduce the collateral in the account
-    ///@param account Account memory that will be updated in-place
+    ///@param account Account storage that will be updated in-place
     function removeCollateral(
         Account storage account,
         uint80 amount,
@@ -56,7 +56,7 @@ library AdvancedMarginLib {
     }
 
     ///@dev Increase the amount of short call or put (debt) of the account
-    ///@param account Account memory that will be updated in-place
+    ///@param account Account storage that will be updated in-place
     function mintOption(
         Account storage account,
         uint256 tokenId,
@@ -73,12 +73,8 @@ library AdvancedMarginLib {
             if (account.collateralId != collateralId) revert AM_InvalidToken();
         }
 
-        // check that vanilla options doesnt have a shortStrike argument
-        if ((optionType == TokenType.CALL || optionType == TokenType.PUT) && (tokenShortStrike != 0))
-            revert AM_InvalidToken();
-        // check that you cannot mint a "credit spread" token
-        if (optionType == TokenType.CALL_SPREAD && (tokenShortStrike < tokenLongStrike)) revert AM_InvalidToken();
-        if (optionType == TokenType.PUT_SPREAD && (tokenShortStrike > tokenLongStrike)) revert AM_InvalidToken();
+        // todo: make it parse and check
+        checkTokenIdTypeAndStrike(optionType, tokenLongStrike, tokenShortStrike);
 
         if (optionType == TokenType.CALL || optionType == TokenType.CALL_SPREAD) {
             // minting a short
@@ -94,7 +90,7 @@ library AdvancedMarginLib {
     }
 
     ///@dev Remove the amount of short call or put (debt) of the account
-    ///@param account Account memory that will be updated in-place
+    ///@param account Account storage that will be updated in-place
     function burnOption(
         Account storage account,
         uint256 tokenId,
@@ -116,7 +112,7 @@ library AdvancedMarginLib {
 
     ///@dev merge an OptionToken into the accunt, changing existing short to spread
     ///@dev shortId and longId already have the same optionType, productId, expiry
-    ///@param account Account memory that will be updated in-place
+    ///@param account Account storage that will be updated in-place
     ///@param shortId existing short position to be converted into spread
     ///@param longId token to be "added" into the account. This is expected to have the same time of the exisiting short type.
     ///               e.g: if the account currenly have short call, we can added another "call token" into the account
@@ -145,7 +141,7 @@ library AdvancedMarginLib {
     }
 
     ///@dev split an accunt's spread position into short + 1 token
-    ///@param account Account memory that will be updated in-place
+    ///@param account Account storage that will be updated in-place
     ///@param spreadId id of spread to be parsed
     function split(
         Account storage account,
@@ -195,7 +191,7 @@ library AdvancedMarginLib {
     // two methods supporting updating memory in-place update, cheaper to use during liquidation
 
     ///@dev Reduce the collateral in the account memory
-    ///@param account Account memory that will be updated in-place
+    ///@param account Account storage that will be updated in-place
     function removeCollateralMemory(Account memory account, uint80 amount) internal pure {
         account.collateralAmount -= amount;
         if (account.collateralAmount == 0) {
@@ -204,7 +200,7 @@ library AdvancedMarginLib {
     }
 
     ///@dev Remove the amount of short call or put (debt) of the account
-    ///@param account Account memory that will be updated in-place
+    ///@param account Account storage that will be updated in-place
     function burnOptionMemory(
         Account memory account,
         uint256 tokenId,
@@ -222,5 +218,18 @@ library AdvancedMarginLib {
             account.shortPutAmount -= amount;
             if (account.shortPutAmount == 0) account.shortPutId = 0;
         }
+    }
+
+    function checkTokenIdTypeAndStrike(
+        TokenType optionType,
+        uint256 longStrike,
+        uint256 shortStrike
+    ) internal pure {
+        // check that vanilla options doesnt have a shortStrike argument
+        if ((optionType == TokenType.CALL || optionType == TokenType.PUT) && (shortStrike != 0))
+            revert AM_InvalidToken();
+        // check that you cannot mint a "credit spread" token
+        if (optionType == TokenType.CALL_SPREAD && (shortStrike < longStrike)) revert AM_InvalidToken();
+        if (optionType == TokenType.PUT_SPREAD && (shortStrike > longStrike)) revert AM_InvalidToken();
     }
 }

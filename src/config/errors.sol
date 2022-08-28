@@ -39,6 +39,15 @@ error GP_MergeWithSameStrike();
 /// @dev only spread position can be split
 error GP_CanOnlySplitSpread();
 
+// Fully Collateralized Margin
+
+/// @dev fully collateralized account cannot be liquidated
+error FM_No_Liquidation();
+
+error FM_CallsNeedToCollateralizedWithUnderlying();
+
+error FM_PutsNeedToCollateralizedWithStrike();
+
 // Advanced Margin and AdvancedMarginLib Errors
 
 /// @dev collateral id is wrong: the id doesn't match the existing sub account

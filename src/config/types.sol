@@ -3,6 +3,24 @@ pragma solidity =0.8.13;
 
 import "./enums.sol";
 
+struct SimpleMarginAccount {
+    uint256 tokenId;
+    uint64 shortAmount;
+    uint80 collateralAmount;
+    uint8 collateralId;
+}
+
+struct SimpleMarginDetail {
+    uint256 shortAmount;
+    uint256 longStrike;
+    uint256 shortStrike;
+    uint256 collateralAmount;
+    uint8 collateralId;
+    uint8 collateralDecimals;
+    TokenType tokenType;
+}
+
+//todo: rename this to AdvancedMarginAccount
 /**
  * @dev base unit of margin account. This is the data stored in the state
  *      storage packing is utilized to save gas.
