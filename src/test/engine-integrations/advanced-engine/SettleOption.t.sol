@@ -90,14 +90,8 @@ contract TestSettleCall is AdvancedFixture {
         grappa.execute(amEngineId, address(this), actions);
 
         //margin account should be reset
-        (
-            uint256 shortCallId,
-            ,
-            uint64 shortCallAmount,
-            ,
-            uint80 collateralAfter,
-            uint8 collateralIdAfter
-        ) = amEngine.marginAccounts(address(this));
+        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAfter, uint8 collateralIdAfter) = amEngine
+            .marginAccounts(address(this));
 
         assertEq(shortCallId, 0);
         assertEq(shortCallAmount, 0);
@@ -120,14 +114,8 @@ contract TestSettleCall is AdvancedFixture {
         grappa.execute(amEngineId, address(this), actions);
 
         // margin account should be reset
-        (
-            uint256 shortCallId,
-            ,
-            uint64 shortCallAmount,
-            ,
-            uint80 collateralAfter,
-            uint8 collateralIdAfter
-        ) = amEngine.marginAccounts(address(this));
+        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAfter, uint8 collateralIdAfter) = amEngine
+            .marginAccounts(address(this));
 
         assertEq(shortCallId, 0);
         assertEq(shortCallAmount, 0);
@@ -216,14 +204,8 @@ contract TestSettleCoveredCall is AdvancedFixture {
         grappa.execute(amEngineId, address(this), actions);
 
         //margin account should be reset
-        (
-            uint256 shortCallId,
-            ,
-            uint64 shortCallAmount,
-            ,
-            uint80 collateralAfter,
-            uint8 collateralIdAfter
-        ) = amEngine.marginAccounts(address(this));
+        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAfter, uint8 collateralIdAfter) = amEngine
+            .marginAccounts(address(this));
 
         assertEq(shortCallId, 0);
         assertEq(shortCallAmount, 0);
@@ -246,14 +228,8 @@ contract TestSettleCoveredCall is AdvancedFixture {
         grappa.execute(amEngineId, address(this), actions);
 
         // margin account should be reset
-        (
-            uint256 shortCallId,
-            ,
-            uint64 shortCallAmount,
-            ,
-            uint80 collateralAfter,
-            uint8 collateralIdAfter
-        ) = amEngine.marginAccounts(address(this));
+        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAfter, uint8 collateralIdAfter) = amEngine
+            .marginAccounts(address(this));
 
         assertEq(shortCallId, 0);
         assertEq(shortCallAmount, 0);
@@ -585,14 +561,8 @@ contract TestSettleCallSpread is AdvancedFixture {
         grappa.execute(amEngineId, address(this), actions);
 
         //margin account should be reset
-        (
-            uint256 shortCallId,
-            ,
-            uint64 shortCallAmount,
-            ,
-            uint80 collateralAfter,
-            uint8 collateralIdAfter
-        ) = amEngine.marginAccounts(address(this));
+        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAfter, uint8 collateralIdAfter) = amEngine
+            .marginAccounts(address(this));
 
         assertEq(shortCallId, 0);
         assertEq(shortCallAmount, 0);
@@ -615,14 +585,8 @@ contract TestSettleCallSpread is AdvancedFixture {
         grappa.execute(amEngineId, address(this), actions);
 
         // margin account should be reset
-        (
-            uint256 shortCallId,
-            ,
-            uint64 shortCallAmount,
-            ,
-            uint80 collateralAfter,
-            uint8 collateralIdAfter
-        ) = amEngine.marginAccounts(address(this));
+        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAfter, uint8 collateralIdAfter) = amEngine
+            .marginAccounts(address(this));
 
         assertEq(shortCallId, 0);
         assertEq(shortCallAmount, 0);
@@ -645,14 +609,8 @@ contract TestSettleCallSpread is AdvancedFixture {
         grappa.execute(amEngineId, address(this), actions);
 
         // margin account should be reset
-        (
-            uint256 shortCallId,
-            ,
-            uint64 shortCallAmount,
-            ,
-            uint80 collateralAfter,
-            uint8 collateralIdAfter
-        ) = amEngine.marginAccounts(address(this));
+        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAfter, uint8 collateralIdAfter) = amEngine
+            .marginAccounts(address(this));
 
         assertEq(shortCallId, 0);
         assertEq(shortCallAmount, 0);
@@ -904,14 +862,8 @@ contract TestSettleBTCCollateralizedCall is AdvancedFixture {
         grappa.execute(amEngineId, address(this), actions);
 
         //margin account should be reset
-        (
-            uint256 shortCallId,
-            ,
-            uint64 shortCallAmount,
-            ,
-            uint80 collateralAfter,
-            uint8 collateralIdAfter
-        ) = amEngine.marginAccounts(address(this));
+        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAfter, uint8 collateralIdAfter) = amEngine
+            .marginAccounts(address(this));
 
         assertEq(shortCallId, 0);
         assertEq(shortCallAmount, 0);

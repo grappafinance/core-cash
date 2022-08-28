@@ -11,16 +11,15 @@ import "../../../config/errors.sol";
 
 // solhint-disable-next-line contract-name-camelcase
 contract TestAddCollateral_FM is FullMarginFixture {
-
     function setUp() public {
-      // approve engine
-      usdc.mint(address(this), 1000_000_000 * 1e6);
-      usdc.approve(address(fmEngine), type(uint256).max);
+        // approve engine
+        usdc.mint(address(this), 1000_000_000 * 1e6);
+        usdc.approve(address(fmEngine), type(uint256).max);
 
-      weth.mint(address(this), 100 * 1e18);
-      weth.approve(address(fmEngine), type(uint256).max);
+        weth.mint(address(this), 100 * 1e18);
+        weth.approve(address(fmEngine), type(uint256).max);
     }
-    
+
     function testAddCollateralChangeStorage() public {
         uint256 depositAmount = 1000 * 1e6;
 
