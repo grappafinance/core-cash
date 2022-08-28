@@ -2,63 +2,65 @@
 pragma solidity ^0.8.13;
 
 // import test base and helpers.
-import {AdvancedFixture} from "../../shared/AdvancedFixture.t.sol";
+import {FullMarginFixture} from "../../shared/FullMarginFixture.t.sol";
 
 import "../../../config/enums.sol";
 import "../../../config/types.sol";
 import "../../../config/constants.sol";
 import "../../../config/errors.sol";
 
-contract TestSplitCallSpread is AdvancedFixture {
+// solhint-disable-next-line contract-name-camelcase
+contract TestSplitCallSpread_FM is FullMarginFixture {
     uint256 public expiry;
     uint256 public strikePriceLow = 4000 * UNIT;
-    uint256 public strikePriceHigh = 4100 * UNIT;
-    uint256 public depositAmount = 100 * UNIT;
+    uint256 public strikePriceHigh = 5000 * UNIT;
+    uint256 public depositAmount = 0.2 ether;
     uint256 public amount = 1 * UNIT;
     uint256 public spreadId;
 
     function setUp() public {
-        usdc.mint(address(this), 1000_000 * 1e6);
-        usdc.approve(address(amEngine), type(uint256).max);
+        weth.mint(address(this), 100 ether);
+        weth.approve(address(fmEngine), type(uint256).max);
 
         expiry = block.timestamp + 7 days;
 
-        oracle.setSpotPrice(address(weth), 3000 * UNIT);
-
-        // mint a 4000-4100 debit spread
-        spreadId = getTokenId(TokenType.CALL_SPREAD, productId, expiry, strikePriceLow, strikePriceHigh);
+        // mint a 4000-5000 debit spread
+        spreadId = getTokenId(TokenType.CALL_SPREAD, pidEthCollat, expiry, strikePriceLow, strikePriceHigh);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
+        actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         actions[1] = createMintAction(spreadId, address(this), amount);
-        grappa.execute(amEngineId, address(this), actions);
+        grappa.execute(fmEngineId, address(this), actions);
     }
 
     function testSplitCallSpread() public {
         // split
+        uint256 amountToAdd = 1 ether - depositAmount;
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createSplitAction(spreadId, amount, address(this));
-        actions[1] = createAddCollateralAction(usdcId, address(this), depositAmount * 5); // will need to add collateral
-        grappa.execute(amEngineId, address(this), actions);
+        actions[1] = createAddCollateralAction(wethId, address(this), amountToAdd); // will need to add collateral
+        grappa.execute(fmEngineId, address(this), actions);
 
         // check result
-        (uint256 shortCallId, , , , , ) = amEngine.marginAccounts(address(this));
-        (TokenType tokenType, , , uint64 longStrike, uint64 shortStrike) = parseTokenId(shortCallId);
+        (uint256 shortId, uint64 shortAmount, , ) = fmEngine.marginAccounts(address(this));
+        (TokenType tokenType, , , uint64 longStrike, uint64 shortStrike) = parseTokenId(shortId);
 
         assertEq(uint8(tokenType), uint8(TokenType.CALL));
         assertEq(longStrike, strikePriceLow);
+        assertEq(shortAmount, amount);
         assertEq(shortStrike, 0);
     }
 
     function testSplitCallSpreadCreateNewCallToken() public {
+        uint256 amountToAdd = 1 ether - depositAmount;
         // split
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createSplitAction(spreadId, amount, address(this));
-        actions[1] = createAddCollateralAction(usdcId, address(this), depositAmount * 5); // will need to add collateral
-        grappa.execute(amEngineId, address(this), actions);
+        actions[1] = createAddCollateralAction(wethId, address(this), amountToAdd); // will need to add collateral
+        grappa.execute(fmEngineId, address(this), actions);
 
         // check result
-        uint256 expectedTokenId = getTokenId(TokenType.CALL, productId, expiry, strikePriceHigh, 0);
+        uint256 expectedTokenId = getTokenId(TokenType.CALL, pidEthCollat, expiry, strikePriceHigh, 0);
 
         assertEq(option.balanceOf(address(this), expectedTokenId), amount);
     }
@@ -69,11 +71,12 @@ contract TestSplitCallSpread is AdvancedFixture {
         actions[0] = createSplitAction(spreadId, amount, address(this));
 
         vm.expectRevert(GP_AccountUnderwater.selector);
-        grappa.execute(amEngineId, address(this), actions);
+        grappa.execute(fmEngineId, address(this), actions);
     }
 }
 
-contract TestSplitPutSpread is AdvancedFixture {
+// solhint-disable-next-line contract-name-camelcase
+contract TestSplitPutSpread_FM is FullMarginFixture {
     uint256 public expiry;
     uint256 public strikePriceHigh = 2000 * UNIT;
     uint256 public strikePriceLow = 1900 * UNIT;
@@ -83,31 +86,32 @@ contract TestSplitPutSpread is AdvancedFixture {
 
     function setUp() public {
         usdc.mint(address(this), 1000_000 * 1e6);
-        usdc.approve(address(amEngine), type(uint256).max);
+        usdc.approve(address(fmEngine), type(uint256).max);
 
         expiry = block.timestamp + 7 days;
 
         oracle.setSpotPrice(address(weth), 3000 * UNIT);
 
         // mint a 2000-1900 debit spread
-        spreadId = getTokenId(TokenType.PUT_SPREAD, productId, expiry, strikePriceHigh, strikePriceLow);
+        spreadId = getTokenId(TokenType.PUT_SPREAD, pidUsdcCollat, expiry, strikePriceHigh, strikePriceLow);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(spreadId, address(this), amount);
-        grappa.execute(amEngineId, address(this), actions);
+        grappa.execute(fmEngineId, address(this), actions);
     }
 
     function testSplitPutSpread() public {
+        uint256 amountToAdd = strikePriceHigh - depositAmount;
         // split
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createSplitAction(spreadId, amount, address(this));
-        actions[1] = createAddCollateralAction(usdcId, address(this), depositAmount * 5); // will need to add collateral
-        grappa.execute(amEngineId, address(this), actions);
+        actions[1] = createAddCollateralAction(usdcId, address(this), amountToAdd); // will need to add collateral
+        grappa.execute(fmEngineId, address(this), actions);
 
         // check result
-        (, uint256 shortPutId, , , , ) = amEngine.marginAccounts(address(this));
-        (TokenType tokenType, , , uint64 longStrike, uint64 shortStrike) = parseTokenId(shortPutId);
+        (uint256 shortId, , , ) = fmEngine.marginAccounts(address(this));
+        (TokenType tokenType, , , uint64 longStrike, uint64 shortStrike) = parseTokenId(shortId);
 
         assertEq(uint8(tokenType), uint8(TokenType.PUT));
         assertEq(longStrike, strikePriceHigh);
@@ -115,14 +119,15 @@ contract TestSplitPutSpread is AdvancedFixture {
     }
 
     function testSplitCallSpreadCreateNewCallToken() public {
+        uint256 amountToAdd = strikePriceHigh - depositAmount;
         // split
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createSplitAction(spreadId, amount, address(this));
-        actions[1] = createAddCollateralAction(usdcId, address(this), depositAmount * 5); // will need to add collateral
-        grappa.execute(amEngineId, address(this), actions);
+        actions[1] = createAddCollateralAction(usdcId, address(this), amountToAdd); // will need to add collateral
+        grappa.execute(fmEngineId, address(this), actions);
 
         // check result
-        uint256 expectedTokenId = getTokenId(TokenType.PUT, productId, expiry, strikePriceLow, 0);
+        uint256 expectedTokenId = getTokenId(TokenType.PUT, pidUsdcCollat, expiry, strikePriceLow, 0);
 
         assertEq(option.balanceOf(address(this), expectedTokenId), amount);
     }
@@ -133,25 +138,25 @@ contract TestSplitPutSpread is AdvancedFixture {
         actions[0] = createSplitAction(spreadId, amount, address(this));
 
         vm.expectRevert(GP_AccountUnderwater.selector);
-        grappa.execute(amEngineId, address(this), actions);
+        grappa.execute(fmEngineId, address(this), actions);
     }
 
     function testCannotSplitNonExistingSpreadId() public {
         uint256 fakeLongStrike = strikePriceHigh - (50 * UNIT);
-        uint256 fakeSpreadId = getTokenId(TokenType.PUT_SPREAD, productId, expiry, fakeLongStrike, strikePriceLow);
+        uint256 fakeSpreadId = getTokenId(TokenType.PUT_SPREAD, pidEthCollat, expiry, fakeLongStrike, strikePriceLow);
 
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSplitAction(fakeSpreadId, amount, address(this));
 
-        vm.expectRevert(AM_InvalidToken.selector);
-        grappa.execute(amEngineId, address(this), actions);
+        vm.expectRevert(FM_InvalidToken.selector);
+        grappa.execute(fmEngineId, address(this), actions);
     }
 
     function testCannotSplitWithWrongAmount() public {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSplitAction(spreadId, amount / 2, address(this));
 
-        vm.expectRevert(AM_SplitAmountMisMatch.selector);
-        grappa.execute(amEngineId, address(this), actions);
+        vm.expectRevert(FM_SplitAmountMisMatch.selector);
+        grappa.execute(fmEngineId, address(this), actions);
     }
 }

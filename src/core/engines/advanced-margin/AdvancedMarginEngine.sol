@@ -29,9 +29,9 @@ import "../../../config/errors.sol";
 /**
  * @title   AdvancedMarginEngine
  * @author  @antoncoding
- * @notice  AdvancedMarginEngine is in charge of maintaining margin requirement for each "account"
-            Users can deposit collateral into AdvancedMarginEngine and mint optionTokens (debt) out of it.
-            Interacts with Oracle to read spot price for assets and vol.
+ * @notice  AdvancedMarginEngine is in charge of maintaining margin requirement for partial collateralized options
+            Please see AdvancedMarginMath.sol for detailed partial collat calculation
+            Interacts with VolOracle to read vol
             Listen to calls from Grappa to update accountings
  */
 contract AdvancedMarginEngine is IMarginEngine, Ownable {
@@ -85,7 +85,7 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * todo: consider movomg this to viewer contract
+     * todo: consider moving this to viewer contract
      * @notice get minimum collateral needed for a margin account
      * @param _subAccount account id.
      * @return minCollateral minimum collateral required, in collateral asset's decimals
@@ -166,7 +166,7 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
         // address collateral = grappa.assets(account.collateralId);
         collateralToPay = uint80((account.collateralAmount * portionBPS) / BPS);
 
-        collateral = grappa.assets(account.collateralId);
+        collateral = grappa.assets(account.collateralId).addr;
 
         // if liquidator is trying to remove more collateral than owned, this line will revert
         account.removeCollateralMemory(collateralToPay);

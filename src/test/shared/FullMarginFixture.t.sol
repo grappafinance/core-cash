@@ -7,8 +7,7 @@ import "../../test/mocks/MockERC20.sol";
 import "../../test/mocks/MockOracle.sol";
 import "../../test/mocks/MockChainlinkAggregator.sol";
 
-import "../../core/engines/advanced-margin/AdvancedMarginEngine.sol";
-import "../../core/engines/advanced-margin/VolOracle.sol";
+import "../../core/engines/full-margin/FullMarginEngine.sol";
 import "../../core/Grappa.sol";
 import "../../core/OptionToken.sol";
 
@@ -21,8 +20,11 @@ import {ActionHelper} from "../../test/shared/ActionHelper.sol";
 
 // solhint-disable max-states-count
 
-abstract contract AdvancedFixture is Test, ActionHelper, Utilities {
-    AdvancedMarginEngine internal amEngine;
+/**
+ * helper contract for full margin integration test to inherit.
+ */
+abstract contract FullMarginFixture is Test, ActionHelper, Utilities {
+    FullMarginEngine internal fmEngine;
     Grappa internal grappa;
     OptionToken internal option;
 
@@ -31,24 +33,20 @@ abstract contract AdvancedFixture is Test, ActionHelper, Utilities {
 
     MockOracle internal oracle;
 
-    VolOracle public volOracle;
-    MockChainlinkAggregator public ethVolAggregator;
-    MockChainlinkAggregator public wbtcVolAggregator;
-
     address internal alice;
     address internal charlie;
     address internal bob;
 
     // usdc collateralized call / put
-    uint32 internal productId;
+    uint32 internal pidUsdcCollat;
 
     // eth collateralized call / put
-    uint32 internal productIdEthCollat;
+    uint32 internal pidEthCollat;
 
     uint8 internal usdcId;
     uint8 internal wethId;
 
-    uint8 internal amEngineId;
+    uint8 internal fmEngineId;
 
     constructor() {
         usdc = new MockERC20("USDC", "USDC", 6); // nonce: 1
@@ -64,29 +62,16 @@ abstract contract AdvancedFixture is Test, ActionHelper, Utilities {
 
         grappa = new Grappa(address(option), address(oracle)); // nonce: 5
 
-        volOracle = new VolOracle();
-
-        amEngine = new AdvancedMarginEngine(address(grappa), address(oracle), address(volOracle)); // nonce 6
-
-        // mock vol oracles
-        ethVolAggregator = new MockChainlinkAggregator(6);
-        // wbtcVolAggregator = new MockChainlinkAggregator(6);
-        volOracle.setAssetAggregator(address(weth), address(ethVolAggregator));
-        ethVolAggregator.setMockState(0, 1e6, block.timestamp);
+        fmEngine = new FullMarginEngine(address(grappa)); // nonce 6
 
         // register products
         usdcId = grappa.registerAsset(address(usdc));
         wethId = grappa.registerAsset(address(weth));
 
-        amEngineId = grappa.registerEngine(address(amEngine));
+        fmEngineId = grappa.registerEngine(address(fmEngine));
 
-        // amEngineId = grappa.registerEngine(address(amEngine));
-
-        productId = grappa.getProductId(amEngineId, address(weth), address(usdc), address(usdc));
-        productIdEthCollat = grappa.getProductId(amEngineId, address(weth), address(usdc), address(weth));
-
-        amEngine.setProductMarginConfig(productId, 180 days, 1 days, 6400, 800, 10000);
-        amEngine.setProductMarginConfig(productIdEthCollat, 180 days, 1 days, 6400, 800, 10000);
+        pidUsdcCollat = grappa.getProductId(fmEngineId, address(weth), address(usdc), address(usdc));
+        pidEthCollat = grappa.getProductId(fmEngineId, address(weth), address(usdc), address(weth));
 
         charlie = address(0xcccc);
         vm.label(charlie, "Charlie");
@@ -129,20 +114,16 @@ abstract contract AdvancedFixture is Test, ActionHelper, Utilities {
 
         usdc.mint(anon, lotOfCollateral);
         weth.mint(anon, lotOfCollateral);
-        usdc.approve(address(amEngine), type(uint256).max);
-        weth.approve(address(amEngine), type(uint256).max);
+        usdc.approve(address(fmEngine), type(uint256).max);
+        weth.approve(address(fmEngine), type(uint256).max);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
 
-        uint8 collateralId;
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            collateralId := shr(8, _productId)
-        }
+        uint8 collateralId = uint8(_productId);
 
         actions[0] = createAddCollateralAction(collateralId, address(anon), lotOfCollateral);
         actions[1] = createMintAction(_tokenId, address(_recipient), _amount);
-        grappa.execute(amEngineId, address(anon), actions);
+        grappa.execute(fmEngineId, address(anon), actions);
 
         vm.stopPrank();
     }

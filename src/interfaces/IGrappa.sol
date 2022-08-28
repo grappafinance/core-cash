@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "../config/types.sol";
+
 interface IGrappa {
     function getDetailFromProductId(uint32 _productId)
         external
@@ -13,7 +15,7 @@ interface IGrappa {
             uint8 collateralDecimals
         );
 
-    function assets(uint8 _id) external view returns (address asset);
+    function assets(uint8 _id) external view returns (AssetDetail memory asset);
 
     function getPayout(uint256 tokenId, uint64 amount)
         external

@@ -10,7 +10,7 @@ import "../../../config/errors.sol";
 
 /**
  * @title   AdvancedMarginMath
- * @notice  this library is in charge of calculating the min collateral for a given simple margin account
+ * @notice  this library is in charge of calculating the min collateral for a given advanced margin account
  *
  *                  sqrt(expiry - now) - sqrt(D_lower)
  * M = (r_lower + -------------------------------------  * (r_upper - r_lower))  * vol * v_multiplier

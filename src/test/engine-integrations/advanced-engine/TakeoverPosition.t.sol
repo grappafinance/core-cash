@@ -23,13 +23,13 @@ import "forge-std/console2.sol";
 
 //     function setUp() public {
 //         usdc.mint(address(this), 1000_000 * 1e6);
-//         usdc.approve(address(marginEngine), type(uint256).max);
+//         usdc.approve(address(amEngine), type(uint256).max);
 
 //         // setup account for alice
 //         vm.startPrank(alice);
 //         usdc.mint(alice, 1000_000 * 1e6);
 
-//         usdc.approve(address(marginEngine), type(uint256).max);
+//         usdc.approve(address(amEngine), type(uint256).max);
 
 //         expiry = block.timestamp + 7 days;
 
@@ -48,28 +48,28 @@ import "forge-std/console2.sol";
 //         actions[1] = createMintAction(tokenId, alice, amount);
 
 //         // mint option
-//         grappa.execute(engineId, accountId, actions);
+//         grappa.execute(amEngineId, accountId, actions);
 
 //         vm.stopPrank();
 //     }
 
 //     function testCannotTakeoverHealthyVault() public {
 //         vm.expectRevert(AM_AccountIsHealthy.selector);
-//         marginEngine.takeoverPosition(accountId, address(this), 0);
+//         amEngine.takeoverPosition(accountId, address(this), 0);
 //     }
 
 //     function testCannotTakeoverPositionWithoutPayingCollateral() public {
 //         oracle.setSpotPrice(address(weth), 3800 * UNIT);
 
 //         vm.expectRevert(GP_AccountUnderwater.selector);
-//         marginEngine.takeoverPosition(accountId, address(this), 0);
+//         amEngine.takeoverPosition(accountId, address(this), 0);
 //     }
 
 //     function testCannotTakeoverPositionWithoutPayingEnoughCollateral() public {
 //         oracle.setSpotPrice(address(weth), 3800 * UNIT);
 
 //         vm.expectRevert(GP_AccountUnderwater.selector);
-//         marginEngine.takeoverPosition(accountId, address(this), uint80(50 * 1e6));
+//         amEngine.takeoverPosition(accountId, address(this), uint80(50 * 1e6));
 //     }
 
 //     function testTakeoverPosition() public {
@@ -77,10 +77,10 @@ import "forge-std/console2.sol";
 
 //         uint80 tapUpAmount = 300 * 1e6;
 
-//         marginEngine.takeoverPosition(accountId, address(this), tapUpAmount);
+//         amEngine.takeoverPosition(accountId, address(this), tapUpAmount);
 
 //         // old margin account should be reset
-//         (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAmount, uint8 collateralId) = marginEngine
+//         (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAmount, uint8 collateralId) = amEngine
 //             .marginAccounts(accountId);
 
 //         assertEq(shortCallId, 0);
@@ -89,7 +89,7 @@ import "forge-std/console2.sol";
 //         assertEq(collateralId, 0);
 
 //         // new margin account should be updated
-//         (shortCallId, , shortCallAmount, , collateralAmount, collateralId) = marginEngine.marginAccounts(address(this));
+//         (shortCallId, , shortCallAmount, , collateralAmount, collateralId) = amEngine.marginAccounts(address(this));
 
 //         assertEq(shortCallId, tokenId);
 //         assertEq(shortCallAmount, amount);

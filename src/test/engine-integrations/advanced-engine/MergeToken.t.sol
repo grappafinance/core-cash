@@ -19,7 +19,7 @@ contract TestMergeOption is AdvancedFixture {
 
     function setUp() public {
         usdc.mint(address(this), 1000_000 * 1e6);
-        usdc.approve(address(marginEngine), type(uint256).max);
+        usdc.approve(address(amEngine), type(uint256).max);
 
         expiry = block.timestamp + 14 days;
 
@@ -31,7 +31,7 @@ contract TestMergeOption is AdvancedFixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(existingTokenId, address(this), amount);
-        grappa.execute(engineId, address(this), actions);
+        grappa.execute(amEngineId, address(this), actions);
     }
 
     function testMergeCallChangeStorage() public {
@@ -44,10 +44,10 @@ contract TestMergeOption is AdvancedFixture {
         // merge
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createMergeAction(newTokenId, existingTokenId, address(this), amount);
-        grappa.execute(engineId, address(this), actions);
+        grappa.execute(amEngineId, address(this), actions);
 
         // check result
-        (uint256 shortCallId, , , , , ) = marginEngine.marginAccounts(address(this));
+        (uint256 shortCallId, , , , , ) = amEngine.marginAccounts(address(this));
         (TokenType newType, , , uint64 longStrike, uint64 shortStrike) = parseTokenId(shortCallId);
 
         assertEq(uint8(newType), uint8(TokenType.CALL_SPREAD));
@@ -67,7 +67,7 @@ contract TestMergeOption is AdvancedFixture {
         actions[0] = createMergeAction(newTokenId, existingTokenId, address(this), wrongAmount);
 
         vm.expectRevert(AM_MergeAmountMisMatch.selector);
-        grappa.execute(engineId, address(this), actions);
+        grappa.execute(amEngineId, address(this), actions);
     }
 
     function testCannotMergeWithWrongShortId() public {
@@ -82,7 +82,7 @@ contract TestMergeOption is AdvancedFixture {
         actions[0] = createMergeAction(newTokenId, wrongShort, address(this), amount);
 
         vm.expectRevert(AM_ShortDoesnotExist.selector);
-        grappa.execute(engineId, address(this), actions);
+        grappa.execute(amEngineId, address(this), actions);
     }
 
     function testCanMergeForAccountOwnerFromAuthorizedAccount() public {
@@ -98,10 +98,10 @@ contract TestMergeOption is AdvancedFixture {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createMergeAction(newTokenId, existingTokenId, address(this), amount);
         vm.prank(alice);
-        grappa.execute(engineId, address(this), actions);
+        grappa.execute(amEngineId, address(this), actions);
 
         // check result
-        (uint256 shortCallId, , , , , ) = marginEngine.marginAccounts(address(this));
+        (uint256 shortCallId, , , , , ) = amEngine.marginAccounts(address(this));
         (, , , uint64 longStrike, uint64 shortStrike) = parseTokenId(shortCallId);
 
         assertTrue(shortCallId != newTokenId);
@@ -119,7 +119,7 @@ contract TestMergeOption is AdvancedFixture {
         actions[0] = createMergeAction(newTokenId, existingTokenId, address(alice), amount);
 
         vm.expectRevert(GP_InvalidFromAddress.selector);
-        grappa.execute(engineId, address(this), actions);
+        grappa.execute(amEngineId, address(this), actions);
     }
 
     function testMergeIntoCreditSpreadCanRemoveCollateral() public {
@@ -133,7 +133,7 @@ contract TestMergeOption is AdvancedFixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createMergeAction(newTokenId, existingTokenId, address(this), amount);
         actions[1] = createRemoveCollateralAction(amountToRemove, usdcId, address(this));
-        grappa.execute(engineId, address(this), actions);
+        grappa.execute(amEngineId, address(this), actions);
 
         //action should not revert
     }
@@ -147,7 +147,7 @@ contract TestMergeOption is AdvancedFixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createMergeAction(newTokenId, existingTokenId, address(this), amount);
         actions[1] = createRemoveCollateralAction(depositAmount, usdcId, address(this));
-        grappa.execute(engineId, address(this), actions);
+        grappa.execute(amEngineId, address(this), actions);
 
         //action should not revert
     }
