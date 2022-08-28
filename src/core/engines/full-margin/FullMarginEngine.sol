@@ -19,8 +19,8 @@ import {TokenIdUtil} from "../../../libraries/TokenIdUtil.sol";
 import {ProductIdUtil} from "../../../libraries/ProductIdUtil.sol";
 import {NumberUtil} from "../../../libraries/NumberUtil.sol";
 
-import {SimpleMarginMath} from "./SimpleMarginMath.sol";
-import {SimpleMarginLib} from "./SimpleMarginLib.sol";
+import {FullMarginMath} from "./FullMarginMath.sol";
+import {FullMarginLib} from "./FullMarginLib.sol";
 
 // constants and types
 import "../../../config/types.sol";
@@ -29,15 +29,15 @@ import "../../../config/constants.sol";
 import "../../../config/errors.sol";
 
 /**
- * @title   SimpleMarginEngine
+ * @title   FullMarginEngine
  * @author  @antoncoding
  * @notice  Fully collateralized margin engine
-            Users can deposit collateral into SimpleMargin and mint optionTokens (debt) out of it.
+            Users can deposit collateral into FullMargin and mint optionTokens (debt) out of it.
             Listen to calls from Grappa to update accountings
  */
-contract SimpleMarginEngine is IMarginEngine, Ownable {
-    using SimpleMarginLib for SimpleMarginAccount;
-    using SimpleMarginMath for SimpleMarginDetail;
+contract FullMarginEngine is IMarginEngine, Ownable {
+    using FullMarginLib for FullMarginAccount;
+    using FullMarginMath for FullMarginDetail;
     using SafeERC20 for IERC20;
     using FixedPointMathLib for uint256;
     using NumberUtil for uint256;
@@ -47,10 +47,10 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
                                   Variables
     //////////////////////////////////////////////////////////////*/
 
-    ///@dev subAccount => SimpleMarginAccount structure.
+    ///@dev subAccount => FullMarginAccount structure.
     ///     subAccount can be an address similar to the primary account, but has the last 8 bits different.
     ///     this give every account access to 256 sub-accounts
-    mapping(address => SimpleMarginAccount) public marginAccounts;
+    mapping(address => FullMarginAccount) public marginAccounts;
 
     // solhint-disable-next-line no-empty-blocks
     constructor(address _grappa) {
@@ -80,8 +80,8 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
      * @return minCollateral minimum collateral required, in collateral asset's decimals
      */
     function getMinCollateral(address _subAccount) external view returns (uint256 minCollateral) {
-        SimpleMarginAccount memory account = marginAccounts[_subAccount];
-        SimpleMarginDetail memory detail = _getAccountDetail(account);
+        FullMarginAccount memory account = marginAccounts[_subAccount];
+        FullMarginDetail memory detail = _getAccountDetail(account);
         minCollateral = detail.getMinCollateral();
     }
 
@@ -251,7 +251,7 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
         // this will NOT revert even if account has less collateral than it should have reserved for payout.
         _assertCallerIsGrappa();
 
-        SimpleMarginAccount memory account = marginAccounts[_subAccount];
+        FullMarginAccount memory account = marginAccounts[_subAccount];
 
         uint80 reservedPayout = _getPayoutFromAccount(account);
 
@@ -282,8 +282,8 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
      * @param account account structure in memory
      * @return isHealthy true if account is in good condition, false if it's liquidatable
      */
-    function _isAccountHealthy(SimpleMarginAccount memory account) internal view returns (bool isHealthy) {
-        SimpleMarginDetail memory detail = _getAccountDetail(account);
+    function _isAccountHealthy(FullMarginAccount memory account) internal view returns (bool isHealthy) {
+        FullMarginDetail memory detail = _getAccountDetail(account);
         uint256 minCollateral = detail.getMinCollateral();
         isHealthy = account.collateralAmount >= minCollateral;
     }
@@ -293,7 +293,7 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
      * @dev     this function will revert when called before expiry
      * @param _account account memory
      */
-    function _getPayoutFromAccount(SimpleMarginAccount memory _account) internal view returns (uint80 reservedPayout) {
+    function _getPayoutFromAccount(FullMarginAccount memory _account) internal view returns (uint80 reservedPayout) {
         (, , uint256 payout) = grappa.getPayout(_account.tokenId, _account.shortAmount);
 
         return uint80(payout);
@@ -302,10 +302,10 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
     /**
      * @notice  convert Account struct from storage to in-memory detail struct
      */
-    function _getAccountDetail(SimpleMarginAccount memory account)
+    function _getAccountDetail(FullMarginAccount memory account)
         internal
         view
-        returns (SimpleMarginDetail memory detail)
+        returns (FullMarginDetail memory detail)
     {
         (TokenType tokenType, uint32 productId, , uint64 longStrike, uint64 shortStrike) = TokenIdUtil.parseTokenId(
             account.tokenId
@@ -315,7 +315,7 @@ contract SimpleMarginEngine is IMarginEngine, Ownable {
 
         uint8 collateralDecimals = grappa.assets(collateralId).decimals;
 
-        detail = SimpleMarginDetail({
+        detail = FullMarginDetail({
             shortAmount: account.shortAmount,
             longStrike: shortStrike,
             shortStrike: longStrike,

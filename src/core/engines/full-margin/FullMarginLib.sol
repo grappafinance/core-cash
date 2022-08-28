@@ -10,24 +10,24 @@ import "../../../config/constants.sol";
 import "../../../config/errors.sol";
 
 /**
- * @title SimpleMarginLib
+ * @title FullMarginLib
  * @dev   This library is in charge of updating the simple account storage struct and do validations
  */
-library SimpleMarginLib {
+library FullMarginLib {
     using TokenIdUtil for uint256;
     using ProductIdUtil for uint32;
 
     /**
      * @dev return true if the account has no short positions nor collateral
      */
-    function isEmpty(SimpleMarginAccount storage account) internal view returns (bool) {
+    function isEmpty(FullMarginAccount storage account) internal view returns (bool) {
         return account.collateralAmount == 0 && account.shortAmount == 0;
     }
 
     ///@dev Increase the collateral in the account
-    ///@param account SimpleMarginAccount storage that will be updated
+    ///@param account FullMarginAccount storage that will be updated
     function addCollateral(
-        SimpleMarginAccount storage account,
+        FullMarginAccount storage account,
         uint80 amount,
         uint8 collateralId
     ) internal {
@@ -40,9 +40,9 @@ library SimpleMarginLib {
     }
 
     ///@dev Reduce the collateral in the account
-    ///@param account SimpleMarginAccount storage that will be updated
+    ///@param account FullMarginAccount storage that will be updated
     function removeCollateral(
-        SimpleMarginAccount storage account,
+        FullMarginAccount storage account,
         uint80 amount,
         uint8 collateralId
     ) internal {
@@ -55,9 +55,9 @@ library SimpleMarginLib {
     }
 
     ///@dev Increase the amount of short call or put (debt) of the account
-    ///@param account SimpleMarginAccount storage that will be updated
+    ///@param account FullMarginAccount storage that will be updated
     function mintOption(
-        SimpleMarginAccount storage account,
+        FullMarginAccount storage account,
         uint256 tokenId,
         uint64 amount
     ) internal {
@@ -88,9 +88,9 @@ library SimpleMarginLib {
     }
 
     ///@dev Remove the amount of short call or put (debt) of the account
-    ///@param account SimpleMarginAccount storage that will be updated in-place
+    ///@param account FullMarginAccount storage that will be updated in-place
     function burnOption(
-        SimpleMarginAccount storage account,
+        FullMarginAccount storage account,
         uint256 tokenId,
         uint64 amount
     ) internal {
@@ -102,13 +102,13 @@ library SimpleMarginLib {
 
     ///@dev merge an OptionToken into the accunt, changing existing short to spread
     ///@dev shortId and longId already have the same optionType, productId, expiry
-    ///@param account SimpleMarginAccount storage that will be updated in-place
+    ///@param account FullMarginAccount storage that will be updated in-place
     ///@param shortId existing short position to be converted into spread
     ///@param longId token to be "added" into the account. This is expected to have the same time of the exisiting short type.
     ///               e.g: if the account currenly have short call, we can added another "call token" into the account
     ///               and convert the short position to a spread.
     function merge(
-        SimpleMarginAccount storage account,
+        FullMarginAccount storage account,
         uint256 shortId,
         uint256 longId,
         uint64 amount
@@ -123,10 +123,10 @@ library SimpleMarginLib {
     }
 
     ///@dev split an accunt's spread position into short + 1 token
-    ///@param account SimpleMarginAccount storage that will be updated in-place
+    ///@param account FullMarginAccount storage that will be updated in-place
     ///@param spreadId id of spread to be parsed
     function split(
-        SimpleMarginAccount storage account,
+        FullMarginAccount storage account,
         uint256 spreadId,
         uint64 amount
     ) internal {
@@ -138,7 +138,7 @@ library SimpleMarginLib {
         account.tokenId = TokenIdUtil.convertToVanillaId(spreadId);
     }
 
-    function settleAtExpiry(SimpleMarginAccount storage account, uint80 _payout) internal {
+    function settleAtExpiry(FullMarginAccount storage account, uint80 _payout) internal {
         // clear all debt
         account.tokenId = 0;
         account.shortAmount = 0;

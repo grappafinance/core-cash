@@ -3,14 +3,14 @@ pragma solidity =0.8.13;
 
 import "./enums.sol";
 
-struct SimpleMarginAccount {
+struct FullMarginAccount {
     uint256 tokenId;
     uint64 shortAmount;
     uint80 collateralAmount;
     uint8 collateralId;
 }
 
-struct SimpleMarginDetail {
+struct FullMarginDetail {
     uint256 shortAmount;
     uint256 longStrike;
     uint256 shortStrike;
