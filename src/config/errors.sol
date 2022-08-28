@@ -44,11 +44,10 @@ error GP_CanOnlySplitSpread();
 /// @dev fully collateralized account cannot be liquidated
 error FM_No_Liquidation();
 
-/// @dev invalid collateral for call: call can only be collateralized by underlying
-error FM_CallsNeedToCollateralizedWithUnderlying();
-
-/// @dev invalid collateral for put: put can only be collateralized by strike
-error FM_PutsNeedToCollateralizedWithStrike();
+/// @dev invalid collateral:
+///         call can only be collateralized by underlying
+///         put can only be collateralized by strike
+error FM_CannotMintOptionWithThisCollateral();
 
 /// @dev collateral id is wrong: the id doesn't match the existing collateral
 error FM_WrongCollateralId();

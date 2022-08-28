@@ -38,10 +38,10 @@ abstract contract FullMarginFixture is Test, ActionHelper, Utilities {
     address internal bob;
 
     // usdc collateralized call / put
-    uint32 internal productId;
+    uint32 internal pidUsdcCollat;
 
     // eth collateralized call / put
-    uint32 internal productIdEthCollat;
+    uint32 internal pidEthCollat;
 
     uint8 internal usdcId;
     uint8 internal wethId;
@@ -70,8 +70,8 @@ abstract contract FullMarginFixture is Test, ActionHelper, Utilities {
 
         fmEngineId = grappa.registerEngine(address(fmEngine));
 
-        productId = grappa.getProductId(fmEngineId, address(weth), address(usdc), address(usdc));
-        productIdEthCollat = grappa.getProductId(fmEngineId, address(weth), address(usdc), address(weth));
+        pidUsdcCollat = grappa.getProductId(fmEngineId, address(weth), address(usdc), address(usdc));
+        pidEthCollat = grappa.getProductId(fmEngineId, address(weth), address(usdc), address(weth));
 
         charlie = address(0xcccc);
         vm.label(charlie, "Charlie");

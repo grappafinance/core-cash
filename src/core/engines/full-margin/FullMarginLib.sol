@@ -66,11 +66,12 @@ library FullMarginLib {
         // assign collateralId or check collateral id is the same
         (, uint8 underlyingId, uint8 strikeId, uint8 collateralId) = productId.parseProductId();
 
+        // todo: allow minting call spread with usdc?
         if ((optionType == TokenType.CALL_SPREAD || optionType == TokenType.CALL) && underlyingId != collateralId)
-            revert FM_CallsNeedToCollateralizedWithUnderlying();
+            revert FM_CannotMintOptionWithThisCollateral();
 
         if ((optionType == TokenType.PUT_SPREAD || optionType == TokenType.PUT) && strikeId != collateralId)
-            revert FM_PutsNeedToCollateralizedWithStrike();
+            revert FM_CannotMintOptionWithThisCollateral();
 
         // todo: make it parse and check
         checkTokenIdTypeAndStrike(optionType, longStrike, shortStrike);
