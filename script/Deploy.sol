@@ -69,8 +69,8 @@ contract Deploy is Script, Utilities {
         console.log("advancedMarginEngine", advancedMarginEngine);
 
         // setup
-        uint8 engineId1 = Grappa(grappa).registerEngine(advancedMarginEngine);
-        console.log("advancedMargin engine registered, id:", engineId1);
+        uint8 amEngineId1 = Grappa(grappa).registerEngine(advancedMarginEngine);
+        console.log("advancedMargin engine registered, id:", amEngineId1);
 
         // todo: setup vol oracles
     }

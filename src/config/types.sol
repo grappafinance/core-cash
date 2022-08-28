@@ -6,8 +6,8 @@ import "./enums.sol";
 struct FullMarginAccount {
     uint256 tokenId;
     uint64 shortAmount;
-    uint80 collateralAmount;
     uint8 collateralId;
+    uint80 collateralAmount;
 }
 
 struct FullMarginDetail {
