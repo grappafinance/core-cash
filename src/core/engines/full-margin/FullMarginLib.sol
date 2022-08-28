@@ -144,14 +144,9 @@ library FullMarginLib {
         account.tokenId = 0;
         account.shortAmount = 0;
 
-        if (account.collateralAmount > _payout) {
-            unchecked {
-                account.collateralAmount = account.collateralAmount - _payout;
-            }
-        } else {
-            // the account doesn't have enough to payout, result in protocol loss
-            account.collateralAmount = 0;
-        }
+        // this line should not underflow because collateral should always be enough
+        // but keeping the underflow check to make sure
+        account.collateralAmount = account.collateralAmount - _payout;
     }
 
     function checkTokenIdTypeAndStrike(
