@@ -42,5 +42,8 @@ contract TestLiquidate_FM is FullMarginFixture {
         amounts[0] = 0;
         vm.expectRevert(FM_NoLiquidation.selector);
         grappa.liquidate(address(fmEngine), address(this), ids, amounts);
+
+        assertEq(fmEngine.getMinCollateral(address(this)), collatAmount);
+        assertEq(fmEngine.isAccountHealthy(address(this)), true);
     }
 }
