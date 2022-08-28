@@ -21,11 +21,7 @@ library FullMarginMath {
      * @param _account margin account
      * @return minCollatValueInStrike minimum collateral in strike (USD) value. with {BASE_UNIT} decimals
      */
-    function getMinCollateral(FullMarginDetail memory _account)
-        internal
-        pure
-        returns (uint256 minCollatValueInStrike)
-    {
+    function getMinCollateral(FullMarginDetail memory _account) internal pure returns (uint256 minCollatValueInStrike) {
         // don't need collateral
         if (_account.shortAmount == 0) return 0;
 
