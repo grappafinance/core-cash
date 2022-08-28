@@ -98,7 +98,7 @@ library FullMarginLib {
         if (account.tokenId != tokenId) revert FM_InvalidToken();
 
         account.shortAmount -= amount;
-        if (account.shortAmount == 0) account.shortAmount = 0;
+        if (account.shortAmount == 0) account.tokenId = 0;
     }
 
     ///@dev merge an OptionToken into the accunt, changing existing short to spread
