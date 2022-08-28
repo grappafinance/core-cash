@@ -372,6 +372,119 @@ contract TestSettleCallSpread_FM is FullMarginFixture {
     }
 }
 
+// call spread settled with strike asset
+// solhint-disable-next-line contract-name-camelcase
+contract TestSettleCallStrikeSpread_FM is FullMarginFixture {
+    uint256 public expiry;
+
+    uint64 private amount = uint64(1 * UNIT);
+    uint256 private tokenId;
+    uint64 private longStrike;
+    uint64 private shortStrike;
+
+    function setUp() public {
+        usdc.mint(address(this), 1000 ether);
+        usdc.approve(address(fmEngine), type(uint256).max);
+
+        expiry = block.timestamp + 14 days;
+
+        oracle.setSpotPrice(address(weth), 3000 * UNIT);
+
+        // mint option
+        uint256 depositAmount = 1000 * 1e6;
+
+        longStrike = uint64(4000 * UNIT);
+        shortStrike = uint64(5000 * UNIT);
+
+        tokenId = getTokenId(TokenType.CALL_SPREAD, pidUsdcCollat, expiry, longStrike, shortStrike);
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
+        // give optoin to alice
+        actions[1] = createMintAction(tokenId, alice, amount);
+
+        // mint option
+        grappa.execute(fmEngineId, address(this), actions);
+
+        // expire option
+        vm.warp(expiry);
+    }
+
+    function testShouldGetNothingIfExpiresOTM() public {
+        // expires out the money
+        oracle.setExpiryPrice(address(weth), address(usdc), longStrike);
+        uint256 usdcBefore = usdc.balanceOf(alice);
+        uint256 optionBefore = option.balanceOf(alice, tokenId);
+
+        grappa.settleOption(alice, tokenId, amount);
+
+        uint256 usdcAfter = usdc.balanceOf(alice);
+        uint256 optionAfter = option.balanceOf(alice, tokenId);
+
+        assertEq(usdcBefore, usdcAfter);
+        assertEq(optionBefore, optionAfter + amount);
+    }
+
+    function testShouldGetPayoutDifferenceBetweenSpotAndLongStrike() public {
+        // expires in the money, not higher than upper bond
+        uint256 expiryPrice = 4100 * UNIT;
+        oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
+
+        uint256 expectedPayout = ((uint64(expiryPrice) - longStrike));
+        uint256 usdcBefore = usdc.balanceOf(alice);
+        uint256 optionBefore = option.balanceOf(alice, tokenId);
+
+        grappa.settleOption(alice, tokenId, amount);
+
+        uint256 usdcAfter = usdc.balanceOf(alice);
+        uint256 optionAfter = option.balanceOf(alice, tokenId);
+
+        assertEq(usdcBefore + expectedPayout, usdcAfter);
+        assertEq(optionBefore, optionAfter + amount);
+    }
+
+    function testPayoutShouldBeCappedAtShortStrike() public {
+        // expires in the money, higher than upper bond
+        uint256 expiryPrice = 5200 * UNIT;
+        oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
+
+        uint256 expectedPayout = ((uint64(shortStrike) - longStrike));
+        uint256 usdcBefore = usdc.balanceOf(alice);
+        uint256 optionBefore = option.balanceOf(alice, tokenId);
+
+        grappa.settleOption(alice, tokenId, amount);
+
+        uint256 usdcAfter = usdc.balanceOf(alice);
+        uint256 optionAfter = option.balanceOf(alice, tokenId);
+
+        assertEq(usdcBefore + expectedPayout, usdcAfter);
+        assertEq(optionBefore, optionAfter + amount);
+    }
+
+    function testSellerCollateralIsReducedIfExpiresITM() public {
+        // expires out the money
+        uint256 expiryPrice = 4100 * UNIT;
+        oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
+
+        uint256 expectedPayout = ((uint64(expiryPrice) - longStrike));
+
+        (, , uint8 collateralIdBefore, uint80 collateralBefore) = fmEngine.marginAccounts(address(this));
+
+        // settle marginaccount
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createSettleAction();
+        grappa.execute(fmEngineId, address(this), actions);
+
+        // margin account should be reset
+        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) = fmEngine
+            .marginAccounts(address(this));
+
+        assertEq(shortId, 0);
+        assertEq(shortAmount, 0);
+        assertEq(collateralBefore - collateralAfter, expectedPayout);
+        assertEq(collateralIdAfter, collateralIdBefore);
+    }
+}
+
 // solhint-disable-next-line contract-name-camelcase
 contract TestSettlePutSpread_FM is FullMarginFixture {
     uint256 public expiry;
