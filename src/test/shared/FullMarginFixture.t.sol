@@ -119,11 +119,7 @@ abstract contract FullMarginFixture is Test, ActionHelper, Utilities {
 
         ActionArgs[] memory actions = new ActionArgs[](2);
 
-        uint8 collateralId;
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            collateralId := shr(8, _productId)
-        }
+        uint8 collateralId = uint8(_productId);
 
         actions[0] = createAddCollateralAction(collateralId, address(anon), lotOfCollateral);
         actions[1] = createMintAction(_tokenId, address(_recipient), _amount);

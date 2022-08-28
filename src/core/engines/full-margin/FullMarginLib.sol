@@ -117,8 +117,8 @@ library FullMarginLib {
         // get token attribute for incoming token
         (, , , uint64 mergingStrike, ) = longId.parseTokenId();
 
-        if (account.tokenId != shortId) revert AM_ShortDoesnotExist();
-        if (account.shortAmount != amount) revert AM_MergeAmountMisMatch();
+        if (account.tokenId != shortId) revert FM_ShortDoesnotExist();
+        if (account.shortAmount != amount) revert FM_MergeAmountMisMatch();
         // adding the "strike of the adding token" to the "short strike" field of the existing "option token"
         account.tokenId = TokenIdUtil.convertToSpreadId(shortId, mergingStrike);
     }

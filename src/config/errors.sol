@@ -55,6 +55,12 @@ error FM_WrongCollateralId();
 /// @dev invalid tokenId specify to mint / burn actions
 error FM_InvalidToken();
 
+/// @dev trying to merge an long with a non-existant short position
+error FM_ShortDoesnotExist();
+
+/// @dev can only merge same amount of long and short
+error FM_MergeAmountMisMatch();
+
 // Advanced Margin and AdvancedMarginLib Errors
 
 /// @dev collateral id is wrong: the id doesn't match the existing collateral
