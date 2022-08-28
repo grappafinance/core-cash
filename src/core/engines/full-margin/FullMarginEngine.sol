@@ -90,7 +90,7 @@ contract FullMarginEngine is IMarginEngine, Ownable {
             uint80 /*collateralToPay*/
         )
     {
-        revert FM_No_Liquidation();
+        revert FM_NoLiquidation();
     }
 
     /**

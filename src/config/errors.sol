@@ -42,7 +42,7 @@ error GP_CanOnlySplitSpread();
 // Fully Collateralized Margin
 
 /// @dev fully collateralized account cannot be liquidated
-error FM_No_Liquidation();
+error FM_NoLiquidation();
 
 /// @dev invalid collateral:
 ///         call can only be collateralized by underlying
