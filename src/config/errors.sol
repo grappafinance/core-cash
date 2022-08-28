@@ -44,13 +44,21 @@ error GP_CanOnlySplitSpread();
 /// @dev fully collateralized account cannot be liquidated
 error FM_No_Liquidation();
 
+/// @dev invalid collateral for call: call can only be collateralized by underlying
 error FM_CallsNeedToCollateralizedWithUnderlying();
 
+/// @dev invalid collateral for put: put can only be collateralized by strike
 error FM_PutsNeedToCollateralizedWithStrike();
+
+/// @dev collateral id is wrong: the id doesn't match the existing collateral
+error FM_WrongCollateralId();
+
+/// @dev invalid tokenId specify to mint / burn actions
+error FM_InvalidToken();
 
 // Advanced Margin and AdvancedMarginLib Errors
 
-/// @dev collateral id is wrong: the id doesn't match the existing sub account
+/// @dev collateral id is wrong: the id doesn't match the existing collateral
 error AM_WrongCollateralId();
 
 /// @dev trying to merge an long with a non-existant short position

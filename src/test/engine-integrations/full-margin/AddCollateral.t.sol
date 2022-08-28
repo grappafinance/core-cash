@@ -73,7 +73,7 @@ contract TestAddCollateral_FM is FullMarginFixture {
         actions[0] = createAddCollateralAction(usdcId, address(this), usdcAmount);
         actions[1] = createAddCollateralAction(wethId, address(this), wethAmount);
 
-        vm.expectRevert(AM_WrongCollateralId.selector);
+        vm.expectRevert(FM_WrongCollateralId.selector);
         grappa.execute(fmEngineId, address(this), actions);
     }
 

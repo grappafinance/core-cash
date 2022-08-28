@@ -34,7 +34,7 @@ library FullMarginLib {
         if (account.collateralId == 0) {
             account.collateralId = collateralId;
         } else {
-            if (account.collateralId != collateralId) revert AM_WrongCollateralId();
+            if (account.collateralId != collateralId) revert FM_WrongCollateralId();
         }
         account.collateralAmount += amount;
     }
@@ -46,7 +46,7 @@ library FullMarginLib {
         uint80 amount,
         uint8 collateralId
     ) internal {
-        if (account.collateralId != collateralId) revert AM_WrongCollateralId();
+        if (account.collateralId != collateralId) revert FM_WrongCollateralId();
         uint80 newAmount = account.collateralAmount - amount;
         account.collateralAmount = newAmount;
         if (newAmount == 0) {
@@ -78,11 +78,11 @@ library FullMarginLib {
         if (account.collateralId == 0) {
             account.collateralId = collateralId;
         } else {
-            if (account.collateralId != collateralId) revert AM_InvalidToken();
+            if (account.collateralId != collateralId) revert FM_InvalidToken();
         }
 
         if (account.tokenId == 0) account.tokenId = tokenId;
-        else if (account.tokenId != tokenId) revert AM_InvalidToken();
+        else if (account.tokenId != tokenId) revert FM_InvalidToken();
 
         account.shortAmount += amount;
     }
@@ -94,7 +94,7 @@ library FullMarginLib {
         uint256 tokenId,
         uint64 amount
     ) internal {
-        if (account.tokenId != tokenId) revert AM_InvalidToken();
+        if (account.tokenId != tokenId) revert FM_InvalidToken();
 
         account.shortAmount -= amount;
         if (account.shortAmount == 0) account.shortAmount = 0;
@@ -131,7 +131,7 @@ library FullMarginLib {
         uint64 amount
     ) internal {
         // passed in spreadId should match the one in account storage (shortCallId or shortPutId)
-        if (spreadId != account.tokenId) revert AM_InvalidToken();
+        if (spreadId != account.tokenId) revert FM_InvalidToken();
         if (amount != account.shortAmount) revert AM_SplitAmountMisMatch();
 
         // convert to call: remove the "short strike" and update "tokenType" field
@@ -159,9 +159,9 @@ library FullMarginLib {
         uint256 shortStrike
     ) internal pure {
         if ((optionType == TokenType.CALL || optionType == TokenType.PUT) && (shortStrike != 0))
-            revert AM_InvalidToken();
+            revert FM_InvalidToken();
         // check that you cannot mint a "credit spread" token
-        if (optionType == TokenType.CALL_SPREAD && (shortStrike < longStrike)) revert AM_InvalidToken();
-        if (optionType == TokenType.PUT_SPREAD && (shortStrike > longStrike)) revert AM_InvalidToken();
+        if (optionType == TokenType.CALL_SPREAD && (shortStrike < longStrike)) revert FM_InvalidToken();
+        if (optionType == TokenType.PUT_SPREAD && (shortStrike > longStrike)) revert FM_InvalidToken();
     }
 }
