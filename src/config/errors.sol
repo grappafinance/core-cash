@@ -61,6 +61,9 @@ error FM_ShortDoesnotExist();
 /// @dev can only merge same amount of long and short
 error FM_MergeAmountMisMatch();
 
+/// @dev can only split same amount of existing spread into short + long
+error FM_SplitAmountMisMatch();
+
 // Advanced Margin and AdvancedMarginLib Errors
 
 /// @dev collateral id is wrong: the id doesn't match the existing collateral

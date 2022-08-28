@@ -133,7 +133,7 @@ library FullMarginLib {
     ) internal {
         // passed in spreadId should match the one in account storage (shortCallId or shortPutId)
         if (spreadId != account.tokenId) revert FM_InvalidToken();
-        if (amount != account.shortAmount) revert AM_SplitAmountMisMatch();
+        if (amount != account.shortAmount) revert FM_SplitAmountMisMatch();
 
         // convert to call: remove the "short strike" and update "tokenType" field
         account.tokenId = TokenIdUtil.convertToVanillaId(spreadId);
