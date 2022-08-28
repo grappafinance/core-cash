@@ -61,6 +61,34 @@ contract TestMintCall_FM is FullMarginFixture {
         grappa.execute(fmEngineId, address(this), actions);
     }
 
+    function testCannotMintCoveredCallUsingUsdcCollateral() public {
+        uint256 depositAmount = 1000 * UNIT;
+
+        uint256 strikePrice = 4000 * UNIT;
+        uint256 amount = 1 * UNIT;
+
+        // specify we want to mint with eth collateral
+        uint256 tokenId = getTokenId(TokenType.CALL, pidEthCollat, expiry, strikePrice, 0);
+
+        ActionArgs[] memory actions = new ActionArgs[](2);
+
+        // actually deposit usdc!
+        actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
+        actions[1] = createMintAction(tokenId, address(this), amount);
+
+        vm.expectRevert(FM_CollateraliMisMatch.selector);
+        grappa.execute(fmEngineId, address(this), actions);
+
+        ActionArgs[] memory actions2 = new ActionArgs[](2);
+
+        // reverse the 2 actions
+        actions2[0] = createMintAction(tokenId, address(this), amount);
+        actions2[1] = createAddCollateralAction(usdcId, address(this), depositAmount);
+
+        vm.expectRevert(FM_WrongCollateralId.selector);
+        grappa.execute(fmEngineId, address(this), actions2);
+    }
+
     function testMintPut() public {
         uint256 depositAmount = 2000 * 1e6;
 

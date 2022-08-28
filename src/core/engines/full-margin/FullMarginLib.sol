@@ -66,10 +66,15 @@ library FullMarginLib {
         // assign collateralId or check collateral id is the same
         (, uint8 underlyingId, uint8 strikeId, uint8 collateralId) = productId.parseProductId();
 
-        // todo: allow minting call spread with usdc?
-        if ((optionType == TokenType.CALL_SPREAD || optionType == TokenType.CALL) && underlyingId != collateralId)
+        // call can only collateralized by underlying
+        if ((optionType == TokenType.CALL) && underlyingId != collateralId)
             revert FM_CannotMintOptionWithThisCollateral();
 
+        // call spread can be collateralized by underlying or strike 
+        if (optionType == TokenType.CALL_SPREAD && collateralId != underlyingId && collateralId != strikeId)
+            revert FM_CannotMintOptionWithThisCollateral();
+
+        // put or put spread can only be collateralized by strike
         if ((optionType == TokenType.PUT_SPREAD || optionType == TokenType.PUT) && strikeId != collateralId)
             revert FM_CannotMintOptionWithThisCollateral();
 
@@ -79,7 +84,7 @@ library FullMarginLib {
         if (account.collateralId == 0) {
             account.collateralId = collateralId;
         } else {
-            if (account.collateralId != collateralId) revert FM_InvalidToken();
+            if (account.collateralId != collateralId) revert FM_CollateraliMisMatch();
         }
 
         if (account.tokenId == 0) account.tokenId = tokenId;
@@ -119,7 +124,8 @@ library FullMarginLib {
 
         if (account.tokenId != shortId) revert FM_ShortDoesnotExist();
         if (account.shortAmount != amount) revert FM_MergeAmountMisMatch();
-        // adding the "strike of the adding token" to the "short strike" field of the existing "option token"
+        
+        // this can make the vault in either credit spread of debit spread position
         account.tokenId = TokenIdUtil.convertToSpreadId(shortId, mergingStrike);
     }
 
