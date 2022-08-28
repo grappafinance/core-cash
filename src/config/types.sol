@@ -16,6 +16,7 @@ struct FullMarginDetail {
     uint256 shortStrike;
     uint256 collateralAmount;
     uint8 collateralDecimals;
+    bool collateralizedWithStrike;
     TokenType tokenType;
 }
 

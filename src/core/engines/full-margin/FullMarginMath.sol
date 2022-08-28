@@ -34,11 +34,20 @@ library FullMarginMath {
             // if long strike <= short strike, all loss is covered, amount = 0
             // only consider when long strike > short strike
             if (_account.longStrike > _account.shortStrike) {
-                unchecked {
-                    unitAmount = (_account.longStrike - _account.shortStrike).mulDivUp(
-                        _account.shortAmount,
-                        _account.longStrike
-                    );
+                // only call spread has option to be collateralized by strike or underlying
+                if (_account.collateralizedWithStrike) {
+                    // ex: 2000-4000 call spread with usdc collateral
+                    unchecked {
+                        unitAmount = (_account.longStrike - _account.shortStrike).mulDivUp(_account.shortAmount, UNIT);
+                    }
+                } else {
+                    // ex: 2000-4000 call spread with eth collateral
+                    unchecked {
+                        unitAmount = (_account.longStrike - _account.shortStrike).mulDivUp(
+                            _account.shortAmount,
+                            _account.longStrike
+                        );
+                    }
                 }
             }
         } else if (_account.tokenType == TokenType.PUT) {

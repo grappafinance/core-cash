@@ -21,7 +21,8 @@ contract FullMarginMathTestCall is Test {
             shortStrike: 3000 * UNIT,
             collateralAmount: 0,
             collateralDecimals: 6,
-            tokenType: TokenType.CALL
+            tokenType: TokenType.CALL,
+            collateralizedWithStrike: false
         });
 
         uint256 collat = detail.getMinCollateral();
@@ -37,6 +38,7 @@ contract FullMarginMathTestCall is Test {
             shortStrike: 3000 * UNIT,
             collateralAmount: 0,
             collateralDecimals: 6,
+            collateralizedWithStrike: false,
             tokenType: TokenType.CALL
         });
 
@@ -54,6 +56,7 @@ contract FullMarginMathTestCall is Test {
             shortStrike: 3000 * UNIT,
             collateralAmount: 0,
             collateralDecimals: 18,
+            collateralizedWithStrike: false,
             tokenType: TokenType.CALL
         });
 
@@ -65,9 +68,9 @@ contract FullMarginMathTestCall is Test {
 }
 
 /**
- * test full margin calculation for call spread
+ * test full margin calculation for call spread, collaterlized with underlying
  */
-contract FullMarginMathTestCallSpread is Test {
+contract FullMarginMathTestCallSpreadWithUnderlying is Test {
     using FullMarginMath for FullMarginDetail;
 
     function testMarginRequireCallCreditSpread() public {
@@ -77,6 +80,7 @@ contract FullMarginMathTestCallSpread is Test {
             shortStrike: 2000 * UNIT,
             collateralAmount: 0,
             collateralDecimals: 6,
+            collateralizedWithStrike: false,
             tokenType: TokenType.CALL_SPREAD
         });
 
@@ -93,6 +97,7 @@ contract FullMarginMathTestCallSpread is Test {
             shortStrike: 2000 * UNIT,
             collateralAmount: 0,
             collateralDecimals: 6,
+            collateralizedWithStrike: false,
             tokenType: TokenType.CALL_SPREAD
         });
 
@@ -110,6 +115,7 @@ contract FullMarginMathTestCallSpread is Test {
             shortStrike: 3000 * UNIT,
             collateralAmount: 0,
             collateralDecimals: 18,
+            collateralizedWithStrike: false,
             tokenType: TokenType.CALL_SPREAD
         });
 
@@ -126,6 +132,82 @@ contract FullMarginMathTestCallSpread is Test {
             shortStrike: 4000 * UNIT,
             collateralAmount: 0,
             collateralDecimals: 6,
+            collateralizedWithStrike: false,
+            tokenType: TokenType.CALL_SPREAD
+        });
+
+        uint256 collat = detail.getMinCollateral();
+        uint256 expectedRequirement = 0;
+        assertEq(collat, expectedRequirement);
+    }
+}
+
+/**
+ * test full margin calculation for call spread, collaterlized with strike
+ */
+contract FullMarginMathTestCallSpreadWithStrike is Test {
+    using FullMarginMath for FullMarginDetail;
+
+    function testMarginRequireCallCreditSpread() public {
+        FullMarginDetail memory detail = FullMarginDetail({
+            shortAmount: UNIT,
+            longStrike: 4000 * UNIT,
+            shortStrike: 2000 * UNIT,
+            collateralAmount: 0,
+            collateralDecimals: 6,
+            collateralizedWithStrike: true,
+            tokenType: TokenType.CALL_SPREAD
+        });
+
+        uint256 collat = detail.getMinCollateral();
+        uint256 expectedRequirement = (4000 - 2000) * UNIT;
+        assertEq(collat, expectedRequirement);
+    }
+
+    function testMarginRequireMultipleCallCreditSpread() public {
+        uint256 shortAmount = 5 * UNIT;
+        FullMarginDetail memory detail = FullMarginDetail({
+            shortAmount: shortAmount,
+            longStrike: 4000 * UNIT,
+            shortStrike: 2000 * UNIT,
+            collateralAmount: 0,
+            collateralDecimals: 6,
+            collateralizedWithStrike: true,
+            tokenType: TokenType.CALL_SPREAD
+        });
+
+        uint256 collat = detail.getMinCollateral();
+        uint256 expectedRequirement = shortAmount * (4000 - 2000);
+
+        assertEq(collat, expectedRequirement);
+    }
+
+    function testMarginRequireMultipleCallCreditSpreadDiffDecimals() public {
+        uint256 shortAmount = 5 * UNIT;
+        FullMarginDetail memory detail = FullMarginDetail({
+            shortAmount: shortAmount,
+            longStrike: 6000 * UNIT,
+            shortStrike: 3000 * UNIT,
+            collateralAmount: 0,
+            collateralDecimals: 18,
+            collateralizedWithStrike: true,
+            tokenType: TokenType.CALL_SPREAD
+        });
+
+        uint256 collat = detail.getMinCollateral();
+        uint256 expectedRequirement = (3000 * 1e18) * 5;
+
+        assertEq(collat, expectedRequirement);
+    }
+
+    function testMarginRequireCallDebitSpread() public {
+        FullMarginDetail memory detail = FullMarginDetail({
+            shortAmount: UNIT,
+            longStrike: 2000 * UNIT,
+            shortStrike: 4000 * UNIT,
+            collateralAmount: 0,
+            collateralDecimals: 6,
+            collateralizedWithStrike: true,
             tokenType: TokenType.CALL_SPREAD
         });
 
@@ -148,6 +230,7 @@ contract FullMarginMathTestPut is Test {
             shortStrike: 3000 * UNIT,
             collateralAmount: 0,
             collateralDecimals: 6,
+            collateralizedWithStrike: true,
             tokenType: TokenType.PUT
         });
 
@@ -164,6 +247,7 @@ contract FullMarginMathTestPut is Test {
             shortStrike: 3000 * UNIT,
             collateralAmount: 0,
             collateralDecimals: 6,
+            collateralizedWithStrike: true,
             tokenType: TokenType.PUT
         });
 
@@ -181,6 +265,7 @@ contract FullMarginMathTestPut is Test {
             shortStrike: 3000 * UNIT,
             collateralAmount: 0,
             collateralDecimals: 18,
+            collateralizedWithStrike: true,
             tokenType: TokenType.PUT
         });
 
@@ -204,6 +289,7 @@ contract FullMarginMathTestPutpread is Test {
             shortStrike: 3000 * UNIT,
             collateralAmount: 0,
             collateralDecimals: 6,
+            collateralizedWithStrike: true,
             tokenType: TokenType.PUT_SPREAD
         });
 
@@ -220,6 +306,7 @@ contract FullMarginMathTestPutpread is Test {
             shortStrike: 4000 * UNIT,
             collateralAmount: 0,
             collateralDecimals: 6,
+            collateralizedWithStrike: true,
             tokenType: TokenType.PUT_SPREAD
         });
 
@@ -237,6 +324,7 @@ contract FullMarginMathTestPutpread is Test {
             shortStrike: 4000 * UNIT,
             collateralAmount: 0,
             collateralDecimals: 18,
+            collateralizedWithStrike: true,
             tokenType: TokenType.PUT_SPREAD
         });
 
@@ -253,6 +341,7 @@ contract FullMarginMathTestPutpread is Test {
             shortStrike: 3000 * UNIT,
             collateralAmount: 0,
             collateralDecimals: 6,
+            collateralizedWithStrike: true,
             tokenType: TokenType.PUT_SPREAD
         });
 

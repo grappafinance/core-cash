@@ -295,7 +295,9 @@ contract FullMarginEngine is IMarginEngine, Ownable {
             account.tokenId
         );
 
-        (, , , uint8 collateralId) = ProductIdUtil.parseProductId(productId);
+        (, , uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(productId);
+
+        bool collateralizedWithStrike = collateralId == strikeId;
 
         uint8 collateralDecimals = grappa.assets(collateralId).decimals;
 
@@ -305,6 +307,7 @@ contract FullMarginEngine is IMarginEngine, Ownable {
             shortStrike: longStrike,
             collateralAmount: account.collateralAmount,
             collateralDecimals: collateralDecimals,
+            collateralizedWithStrike: collateralizedWithStrike,
             tokenType: tokenType
         });
     }

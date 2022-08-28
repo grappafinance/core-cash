@@ -70,7 +70,7 @@ library FullMarginLib {
         if ((optionType == TokenType.CALL) && underlyingId != collateralId)
             revert FM_CannotMintOptionWithThisCollateral();
 
-        // call spread can be collateralized by underlying or strike 
+        // call spread can be collateralized by underlying or strike
         if (optionType == TokenType.CALL_SPREAD && collateralId != underlyingId && collateralId != strikeId)
             revert FM_CannotMintOptionWithThisCollateral();
 
@@ -124,7 +124,7 @@ library FullMarginLib {
 
         if (account.tokenId != shortId) revert FM_ShortDoesnotExist();
         if (account.shortAmount != amount) revert FM_MergeAmountMisMatch();
-        
+
         // this can make the vault in either credit spread of debit spread position
         account.tokenId = TokenIdUtil.convertToSpreadId(shortId, mergingStrike);
     }
