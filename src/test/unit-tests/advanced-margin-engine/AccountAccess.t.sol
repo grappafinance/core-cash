@@ -18,7 +18,7 @@ contract AdvancedMarginEngineAccessTest is AdvancedFixture {
 
         subAccountIdToModify = address(uint160(alice) ^ uint160(1));
     }
-    
+
     function testTransferAccount() public {
         vm.startPrank(alice);
         amEngine.transferAccount(subAccountIdToModify, address(this));
