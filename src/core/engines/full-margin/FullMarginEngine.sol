@@ -58,7 +58,7 @@ contract FullMarginEngine is IMarginEngine, Ownable {
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * todo: consider movomg this to viewer contract
+     * todo: consider movingg this to viewer contract
      * @notice get minimum collateral needed for a margin account
      * @param _subAccount account id.
      * @return minCollateral minimum collateral required, in collateral asset's decimals
@@ -304,21 +304,8 @@ contract FullMarginEngine is IMarginEngine, Ownable {
             longStrike: shortStrike,
             shortStrike: longStrike,
             collateralAmount: account.collateralAmount,
-            collateralId: collateralId,
             collateralDecimals: collateralDecimals,
             tokenType: tokenType
         });
-    }
-
-    /**
-     * @dev get a struct that stores all relevent token addresses, along with collateral asset decimals
-     */
-    function _getProductAssets(uint32 _productId) internal view returns (ProductAssets memory info) {
-        (, address underlying, address strike, address collateral, uint8 collatDecimals) = grappa
-            .getDetailFromProductId(_productId);
-        info.underlying = underlying;
-        info.strike = strike;
-        info.collateral = collateral;
-        info.collateralDecimals = collatDecimals;
     }
 }

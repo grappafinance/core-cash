@@ -20,7 +20,6 @@ contract FullMarginMathTestCall is Test {
             longStrike: 0,
             shortStrike: 3000 * UNIT,
             collateralAmount: 0,
-            collateralId: 0,
             collateralDecimals: 6,
             tokenType: TokenType.CALL
         });
@@ -37,7 +36,6 @@ contract FullMarginMathTestCall is Test {
             longStrike: 0,
             shortStrike: 3000 * UNIT,
             collateralAmount: 0,
-            collateralId: 0,
             collateralDecimals: 6,
             tokenType: TokenType.CALL
         });
@@ -55,7 +53,6 @@ contract FullMarginMathTestCall is Test {
             longStrike: 0,
             shortStrike: 3000 * UNIT,
             collateralAmount: 0,
-            collateralId: 0,
             collateralDecimals: 18,
             tokenType: TokenType.CALL
         });
@@ -79,7 +76,6 @@ contract FullMarginMathTestCallSpread is Test {
             longStrike: 4000 * UNIT,
             shortStrike: 2000 * UNIT,
             collateralAmount: 0,
-            collateralId: 0,
             collateralDecimals: 6,
             tokenType: TokenType.CALL_SPREAD
         });
@@ -96,7 +92,6 @@ contract FullMarginMathTestCallSpread is Test {
             longStrike: 4000 * UNIT,
             shortStrike: 2000 * UNIT,
             collateralAmount: 0,
-            collateralId: 0,
             collateralDecimals: 6,
             tokenType: TokenType.CALL_SPREAD
         });
@@ -114,7 +109,6 @@ contract FullMarginMathTestCallSpread is Test {
             longStrike: 6000 * UNIT,
             shortStrike: 3000 * UNIT,
             collateralAmount: 0,
-            collateralId: 0,
             collateralDecimals: 18,
             tokenType: TokenType.CALL_SPREAD
         });
@@ -131,7 +125,6 @@ contract FullMarginMathTestCallSpread is Test {
             longStrike: 2000 * UNIT,
             shortStrike: 4000 * UNIT,
             collateralAmount: 0,
-            collateralId: 0,
             collateralDecimals: 6,
             tokenType: TokenType.CALL_SPREAD
         });
@@ -154,7 +147,6 @@ contract FullMarginMathTestPut is Test {
             longStrike: 0,
             shortStrike: 3000 * UNIT,
             collateralAmount: 0,
-            collateralId: 0,
             collateralDecimals: 6,
             tokenType: TokenType.PUT
         });
@@ -171,7 +163,6 @@ contract FullMarginMathTestPut is Test {
             longStrike: 0,
             shortStrike: 3000 * UNIT,
             collateralAmount: 0,
-            collateralId: 0,
             collateralDecimals: 6,
             tokenType: TokenType.PUT
         });
@@ -189,7 +180,6 @@ contract FullMarginMathTestPut is Test {
             longStrike: 0,
             shortStrike: 3000 * UNIT,
             collateralAmount: 0,
-            collateralId: 0,
             collateralDecimals: 18,
             tokenType: TokenType.PUT
         });
@@ -213,7 +203,6 @@ contract FullMarginMathTestPutpread is Test {
             longStrike: 2000 * UNIT,
             shortStrike: 3000 * UNIT,
             collateralAmount: 0,
-            collateralId: 0,
             collateralDecimals: 6,
             tokenType: TokenType.PUT_SPREAD
         });
@@ -230,7 +219,6 @@ contract FullMarginMathTestPutpread is Test {
             longStrike: 3000 * UNIT,
             shortStrike: 4000 * UNIT,
             collateralAmount: 0,
-            collateralId: 0,
             collateralDecimals: 6,
             tokenType: TokenType.PUT_SPREAD
         });
@@ -248,7 +236,6 @@ contract FullMarginMathTestPutpread is Test {
             longStrike: 3000 * UNIT,
             shortStrike: 4000 * UNIT,
             collateralAmount: 0,
-            collateralId: 0,
             collateralDecimals: 18,
             tokenType: TokenType.PUT_SPREAD
         });
@@ -265,7 +252,6 @@ contract FullMarginMathTestPutpread is Test {
             longStrike: 4000 * UNIT,
             shortStrike: 3000 * UNIT,
             collateralAmount: 0,
-            collateralId: 0,
             collateralDecimals: 6,
             tokenType: TokenType.PUT_SPREAD
         });

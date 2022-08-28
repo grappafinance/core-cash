@@ -85,7 +85,7 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * todo: consider movomg this to viewer contract
+     * todo: consider moving this to viewer contract
      * @notice get minimum collateral needed for a margin account
      * @param _subAccount account id.
      * @return minCollateral minimum collateral required, in collateral asset's decimals
