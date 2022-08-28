@@ -12,7 +12,6 @@ import "../../../config/errors.sol";
 
 // solhint-disable-next-line contract-name-camelcase
 contract TestRemoveCollateral_FM is FullMarginFixture {
-
     uint256 private depositAmount = 1000 * 1e6;
 
     function setUp() public {
@@ -22,7 +21,7 @@ contract TestRemoveCollateral_FM is FullMarginFixture {
 
         weth.mint(address(this), 100 * 1e18);
         weth.approve(address(fmEngine), type(uint256).max);
-        
+
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         grappa.execute(fmEngineId, address(this), actions);
@@ -41,7 +40,7 @@ contract TestRemoveCollateral_FM is FullMarginFixture {
     function testRemoveCollateralMoveBalance() public {
         uint256 engineBalanceBefoe = usdc.balanceOf(address(fmEngine));
         uint256 myBalanceBefoe = usdc.balanceOf(address(this));
-        
+
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createRemoveCollateralAction(depositAmount, usdcId, address(this));
         grappa.execute(fmEngineId, address(this), actions);
