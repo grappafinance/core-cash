@@ -20,14 +20,14 @@ library AdvancedMarginLib {
     /**
      * @dev return true if the account has no short positions nor collateral
      */
-    function isEmpty(Account memory account) internal pure returns (bool) {
+    function isEmpty(AdvancedMarginAccount memory account) internal pure returns (bool) {
         return account.collateralAmount == 0 && account.shortCallAmount == 0 && account.shortPutAmount == 0;
     }
 
     ///@dev Increase the collateral in the account
-    ///@param account Account memory that will be updated in-place
+    ///@param account AdvancedMarginAccount memory that will be updated in-place
     function addCollateral(
-        Account memory account,
+        AdvancedMarginAccount memory account,
         uint80 amount,
         uint8 collateralId
     ) internal pure {
@@ -40,9 +40,9 @@ library AdvancedMarginLib {
     }
 
     ///@dev Reduce the collateral in the account
-    ///@param account Account memory that will be updated in-place
+    ///@param account AdvancedMarginAccount memory that will be updated in-place
     function removeCollateral(
-        Account memory account,
+        AdvancedMarginAccount memory account,
         uint80 amount,
         uint8 collateralId
     ) internal pure {
@@ -55,9 +55,9 @@ library AdvancedMarginLib {
     }
 
     ///@dev Increase the amount of short call or put (debt) of the account
-    ///@param account Account memory that will be updated in-place
+    ///@param account AdvancedMarginAccount memory that will be updated in-place
     function mintOption(
-        Account memory account,
+        AdvancedMarginAccount memory account,
         uint256 tokenId,
         uint64 amount
     ) internal pure {
@@ -89,9 +89,9 @@ library AdvancedMarginLib {
     }
 
     ///@dev Remove the amount of short call or put (debt) of the account
-    ///@param account Account memory that will be updated in-place
+    ///@param account AdvancedMarginAccount memory that will be updated in-place
     function burnOption(
-        Account memory account,
+        AdvancedMarginAccount memory account,
         uint256 tokenId,
         uint64 amount
     ) internal pure {
@@ -111,13 +111,13 @@ library AdvancedMarginLib {
 
     ///@dev merge an OptionToken into the accunt, changing existing short to spread
     ///@dev shortId and longId already have the same optionType, productId, expiry
-    ///@param account Account memory that will be updated in-place
+    ///@param account AdvancedMarginAccount memory that will be updated in-place
     ///@param shortId existing short position to be converted into spread
     ///@param longId token to be "added" into the account. This is expected to have the same time of the exisiting short type.
     ///               e.g: if the account currenly have short call, we can added another "call token" into the account
     ///               and convert the short position to a spread.
     function merge(
-        Account memory account,
+        AdvancedMarginAccount memory account,
         uint256 shortId,
         uint256 longId,
         uint64 amount
@@ -140,10 +140,10 @@ library AdvancedMarginLib {
     }
 
     ///@dev split an accunt's spread position into short + 1 token
-    ///@param account Account memory that will be updated in-place
+    ///@param account AdvancedMarginAccount memory that will be updated in-place
     ///@param spreadId id of spread to be parsed
     function split(
-        Account memory account,
+        AdvancedMarginAccount memory account,
         uint256 spreadId,
         uint64 amount
     ) internal pure {
@@ -170,7 +170,7 @@ library AdvancedMarginLib {
         }
     }
 
-    function settleAtExpiry(Account memory account, uint80 _payout) internal pure {
+    function settleAtExpiry(AdvancedMarginAccount memory account, uint80 _payout) internal pure {
         // clear all debt
         account.shortPutId = 0;
         account.shortCallId = 0;

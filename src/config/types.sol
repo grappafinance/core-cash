@@ -20,7 +20,6 @@ struct FullMarginDetail {
     TokenType tokenType;
 }
 
-//todo: rename this to AdvancedMarginAccount
 /**
  * @dev base unit of margin account. This is the data stored in the state
  *      storage packing is utilized to save gas.
@@ -31,7 +30,7 @@ struct FullMarginDetail {
  * @param collateralAmount amount of collateral deposited
  * @param collateralId id of collateral
  */
-struct Account {
+struct AdvancedMarginAccount {
     uint256 shortCallId;
     uint256 shortPutId;
     uint64 shortCallAmount;

@@ -41,7 +41,7 @@ import "../../../config/errors.sol";
  */
 contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyGuard {
     using AdvancedMarginMath for AdvancedMarginDetail;
-    using AdvancedMarginLib for Account;
+    using AdvancedMarginLib for AdvancedMarginAccount;
     using SafeERC20 for IERC20;
     using FixedPointMathLib for uint256;
     using NumberUtil for uint256;
@@ -55,15 +55,14 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
                                   Variables
     //////////////////////////////////////////////////////////////*/
 
-    ///@dev subAccount => Account structure.
+    ///@dev subAccount => AdvancedMarginAccount structure.
     ///     subAccount can be an address similar to the primary account, but has the last 8 bits different.
     ///     this give every account access to 256 sub-accounts
-    mapping(address => Account) public marginAccounts;
+    mapping(address => AdvancedMarginAccount) public marginAccounts;
 
     ///@dev mapping of productId to AdvancedMargin Parameters
     mapping(uint32 => ProductMarginParams) public productParams;
 
-    // solhint-disable-next-line no-empty-blocks
     constructor(
         address _grappa,
         address _oracle,
@@ -75,10 +74,6 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
         volOracle = IVolOracle(_volOracle);
         optionToken = IOptionToken(_optionToken);
     }
-
-    /*///////////////////////////////////////////////////////////////
-                                  Events
-    //////////////////////////////////////////////////////////////*/
 
     /*///////////////////////////////////////////////////////////////
                                 Events
@@ -114,7 +109,7 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
     function execute(address _subAccount, ActionArgs[] calldata actions) external nonReentrant {
         _assertCallerHasAccess(_subAccount);
 
-        Account memory account = marginAccounts[_subAccount];
+        AdvancedMarginAccount memory account = marginAccounts[_subAccount];
 
         // update the account memory and do external calls on the flight
         for (uint256 i; i < actions.length; ) {
@@ -149,7 +144,7 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
      * @return minCollateral minimum collateral required, in collateral asset's decimals
      */
     function getMinCollateral(address _subAccount) external view returns (uint256 minCollateral) {
-        Account memory account = marginAccounts[_subAccount];
+        AdvancedMarginAccount memory account = marginAccounts[_subAccount];
         AdvancedMarginDetail memory detail = _getAccountDetail(account);
 
         minCollateral = _getMinCollateral(detail);
@@ -176,7 +171,7 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
         uint256 repayCallAmount = amountsToBurn[0];
         uint256 repayPutAmount = amountsToBurn[1];
 
-        Account memory account = marginAccounts[_subAccount];
+        AdvancedMarginAccount memory account = marginAccounts[_subAccount];
 
         if (account.shortCallId != tokensToBurn[0]) revert AM_WrongIdToLiquidate();
         if (account.shortPutId != tokensToBurn[1]) revert AM_WrongIdToLiquidate();
@@ -307,7 +302,7 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
             the collateral has to be provided by either caller, or the primary owner of subaccount
      */
     function _addCollateral(
-        Account memory _account,
+        AdvancedMarginAccount memory _account,
         address _subAccount,
         bytes memory _data
     ) internal {
@@ -331,7 +326,7 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
      * @param _data bytes data to decode
      */
     function _removeCollateral(
-        Account memory _account,
+        AdvancedMarginAccount memory _account,
         address _subAccount,
         bytes memory _data
     ) internal {
@@ -353,7 +348,7 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
      * @param _data bytes data to decode
      */
     function _mintOption(
-        Account memory _account,
+        AdvancedMarginAccount memory _account,
         address _subAccount,
         bytes memory _data
     ) internal {
@@ -375,7 +370,7 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
      * @param _data bytes data to decode
      */
     function _burnOption(
-        Account memory _account,
+        AdvancedMarginAccount memory _account,
         address _subAccount,
         bytes memory _data
     ) internal {
@@ -399,7 +394,7 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
      * @param _data bytes data to decode
      */
     function _merge(
-        Account memory _account,
+        AdvancedMarginAccount memory _account,
         address _subAccount,
         bytes memory _data
     ) internal {
@@ -428,7 +423,7 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
      * @param _subAccount subaccount that will be update in place
      */
     function _split(
-        Account memory _account,
+        AdvancedMarginAccount memory _account,
         address _subAccount,
         bytes memory _data
     ) internal {
@@ -449,7 +444,7 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
      * @notice  settle the margin account at expiry
      * @dev     this update the account memory in-place
      */
-    function _settle(Account memory _account, address _subAccount) internal {
+    function _settle(AdvancedMarginAccount memory _account, address _subAccount) internal {
         uint256 payout = _getPayoutFromAccount(_account);
 
         emit AccountSettled(_subAccount, payout);
@@ -473,7 +468,7 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
      * @param account account structure in memory
      * @return isHealthy true if account is in good condition, false if it's liquidatable
      */
-    function _isAccountHealthy(Account memory account) internal view returns (bool isHealthy) {
+    function _isAccountHealthy(AdvancedMarginAccount memory account) internal view returns (bool isHealthy) {
         AdvancedMarginDetail memory detail = _getAccountDetail(account);
         uint256 minCollateral = _getMinCollateral(detail);
         isHealthy = account.collateralAmount >= minCollateral;
@@ -519,7 +514,11 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
      * @dev     this function will revert when called before expiry
      * @param _account account memory
      */
-    function _getPayoutFromAccount(Account memory _account) internal view returns (uint80 reservedPayout) {
+    function _getPayoutFromAccount(AdvancedMarginAccount memory _account)
+        internal
+        view
+        returns (uint80 reservedPayout)
+    {
         (uint256 callPayout, uint256 putPayout) = (0, 0);
         if (_account.shortCallAmount > 0)
             (, , callPayout) = grappa.getPayout(_account.shortCallId, _account.shortCallAmount);
@@ -531,7 +530,11 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
     /**
      * @notice  convert Account struct from storage to in-memory detail struct
      */
-    function _getAccountDetail(Account memory account) internal pure returns (AdvancedMarginDetail memory detail) {
+    function _getAccountDetail(AdvancedMarginAccount memory account)
+        internal
+        pure
+        returns (AdvancedMarginDetail memory detail)
+    {
         detail = AdvancedMarginDetail({
             putAmount: account.shortPutAmount,
             callAmount: account.shortCallAmount,

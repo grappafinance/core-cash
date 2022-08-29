@@ -14,7 +14,7 @@ import "forge-std/console2.sol";
  * Test for the AdvancedMarginLib that update account storage
  */
 contract AdvancedMarginLibTest is Test {
-    using AdvancedMarginLib for Account;
+    using AdvancedMarginLib for AdvancedMarginAccount;
 
     uint8 public collateralId1 = 1;
     uint8 public collateralId2 = 2;
@@ -22,7 +22,7 @@ contract AdvancedMarginLibTest is Test {
     uint80 public amount = uint80(UNIT);
 
     function testAddCollateral() public {
-        Account memory account;
+        AdvancedMarginAccount memory account;
         account.addCollateral(amount, collateralId1);
 
         assertEq(account.collateralId, collateralId1);
@@ -30,7 +30,7 @@ contract AdvancedMarginLibTest is Test {
     }
 
     function testCannotAddDiffCollateral() public {
-        Account memory account;
+        AdvancedMarginAccount memory account;
         account.addCollateral(amount, collateralId1);
 
         vm.expectRevert(AM_WrongCollateralId.selector);
@@ -38,7 +38,7 @@ contract AdvancedMarginLibTest is Test {
     }
 
     function testRemoveHalfCollateral() public {
-        Account memory account;
+        AdvancedMarginAccount memory account;
         account.addCollateral(amount, collateralId1);
 
         account.removeCollateral((amount / 2), collateralId1);
@@ -47,7 +47,7 @@ contract AdvancedMarginLibTest is Test {
     }
 
     function testRemoveAllCollateral() public {
-        Account memory account;
+        AdvancedMarginAccount memory account;
         account.addCollateral(amount, collateralId1);
 
         account.removeCollateral(amount, collateralId1);
