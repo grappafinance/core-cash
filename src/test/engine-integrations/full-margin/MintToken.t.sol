@@ -12,7 +12,7 @@ import "../../../config/errors.sol";
 import "../../../test/mocks/MockERC20.sol";
 
 // solhint-disable-next-line contract-name-camelcase
-contract TestMintCall_FM is FullMarginFixture {
+contract TestMint_FM is FullMarginFixture {
     uint256 public expiry;
 
     function setUp() public {
@@ -105,6 +105,19 @@ contract TestMintCall_FM is FullMarginFixture {
 
         assertEq(shortId, tokenId);
         assertEq(shortAmount, amount);
+    }
+
+    function testCannotMintExpiredOption() public {
+        uint256 strikePrice = 2000 * UNIT;
+        uint256 amount = 1 * UNIT;
+
+        uint256 tokenId = getTokenId(TokenType.PUT, pidUsdcCollat, block.timestamp, strikePrice, 0);
+
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createMintAction(tokenId, address(this), amount);
+
+        vm.expectRevert(OT_InvalidExpiry.selector);
+        engine.execute(address(this), actions);
     }
 
     function testCannotMintPutWithETHCollateral() public {

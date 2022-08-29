@@ -61,8 +61,7 @@ library AdvancedMarginLib {
         uint256 tokenId,
         uint64 amount
     ) internal pure {
-        (TokenType optionType, uint32 productId, , uint64 tokenLongStrike, uint64 tokenShortStrike) = tokenId
-            .parseTokenId();
+        (TokenType optionType, uint32 productId, , , ) = tokenId.parseTokenId();
 
         // assign collateralId or check collateral id is the same
         uint8 collateralId = productId.getCollateralId();
@@ -71,9 +70,6 @@ library AdvancedMarginLib {
         } else {
             if (account.collateralId != collateralId) revert AM_InvalidToken();
         }
-
-        // todo: make it parse and check
-        checkTokenIdTypeAndStrike(optionType, tokenLongStrike, tokenShortStrike);
 
         if (optionType == TokenType.CALL || optionType == TokenType.CALL_SPREAD) {
             // minting a short
@@ -185,18 +181,5 @@ library AdvancedMarginLib {
             // the account doesn't have enough to payout, result in protocol loss
             account.collateralAmount = 0;
         }
-    }
-
-    function checkTokenIdTypeAndStrike(
-        TokenType optionType,
-        uint256 longStrike,
-        uint256 shortStrike
-    ) internal pure {
-        // check that vanilla options doesnt have a shortStrike argument
-        if ((optionType == TokenType.CALL || optionType == TokenType.PUT) && (shortStrike != 0))
-            revert AM_InvalidToken();
-        // check that you cannot mint a "credit spread" token
-        if (optionType == TokenType.CALL_SPREAD && (shortStrike < longStrike)) revert AM_InvalidToken();
-        if (optionType == TokenType.PUT_SPREAD && (shortStrike > longStrike)) revert AM_InvalidToken();
     }
 }

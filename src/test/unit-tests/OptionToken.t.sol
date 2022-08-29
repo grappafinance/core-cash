@@ -8,12 +8,12 @@ import "../../config/errors.sol";
 
 contract OptionTokenTest is AdvancedFixture {
     function testCannotMint() public {
-        vm.expectRevert(GP_Not_Authorized_Engine.selector);
+        vm.expectRevert(OT_Not_Authorized_Engine.selector);
         option.mint(address(this), 0, 1000_000_000);
     }
 
     function testCannotBurn() public {
-        vm.expectRevert(GP_Not_Authorized_Engine.selector);
+        vm.expectRevert(OT_Not_Authorized_Engine.selector);
         option.burn(address(this), 0, 1000_000_000);
     }
 

@@ -61,7 +61,7 @@ library FullMarginLib {
         uint256 tokenId,
         uint64 amount
     ) internal pure {
-        (TokenType optionType, uint32 productId, , uint64 longStrike, uint64 shortStrike) = tokenId.parseTokenId();
+        (TokenType optionType, uint32 productId, , , ) = tokenId.parseTokenId();
 
         // assign collateralId or check collateral id is the same
         (, uint8 underlyingId, uint8 strikeId, uint8 collateralId) = productId.parseProductId();
@@ -77,9 +77,6 @@ library FullMarginLib {
         // put or put spread can only be collateralized by strike
         if ((optionType == TokenType.PUT_SPREAD || optionType == TokenType.PUT) && strikeId != collateralId)
             revert FM_CannotMintOptionWithThisCollateral();
-
-        // todo: make it parse and check
-        checkTokenIdTypeAndStrike(optionType, longStrike, shortStrike);
 
         if (account.collateralId == 0) {
             account.collateralId = collateralId;
@@ -153,17 +150,5 @@ library FullMarginLib {
         // this line should not underflow because collateral should always be enough
         // but keeping the underflow check to make sure
         account.collateralAmount = account.collateralAmount - _payout;
-    }
-
-    function checkTokenIdTypeAndStrike(
-        TokenType optionType,
-        uint256 longStrike,
-        uint256 shortStrike
-    ) internal pure {
-        if ((optionType == TokenType.CALL || optionType == TokenType.PUT) && (shortStrike != 0))
-            revert FM_InvalidToken();
-        // check that you cannot mint a "credit spread" token
-        if (optionType == TokenType.CALL_SPREAD && (shortStrike < longStrike)) revert FM_InvalidToken();
-        if (optionType == TokenType.PUT_SPREAD && (shortStrike > longStrike)) revert FM_InvalidToken();
     }
 }

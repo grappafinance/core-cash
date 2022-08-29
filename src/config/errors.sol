@@ -7,7 +7,6 @@ pragma solidity =0.8.13;
 error NoAccess();
 
 // Erros in Grappa Contracts
-error GP_Not_Authorized_Engine();
 
 /// @dev amounts length speicified to batch settle doesn't match with tokenIds
 error GP_WrongArgumentLength();
@@ -98,6 +97,17 @@ error AM_AccountIsNotEmpty();
 
 /// @dev amounts to repay in liquidation are not valid. Missing call, put or not proportional to the amount in subaccount.
 error AM_WrongRepayAmounts();
+
+// OptionToken
+
+/// @dev burn or mint can only be called by corresponding engine.
+error OT_Not_Authorized_Engine();
+
+/// @dev cannot mint token after expiry
+error OT_InvalidExpiry();
+
+/// @dev put and call should not contain "short stirkes"
+error OT_BadStrikes();
 
 // Chainlink Pricer Errors
 

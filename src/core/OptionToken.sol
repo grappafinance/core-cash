@@ -51,7 +51,7 @@ contract OptionToken is ERC1155, IOptionToken {
         uint256 _tokenId,
         uint256 _amount
     ) external {
-        _checkIsAuth(_tokenId);
+        _checkAccessAndTokenId(_tokenId);
         _mint(_recipient, _tokenId, _amount, "");
     }
 
@@ -66,7 +66,7 @@ contract OptionToken is ERC1155, IOptionToken {
         uint256 _tokenId,
         uint256 _amount
     ) external {
-        _checkIsAuth(_tokenId);
+        _checkAccess(_tokenId);
         _burn(_from, _tokenId, _amount);
     }
 
@@ -107,12 +107,30 @@ contract OptionToken is ERC1155, IOptionToken {
         if (msg.sender != address(grappa)) revert NoAccess();
     }
 
+    function _checkAccess(uint256 _tokenId) internal view {
+        (, uint32 productId, , , ) = TokenIdUtil.parseTokenId(_tokenId);
+        (uint8 engineId, , , ) = ProductIdUtil.parseProductId(productId);
+        if (msg.sender != grappa.engines(engineId)) revert OT_Not_Authorized_Engine();
+    }
+
     /**
      * @dev check if msg.sender is eligible for burning or minting certain token
      */
-    function _checkIsAuth(uint256 _tokenId) internal view {
-        (, uint32 productId, , , ) = TokenIdUtil.parseTokenId(_tokenId);
+    function _checkAccessAndTokenId(uint256 _tokenId) internal view {
+        (TokenType optionType, uint32 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) = TokenIdUtil
+            .parseTokenId(_tokenId);
         (uint8 engineId, , , ) = ProductIdUtil.parseProductId(productId);
-        if (msg.sender != grappa.engines(engineId)) revert GP_Not_Authorized_Engine();
+        if (msg.sender != grappa.engines(engineId)) revert OT_Not_Authorized_Engine();
+
+        // check option type and strikes
+        // check that vanilla options doesnt have a shortStrike argument
+        if ((optionType == TokenType.CALL || optionType == TokenType.PUT) && (shortStrike != 0)) revert OT_BadStrikes();
+
+        // check that you cannot mint a "credit spread" token
+        if (optionType == TokenType.CALL_SPREAD && (shortStrike < longStrike)) revert OT_BadStrikes();
+        if (optionType == TokenType.PUT_SPREAD && (shortStrike > longStrike)) revert OT_BadStrikes();
+
+        // check expiry
+        if (expiry <= block.timestamp) revert OT_InvalidExpiry();
     }
 }
