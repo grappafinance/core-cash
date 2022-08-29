@@ -167,7 +167,7 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
         address _subAccount,
         uint256[] memory tokensToBurn,
         uint256[] memory amountsToBurn
-    ) external returns (address collateral, uint80 collateralToPay) {
+    ) external nonReentrant returns (address collateral, uint80 collateralToPay) {
         uint256 repayCallAmount = amountsToBurn[0];
         uint256 repayPutAmount = amountsToBurn[1];
 
