@@ -17,35 +17,35 @@ contract TestRemoveCollateral_FM is FullMarginFixture {
     function setUp() public {
         // approve engine
         usdc.mint(address(this), 1000_000_000 * 1e6);
-        usdc.approve(address(fmEngine), type(uint256).max);
+        usdc.approve(address(engine), type(uint256).max);
 
         weth.mint(address(this), 100 * 1e18);
-        weth.approve(address(fmEngine), type(uint256).max);
+        weth.approve(address(engine), type(uint256).max);
 
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
     }
 
     function testRemoveCollateralChangeStorage() public {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createRemoveCollateralAction(depositAmount, usdcId, address(this));
-        grappa.execute(fmEngineId, address(this), actions);
-        (, , uint8 _collateralId, uint80 _collateralAmount) = fmEngine.marginAccounts(address(this));
+        engine.execute(address(this), actions);
+        (, , uint8 _collateralId, uint80 _collateralAmount) = engine.marginAccounts(address(this));
 
         assertEq(_collateralId, 0);
         assertEq(_collateralAmount, 0);
     }
 
     function testRemoveCollateralMoveBalance() public {
-        uint256 engineBalanceBefoe = usdc.balanceOf(address(fmEngine));
+        uint256 engineBalanceBefoe = usdc.balanceOf(address(engine));
         uint256 myBalanceBefoe = usdc.balanceOf(address(this));
 
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createRemoveCollateralAction(depositAmount, usdcId, address(this));
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
 
-        uint256 engineBalanceAfter = usdc.balanceOf(address(fmEngine));
+        uint256 engineBalanceAfter = usdc.balanceOf(address(engine));
         uint256 myBalanceAfter = usdc.balanceOf(address(this));
 
         assertEq(myBalanceAfter - myBalanceBefoe, depositAmount);
@@ -57,7 +57,7 @@ contract TestRemoveCollateral_FM is FullMarginFixture {
         actions[0] = createRemoveCollateralAction(depositAmount, wethId, address(this));
 
         vm.expectRevert(FM_WrongCollateralId.selector);
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
     }
 
     function testCannotRemoveMoreThanOwn() public {
@@ -65,6 +65,6 @@ contract TestRemoveCollateral_FM is FullMarginFixture {
         actions[0] = createRemoveCollateralAction(depositAmount + 1, usdcId, address(this));
 
         vm.expectRevert(stdError.arithmeticError);
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
     }
 }

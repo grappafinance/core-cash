@@ -26,6 +26,12 @@ interface IOptionToken {
         uint256 _amount
     ) external;
 
+    function burnGrappaOnly(
+        address _from,
+        uint256 _tokenId,
+        uint256 _amount
+    ) external;
+
     /**
      * @dev burn batch of option token from an address. Can only be called by marginAccount
      * @param _from         account to burn from

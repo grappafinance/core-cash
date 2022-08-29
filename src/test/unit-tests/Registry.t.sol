@@ -87,7 +87,7 @@ contract RegisterEngineTest is Test {
         uint8 id = registry.registerEngine(engine1);
         assertEq(id, 1);
 
-        assertEq(registry.amEngineIds(engine1), id);
+        assertEq(registry.engineIds(engine1), id);
     }
 
     function testCannotRegistrySameAssetTwice() public {

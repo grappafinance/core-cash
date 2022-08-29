@@ -7,7 +7,10 @@ import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 
 // interfaces
 import {IOptionToken} from "../interfaces/IOptionToken.sol";
-import {IOracle} from "../interfaces/IOracle.sol";
+import {IGrappa} from "../interfaces/IGrappa.sol";
+
+import {TokenIdUtil} from "../libraries/TokenIdUtil.sol";
+import {ProductIdUtil} from "../libraries/ProductIdUtil.sol";
 
 // constants and types
 import "../config/enums.sol";
@@ -22,12 +25,12 @@ import "../config/errors.sol";
  */
 contract OptionToken is ERC1155, IOptionToken {
     ///@dev marginAccount module which is in charge of minting / burning.
-    address public immutable marginAccount;
+    IGrappa public immutable grappa;
 
-    constructor(address _marginAccount) {
+    constructor(address _grappa) {
         // solhint-disable-next-line reason-string
-        if (_marginAccount == address(0)) revert();
-        marginAccount = _marginAccount;
+        if (_grappa == address(0)) revert();
+        grappa = IGrappa(_grappa);
     }
 
     // @todo: update function
@@ -48,7 +51,7 @@ contract OptionToken is ERC1155, IOptionToken {
         uint256 _tokenId,
         uint256 _amount
     ) external {
-        _checkAccess();
+        _checkIsAuth(_tokenId);
         _mint(_recipient, _tokenId, _amount, "");
     }
 
@@ -63,7 +66,16 @@ contract OptionToken is ERC1155, IOptionToken {
         uint256 _tokenId,
         uint256 _amount
     ) external {
-        _checkAccess();
+        _checkIsAuth(_tokenId);
+        _burn(_from, _tokenId, _amount);
+    }
+
+    function burnGrappaOnly(
+        address _from,
+        uint256 _tokenId,
+        uint256 _amount
+    ) external {
+        _checkIsGrappa();
         _burn(_from, _tokenId, _amount);
     }
 
@@ -78,14 +90,23 @@ contract OptionToken is ERC1155, IOptionToken {
         uint256[] memory _ids,
         uint256[] memory _amounts
     ) external {
-        _checkAccess();
+        _checkIsGrappa();
         _batchBurn(_from, _ids, _amounts);
     }
 
     /**
      * @dev check if msg.sender is the marginAccount
      */
-    function _checkAccess() internal view {
-        if (msg.sender != marginAccount) revert NoAccess();
+    function _checkIsGrappa() internal view {
+        if (msg.sender != address(grappa)) revert NoAccess();
+    }
+
+    /**
+     * @dev check if msg.sender is eligible for burning or minting certain token
+     */
+    function _checkIsAuth(uint256 _tokenId) internal view {
+        (, uint32 productId, , , ) = TokenIdUtil.parseTokenId(_tokenId);
+        (uint8 engineId, , , ) = ProductIdUtil.parseProductId(productId);
+        if (msg.sender != grappa.engines(engineId)) revert GP_Not_Authorized_Engine();
     }
 }

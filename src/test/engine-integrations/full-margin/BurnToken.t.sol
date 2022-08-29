@@ -20,7 +20,7 @@ contract TestBurnOption_FM is FullMarginFixture {
 
     function setUp() public {
         weth.mint(address(this), depositAmount);
-        weth.approve(address(fmEngine), type(uint256).max);
+        weth.approve(address(engine), type(uint256).max);
 
         expiry = block.timestamp + 14 days;
 
@@ -32,7 +32,7 @@ contract TestBurnOption_FM is FullMarginFixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
     }
 
     function testBurn() public {
@@ -41,8 +41,8 @@ contract TestBurnOption_FM is FullMarginFixture {
         actions[0] = createBurnAction(tokenId, address(this), amount);
 
         // action
-        grappa.execute(fmEngineId, address(this), actions);
-        (uint256 shortId, uint64 shortAmount, , ) = fmEngine.marginAccounts(address(this));
+        engine.execute(address(this), actions);
+        (uint256 shortId, uint64 shortAmount, , ) = engine.marginAccounts(address(this));
 
         // check result
         assertEq(shortId, 0);
@@ -61,6 +61,6 @@ contract TestBurnOption_FM is FullMarginFixture {
 
         // action
         vm.expectRevert(FM_InvalidToken.selector);
-        grappa.execute(fmEngineId, subAccount, actions); // execute on subaccount
+        engine.execute(subAccount, actions); // execute on subaccount
     }
 }

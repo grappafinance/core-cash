@@ -14,7 +14,7 @@ contract AdvancedMarginEngineAccessTest is FullMarginFixture {
 
     function setUp() public {
         usdc.mint(address(this), 1000_000 * 1e6);
-        usdc.approve(address(fmEngine), type(uint256).max);
+        usdc.approve(address(engine), type(uint256).max);
 
         subAccountIdToModify = address(uint160(alice) ^ uint160(1));
     }
@@ -26,7 +26,7 @@ contract AdvancedMarginEngineAccessTest is FullMarginFixture {
     function testAliceCanGrantAccess() public {
         // alice grant access to this contract
         vm.startPrank(alice);
-        grappa.setAccountAccess(address(this), true);
+        engine.setAccountAccess(address(this), true);
         vm.stopPrank();
 
         // we can update the account now
@@ -36,7 +36,7 @@ contract AdvancedMarginEngineAccessTest is FullMarginFixture {
     function testAliceCanRevokeAccess() public {
         // alice grant access to this contract
         vm.startPrank(alice);
-        grappa.setAccountAccess(address(this), true);
+        engine.setAccountAccess(address(this), true);
         vm.stopPrank();
 
         // can access subaccount!
@@ -44,7 +44,7 @@ contract AdvancedMarginEngineAccessTest is FullMarginFixture {
 
         // alice revoke access to this contract
         vm.startPrank(alice);
-        grappa.setAccountAccess(address(this), false);
+        engine.setAccountAccess(address(this), false);
         vm.stopPrank();
 
         // no longer has access to subaccount!
@@ -58,6 +58,6 @@ contract AdvancedMarginEngineAccessTest is FullMarginFixture {
 
         if (!_canAccess) vm.expectRevert(NoAccess.selector);
 
-        grappa.execute(fmEngineId, subAccountId, actions);
+        engine.execute(subAccountId, actions);
     }
 }

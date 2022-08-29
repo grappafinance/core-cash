@@ -20,7 +20,7 @@ contract TestSplitCallSpread_FM is FullMarginFixture {
 
     function setUp() public {
         weth.mint(address(this), 100 ether);
-        weth.approve(address(fmEngine), type(uint256).max);
+        weth.approve(address(engine), type(uint256).max);
 
         expiry = block.timestamp + 7 days;
 
@@ -30,7 +30,7 @@ contract TestSplitCallSpread_FM is FullMarginFixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         actions[1] = createMintAction(spreadId, address(this), amount);
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
     }
 
     function testSplitCallSpread() public {
@@ -39,10 +39,10 @@ contract TestSplitCallSpread_FM is FullMarginFixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createSplitAction(spreadId, amount, address(this));
         actions[1] = createAddCollateralAction(wethId, address(this), amountToAdd); // will need to add collateral
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
 
         // check result
-        (uint256 shortId, uint64 shortAmount, , ) = fmEngine.marginAccounts(address(this));
+        (uint256 shortId, uint64 shortAmount, , ) = engine.marginAccounts(address(this));
         (TokenType tokenType, , , uint64 longStrike, uint64 shortStrike) = parseTokenId(shortId);
 
         assertEq(uint8(tokenType), uint8(TokenType.CALL));
@@ -57,7 +57,7 @@ contract TestSplitCallSpread_FM is FullMarginFixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createSplitAction(spreadId, amount, address(this));
         actions[1] = createAddCollateralAction(wethId, address(this), amountToAdd); // will need to add collateral
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
 
         // check result
         uint256 expectedTokenId = getTokenId(TokenType.CALL, pidEthCollat, expiry, strikePriceHigh, 0);
@@ -71,7 +71,7 @@ contract TestSplitCallSpread_FM is FullMarginFixture {
         actions[0] = createSplitAction(spreadId, amount, address(this));
 
         vm.expectRevert(GP_AccountUnderwater.selector);
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
     }
 }
 
@@ -86,7 +86,7 @@ contract TestSplitPutSpread_FM is FullMarginFixture {
 
     function setUp() public {
         usdc.mint(address(this), 1000_000 * 1e6);
-        usdc.approve(address(fmEngine), type(uint256).max);
+        usdc.approve(address(engine), type(uint256).max);
 
         expiry = block.timestamp + 7 days;
 
@@ -98,7 +98,7 @@ contract TestSplitPutSpread_FM is FullMarginFixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(spreadId, address(this), amount);
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
     }
 
     function testSplitPutSpread() public {
@@ -107,10 +107,10 @@ contract TestSplitPutSpread_FM is FullMarginFixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createSplitAction(spreadId, amount, address(this));
         actions[1] = createAddCollateralAction(usdcId, address(this), amountToAdd); // will need to add collateral
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
 
         // check result
-        (uint256 shortId, , , ) = fmEngine.marginAccounts(address(this));
+        (uint256 shortId, , , ) = engine.marginAccounts(address(this));
         (TokenType tokenType, , , uint64 longStrike, uint64 shortStrike) = parseTokenId(shortId);
 
         assertEq(uint8(tokenType), uint8(TokenType.PUT));
@@ -124,7 +124,7 @@ contract TestSplitPutSpread_FM is FullMarginFixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createSplitAction(spreadId, amount, address(this));
         actions[1] = createAddCollateralAction(usdcId, address(this), amountToAdd); // will need to add collateral
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
 
         // check result
         uint256 expectedTokenId = getTokenId(TokenType.PUT, pidUsdcCollat, expiry, strikePriceLow, 0);
@@ -138,7 +138,7 @@ contract TestSplitPutSpread_FM is FullMarginFixture {
         actions[0] = createSplitAction(spreadId, amount, address(this));
 
         vm.expectRevert(GP_AccountUnderwater.selector);
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
     }
 
     function testCannotSplitNonExistingSpreadId() public {
@@ -149,7 +149,7 @@ contract TestSplitPutSpread_FM is FullMarginFixture {
         actions[0] = createSplitAction(fakeSpreadId, amount, address(this));
 
         vm.expectRevert(FM_InvalidToken.selector);
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
     }
 
     function testCannotSplitWithWrongAmount() public {
@@ -157,6 +157,6 @@ contract TestSplitPutSpread_FM is FullMarginFixture {
         actions[0] = createSplitAction(spreadId, amount / 2, address(this));
 
         vm.expectRevert(FM_SplitAmountMisMatch.selector);
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
     }
 }

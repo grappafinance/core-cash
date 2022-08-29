@@ -17,10 +17,10 @@ contract TestMintCall_FM is FullMarginFixture {
 
     function setUp() public {
         usdc.mint(address(this), 1000_000 * 1e6);
-        usdc.approve(address(fmEngine), type(uint256).max);
+        usdc.approve(address(engine), type(uint256).max);
 
         weth.mint(address(this), 100 * 1e18);
-        weth.approve(address(fmEngine), type(uint256).max);
+        weth.approve(address(engine), type(uint256).max);
 
         expiry = block.timestamp + 14 days;
 
@@ -38,8 +38,8 @@ contract TestMintCall_FM is FullMarginFixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
-        grappa.execute(fmEngineId, address(this), actions);
-        (uint256 shortId, uint64 shortAmount, , ) = fmEngine.marginAccounts(address(this));
+        engine.execute(address(this), actions);
+        (uint256 shortId, uint64 shortAmount, , ) = engine.marginAccounts(address(this));
 
         assertEq(shortId, tokenId);
         assertEq(shortAmount, amount);
@@ -58,7 +58,7 @@ contract TestMintCall_FM is FullMarginFixture {
         actions[1] = createMintAction(tokenId, address(this), amount);
 
         vm.expectRevert(FM_CannotMintOptionWithThisCollateral.selector);
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
     }
 
     function testCannotMintCoveredCallUsingUsdcCollateral() public {
@@ -77,7 +77,7 @@ contract TestMintCall_FM is FullMarginFixture {
         actions[1] = createMintAction(tokenId, address(this), amount);
 
         vm.expectRevert(FM_CollateraliMisMatch.selector);
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
 
         ActionArgs[] memory actions2 = new ActionArgs[](2);
 
@@ -86,7 +86,7 @@ contract TestMintCall_FM is FullMarginFixture {
         actions2[1] = createAddCollateralAction(usdcId, address(this), depositAmount);
 
         vm.expectRevert(FM_WrongCollateralId.selector);
-        grappa.execute(fmEngineId, address(this), actions2);
+        engine.execute(address(this), actions2);
     }
 
     function testMintPut() public {
@@ -100,8 +100,8 @@ contract TestMintCall_FM is FullMarginFixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
-        grappa.execute(fmEngineId, address(this), actions);
-        (uint256 shortId, uint64 shortAmount, , ) = fmEngine.marginAccounts(address(this));
+        engine.execute(address(this), actions);
+        (uint256 shortId, uint64 shortAmount, , ) = engine.marginAccounts(address(this));
 
         assertEq(shortId, tokenId);
         assertEq(shortAmount, amount);
@@ -120,7 +120,7 @@ contract TestMintCall_FM is FullMarginFixture {
         actions[1] = createMintAction(tokenId, address(this), amount);
 
         vm.expectRevert(FM_CannotMintOptionWithThisCollateral.selector);
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
     }
 
     function testMintPutSpread() public {
@@ -136,9 +136,9 @@ contract TestMintCall_FM is FullMarginFixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
 
-        (uint256 shortId, uint64 shortAmount, , ) = fmEngine.marginAccounts(address(this));
+        (uint256 shortId, uint64 shortAmount, , ) = engine.marginAccounts(address(this));
 
         assertEq(shortId, tokenId);
         assertEq(shortAmount, amount);

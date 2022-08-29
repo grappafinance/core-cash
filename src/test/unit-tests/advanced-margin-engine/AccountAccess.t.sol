@@ -14,14 +14,14 @@ contract AdvancedMarginEngineAccessTest is AdvancedFixture {
 
     function setUp() public {
         usdc.mint(address(this), 1000_000 * 1e6);
-        usdc.approve(address(amEngine), type(uint256).max);
+        usdc.approve(address(engine), type(uint256).max);
 
         subAccountIdToModify = address(uint160(alice) ^ uint160(1));
     }
 
     function testTransferAccount() public {
         vm.startPrank(alice);
-        amEngine.transferAccount(subAccountIdToModify, address(this));
+        engine.transferAccount(subAccountIdToModify, address(this));
         vm.stopPrank();
 
         // can access subaccount!
@@ -34,7 +34,7 @@ contract AdvancedMarginEngineAccessTest is AdvancedFixture {
 
         vm.startPrank(alice);
         vm.expectRevert(AM_AccountIsNotEmpty.selector);
-        amEngine.transferAccount(subAccountIdToModify, address(this));
+        engine.transferAccount(subAccountIdToModify, address(this));
         vm.stopPrank();
     }
 
@@ -45,6 +45,6 @@ contract AdvancedMarginEngineAccessTest is AdvancedFixture {
 
         if (!_canAccess) vm.expectRevert(NoAccess.selector);
 
-        grappa.execute(amEngineId, subAccountId, actions);
+        engine.execute(subAccountId, actions);
     }
 }

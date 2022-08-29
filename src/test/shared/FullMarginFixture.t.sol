@@ -24,7 +24,7 @@ import {ActionHelper} from "../../test/shared/ActionHelper.sol";
  * helper contract for full margin integration test to inherit.
  */
 abstract contract FullMarginFixture is Test, ActionHelper, Utilities {
-    FullMarginEngine internal fmEngine;
+    FullMarginEngine internal engine;
     Grappa internal grappa;
     OptionToken internal option;
 
@@ -46,7 +46,7 @@ abstract contract FullMarginFixture is Test, ActionHelper, Utilities {
     uint8 internal usdcId;
     uint8 internal wethId;
 
-    uint8 internal fmEngineId;
+    uint8 internal engineId;
 
     constructor() {
         usdc = new MockERC20("USDC", "USDC", 6); // nonce: 1
@@ -62,16 +62,16 @@ abstract contract FullMarginFixture is Test, ActionHelper, Utilities {
 
         grappa = new Grappa(address(option), address(oracle)); // nonce: 5
 
-        fmEngine = new FullMarginEngine(address(grappa)); // nonce 6
+        engine = new FullMarginEngine(address(grappa), address(option)); // nonce 6
 
         // register products
         usdcId = grappa.registerAsset(address(usdc));
         wethId = grappa.registerAsset(address(weth));
 
-        fmEngineId = grappa.registerEngine(address(fmEngine));
+        engineId = grappa.registerEngine(address(engine));
 
-        pidUsdcCollat = grappa.getProductId(fmEngineId, address(weth), address(usdc), address(usdc));
-        pidEthCollat = grappa.getProductId(fmEngineId, address(weth), address(usdc), address(weth));
+        pidUsdcCollat = grappa.getProductId(engineId, address(weth), address(usdc), address(usdc));
+        pidEthCollat = grappa.getProductId(engineId, address(weth), address(usdc), address(weth));
 
         charlie = address(0xcccc);
         vm.label(charlie, "Charlie");
@@ -114,8 +114,8 @@ abstract contract FullMarginFixture is Test, ActionHelper, Utilities {
 
         usdc.mint(anon, lotOfCollateral);
         weth.mint(anon, lotOfCollateral);
-        usdc.approve(address(fmEngine), type(uint256).max);
-        weth.approve(address(fmEngine), type(uint256).max);
+        usdc.approve(address(engine), type(uint256).max);
+        weth.approve(address(engine), type(uint256).max);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
 
@@ -123,7 +123,7 @@ abstract contract FullMarginFixture is Test, ActionHelper, Utilities {
 
         actions[0] = createAddCollateralAction(collateralId, address(anon), lotOfCollateral);
         actions[1] = createMintAction(_tokenId, address(_recipient), _amount);
-        grappa.execute(fmEngineId, address(anon), actions);
+        engine.execute(address(anon), actions);
 
         vm.stopPrank();
     }

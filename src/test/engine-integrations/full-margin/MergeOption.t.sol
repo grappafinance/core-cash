@@ -20,7 +20,7 @@ contract TestMergeOption_FM is FullMarginFixture {
 
     function setUp() public {
         weth.mint(address(this), depositAmount);
-        weth.approve(address(fmEngine), type(uint256).max);
+        weth.approve(address(engine), type(uint256).max);
 
         expiry = block.timestamp + 14 days;
 
@@ -32,7 +32,7 @@ contract TestMergeOption_FM is FullMarginFixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         actions[1] = createMintAction(existingTokenId, address(this), amount);
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
     }
 
     function testMergeCall() public {
@@ -45,10 +45,10 @@ contract TestMergeOption_FM is FullMarginFixture {
         // merge
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createMergeAction(newTokenId, existingTokenId, address(this), amount);
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
 
         // check result
-        (uint256 shortId, , , ) = fmEngine.marginAccounts(address(this));
+        (uint256 shortId, , , ) = engine.marginAccounts(address(this));
         (TokenType newType, , , uint64 longStrike, uint64 shortStrike) = parseTokenId(shortId);
 
         assertEq(uint8(newType), uint8(TokenType.CALL_SPREAD));
@@ -68,7 +68,7 @@ contract TestMergeOption_FM is FullMarginFixture {
         actions[0] = createMergeAction(newTokenId, existingTokenId, address(this), wrongAmount);
 
         vm.expectRevert(FM_MergeAmountMisMatch.selector);
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
     }
 
     function testCannotMergeWithWrongShortId() public {
@@ -83,7 +83,7 @@ contract TestMergeOption_FM is FullMarginFixture {
         actions[0] = createMergeAction(newTokenId, wrongShort, address(this), amount);
 
         vm.expectRevert(FM_ShortDoesnotExist.selector);
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
     }
 
     function testMergeIntoCreditSpreadCanRemoveCollateral() public {
@@ -98,7 +98,7 @@ contract TestMergeOption_FM is FullMarginFixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createMergeAction(newTokenId, existingTokenId, address(this), amount);
         actions[1] = createRemoveCollateralAction(amountToRemove, wethId, address(this));
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
 
         //action should not revert
     }
@@ -112,7 +112,7 @@ contract TestMergeOption_FM is FullMarginFixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createMergeAction(newTokenId, existingTokenId, address(this), amount);
         actions[1] = createRemoveCollateralAction(depositAmount, wethId, address(this));
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
 
         //action should not revert
     }

@@ -22,7 +22,7 @@ import {ActionHelper} from "../../test/shared/ActionHelper.sol";
 // solhint-disable max-states-count
 
 abstract contract AdvancedFixture is Test, ActionHelper, Utilities {
-    AdvancedMarginEngine internal amEngine;
+    AdvancedMarginEngine internal engine;
     Grappa internal grappa;
     OptionToken internal option;
 
@@ -48,7 +48,7 @@ abstract contract AdvancedFixture is Test, ActionHelper, Utilities {
     uint8 internal usdcId;
     uint8 internal wethId;
 
-    uint8 internal amEngineId;
+    uint8 internal engineId;
 
     constructor() {
         usdc = new MockERC20("USDC", "USDC", 6); // nonce: 1
@@ -66,7 +66,7 @@ abstract contract AdvancedFixture is Test, ActionHelper, Utilities {
 
         volOracle = new VolOracle();
 
-        amEngine = new AdvancedMarginEngine(address(grappa), address(oracle), address(volOracle)); // nonce 6
+        engine = new AdvancedMarginEngine(address(grappa), address(oracle), address(volOracle), address(option)); // nonce 6
 
         // mock vol oracles
         ethVolAggregator = new MockChainlinkAggregator(6);
@@ -78,15 +78,15 @@ abstract contract AdvancedFixture is Test, ActionHelper, Utilities {
         usdcId = grappa.registerAsset(address(usdc));
         wethId = grappa.registerAsset(address(weth));
 
-        amEngineId = grappa.registerEngine(address(amEngine));
+        engineId = grappa.registerEngine(address(engine));
 
-        // amEngineId = grappa.registerEngine(address(amEngine));
+        // engineId = grappa.registerEngine(address(engine));
 
-        productId = grappa.getProductId(amEngineId, address(weth), address(usdc), address(usdc));
-        productIdEthCollat = grappa.getProductId(amEngineId, address(weth), address(usdc), address(weth));
+        productId = grappa.getProductId(engineId, address(weth), address(usdc), address(usdc));
+        productIdEthCollat = grappa.getProductId(engineId, address(weth), address(usdc), address(weth));
 
-        amEngine.setProductMarginConfig(productId, 180 days, 1 days, 6400, 800, 10000);
-        amEngine.setProductMarginConfig(productIdEthCollat, 180 days, 1 days, 6400, 800, 10000);
+        engine.setProductMarginConfig(productId, 180 days, 1 days, 6400, 800, 10000);
+        engine.setProductMarginConfig(productIdEthCollat, 180 days, 1 days, 6400, 800, 10000);
 
         charlie = address(0xcccc);
         vm.label(charlie, "Charlie");
@@ -129,8 +129,8 @@ abstract contract AdvancedFixture is Test, ActionHelper, Utilities {
 
         usdc.mint(anon, lotOfCollateral);
         weth.mint(anon, lotOfCollateral);
-        usdc.approve(address(amEngine), type(uint256).max);
-        weth.approve(address(amEngine), type(uint256).max);
+        usdc.approve(address(engine), type(uint256).max);
+        weth.approve(address(engine), type(uint256).max);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
 
@@ -142,7 +142,7 @@ abstract contract AdvancedFixture is Test, ActionHelper, Utilities {
 
         actions[0] = createAddCollateralAction(collateralId, address(anon), lotOfCollateral);
         actions[1] = createMintAction(_tokenId, address(_recipient), _amount);
-        grappa.execute(amEngineId, address(anon), actions);
+        engine.execute(address(anon), actions);
 
         vm.stopPrank();
     }

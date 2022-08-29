@@ -16,10 +16,10 @@ contract TestMintVanillaOption is AdvancedFixture {
 
     function setUp() public {
         usdc.mint(address(this), 1000_000 * 1e6);
-        usdc.approve(address(amEngine), type(uint256).max);
+        usdc.approve(address(engine), type(uint256).max);
 
         weth.mint(address(this), 100 * 1e18);
-        weth.approve(address(amEngine), type(uint256).max);
+        weth.approve(address(engine), type(uint256).max);
 
         expiry = block.timestamp + 14 days;
 
@@ -37,8 +37,8 @@ contract TestMintVanillaOption is AdvancedFixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
-        grappa.execute(amEngineId, address(this), actions);
-        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = amEngine
+        engine.execute(address(this), actions);
+        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = engine
             .marginAccounts(address(this));
 
         assertEq(shortCallId, tokenId);
@@ -58,8 +58,8 @@ contract TestMintVanillaOption is AdvancedFixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
-        grappa.execute(amEngineId, address(this), actions);
-        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = amEngine
+        engine.execute(address(this), actions);
+        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = engine
             .marginAccounts(address(this));
 
         assertEq(shortCallId, tokenId);
@@ -72,11 +72,11 @@ contract TestMintVanillaOption is AdvancedFixture {
         // create wbtc and mint to user
         MockERC20 wbtc = new MockERC20("WBTC", "WBTC", 8);
         wbtc.mint(address(this), 1 * 1e8);
-        wbtc.approve(address(amEngine), type(uint256).max);
+        wbtc.approve(address(engine), type(uint256).max);
         // register wbtc in the system
         uint8 wbtcId = grappa.registerAsset(address(wbtc));
-        uint32 productIdBtcCollat = grappa.getProductId(amEngineId, address(weth), address(usdc), address(wbtc));
-        amEngine.setProductMarginConfig(productIdBtcCollat, 180 days, 1 days, 7000, 1000, 10000);
+        uint32 productIdBtcCollat = grappa.getProductId(engineId, address(weth), address(usdc), address(wbtc));
+        engine.setProductMarginConfig(productIdBtcCollat, 180 days, 1 days, 7000, 1000, 10000);
         oracle.setSpotPrice(address(wbtc), 40_000 * UNIT); // 10x price of eth
 
         // prepare arguments
@@ -88,8 +88,8 @@ contract TestMintVanillaOption is AdvancedFixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wbtcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
-        grappa.execute(amEngineId, address(this), actions);
-        (uint256 callId, , uint64 shortCallAmount, , uint80 collatAmount, uint8 collatId) = amEngine.marginAccounts(
+        engine.execute(address(this), actions);
+        (uint256 callId, , uint64 shortCallAmount, , uint80 collatAmount, uint8 collatId) = engine.marginAccounts(
             address(this)
         );
 
@@ -112,7 +112,7 @@ contract TestMintVanillaOption is AdvancedFixture {
         actions[1] = createMintAction(tokenId, address(this), amount);
 
         vm.expectRevert(GP_AccountUnderwater.selector);
-        grappa.execute(amEngineId, address(this), actions);
+        engine.execute(address(this), actions);
     }
 
     function testCannotMintCallWithOtherProductId() public {
@@ -122,14 +122,14 @@ contract TestMintVanillaOption is AdvancedFixture {
         uint256 amount = 1 * UNIT;
 
         // try to mint a tokenId that belongs to another margin engine
-        uint32 fakeProductId = grappa.getProductId(amEngineId + 1, address(weth), address(usdc), address(weth));
+        uint32 fakeProductId = grappa.getProductId(engineId + 1, address(weth), address(usdc), address(weth));
         uint256 tokenId = getTokenId(TokenType.CALL, fakeProductId, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
         vm.expectRevert(GP_Not_Authorized_Engine.selector);
-        grappa.execute(amEngineId, address(this), actions);
+        engine.execute(address(this), actions);
     }
 
     function testCannotMintCallWithDifferentCollateralType() public {
@@ -145,7 +145,7 @@ contract TestMintVanillaOption is AdvancedFixture {
         actions[1] = createMintAction(tokenId, address(this), amount);
 
         vm.expectRevert(AM_InvalidToken.selector);
-        grappa.execute(amEngineId, address(this), actions);
+        engine.execute(address(this), actions);
     }
 
     function testMintCallSpread() public {
@@ -161,9 +161,9 @@ contract TestMintVanillaOption is AdvancedFixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
-        grappa.execute(amEngineId, address(this), actions);
+        engine.execute(address(this), actions);
 
-        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = amEngine
+        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = engine
             .marginAccounts(address(this));
 
         assertEq(shortCallId, tokenId);
@@ -183,8 +183,8 @@ contract TestMintVanillaOption is AdvancedFixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
-        grappa.execute(amEngineId, address(this), actions);
-        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = amEngine
+        engine.execute(address(this), actions);
+        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = engine
             .marginAccounts(address(this));
 
         assertEq(shortCallId, 0);
@@ -206,7 +206,7 @@ contract TestMintVanillaOption is AdvancedFixture {
         actions[1] = createMintAction(tokenId, address(this), amount);
 
         vm.expectRevert(GP_AccountUnderwater.selector);
-        grappa.execute(amEngineId, address(this), actions);
+        engine.execute(address(this), actions);
     }
 
     function testMintPutSpread() public {
@@ -222,9 +222,9 @@ contract TestMintVanillaOption is AdvancedFixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
-        grappa.execute(amEngineId, address(this), actions);
+        engine.execute(address(this), actions);
 
-        (, uint256 shortPutId, , uint64 shortPutAmount, , ) = amEngine.marginAccounts(address(this));
+        (, uint256 shortPutId, , uint64 shortPutAmount, , ) = engine.marginAccounts(address(this));
 
         assertEq(shortPutId, tokenId);
         assertEq(shortPutAmount, amount);
@@ -243,9 +243,9 @@ contract TestMintVanillaOption is AdvancedFixture {
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(callId, address(this), amount);
         actions[2] = createMintAction(putId, address(this), amount);
-        grappa.execute(amEngineId, address(this), actions);
+        engine.execute(address(this), actions);
 
-        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = amEngine
+        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = engine
             .marginAccounts(address(this));
 
         assertEq(shortCallId, callId);
@@ -268,9 +268,9 @@ contract TestMintVanillaOption is AdvancedFixture {
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(callId, address(this), amount);
         actions[2] = createMintAction(putId, address(this), amount);
-        grappa.execute(amEngineId, address(this), actions);
+        engine.execute(address(this), actions);
 
-        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = amEngine
+        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, , ) = engine
             .marginAccounts(address(this));
 
         assertEq(shortCallId, callId);
@@ -292,7 +292,7 @@ contract TestMintVanillaOption is AdvancedFixture {
         actions[0] = createMintAction(tokenId, address(this), amount);
 
         vm.expectRevert(GP_AccountUnderwater.selector);
-        grappa.execute(amEngineId, address(this), actions);
+        engine.execute(address(this), actions);
     }
 
     function testCannotMintTwoCalls() public {
@@ -307,7 +307,7 @@ contract TestMintVanillaOption is AdvancedFixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
-        grappa.execute(amEngineId, address(this), actions);
+        engine.execute(address(this), actions);
 
         // prepare second mint
         ActionArgs[] memory action2 = new ActionArgs[](1);
@@ -316,6 +316,6 @@ contract TestMintVanillaOption is AdvancedFixture {
 
         // expect call to revert
         vm.expectRevert(AM_InvalidToken.selector);
-        grappa.execute(amEngineId, address(this), action2);
+        engine.execute(address(this), action2);
     }
 }

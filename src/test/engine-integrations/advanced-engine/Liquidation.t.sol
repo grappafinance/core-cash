@@ -25,7 +25,7 @@ contract TestLiquidateCall is AdvancedFixture {
         usdc.mint(alice, 1000_000 * 1e6);
 
         vm.startPrank(alice);
-        usdc.approve(address(amEngine), type(uint256).max);
+        usdc.approve(address(engine), type(uint256).max);
 
         expiry = block.timestamp + 7 days;
 
@@ -45,13 +45,13 @@ contract TestLiquidateCall is AdvancedFixture {
         actions[1] = createMintAction(tokenId, address(this), amount);
 
         // mint option
-        grappa.execute(amEngineId, accountId, actions);
+        engine.execute(accountId, actions);
 
         vm.stopPrank();
     }
 
     function testGetMinCollateralShouldReturnProperValue() public {
-        uint256 minCollateral = amEngine.getMinCollateral(accountId);
+        uint256 minCollateral = engine.getMinCollateral(accountId);
         assertTrue(minCollateral < initialCollateral);
     }
 
@@ -108,7 +108,7 @@ contract TestLiquidateCall is AdvancedFixture {
         assertEq(optionBalanceBefore - optionBalanceAfter, amount);
 
         //margin account should be reset
-        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAmount, uint8 collateralId) = amEngine
+        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAmount, uint8 collateralId) = engine
             .marginAccounts(accountId);
 
         assertEq(shortCallId, 0);
@@ -137,7 +137,7 @@ contract TestLiquidateCall is AdvancedFixture {
         ids[1] = _putId;
         amounts[0] = _callAmount;
         amounts[1] = _putAmount;
-        grappa.liquidate(address(amEngine), _accountId, ids, amounts);
+        engine.liquidate(_accountId, ids, amounts);
     }
 }
 
@@ -156,7 +156,7 @@ contract TestLiquidatePut is AdvancedFixture {
         usdc.mint(alice, 1000_000 * 1e6);
 
         vm.startPrank(alice);
-        usdc.approve(address(amEngine), type(uint256).max);
+        usdc.approve(address(engine), type(uint256).max);
 
         expiry = block.timestamp + 7 days;
 
@@ -176,7 +176,7 @@ contract TestLiquidatePut is AdvancedFixture {
         actions[1] = createMintAction(tokenId, address(this), amount);
 
         // mint option
-        grappa.execute(amEngineId, accountId, actions);
+        engine.execute(accountId, actions);
 
         vm.stopPrank();
     }
@@ -194,7 +194,7 @@ contract TestLiquidatePut is AdvancedFixture {
         ids[1] = _putId;
         amounts[0] = _callAmount;
         amounts[1] = _putAmount;
-        grappa.liquidate(address(amEngine), _accountId, ids, amounts);
+        engine.liquidate(_accountId, ids, amounts);
     }
 
     function testCannotLiquidateHealthyVault() public {
@@ -250,7 +250,7 @@ contract TestLiquidatePut is AdvancedFixture {
         assertEq(optionBalanceBefore - optionBalanceAfter, amount);
 
         //margin account should be reset
-        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAmount, uint8 collateralId) = amEngine
+        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAmount, uint8 collateralId) = engine
             .marginAccounts(accountId);
 
         assertEq(shortCallId, 0);
@@ -279,7 +279,7 @@ contract TestLiquidateCallAndPut is AdvancedFixture {
         usdc.mint(alice, 1000_000 * 1e6);
 
         vm.startPrank(alice);
-        usdc.approve(address(amEngine), type(uint256).max);
+        usdc.approve(address(engine), type(uint256).max);
 
         expiry = block.timestamp + 7 days;
 
@@ -302,7 +302,7 @@ contract TestLiquidateCallAndPut is AdvancedFixture {
         actions[2] = createMintAction(putId, address(this), amount);
 
         // mint option
-        grappa.execute(amEngineId, accountId, actions);
+        engine.execute(accountId, actions);
 
         vm.stopPrank();
     }
@@ -320,7 +320,7 @@ contract TestLiquidateCallAndPut is AdvancedFixture {
         ids[1] = _putId;
         amounts[0] = _callAmount;
         amounts[1] = _putAmount;
-        grappa.liquidate(address(amEngine), _accountId, ids, amounts);
+        engine.liquidate(_accountId, ids, amounts);
     }
 
     function testCannotLiquidateHealthyVault() public {
@@ -397,7 +397,7 @@ contract TestLiquidateCallAndPut is AdvancedFixture {
             uint64 shortPutAmount,
             uint80 collateralAmount,
             uint8 collateralId
-        ) = amEngine.marginAccounts(accountId);
+        ) = engine.marginAccounts(accountId);
 
         assertEq(shortCallId, 0);
         assertEq(shortPutId, 0);

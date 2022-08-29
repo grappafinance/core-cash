@@ -6,9 +6,14 @@ import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import {SafeERC20} from "openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 import {Ownable} from "openzeppelin/access/Ownable.sol";
+import {ReentrancyGuard} from "solmate/utils/ReentrancyGuard.sol";
+
+// inheriting contracts
+import {BaseEngine} from "../BaseEngine.sol";
 
 // interfaces
 import {IOracle} from "../../../interfaces/IOracle.sol";
+import {IOptionToken} from "../../../interfaces/IOptionToken.sol";
 import {IGrappa} from "../../../interfaces/IGrappa.sol";
 import {IMarginEngine} from "../../../interfaces/IMarginEngine.sol";
 import {IVolOracle} from "../../../interfaces/IVolOracle.sol";
@@ -34,7 +39,7 @@ import "../../../config/errors.sol";
             Interacts with VolOracle to read vol
             Listen to calls from Grappa to update accountings
  */
-contract AdvancedMarginEngine is IMarginEngine, Ownable {
+contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyGuard {
     using AdvancedMarginMath for AdvancedMarginDetail;
     using AdvancedMarginLib for Account;
     using SafeERC20 for IERC20;
@@ -42,6 +47,7 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
     using NumberUtil for uint256;
 
     IGrappa public immutable grappa;
+    IOptionToken public immutable optionToken;
     IOracle public immutable oracle;
     IVolOracle public immutable volOracle;
 
@@ -61,16 +67,37 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
     constructor(
         address _grappa,
         address _oracle,
-        address _volOracle
+        address _volOracle,
+        address _optionToken
     ) {
         grappa = IGrappa(_grappa);
         oracle = IOracle(_oracle);
         volOracle = IVolOracle(_volOracle);
+        optionToken = IOptionToken(_optionToken);
     }
 
     /*///////////////////////////////////////////////////////////////
                                   Events
     //////////////////////////////////////////////////////////////*/
+
+    /*///////////////////////////////////////////////////////////////
+                                Events
+    //////////////////////////////////////////////////////////////*/
+
+    event CollateralAdded(address subAccount, address collateral, uint256 amount);
+
+    event CollateralRemoved(address subAccount, address collateral, uint256 amount);
+
+    event OptionTokenMinted(address subAccount, uint256 tokenId, uint256 amount);
+
+    event OptionTokenBurned(address subAccount, uint256 tokenId, uint256 amount);
+
+    event OptionTokenMerged(address subAccount, uint256 longToken, uint256 shortToken, uint64 amount);
+
+    event OptionTokenSplit(address subAccount, uint256 spreadId, uint64 amount);
+
+    event AccountSettled(address subAccount, uint256 payout);
+
     event ProductConfigurationUpdated(
         uint32 productId,
         uint32 dUpper,
@@ -83,6 +110,34 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
     /*///////////////////////////////////////////////////////////////
                         External Functions
     //////////////////////////////////////////////////////////////*/
+
+    function execute(address _subAccount, ActionArgs[] calldata actions) external nonReentrant {
+        _assertCallerHasAccess(_subAccount);
+
+        Account memory account = marginAccounts[_subAccount];
+
+        // update the account memory and do external calls on the flight
+        for (uint256 i; i < actions.length; ) {
+            if (actions[i].action == ActionType.AddCollateral) _addCollateral(account, _subAccount,  actions[i].data);
+            else if (actions[i].action == ActionType.RemoveCollateral) _removeCollateral(account, _subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.MintShort) _mintOption(account, _subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.BurnShort) _burnOption(account, _subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.MergeOptionToken) _merge(account, _subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.SplitOptionToken) _split(account, _subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.SettleAccount) _settle(account, _subAccount);
+            else revert("unsupported");
+
+            // increase i without checking overflow
+            unchecked {
+                i++;
+            }
+        }
+        if(!_isAccountHealthy(account)) revert GP_AccountUnderwater();
+    }
+
+    function previewMinCollateral(address _subAccount, ActionArgs[] calldata actions) external view returns (uint256) {
+        return 0;
+    }
 
     /**
      * todo: consider moving this to viewer contract
@@ -107,13 +162,11 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
      *          and get the collateral from the margin account.
      * @dev     expected to be called by liquidators
      * @param _subAccount account to liquidate
-     * @param _liquidator the account calling liquidate on Grappa
      * @param tokensToBurn arrays of token burned
      * @param amountsToBurn amounts burned
      */
     function liquidate(
         address _subAccount,
-        address _liquidator,
         uint256[] memory tokensToBurn,
         uint256[] memory amountsToBurn
     ) external returns (address collateral, uint80 collateralToPay) {
@@ -155,11 +208,13 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
 
         // update account's debt and perform "safe" external calls
         if (hasShortCall) {
-            account.burnOptionMemory(account.shortCallId, uint64(repayCallAmount));
+            account.burnOption(account.shortCallId, uint64(repayCallAmount));
+            optionToken.burn(msg.sender, account.shortCallId, amountsToBurn[0]);
         }
         if (hasShortPut) {
             // cacheShortPutId = account.shortPutId;
-            account.burnOptionMemory(account.shortPutId, uint64(repayPutAmount));
+            account.burnOption(account.shortPutId, uint64(repayPutAmount));
+            optionToken.burn(msg.sender, account.shortPutId, amountsToBurn[1]);
         }
 
         // update account's collateral
@@ -169,12 +224,14 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
         collateral = grappa.assets(account.collateralId).addr;
 
         // if liquidator is trying to remove more collateral than owned, this line will revert
-        account.removeCollateralMemory(collateralToPay);
+        account.removeCollateral(collateralToPay, account.collateralId);
 
         // write new accout to storage
         marginAccounts[_subAccount] = account;
 
-        IERC20(collateral).safeTransfer(_liquidator, collateralToPay);
+        
+
+        IERC20(collateral).safeTransfer(msg.sender, collateralToPay);
     }
 
     /**
@@ -244,130 +301,148 @@ contract AdvancedMarginEngine is IMarginEngine, Ownable {
      *                 * -------------------- *                    *
      *                 |  Actions  Functions  |                    *
      *                 * -------------------- *                    *
-     *       These functions all update account storages           *
+     *       These functions all update account memory             *
      ** ========================================================= **/
 
     /**
-     * @dev increase the collateral for an account
+     * @dev pull token from user, increase collateral in account memory
+            the collateral has to be provided by either caller, or the primary owner of subaccount
      */
-    function increaseCollateral(
-        address _subAccount,
-        address _from,
-        address _collateral,
-        uint8 _collateralId,
-        uint80 _amount
-    ) external {
-        _assertCallerIsGrappa();
+    function _addCollateral(Account memory _account, address _subAccount, bytes memory _data) internal {
+        // decode parameters
+        (address from, uint80 amount, uint8 collateralId) = abi.decode(_data, (address, uint80, uint8));
 
-        // update the account structure in storage
-        marginAccounts[_subAccount].addCollateral(_amount, _collateralId);
+        if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert GP_InvalidFromAddress();
 
-        IERC20(_collateral).safeTransferFrom(_from, address(this), _amount);
+        // update the data structure in memory, and pull asset to the engine
+        _account.addCollateral(amount, collateralId);
+
+        address collateral = grappa.assets(collateralId).addr;
+
+        IERC20(collateral).safeTransferFrom(from, address(this), amount);
+
+        emit CollateralAdded(_subAccount, collateral, amount);
     }
 
     /**
-     * @dev decrease collateral in account
+     * @dev push token to user, decrease collateral in account memory
+     * @param _data bytes data to decode
      */
-    function decreaseCollateral(
-        address _subAccount,
-        address _recipient,
-        address _collateral,
-        uint8 _collateralId,
-        uint80 _amount
-    ) external {
-        _assertCallerIsGrappa();
+    function _removeCollateral(Account memory _account, address _subAccount, bytes memory _data) internal {
+        // decode parameters
+        (uint80 amount, address recipient, uint8 collateralId) = abi.decode(_data, (uint80, address, uint8));
+        
+        // update the data structure in corresponding engine
+        _account.removeCollateral(amount, collateralId);
+        
+        address collateral = grappa.assets(collateralId).addr;
 
-        // todo: check if vault has expired short positions
+        emit CollateralRemoved(_subAccount, collateral, amount);
 
-        // update the account structure in storage
-        marginAccounts[_subAccount].removeCollateral(_amount, _collateralId);
-
-        IERC20(_collateral).safeTransfer(_recipient, _amount);
+        IERC20(collateral).safeTransfer(recipient, amount);
     }
 
     /**
-     * @dev increase short position (debt) in account
+     * @dev mint option token to user, increase short position (debt) in account memory
+     * @param _data bytes data to decode
      */
-    function increaseDebt(
-        address _subAccount,
-        uint256 _optionId,
-        uint64 _amount
-    ) external {
-        _assertCallerIsGrappa();
+    function _mintOption(Account memory _account, address _subAccount, bytes memory _data) internal {
+        // decode parameters
+        (uint256 tokenId, address recipient, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
 
-        // update the account structure in storage
-        marginAccounts[_subAccount].mintOption(_optionId, _amount);
+        emit OptionTokenMinted(_subAccount, tokenId, amount);
+
+        // update the account in memory
+        _account.mintOption(tokenId, amount);
+
+        // mint the real option token
+        optionToken.mint(recipient, tokenId, amount);
     }
 
     /**
-     * @dev decrease the short position (debt) in account
+     * @dev burn option token from user, decrease short position (debt) in account memory
+            the option has to be provided by either caller, or the primary owner of subaccount
+     * @param _data bytes data to decode
      */
-    function decreaseDebt(
-        address _subAccount,
-        uint256 _optionId,
-        uint64 _amount
-    ) external {
-        _assertCallerIsGrappa();
+    function _burnOption(Account memory _account, address _subAccount, bytes memory _data) internal {
+        // decode parameters
+        (uint256 tokenId, address from, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
 
-        // update the account structure in storage
-        marginAccounts[_subAccount].burnOption(_optionId, _amount);
+        // token being burn must come from caller or the primary account for this subAccount
+        if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert GP_InvalidFromAddress();
+
+        emit OptionTokenBurned(_subAccount, tokenId, amount);
+
+        // update the account in memory
+        _account.burnOption(tokenId, amount);
+
+        optionToken.burn(from, tokenId, amount);
     }
 
     /**
-     * @dev change the short position to spread. This will reduce collateral requirement
+     * @dev burn option token and change the short position to spread. This will reduce collateral requirement
+            the option has to be provided by either caller, or the primary owner of subaccount
+     * @param _data bytes data to decode
      */
-    function merge(
-        address _subAccount,
-        uint256 _shortTokenId,
-        uint256 _longTokenId,
-        uint64 _amount
-    ) external {
-        _assertCallerIsGrappa();
+    function _merge(
+        Account memory _account, address _subAccount, bytes memory _data
+    ) internal {
+        // decode parameters
+        (uint256 longTokenId, uint256 shortTokenId, address from, uint64 amount) = abi.decode(
+            _data,
+            (uint256, uint256, address, uint64)
+        );
 
-        // update the account in storage
-        marginAccounts[_subAccount].merge(_shortTokenId, _longTokenId, _amount);
+        // token being burn must come from caller or the primary account for this subAccount
+        if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert GP_InvalidFromAddress();
+
+        _verifyMergeTokenIds(longTokenId, shortTokenId);
+
+        emit OptionTokenMerged(_subAccount, longTokenId, shortTokenId, amount);
+
+        // update the data structure in corresponding engine
+        _account.merge(shortTokenId, longTokenId, amount);
+
+        // this line will revert if usre is trying to burn an un-authrized tokenId
+        optionToken.burn(from, longTokenId, amount);
     }
 
     /**
-     * @dev Change existing spread position to short. This should increase collateral requirement
+     * @dev Change existing spread position to short, and mint option token for recipient
+     * @param _subAccount subaccount that will be update in place
      */
-    function split(
-        address _subAccount,
-        uint256 _spreadId,
-        uint64 _amount
-    ) external {
-        _assertCallerIsGrappa();
+    function _split(Account memory _account, address _subAccount, bytes memory _data) internal {
+        // decode parameters
+        (uint256 spreadId, uint64 amount, address recipient) = abi.decode(_data, (uint256, uint64, address));
 
-        // update the account
-        marginAccounts[_subAccount].split(_spreadId, _amount);
+        uint256 tokenId = _verifySpreadIdAndGetLong(spreadId);
+
+        emit OptionTokenSplit(_subAccount, spreadId, amount);
+
+        // update the data structure in corresponding engine
+        _account.split(spreadId, amount);
+
+        optionToken.mint(recipient, tokenId, amount);
     }
 
     /**
      * @notice  settle the margin account at expiry
+     * @dev     this update the account memory in-place
      */
-    function settleAtExpiry(address _subAccount) external {
-        // clear the debt in account, and deduct the collateral with reservedPayout
-        // this will NOT revert even if account has less collateral than it should have reserved for payout.
-        _assertCallerIsGrappa();
+    function _settle(Account memory _account, address _subAccount) internal {
 
-        Account memory account = marginAccounts[_subAccount];
+        uint256 payout = _getPayoutFromAccount(_account);
 
-        uint80 reservedPayout = _getPayoutFromAccount(account);
+        emit AccountSettled(_subAccount, payout);
 
-        // update the account
-        marginAccounts[_subAccount].settleAtExpiry(reservedPayout);
+        _account.settleAtExpiry(uint80(payout));
     }
+
+    
 
     /** ========================================================= **
                             Internal Functions
      ** ========================================================= **/
-
-    /**
-     * @notice return if {_primary} address is the primary account for {_subAccount}
-     */
-    function _isPrimaryAccountFor(address _primary, address _subAccount) internal pure returns (bool) {
-        return (uint160(_primary) | 0xFF) == (uint160(_subAccount) | 0xFF);
-    }
 
     /**
      * @notice revert if called by non-grappa controller
