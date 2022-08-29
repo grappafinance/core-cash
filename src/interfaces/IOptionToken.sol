@@ -3,7 +3,7 @@ pragma solidity =0.8.13;
 
 interface IOptionToken {
     /**
-     * @dev mint option token to an address. Can only be called by marginAccount
+     * @dev mint option token to an address. Can only be called by corresponding margin engine
      * @param _recipient    where to mint token to
      * @param _tokenId      tokenId to mint
      * @param _amount       amount to mint
@@ -15,7 +15,7 @@ interface IOptionToken {
     ) external;
 
     /**
-     * @dev burn option token from an address. Can only be called by marginAccount
+     * @dev burn option token from an address. Can only be called by corresponding margin engine
      * @param _from         account to burn from
      * @param _tokenId      tokenId to burn
      * @param _amount       amount to burn
@@ -26,6 +26,12 @@ interface IOptionToken {
         uint256 _amount
     ) external;
 
+    /**
+     * @dev burn option token from an address. Can only be called by grappa, used for settlement
+     * @param _from         account to burn from
+     * @param _tokenId      tokenId to burn
+     * @param _amount       amount to burn
+     **/
     function burnGrappaOnly(
         address _from,
         uint256 _tokenId,
@@ -33,12 +39,12 @@ interface IOptionToken {
     ) external;
 
     /**
-     * @dev burn batch of option token from an address. Can only be called by marginAccount
+     * @dev burn batch of option token from an address. Can only be called by grappa
      * @param _from         account to burn from
      * @param _ids          tokenId to burn
      * @param _amounts      amount to burn
      **/
-    function batchBurn(
+    function batchBurnGrappaOnly(
         address _from,
         uint256[] memory _ids,
         uint256[] memory _amounts

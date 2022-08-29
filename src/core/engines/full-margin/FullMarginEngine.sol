@@ -111,9 +111,9 @@ contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
         marginAccounts[_subAccount] = account;
     }
 
-    function previewMinCollateral(address _subAccount, ActionArgs[] calldata actions) external view returns (uint256) {
-        return 0;
-    }
+    // function previewMinCollateral(address _subAccount, ActionArgs[] calldata actions) external view returns (uint256) {
+    //     return 0;
+    // }
 
     /**
      * todo: consider movingg this to viewer contract

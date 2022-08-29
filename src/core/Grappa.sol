@@ -96,7 +96,7 @@ contract Grappa is ReentrancyGuard, Registry {
 
         if (_tokenIds.length == 0) return;
 
-        optionToken.batchBurn(_account, _tokenIds, _amounts);
+        optionToken.batchBurnGrappaOnly(_account, _tokenIds, _amounts);
 
         address lastCollateral;
         address lastEngine;

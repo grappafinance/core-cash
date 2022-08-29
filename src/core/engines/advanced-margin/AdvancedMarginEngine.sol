@@ -133,9 +133,9 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
         marginAccounts[_subAccount] = account;
     }
 
-    function previewMinCollateral(address _subAccount, ActionArgs[] calldata actions) external view returns (uint256) {
-        return 0;
-    }
+    // function previewMinCollateral(address _subAccount, ActionArgs[] calldata actions) external view returns (uint256) {
+    //     return 0;
+    // }
 
     /**
      * todo: consider moving this to viewer contract
