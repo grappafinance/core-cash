@@ -3,7 +3,6 @@ pragma solidity =0.8.13;
 
 // external librares
 import {ERC1155} from "solmate/tokens/ERC1155.sol";
-import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 
 // interfaces
 import {IOptionToken} from "../interfaces/IOptionToken.sol";

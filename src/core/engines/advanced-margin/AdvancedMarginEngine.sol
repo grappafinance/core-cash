@@ -36,6 +36,8 @@ import "../../../config/errors.sol";
  * @author  @antoncoding
  * @notice  AdvancedMarginEngine is in charge of maintaining margin requirement for partial collateralized options
             Please see AdvancedMarginMath.sol for detailed partial collat calculation
+            Interacts with OptionToken to mint / burn
+            Interacts with grappa to fetch registered asset info
             Interacts with Oracle to read spot
             Interacts with VolOracle to read vol
  */
@@ -137,7 +139,6 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
     // }
 
     /**
-     * todo: consider moving this to viewer contract
      * @notice get minimum collateral needed for a margin account
      * @param _subAccount account id.
      * @return minCollateral minimum collateral required, in collateral asset's decimals

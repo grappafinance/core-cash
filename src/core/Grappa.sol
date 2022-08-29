@@ -3,12 +3,9 @@ pragma solidity =0.8.13;
 
 // imported contracts and libraries
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
-import {ReentrancyGuard} from "solmate/utils/ReentrancyGuard.sol";
-import {SafeERC20} from "openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import {Ownable} from "openzeppelin/access/Ownable.sol";
 
 // interfaces
-import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "openzeppelin/token/ERC20/extensions/IERC20Metadata.sol";
 import {IOracle} from "../interfaces/IOracle.sol";
 import {IOptionToken} from "../interfaces/IOptionToken.sol";
@@ -30,8 +27,7 @@ import "../config/errors.sol";
  * @title   Grappa
  * @author  @antoncoding
  */
-contract Grappa is ReentrancyGuard, Ownable {
-    using SafeERC20 for IERC20;
+contract Grappa is Ownable {
     using FixedPointMathLib for uint256;
     using NumberUtil for uint256;
     using TokenIdUtil for uint256;

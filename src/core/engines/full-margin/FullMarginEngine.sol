@@ -36,6 +36,8 @@ import "../../../config/errors.sol";
  * @author  @antoncoding
  * @notice  Fully collateralized margin engine
             Users can deposit collateral into FullMargin and mint optionTokens (debt) out of it.
+            Interacts with OptionToken to mint / burn
+            Interacts with grappa to fetch registered asset info
  */
 contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
     using FullMarginLib for FullMarginAccount;
@@ -124,10 +126,6 @@ contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
         FullMarginAccount memory account = marginAccounts[_subAccount];
         FullMarginDetail memory detail = _getAccountDetail(account);
         minCollateral = detail.getMinCollateral();
-    }
-
-    function isAccountHealthy(address _subAccount) external view returns (bool) {
-        return _isAccountHealthy(marginAccounts[_subAccount]);
     }
 
     /**
