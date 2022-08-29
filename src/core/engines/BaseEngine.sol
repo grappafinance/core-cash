@@ -83,24 +83,24 @@ contract BaseEngine {
         (TokenType longType, uint32 productId, uint64 expiry, uint64 longStrike, ) = longId.parseTokenId();
 
         // token being added can only be call or put
-        if (longType != TokenType.CALL && longType != TokenType.PUT) revert GP_CannotMergeSpread();
+        if (longType != TokenType.CALL && longType != TokenType.PUT) revert BM_CannotMergeSpread();
 
         (TokenType shortType, uint32 productId_, uint64 expiry_, uint64 shortStrike, ) = shortId.parseTokenId();
 
         // check that the merging token (long) has the same property as existing short
-        if (shortType != longType) revert GP_MergeTypeMismatch();
-        if (productId_ != productId) revert GP_MergeProductMismatch();
-        if (expiry_ != expiry) revert GP_MergeExpiryMismatch();
+        if (shortType != longType) revert BM_MergeTypeMismatch();
+        if (productId_ != productId) revert BM_MergeProductMismatch();
+        if (expiry_ != expiry) revert BM_MergeExpiryMismatch();
 
         // should use burn instead
-        if (longStrike == shortStrike) revert GP_MergeWithSameStrike();
+        if (longStrike == shortStrike) revert BM_MergeWithSameStrike();
     }
 
     function _verifySpreadIdAndGetLong(uint256 _spreadId) internal pure returns (uint256 longId) {
         // parse the passed in spread id
         (TokenType spreadType, uint32 productId, uint64 expiry, , uint64 shortStrike) = _spreadId.parseTokenId();
 
-        if (spreadType != TokenType.CALL_SPREAD && spreadType != TokenType.PUT_SPREAD) revert GP_CanOnlySplitSpread();
+        if (spreadType != TokenType.CALL_SPREAD && spreadType != TokenType.PUT_SPREAD) revert BM_CanOnlySplitSpread();
 
         TokenType newType = spreadType == TokenType.CALL_SPREAD ? TokenType.CALL : TokenType.PUT;
         longId = TokenIdUtil.formatTokenId(newType, productId, expiry, shortStrike, 0);

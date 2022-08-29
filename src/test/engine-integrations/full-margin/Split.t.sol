@@ -70,7 +70,7 @@ contract TestSplitCallSpread_FM is FullMarginFixture {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSplitAction(spreadId, amount, address(this));
 
-        vm.expectRevert(GP_AccountUnderwater.selector);
+        vm.expectRevert(FM_AccountUnderwater.selector);
         engine.execute(address(this), actions);
     }
 }
@@ -137,7 +137,7 @@ contract TestSplitPutSpread_FM is FullMarginFixture {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSplitAction(spreadId, amount, address(this));
 
-        vm.expectRevert(GP_AccountUnderwater.selector);
+        vm.expectRevert(FM_AccountUnderwater.selector);
         engine.execute(address(this), actions);
     }
 

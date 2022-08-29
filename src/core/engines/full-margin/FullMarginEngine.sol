@@ -107,7 +107,7 @@ contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
                 i++;
             }
         }
-        if (!_isAccountHealthy(account)) revert GP_AccountUnderwater();
+        if (!_isAccountHealthy(account)) revert FM_AccountUnderwater();
 
         marginAccounts[_subAccount] = account;
     }
@@ -162,7 +162,7 @@ contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
         // decode parameters
         (address from, uint80 amount, uint8 collateralId) = abi.decode(_data, (address, uint80, uint8));
 
-        if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert GP_InvalidFromAddress();
+        if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert FM_InvalidFromAddress();
 
         // update the account in memory
         _account.addCollateral(amount, collateralId);
@@ -231,7 +231,7 @@ contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
         (uint256 tokenId, address from, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
 
         // token being burn must come from caller or the primary account for this subAccount
-        if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert GP_InvalidFromAddress();
+        if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert FM_InvalidFromAddress();
 
         emit OptionTokenBurned(_subAccount, tokenId, amount);
 
@@ -258,7 +258,7 @@ contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
         );
 
         // token being burn must come from caller or the primary account for this subAccount
-        if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert GP_InvalidFromAddress();
+        if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert FM_InvalidFromAddress();
 
         _verifyMergeTokenIds(longId, shortId);
 

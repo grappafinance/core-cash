@@ -80,7 +80,7 @@ contract TestAddCollateral_FM is FullMarginFixture {
     function testCannotAddCollatFromOthers() public {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createAddCollateralAction(usdcId, address(alice), 100);
-        vm.expectRevert(GP_InvalidFromAddress.selector);
+        vm.expectRevert(FM_InvalidFromAddress.selector);
         engine.execute(address(this), actions);
     }
 }

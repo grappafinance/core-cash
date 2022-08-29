@@ -83,7 +83,7 @@ contract TestBurnCall is AdvancedFixture {
         actions[0] = createBurnAction(tokenId, alice, amount);
 
         // expect error
-        vm.expectRevert(GP_InvalidFromAddress.selector);
+        vm.expectRevert(AM_InvalidFromAddress.selector);
         engine.execute(address(this), actions);
     }
 
