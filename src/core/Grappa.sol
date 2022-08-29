@@ -5,15 +5,14 @@ pragma solidity =0.8.13;
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import {ReentrancyGuard} from "solmate/utils/ReentrancyGuard.sol";
 import {SafeERC20} from "openzeppelin/token/ERC20/utils/SafeERC20.sol";
-import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
+import {Ownable} from "openzeppelin/access/Ownable.sol";
 
 // interfaces
+import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
+import {IERC20Metadata} from "openzeppelin/token/ERC20/extensions/IERC20Metadata.sol";
 import {IOracle} from "../interfaces/IOracle.sol";
 import {IOptionToken} from "../interfaces/IOptionToken.sol";
 import {IMarginEngine} from "../interfaces/IMarginEngine.sol";
-
-// inheriting contract
-import {Registry} from "./Registry.sol";
 
 // librarise
 import {TokenIdUtil} from "../libraries/TokenIdUtil.sol";
@@ -31,7 +30,7 @@ import "../config/errors.sol";
  * @title   Grappa
  * @author  @antoncoding
  */
-contract Grappa is ReentrancyGuard, Registry {
+contract Grappa is ReentrancyGuard, Ownable {
     using SafeERC20 for IERC20;
     using FixedPointMathLib for uint256;
     using NumberUtil for uint256;
@@ -43,20 +42,90 @@ contract Grappa is ReentrancyGuard, Registry {
     // IMarginEngine public immutable engine;
     IOracle public immutable oracle;
 
+    /*///////////////////////////////////////////////////////////////
+                            State Variables
+    //////////////////////////////////////////////////////////////*/
+
+    /// @dev next id used to represent an address
+    /// invariant:  any id in tokenId not greater than this number
+    uint8 public nextAssetId;
+
+    /// @dev next id used to represent an address
+    /// invariant:  any id in tokenId not greater than this number
+    uint8 public nextengineId;
+
+    /// @dev assetId => asset address
+    mapping(uint8 => AssetDetail) public assets;
+
+    /// @dev assetId => margin engine address
+    mapping(uint8 => address) public engines;
+
+    /// @dev address => assetId
+    mapping(address => uint8) public assetIds;
+
+    /// @dev address => engineId
+    mapping(address => uint8) public engineIds;
+
+    /*///////////////////////////////////////////////////////////////
+                                Events
+    //////////////////////////////////////////////////////////////*/
+
+    event OptionSettled(address account, uint256 tokenId, uint256 amountSettled, uint256 payout);
+    event AssetRegistered(address asset, uint8 id);
+    event MarginEngineRegistered(address engine, uint8 id);
+
     constructor(address _optionToken, address _oracle) {
         optionToken = IOptionToken(_optionToken);
         oracle = IOracle(_oracle);
     }
 
     /*///////////////////////////////////////////////////////////////
-                                  Events
+                            External Functions
     //////////////////////////////////////////////////////////////*/
 
-    event OptionSettled(address account, uint256 tokenId, uint256 amountSettled, uint256 payout);
+    /**
+     * @dev parse product id into composing asset and engine addresses
+     * @param _productId product id
+     */
+    function getDetailFromProductId(uint32 _productId)
+        public
+        view
+        returns (
+            address engine,
+            address underlying,
+            address strike,
+            address collateral,
+            uint8 collateralDecimals
+        )
+    {
+        (uint8 engineId, uint8 underlyingId, uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(
+            _productId
+        );
+        AssetDetail memory collateralDetail = assets[collateralId];
+        return (
+            engines[engineId],
+            assets[underlyingId].addr,
+            assets[strikeId].addr,
+            collateralDetail.addr,
+            collateralDetail.decimals
+        );
+    }
 
-    /*///////////////////////////////////////////////////////////////
-                        External Functions
-    //////////////////////////////////////////////////////////////*/
+    /**
+     * @notice    get product id from underlying, strike and collateral address
+     * @dev       function will still return even if some of the assets are not registered
+     * @param underlying  underlying address
+     * @param strike      strike address
+     * @param collateral  collateral address
+     */
+    function getProductId(
+        uint8 engineId,
+        address underlying,
+        address strike,
+        address collateral
+    ) external view returns (uint32 id) {
+        id = ProductIdUtil.getProductId(engineId, assetIds[underlying], assetIds[strike], assetIds[collateral]);
+    }
 
     /**
      * @notice burn option token and get out cash value at expiry
@@ -151,6 +220,41 @@ contract Grappa is ReentrancyGuard, Registry {
         uint256 payoutPerOption;
         (engine, collateral, payoutPerOption) = _getPayoutPerToken(_tokenId);
         payout = payoutPerOption.mulDivDown(_amount, UNIT);
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                            Admin Functions
+    //////////////////////////////////////////////////////////////*/
+
+    /**
+     * @dev register an asset to be used as strike/underlying
+     * @param _asset address to add
+     **/
+    function registerAsset(address _asset) external onlyOwner returns (uint8 id) {
+        if (assetIds[_asset] != 0) revert GP_AssetAlreadyRegistered();
+
+        uint8 decimals = IERC20Metadata(_asset).decimals();
+
+        id = ++nextAssetId;
+        assets[id] = AssetDetail({addr: _asset, decimals: decimals});
+        assetIds[_asset] = id;
+
+        emit AssetRegistered(_asset, id);
+    }
+
+    /**
+     * @dev register an engine to create / settle options
+     * @param _engine address of the new margin engine
+     **/
+    function registerEngine(address _engine) external onlyOwner returns (uint8 id) {
+        if (engineIds[_engine] != 0) revert GP_EngineAlreadyRegistered();
+
+        id = ++nextengineId;
+        engines[id] = _engine;
+
+        engineIds[_engine] = id;
+
+        emit MarginEngineRegistered(_engine, id);
     }
 
     /**

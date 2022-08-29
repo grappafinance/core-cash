@@ -8,6 +8,12 @@ error NoAccess();
 
 // Erros in Grappa Contracts
 
+/// @dev asset already registered
+error GP_AssetAlreadyRegistered();
+
+/// @dev margin engine already registered
+error GP_EngineAlreadyRegistered();
+
 /// @dev amounts length speicified to batch settle doesn't match with tokenIds
 error GP_WrongArgumentLength();
 

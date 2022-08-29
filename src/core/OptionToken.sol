@@ -24,7 +24,7 @@ import "../config/errors.sol";
             The value of each OptionType should always be positive.
  */
 contract OptionToken is ERC1155, IOptionToken {
-    ///@dev marginAccount module which is in charge of minting / burning.
+    ///@dev grappa serve as the registry
     IGrappa public immutable grappa;
 
     constructor(address _grappa) {
