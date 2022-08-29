@@ -160,22 +160,15 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
      *          and get the collateral from the margin account.
      * @dev     expected to be called by liquidators
      * @param _subAccount account to liquidate
-     * @param tokensToBurn arrays of token burned
-     * @param amountsToBurn amounts burned
+     * @param repayCallAmount amount of call to burn
+     * @param repayPutAmount amounts of put to burn
      */
     function liquidate(
         address _subAccount,
-        uint256[] memory tokensToBurn,
-        uint256[] memory amountsToBurn
+        uint256 repayCallAmount,
+        uint256 repayPutAmount
     ) external nonReentrant returns (address collateral, uint80 collateralToPay) {
-        uint256 repayCallAmount = amountsToBurn[0];
-        uint256 repayPutAmount = amountsToBurn[1];
-
         AdvancedMarginAccount memory account = marginAccounts[_subAccount];
-
-        if (account.shortCallId != tokensToBurn[0]) revert AM_WrongIdToLiquidate();
-        if (account.shortPutId != tokensToBurn[1]) revert AM_WrongIdToLiquidate();
-
         if (_isAccountHealthy(account)) revert AM_AccountIsHealthy();
 
         bool hasShortCall = account.shortCallAmount != 0;
@@ -204,11 +197,11 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
 
         // update account's debt and perform "safe" external calls
         if (hasShortCall) {
-            optionToken.burn(msg.sender, account.shortCallId, amountsToBurn[0]);
+            optionToken.burn(msg.sender, account.shortCallId, repayCallAmount);
             account.burnOption(account.shortCallId, uint64(repayCallAmount));
         }
         if (hasShortPut) {
-            optionToken.burn(msg.sender, account.shortPutId, amountsToBurn[1]);
+            optionToken.burn(msg.sender, account.shortPutId, repayPutAmount);
             account.burnOption(account.shortPutId, uint64(repayPutAmount));
         }
 

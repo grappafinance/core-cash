@@ -94,9 +94,6 @@ error AM_SplitAmountMisMatch();
 /// @dev invalid tokenId specify to mint / burn actions
 error AM_InvalidToken();
 
-/// token id specified to liquidate mistmch vault debt
-error AM_WrongIdToLiquidate();
-
 /// @dev no config set for this asset.
 error AM_NoConfig();
 
