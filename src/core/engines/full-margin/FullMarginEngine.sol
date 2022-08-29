@@ -36,7 +36,6 @@ import "../../../config/errors.sol";
  * @author  @antoncoding
  * @notice  Fully collateralized margin engine
             Users can deposit collateral into FullMargin and mint optionTokens (debt) out of it.
-            Listen to calls from Grappa to update accountings
  */
 contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
     using FullMarginLib for FullMarginAccount;
@@ -167,7 +166,7 @@ contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
 
         if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert GP_InvalidFromAddress();
 
-        // update the data structure in memory, and pull asset to the engine
+        // update the account in memory
         _account.addCollateral(amount, collateralId);
 
         address collateral = grappa.assets(collateralId).addr;
@@ -189,7 +188,7 @@ contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
         // decode parameters
         (uint80 amount, address recipient, uint8 collateralId) = abi.decode(_data, (uint80, address, uint8));
 
-        // update the data structure in corresponding engine
+        // update the account in memory
         _account.removeCollateral(amount, collateralId);
 
         address collateral = grappa.assets(collateralId).addr;
@@ -255,7 +254,7 @@ contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
         bytes memory _data
     ) internal {
         // decode parameters
-        (uint256 longTokenId, uint256 shortTokenId, address from, uint64 amount) = abi.decode(
+        (uint256 longId, uint256 shortId, address from, uint64 amount) = abi.decode(
             _data,
             (uint256, uint256, address, uint64)
         );
@@ -263,15 +262,15 @@ contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
         // token being burn must come from caller or the primary account for this subAccount
         if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert GP_InvalidFromAddress();
 
-        _verifyMergeTokenIds(longTokenId, shortTokenId);
+        _verifyMergeTokenIds(longId, shortId);
 
-        emit OptionTokenMerged(_subAccount, longTokenId, shortTokenId, amount);
+        emit OptionTokenMerged(_subAccount, longId, shortId, amount);
 
-        // update the data structure in corresponding engine
-        _account.merge(shortTokenId, longTokenId, amount);
+        // update the account in memory
+        _account.merge(shortId, longId, amount);
 
         // this line will revert if usre is trying to burn an un-authrized tokenId
-        optionToken.burn(from, longTokenId, amount);
+        optionToken.burn(from, longId, amount);
     }
 
     /**
@@ -290,7 +289,7 @@ contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
 
         emit OptionTokenSplit(_subAccount, spreadId, amount);
 
-        // update the data structure in corresponding engine
+        // update the account in memory
         _account.split(spreadId, amount);
 
         optionToken.mint(recipient, tokenId, amount);
@@ -305,6 +304,7 @@ contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
 
         emit AccountSettled(_subAccount, payout);
 
+        // update the account in memory
         _account.settleAtExpiry(uint80(payout));
     }
 
@@ -344,17 +344,6 @@ contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
         FullMarginDetail memory detail = _getAccountDetail(account);
         uint256 minCollateral = detail.getMinCollateral();
         isHealthy = account.collateralAmount >= minCollateral;
-    }
-
-    /**
-     * @notice  return amount of collateral that should be reserved to payout long positions
-     * @dev     this function will revert when called before expiry
-     * @param _account account memory
-     */
-    function _getPayoutFromAccount(FullMarginAccount memory _account) internal view returns (uint80 reservedPayout) {
-        (, , uint256 payout) = grappa.getPayout(_account.tokenId, _account.shortAmount);
-
-        return uint80(payout);
     }
 
     /**

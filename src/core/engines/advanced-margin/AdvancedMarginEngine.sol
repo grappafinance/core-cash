@@ -36,14 +36,13 @@ import "../../../config/errors.sol";
  * @author  @antoncoding
  * @notice  AdvancedMarginEngine is in charge of maintaining margin requirement for partial collateralized options
             Please see AdvancedMarginMath.sol for detailed partial collat calculation
+            Interacts with Oracle to read spot
             Interacts with VolOracle to read vol
-            Listen to calls from Grappa to update accountings
  */
 contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyGuard {
     using AdvancedMarginMath for AdvancedMarginDetail;
     using AdvancedMarginLib for AdvancedMarginAccount;
     using SafeERC20 for IERC20;
-    using FixedPointMathLib for uint256;
     using NumberUtil for uint256;
 
     IGrappa public immutable grappa;
@@ -311,7 +310,7 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
 
         if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert GP_InvalidFromAddress();
 
-        // update the data structure in memory, and pull asset to the engine
+        // update the account in memory
         _account.addCollateral(amount, collateralId);
 
         address collateral = grappa.assets(collateralId).addr;
@@ -333,7 +332,7 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
         // decode parameters
         (uint80 amount, address recipient, uint8 collateralId) = abi.decode(_data, (uint80, address, uint8));
 
-        // update the data structure in corresponding engine
+        // update the account in memory
         _account.removeCollateral(amount, collateralId);
 
         address collateral = grappa.assets(collateralId).addr;
@@ -360,7 +359,7 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
         // update the account in memory
         _account.mintOption(tokenId, amount);
 
-        // mint the real option token
+        // mint option token
         optionToken.mint(recipient, tokenId, amount);
     }
 
@@ -411,7 +410,7 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
 
         emit OptionTokenMerged(_subAccount, longTokenId, shortTokenId, amount);
 
-        // update the data structure in corresponding engine
+        // update the account in memory
         _account.merge(shortTokenId, longTokenId, amount);
 
         // this line will revert if usre is trying to burn an un-authrized tokenId
@@ -434,7 +433,7 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
 
         emit OptionTokenSplit(_subAccount, spreadId, amount);
 
-        // update the data structure in corresponding engine
+        // update the account in memory
         _account.split(spreadId, amount);
 
         optionToken.mint(recipient, tokenId, amount);
@@ -449,6 +448,7 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
 
         emit AccountSettled(_subAccount, payout);
 
+        // update the account in memory
         _account.settleAtExpiry(uint80(payout));
     }
 
