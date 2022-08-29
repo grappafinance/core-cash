@@ -91,6 +91,8 @@ contract BaseEngine {
         if (shortType != longType) revert GP_MergeTypeMismatch();
         if (productId_ != productId) revert GP_MergeProductMismatch();
         if (expiry_ != expiry) revert GP_MergeExpiryMismatch();
+
+        // should use burn instead
         if (longStrike == shortStrike) revert GP_MergeWithSameStrike();
     }
 

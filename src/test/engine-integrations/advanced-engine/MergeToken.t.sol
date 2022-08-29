@@ -122,6 +122,51 @@ contract TestMergeOption is AdvancedFixture {
         engine.execute(address(this), actions);
     }
 
+    function testCannotMergeWithTokenFromDiffExpiry() public {
+        uint256 higherStrike = 4200 * UNIT;
+        uint256 newTokenId = getTokenId(TokenType.CALL, productId, expiry + 1, higherStrike, 0);
+        mintOptionFor(address(this), newTokenId, productId, amount);
+
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createMergeAction(newTokenId, existingTokenId, address(this), amount);
+
+        vm.expectRevert(GP_MergeExpiryMismatch.selector);
+        engine.execute(address(this), actions);
+    }
+
+    function testCannotMergeWithTokenWithSameStrike() public {
+        uint256 newTokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
+        mintOptionFor(address(this), newTokenId, productId, amount);
+
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createMergeAction(newTokenId, existingTokenId, address(this), amount);
+
+        vm.expectRevert(GP_MergeWithSameStrike.selector);
+        engine.execute(address(this), actions);
+    }
+
+    function testCannotMergeWithPut() public {
+        uint256 newTokenId = getTokenId(TokenType.PUT, productId, expiry, strikePrice, 0);
+        mintOptionFor(address(this), newTokenId, productId, amount);
+
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createMergeAction(newTokenId, existingTokenId, address(this), amount);
+
+        vm.expectRevert(GP_MergeTypeMismatch.selector);
+        engine.execute(address(this), actions);
+    }
+
+    function testCannotMergeWithDiffProduct() public {
+        uint256 newTokenId = getTokenId(TokenType.CALL, productIdEthCollat, expiry, strikePrice, 0);
+        mintOptionFor(address(this), newTokenId, productIdEthCollat, amount);
+
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createMergeAction(newTokenId, existingTokenId, address(this), amount);
+
+        vm.expectRevert(GP_MergeProductMismatch.selector);
+        engine.execute(address(this), actions);
+    }
+
     function testMergeIntoCreditSpreadCanRemoveCollateral() public {
         // mint new call option for this address
         uint256 higherStrike = 4200 * UNIT;
