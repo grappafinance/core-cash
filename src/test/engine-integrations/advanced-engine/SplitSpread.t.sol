@@ -147,6 +147,17 @@ contract TestSplitPutSpread is AdvancedFixture {
         engine.execute(address(this), actions);
     }
 
+    function testCannotSplitPut() public {
+        uint256 fakeLongStrike = strikePriceHigh - (50 * UNIT);
+        uint256 putId = getTokenId(TokenType.PUT, productId, expiry, fakeLongStrike, 0);
+
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createSplitAction(putId, amount, address(this));
+
+        vm.expectRevert(GP_CanOnlySplitSpread.selector);
+        engine.execute(address(this), actions);
+    }
+
     function testCannotSplitWithWrongAmount() public {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSplitAction(spreadId, amount / 2, address(this));
