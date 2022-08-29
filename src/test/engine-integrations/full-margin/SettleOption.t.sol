@@ -22,7 +22,7 @@ contract TestSettleCoveredCall_FM is FullMarginFixture {
 
     function setUp() public {
         weth.mint(address(this), 1000 * 1e18);
-        weth.approve(address(fmEngine), type(uint256).max);
+        weth.approve(address(engine), type(uint256).max);
 
         expiry = block.timestamp + 14 days;
 
@@ -38,7 +38,7 @@ contract TestSettleCoveredCall_FM is FullMarginFixture {
         actions[1] = createMintAction(tokenId, alice, amount);
 
         // mint option
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
 
         // expire option
         vm.warp(expiry);
@@ -83,16 +83,17 @@ contract TestSettleCoveredCall_FM is FullMarginFixture {
         // expires out the money
         oracle.setExpiryPrice(address(weth), address(usdc), strike - 1);
 
-        (, , uint8 collateralIdBefore, uint80 collateralBefore) = fmEngine.marginAccounts(address(this));
+        (, , uint8 collateralIdBefore, uint80 collateralBefore) = engine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSettleAction();
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
 
         //margin account should be reset
-        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) = fmEngine
-            .marginAccounts(address(this));
+        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) = engine.marginAccounts(
+            address(this)
+        );
 
         assertEq(shortId, 0);
         assertEq(shortAmount, 0);
@@ -107,16 +108,17 @@ contract TestSettleCoveredCall_FM is FullMarginFixture {
 
         uint256 expectedPayout = ((uint64(expiryPrice) - strike) / 5000) * (10**(18 - UNIT_DECIMALS));
 
-        (, , uint8 collateralIdBefore, uint80 collateralBefore) = fmEngine.marginAccounts(address(this));
+        (, , uint8 collateralIdBefore, uint80 collateralBefore) = engine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSettleAction();
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
 
         // margin account should be reset
-        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) = fmEngine
-            .marginAccounts(address(this));
+        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) = engine.marginAccounts(
+            address(this)
+        );
 
         assertEq(shortId, 0);
         assertEq(shortAmount, 0);
@@ -135,7 +137,7 @@ contract TestSettlePut_FM is FullMarginFixture {
 
     function setUp() public {
         usdc.mint(address(this), 1000_000 * 1e6);
-        usdc.approve(address(fmEngine), type(uint256).max);
+        usdc.approve(address(engine), type(uint256).max);
 
         expiry = block.timestamp + 14 days;
 
@@ -152,7 +154,7 @@ contract TestSettlePut_FM is FullMarginFixture {
         actions[1] = createMintAction(tokenId, alice, amount);
 
         // mint option
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
 
         // expire option
         vm.warp(expiry);
@@ -197,16 +199,17 @@ contract TestSettlePut_FM is FullMarginFixture {
         // expires out the money
         oracle.setExpiryPrice(address(weth), address(usdc), strike + 1);
 
-        (, , uint8 collateralIdBefore, uint80 collateralBefore) = fmEngine.marginAccounts(address(this));
+        (, , uint8 collateralIdBefore, uint80 collateralBefore) = engine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSettleAction();
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
 
         //margin account should be reset
-        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) = fmEngine
-            .marginAccounts(address(this));
+        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) = engine.marginAccounts(
+            address(this)
+        );
 
         assertEq(shortId, 0);
         assertEq(shortAmount, 0);
@@ -221,16 +224,17 @@ contract TestSettlePut_FM is FullMarginFixture {
 
         uint256 expectedPayout = strike - uint64(expiryPrice);
 
-        (, , uint8 collateralIdBefore, uint80 collateralBefore) = fmEngine.marginAccounts(address(this));
+        (, , uint8 collateralIdBefore, uint80 collateralBefore) = engine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSettleAction();
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
 
         // margin account should be reset
-        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) = fmEngine
-            .marginAccounts(address(this));
+        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) = engine.marginAccounts(
+            address(this)
+        );
 
         assertEq(shortId, 0);
         assertEq(shortAmount, 0);
@@ -250,7 +254,7 @@ contract TestSettleCallSpread_FM is FullMarginFixture {
 
     function setUp() public {
         weth.mint(address(this), 1000 ether);
-        weth.approve(address(fmEngine), type(uint256).max);
+        weth.approve(address(engine), type(uint256).max);
 
         expiry = block.timestamp + 14 days;
 
@@ -269,7 +273,7 @@ contract TestSettleCallSpread_FM is FullMarginFixture {
         actions[1] = createMintAction(tokenId, alice, amount);
 
         // mint option
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
 
         // expire option
         vm.warp(expiry);
@@ -330,16 +334,17 @@ contract TestSettleCallSpread_FM is FullMarginFixture {
         // expires out the money
         oracle.setExpiryPrice(address(weth), address(usdc), longStrike);
 
-        (, , uint8 collateralIdBefore, uint80 collateralBefore) = fmEngine.marginAccounts(address(this));
+        (, , uint8 collateralIdBefore, uint80 collateralBefore) = engine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSettleAction();
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
 
         //margin account should be reset
-        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) = fmEngine
-            .marginAccounts(address(this));
+        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) = engine.marginAccounts(
+            address(this)
+        );
 
         assertEq(shortId, 0);
         assertEq(shortAmount, 0);
@@ -354,16 +359,17 @@ contract TestSettleCallSpread_FM is FullMarginFixture {
 
         uint256 expectedPayout = ((uint64(expiryPrice) - longStrike) / 4100) * 1e12;
 
-        (, , uint8 collateralIdBefore, uint80 collateralBefore) = fmEngine.marginAccounts(address(this));
+        (, , uint8 collateralIdBefore, uint80 collateralBefore) = engine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSettleAction();
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
 
         // margin account should be reset
-        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) = fmEngine
-            .marginAccounts(address(this));
+        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) = engine.marginAccounts(
+            address(this)
+        );
 
         assertEq(shortId, 0);
         assertEq(shortAmount, 0);
@@ -384,7 +390,7 @@ contract TestSettleCallStrikeSpread_FM is FullMarginFixture {
 
     function setUp() public {
         usdc.mint(address(this), 1000 ether);
-        usdc.approve(address(fmEngine), type(uint256).max);
+        usdc.approve(address(engine), type(uint256).max);
 
         expiry = block.timestamp + 14 days;
 
@@ -403,7 +409,7 @@ contract TestSettleCallStrikeSpread_FM is FullMarginFixture {
         actions[1] = createMintAction(tokenId, alice, amount);
 
         // mint option
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
 
         // expire option
         vm.warp(expiry);
@@ -467,16 +473,17 @@ contract TestSettleCallStrikeSpread_FM is FullMarginFixture {
 
         uint256 expectedPayout = ((uint64(expiryPrice) - longStrike));
 
-        (, , uint8 collateralIdBefore, uint80 collateralBefore) = fmEngine.marginAccounts(address(this));
+        (, , uint8 collateralIdBefore, uint80 collateralBefore) = engine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSettleAction();
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
 
         // margin account should be reset
-        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) = fmEngine
-            .marginAccounts(address(this));
+        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) = engine.marginAccounts(
+            address(this)
+        );
 
         assertEq(shortId, 0);
         assertEq(shortAmount, 0);
@@ -496,7 +503,7 @@ contract TestSettlePutSpread_FM is FullMarginFixture {
 
     function setUp() public {
         usdc.mint(address(this), 1000_000 * 1e6);
-        usdc.approve(address(fmEngine), type(uint256).max);
+        usdc.approve(address(engine), type(uint256).max);
 
         expiry = block.timestamp + 14 days;
 
@@ -515,7 +522,7 @@ contract TestSettlePutSpread_FM is FullMarginFixture {
         actions[1] = createMintAction(tokenId, alice, amount);
 
         // mint option
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
 
         // expire option
         vm.warp(expiry);
@@ -577,16 +584,17 @@ contract TestSettlePutSpread_FM is FullMarginFixture {
         // expires out the money
         oracle.setExpiryPrice(address(weth), address(usdc), longStrike);
 
-        (, , uint8 collateralIdBefore, uint80 collateralBefore) = fmEngine.marginAccounts(address(this));
+        (, , uint8 collateralIdBefore, uint80 collateralBefore) = engine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSettleAction();
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
 
         //margin account should be reset
-        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) = fmEngine
-            .marginAccounts(address(this));
+        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) = engine.marginAccounts(
+            address(this)
+        );
 
         assertEq(shortId, 0);
         assertEq(shortAmount, 0);
@@ -602,16 +610,17 @@ contract TestSettlePutSpread_FM is FullMarginFixture {
 
         uint256 expectedPayout = longStrike - uint64(expiryPrice);
 
-        (, , uint8 collateralIdBefore, uint80 collateralBefore) = fmEngine.marginAccounts(address(this));
+        (, , uint8 collateralIdBefore, uint80 collateralBefore) = engine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSettleAction();
-        grappa.execute(fmEngineId, address(this), actions);
+        engine.execute(address(this), actions);
 
         //margin account should be reset
-        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) = fmEngine
-            .marginAccounts(address(this));
+        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) = engine.marginAccounts(
+            address(this)
+        );
 
         assertEq(shortId, 0);
         assertEq(shortAmount, 0);

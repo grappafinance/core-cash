@@ -25,7 +25,7 @@ contract TestLiquidateCall is AdvancedFixture {
         usdc.mint(alice, 1000_000 * 1e6);
 
         vm.startPrank(alice);
-        usdc.approve(address(amEngine), type(uint256).max);
+        usdc.approve(address(engine), type(uint256).max);
 
         expiry = block.timestamp + 7 days;
 
@@ -45,35 +45,26 @@ contract TestLiquidateCall is AdvancedFixture {
         actions[1] = createMintAction(tokenId, address(this), amount);
 
         // mint option
-        grappa.execute(amEngineId, accountId, actions);
+        engine.execute(accountId, actions);
 
         vm.stopPrank();
     }
 
     function testGetMinCollateralShouldReturnProperValue() public {
-        uint256 minCollateral = amEngine.getMinCollateral(accountId);
+        uint256 minCollateral = engine.getMinCollateral(accountId);
         assertTrue(minCollateral < initialCollateral);
     }
 
     function testCannotLiquidateHealthyVault() public {
         vm.expectRevert(AM_AccountIsHealthy.selector);
-        liquidateWithIdAndAmounts(accountId, tokenId, 0, amount, 0);
-    }
-
-    function testCannotLiquidateVaultWithPut() public {
-        oracle.setSpotPrice(address(weth), 3600 * UNIT);
-
-        uint256 putId = getTokenId(TokenType.PUT, productId, expiry, strike, 0);
-
-        vm.expectRevert(AM_WrongIdToLiquidate.selector);
-        liquidateWithIdAndAmounts(accountId, 0, putId, 0, amount);
+        engine.liquidate(accountId, amount, 0);
     }
 
     function testCannotLiquidateVaultWithPutAmount() public {
         oracle.setSpotPrice(address(weth), 3800 * UNIT);
 
         vm.expectRevert(AM_WrongRepayAmounts.selector);
-        liquidateWithIdAndAmounts(accountId, tokenId, 0, 0, amount);
+        engine.liquidate(accountId, 0, amount);
     }
 
     function testPartiallyLiquidateTheVault() public {
@@ -83,7 +74,7 @@ contract TestLiquidateCall is AdvancedFixture {
         uint256 optionBalanceBefore = option.balanceOf(address(this), tokenId);
 
         uint64 liquidateAmount = amount / 2;
-        liquidateWithIdAndAmounts(accountId, tokenId, 0, liquidateAmount, 0);
+        engine.liquidate(accountId, liquidateAmount, 0);
 
         uint256 expectCollateralToGet = initialCollateral / 2;
         uint256 usdcBalanceAfter = usdc.balanceOf(address(this));
@@ -99,7 +90,7 @@ contract TestLiquidateCall is AdvancedFixture {
         uint256 usdcBalanceBefore = usdc.balanceOf(address(this));
         uint256 optionBalanceBefore = option.balanceOf(address(this), tokenId);
 
-        liquidateWithIdAndAmounts(accountId, tokenId, 0, amount, 0);
+        engine.liquidate(accountId, amount, 0);
 
         uint256 usdcBalanceAfter = usdc.balanceOf(address(this));
         uint256 optionBalanceAfter = option.balanceOf(address(this), tokenId);
@@ -108,7 +99,7 @@ contract TestLiquidateCall is AdvancedFixture {
         assertEq(optionBalanceBefore - optionBalanceAfter, amount);
 
         //margin account should be reset
-        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAmount, uint8 collateralId) = amEngine
+        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAmount, uint8 collateralId) = engine
             .marginAccounts(accountId);
 
         assertEq(shortCallId, 0);
@@ -121,23 +112,7 @@ contract TestLiquidateCall is AdvancedFixture {
         oracle.setSpotPrice(address(weth), 3800 * UNIT);
 
         vm.expectRevert(stdError.arithmeticError);
-        liquidateWithIdAndAmounts(accountId, tokenId, 0, amount + 1, 0);
-    }
-
-    function liquidateWithIdAndAmounts(
-        address _accountId,
-        uint256 _callId,
-        uint256 _putId,
-        uint256 _callAmount,
-        uint256 _putAmount
-    ) private {
-        uint256[] memory ids = new uint256[](2);
-        uint256[] memory amounts = new uint256[](2);
-        ids[0] = _callId;
-        ids[1] = _putId;
-        amounts[0] = _callAmount;
-        amounts[1] = _putAmount;
-        grappa.liquidate(address(amEngine), _accountId, ids, amounts);
+        engine.liquidate(accountId, amount + 1, 0);
     }
 }
 
@@ -156,7 +131,7 @@ contract TestLiquidatePut is AdvancedFixture {
         usdc.mint(alice, 1000_000 * 1e6);
 
         vm.startPrank(alice);
-        usdc.approve(address(amEngine), type(uint256).max);
+        usdc.approve(address(engine), type(uint256).max);
 
         expiry = block.timestamp + 7 days;
 
@@ -176,46 +151,21 @@ contract TestLiquidatePut is AdvancedFixture {
         actions[1] = createMintAction(tokenId, address(this), amount);
 
         // mint option
-        grappa.execute(amEngineId, accountId, actions);
+        engine.execute(accountId, actions);
 
         vm.stopPrank();
     }
 
-    function liquidateWithIdAndAmounts(
-        address _accountId,
-        uint256 _callId,
-        uint256 _putId,
-        uint256 _callAmount,
-        uint256 _putAmount
-    ) private {
-        uint256[] memory ids = new uint256[](2);
-        uint256[] memory amounts = new uint256[](2);
-        ids[0] = _callId;
-        ids[1] = _putId;
-        amounts[0] = _callAmount;
-        amounts[1] = _putAmount;
-        grappa.liquidate(address(amEngine), _accountId, ids, amounts);
-    }
-
     function testCannotLiquidateHealthyVault() public {
         vm.expectRevert(AM_AccountIsHealthy.selector);
-        liquidateWithIdAndAmounts(accountId, 0, tokenId, 0, amount);
-    }
-
-    function testCannotLiquidateVaultWithCall() public {
-        oracle.setSpotPrice(address(weth), 3600 * UNIT);
-
-        uint256 callId = getTokenId(TokenType.CALL, productId, expiry, strike, 0);
-
-        vm.expectRevert(AM_WrongIdToLiquidate.selector);
-        liquidateWithIdAndAmounts(accountId, 0, callId, 0, amount);
+        engine.liquidate(accountId, 0, amount);
     }
 
     function testCannotLiquidateVaultWithCallAmount() public {
         oracle.setSpotPrice(address(weth), 3600 * UNIT);
 
         vm.expectRevert(AM_WrongRepayAmounts.selector);
-        liquidateWithIdAndAmounts(accountId, 0, tokenId, amount, 0);
+        engine.liquidate(accountId, amount, 0);
     }
 
     function testPartiallyLiquidateTheVault() public {
@@ -225,7 +175,7 @@ contract TestLiquidatePut is AdvancedFixture {
         uint256 optionBalanceBefore = option.balanceOf(address(this), tokenId);
 
         uint64 liquidateAmount = amount / 2;
-        liquidateWithIdAndAmounts(accountId, 0, tokenId, 0, liquidateAmount);
+        engine.liquidate(accountId, 0, liquidateAmount);
 
         uint256 expectCollateralToGet = initialCollateral / 2;
         uint256 usdcBalanceAfter = usdc.balanceOf(address(this));
@@ -241,7 +191,7 @@ contract TestLiquidatePut is AdvancedFixture {
         uint256 usdcBalanceBefore = usdc.balanceOf(address(this));
         uint256 optionBalanceBefore = option.balanceOf(address(this), tokenId);
 
-        liquidateWithIdAndAmounts(accountId, 0, tokenId, 0, amount);
+        engine.liquidate(accountId, 0, amount);
 
         uint256 usdcBalanceAfter = usdc.balanceOf(address(this));
         uint256 optionBalanceAfter = option.balanceOf(address(this), tokenId);
@@ -250,7 +200,7 @@ contract TestLiquidatePut is AdvancedFixture {
         assertEq(optionBalanceBefore - optionBalanceAfter, amount);
 
         //margin account should be reset
-        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAmount, uint8 collateralId) = amEngine
+        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAmount, uint8 collateralId) = engine
             .marginAccounts(accountId);
 
         assertEq(shortCallId, 0);
@@ -279,7 +229,7 @@ contract TestLiquidateCallAndPut is AdvancedFixture {
         usdc.mint(alice, 1000_000 * 1e6);
 
         vm.startPrank(alice);
-        usdc.approve(address(amEngine), type(uint256).max);
+        usdc.approve(address(engine), type(uint256).max);
 
         expiry = block.timestamp + 7 days;
 
@@ -302,54 +252,38 @@ contract TestLiquidateCallAndPut is AdvancedFixture {
         actions[2] = createMintAction(putId, address(this), amount);
 
         // mint option
-        grappa.execute(amEngineId, accountId, actions);
+        engine.execute(accountId, actions);
 
         vm.stopPrank();
     }
 
-    function liquidateWithIdAndAmounts(
-        address _accountId,
-        uint256 _callId,
-        uint256 _putId,
-        uint256 _callAmount,
-        uint256 _putAmount
-    ) private {
-        uint256[] memory ids = new uint256[](2);
-        uint256[] memory amounts = new uint256[](2);
-        ids[0] = _callId;
-        ids[1] = _putId;
-        amounts[0] = _callAmount;
-        amounts[1] = _putAmount;
-        grappa.liquidate(address(amEngine), _accountId, ids, amounts);
-    }
-
     function testCannotLiquidateHealthyVault() public {
         vm.expectRevert(AM_AccountIsHealthy.selector);
-        liquidateWithIdAndAmounts(accountId, callId, putId, amount, amount);
+        engine.liquidate(accountId, amount, amount);
     }
 
     function testCannotLiquidateWithOnlySpecifyCallAmount() public {
         oracle.setSpotPrice(address(weth), 3300 * UNIT);
 
         vm.expectRevert(AM_WrongRepayAmounts.selector);
-        liquidateWithIdAndAmounts(accountId, callId, putId, amount, 0);
+        engine.liquidate(accountId, amount, 0);
     }
 
     function testCannotLiquidateWithImbalancedAmount() public {
         oracle.setSpotPrice(address(weth), 3300 * UNIT);
 
         vm.expectRevert(AM_WrongRepayAmounts.selector);
-        liquidateWithIdAndAmounts(accountId, callId, putId, amount, amount - 1);
+        engine.liquidate(accountId, amount, amount - 1);
 
         vm.expectRevert(AM_WrongRepayAmounts.selector);
-        liquidateWithIdAndAmounts(accountId, callId, putId, amount - 1, amount);
+        engine.liquidate(accountId, amount - 1, amount);
     }
 
     function testCannotLiquidateWithOnlySpecifyPutAmount() public {
         oracle.setSpotPrice(address(weth), 3300 * UNIT);
 
         vm.expectRevert(AM_WrongRepayAmounts.selector);
-        liquidateWithIdAndAmounts(accountId, callId, putId, 0, amount);
+        engine.liquidate(accountId, 0, amount);
     }
 
     function testPartiallyLiquidateTheVault() public {
@@ -360,7 +294,7 @@ contract TestLiquidateCallAndPut is AdvancedFixture {
         uint256 putBefore = option.balanceOf(address(this), putId);
 
         uint64 liquidateAmount = amount / 2;
-        liquidateWithIdAndAmounts(accountId, callId, putId, liquidateAmount, liquidateAmount);
+        engine.liquidate(accountId, liquidateAmount, liquidateAmount);
 
         uint256 expectCollateralToGet = initialCollateral / 2;
         uint256 usdcBalanceAfter = usdc.balanceOf(address(this));
@@ -379,7 +313,7 @@ contract TestLiquidateCallAndPut is AdvancedFixture {
         uint256 callBefore = option.balanceOf(address(this), callId);
         uint256 putBefore = option.balanceOf(address(this), putId);
 
-        liquidateWithIdAndAmounts(accountId, callId, putId, amount, amount);
+        engine.liquidate(accountId, amount, amount);
 
         uint256 usdcBalanceAfter = usdc.balanceOf(address(this));
         uint256 callAfter = option.balanceOf(address(this), callId);
@@ -397,7 +331,7 @@ contract TestLiquidateCallAndPut is AdvancedFixture {
             uint64 shortPutAmount,
             uint80 collateralAmount,
             uint8 collateralId
-        ) = amEngine.marginAccounts(accountId);
+        ) = engine.marginAccounts(accountId);
 
         assertEq(shortCallId, 0);
         assertEq(shortPutId, 0);

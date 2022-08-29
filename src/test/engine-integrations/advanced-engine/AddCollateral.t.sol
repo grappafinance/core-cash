@@ -12,10 +12,10 @@ import "../../../config/errors.sol";
 contract TestAddCollateral is AdvancedFixture {
     function setUp() public {
         usdc.mint(address(this), 10000 * 1e6);
-        usdc.approve(address(amEngine), type(uint256).max);
+        usdc.approve(address(engine), type(uint256).max);
 
         weth.mint(address(this), 100 * 1e18);
-        weth.approve(address(amEngine), type(uint256).max);
+        weth.approve(address(engine), type(uint256).max);
     }
 
     function testAddCollateralChangeStorage() public {
@@ -23,23 +23,23 @@ contract TestAddCollateral is AdvancedFixture {
 
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
-        grappa.execute(amEngineId, address(this), actions);
-        (, , , , uint80 _collateralAmount, uint8 _collateralId) = amEngine.marginAccounts(address(this));
+        engine.execute(address(this), actions);
+        (, , , , uint80 _collateralAmount, uint8 _collateralId) = engine.marginAccounts(address(this));
 
         assertEq(_collateralId, usdcId);
         assertEq(_collateralAmount, depositAmount);
     }
 
     function testAddCollateralMoveBalance() public {
-        uint256 engineBalanceBefoe = usdc.balanceOf(address(amEngine));
+        uint256 engineBalanceBefoe = usdc.balanceOf(address(engine));
         uint256 myBalanceBefoe = usdc.balanceOf(address(this));
         uint256 depositAmount = 1000 * 1e6;
 
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
-        grappa.execute(amEngineId, address(this), actions);
+        engine.execute(address(this), actions);
 
-        uint256 engineBalanceAfter = usdc.balanceOf(address(amEngine));
+        uint256 engineBalanceAfter = usdc.balanceOf(address(engine));
         uint256 myBalanceAfter = usdc.balanceOf(address(this));
 
         assertEq(myBalanceBefoe - myBalanceAfter, depositAmount);
@@ -47,16 +47,16 @@ contract TestAddCollateral is AdvancedFixture {
     }
 
     function testAddCollateralLoopMoveBalances() public {
-        uint256 engineBalanceBefoe = usdc.balanceOf(address(amEngine));
+        uint256 engineBalanceBefoe = usdc.balanceOf(address(engine));
         uint256 myBalanceBefoe = usdc.balanceOf(address(this));
         uint256 depositAmount = 500 * 1e6;
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createAddCollateralAction(usdcId, address(this), depositAmount);
-        grappa.execute(amEngineId, address(this), actions);
+        engine.execute(address(this), actions);
 
-        uint256 engineBalanceAfter = usdc.balanceOf(address(amEngine));
+        uint256 engineBalanceAfter = usdc.balanceOf(address(engine));
         uint256 myBalanceAfter = usdc.balanceOf(address(this));
 
         assertEq(myBalanceBefoe - myBalanceAfter, depositAmount * 2);
@@ -72,13 +72,13 @@ contract TestAddCollateral is AdvancedFixture {
         actions[1] = createAddCollateralAction(wethId, address(this), wethAmount);
 
         vm.expectRevert(AM_WrongCollateralId.selector);
-        grappa.execute(amEngineId, address(this), actions);
+        engine.execute(address(this), actions);
     }
 
     function testCannotAddCollatFromOthers() public {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createAddCollateralAction(usdcId, address(alice), 100);
-        vm.expectRevert(GP_InvalidFromAddress.selector);
-        grappa.execute(amEngineId, address(this), actions);
+        vm.expectRevert(AM_InvalidFromAddress.selector);
+        engine.execute(address(this), actions);
     }
 }

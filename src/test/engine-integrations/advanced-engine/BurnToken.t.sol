@@ -19,7 +19,7 @@ contract TestBurnCall is AdvancedFixture {
 
     function setUp() public {
         usdc.mint(address(this), 1000_000 * 1e6);
-        usdc.approve(address(amEngine), type(uint256).max);
+        usdc.approve(address(engine), type(uint256).max);
 
         expiry = block.timestamp + 14 days;
 
@@ -31,7 +31,7 @@ contract TestBurnCall is AdvancedFixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
-        grappa.execute(amEngineId, address(this), actions);
+        engine.execute(address(this), actions);
     }
 
     function testBurn() public {
@@ -40,8 +40,8 @@ contract TestBurnCall is AdvancedFixture {
         actions[0] = createBurnAction(tokenId, address(this), amount);
 
         // action
-        grappa.execute(amEngineId, address(this), actions);
-        (uint256 shortCallId, , uint64 shortCallAmount, , , ) = amEngine.marginAccounts(address(this));
+        engine.execute(address(this), actions);
+        (uint256 shortCallId, , uint64 shortCallAmount, , , ) = engine.marginAccounts(address(this));
 
         // check result
         assertEq(shortCallId, 0);
@@ -58,7 +58,7 @@ contract TestBurnCall is AdvancedFixture {
 
         // action
         vm.expectRevert(AM_InvalidToken.selector);
-        grappa.execute(amEngineId, subAccount, actions); // execute on subaccount
+        engine.execute(subAccount, actions); // execute on subaccount
     }
 
     function testCannotBurnWhenOptionTokenBalanceIsLow() public {
@@ -71,7 +71,7 @@ contract TestBurnCall is AdvancedFixture {
 
         // expect
         vm.expectRevert(stdError.arithmeticError);
-        grappa.execute(amEngineId, address(this), actions);
+        engine.execute(address(this), actions);
     }
 
     function testCannotBurnFromUnAuthorizedAccount() public {
@@ -83,8 +83,8 @@ contract TestBurnCall is AdvancedFixture {
         actions[0] = createBurnAction(tokenId, alice, amount);
 
         // expect error
-        vm.expectRevert(GP_InvalidFromAddress.selector);
-        grappa.execute(amEngineId, address(this), actions);
+        vm.expectRevert(AM_InvalidFromAddress.selector);
+        engine.execute(address(this), actions);
     }
 
     function testCanRemoveCollateralAfterBurn() public {
@@ -96,7 +96,7 @@ contract TestBurnCall is AdvancedFixture {
         actions[1] = createRemoveCollateralAction(amount, usdcId, address(this));
 
         // exeucte
-        grappa.execute(amEngineId, address(this), actions);
+        engine.execute(address(this), actions);
 
         uint256 collateralAfter = usdc.balanceOf(address(this));
         assertEq(collateralAfter, collateralBefore + amount);

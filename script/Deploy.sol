@@ -17,7 +17,6 @@ import "../src/core/pricers/ChainlinkPricer.sol";
 
 import "../src/test/utils/Utilities.sol";
 
-
 contract Deploy is Script, Utilities {
     function run() external {
         vm.startBroadcast();
@@ -55,22 +54,24 @@ contract Deploy is Script, Utilities {
         // prepare bytecode for Grappa
         address optionTokenAddr = predictAddress(msg.sender, nonce + 3);
         console.log("optionToken address (prediction)", optionTokenAddr);
-        
+
         grappa = new Grappa(optionTokenAddr, address(oracle)); // nonce + 2
         console.log("grappa", address(grappa));
 
-        // deploy following contracts directly, just so the address is the same as predicted by `create` (optionTokenAddr) 
+        // deploy following contracts directly, just so the address is the same as predicted by `create` (optionTokenAddr)
         optionToken = address(new OptionToken(address(grappa))); // nonce: 3
         console.log("optionToken", optionToken);
-        
+
         address volOracle = address(new VolOracle()); // nonce: 4
-        
-        advancedMarginEngine = address(new AdvancedMarginEngine(address(grappa), address(oracle), volOracle)); // nonce: 5
+
+        advancedMarginEngine = address(
+            new AdvancedMarginEngine(address(grappa), address(oracle), volOracle, address(optionToken))
+        ); // nonce: 5
         console.log("advancedMarginEngine", advancedMarginEngine);
 
         // setup
-        uint8 amEngineId1 = Grappa(grappa).registerEngine(advancedMarginEngine);
-        console.log("advancedMargin engine registered, id:", amEngineId1);
+        uint8 engineId1 = Grappa(grappa).registerEngine(advancedMarginEngine);
+        console.log("advancedMargin engine registered, id:", engineId1);
 
         // todo: setup vol oracles
     }

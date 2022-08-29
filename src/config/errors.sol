@@ -7,7 +7,12 @@ pragma solidity =0.8.13;
 error NoAccess();
 
 // Erros in Grappa Contracts
-error GP_Not_Authorized_Engine();
+
+/// @dev asset already registered
+error GP_AssetAlreadyRegistered();
+
+/// @dev margin engine already registered
+error GP_EngineAlreadyRegistered();
 
 /// @dev amounts length speicified to batch settle doesn't match with tokenIds
 error GP_WrongArgumentLength();
@@ -15,34 +20,33 @@ error GP_WrongArgumentLength();
 /// @dev cannot settle an unexpired option
 error GP_NotExpired();
 
-/// @dev account is not healthy / account is underwater
-error GP_AccountUnderwater();
-
-/// @dev msg.sender is not authorized to ask margin account to pull token from {from} address
-error GP_InvalidFromAddress();
+// Common error in BaseMargin
 
 /// @dev can only merge subaccount with put or call.
-error GP_CannotMergeSpread();
-
-/// @dev type of existing short token doesn't match the incoming token
-error GP_MergeTypeMismatch();
-
-/// @dev product type of existing short token doesn't match the incoming token
-error GP_MergeProductMismatch();
-
-/// @dev expiry of existing short token doesn't match the incoming token
-error GP_MergeExpiryMismatch();
-
-/// @dev cannot merge type with the same strike. (should use burn instead)
-error GP_MergeWithSameStrike();
+error BM_CannotMergeSpread();
 
 /// @dev only spread position can be split
-error GP_CanOnlySplitSpread();
+error BM_CanOnlySplitSpread();
+
+/// @dev type of existing short token doesn't match the incoming token
+error BM_MergeTypeMismatch();
+
+/// @dev product type of existing short token doesn't match the incoming token
+error BM_MergeProductMismatch();
+
+/// @dev expiry of existing short token doesn't match the incoming token
+error BM_MergeExpiryMismatch();
+
+/// @dev cannot merge type with the same strike. (should use burn instead)
+error BM_MergeWithSameStrike();
 
 // Fully Collateralized Margin
 
-/// @dev fully collateralized account cannot be liquidated
-error FM_NoLiquidation();
+/// @dev account is not healthy / account is underwater
+error FM_AccountUnderwater();
+
+/// @dev msg.sender is not authorized to ask margin account to pull token from {from} address
+error FM_InvalidFromAddress();
 
 /// @dev invalid collateral:
 ///         call can only be collateralized by underlying
@@ -69,6 +73,12 @@ error FM_CollateraliMisMatch();
 
 // Advanced Margin and AdvancedMarginLib Errors
 
+/// @dev account is not healthy / account is underwater
+error AM_AccountUnderwater();
+
+/// @dev msg.sender is not authorized to ask margin account to pull token from {from} address
+error AM_InvalidFromAddress();
+
 /// @dev collateral id is wrong: the id doesn't match the existing collateral
 error AM_WrongCollateralId();
 
@@ -84,9 +94,6 @@ error AM_SplitAmountMisMatch();
 /// @dev invalid tokenId specify to mint / burn actions
 error AM_InvalidToken();
 
-/// token id specified to liquidate mistmch vault debt
-error AM_WrongIdToLiquidate();
-
 /// @dev no config set for this asset.
 error AM_NoConfig();
 
@@ -98,6 +105,17 @@ error AM_AccountIsNotEmpty();
 
 /// @dev amounts to repay in liquidation are not valid. Missing call, put or not proportional to the amount in subaccount.
 error AM_WrongRepayAmounts();
+
+// OptionToken
+
+/// @dev burn or mint can only be called by corresponding engine.
+error OT_Not_Authorized_Engine();
+
+/// @dev cannot mint token after expiry
+error OT_InvalidExpiry();
+
+/// @dev put and call should not contain "short stirkes"
+error OT_BadStrikes();
 
 // Chainlink Pricer Errors
 

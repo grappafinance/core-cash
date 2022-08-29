@@ -3,11 +3,13 @@ pragma solidity =0.8.13;
 
 // external librares
 import {ERC1155} from "solmate/tokens/ERC1155.sol";
-import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 
 // interfaces
 import {IOptionToken} from "../interfaces/IOptionToken.sol";
-import {IOracle} from "../interfaces/IOracle.sol";
+import {IGrappa} from "../interfaces/IGrappa.sol";
+
+import {TokenIdUtil} from "../libraries/TokenIdUtil.sol";
+import {ProductIdUtil} from "../libraries/ProductIdUtil.sol";
 
 // constants and types
 import "../config/enums.sol";
@@ -21,13 +23,13 @@ import "../config/errors.sol";
             The value of each OptionType should always be positive.
  */
 contract OptionToken is ERC1155, IOptionToken {
-    ///@dev marginAccount module which is in charge of minting / burning.
-    address public immutable marginAccount;
+    ///@dev grappa serve as the registry
+    IGrappa public immutable grappa;
 
-    constructor(address _marginAccount) {
+    constructor(address _grappa) {
         // solhint-disable-next-line reason-string
-        if (_marginAccount == address(0)) revert();
-        marginAccount = _marginAccount;
+        if (_grappa == address(0)) revert();
+        grappa = IGrappa(_grappa);
     }
 
     // @todo: update function
@@ -38,7 +40,7 @@ contract OptionToken is ERC1155, IOptionToken {
     }
 
     /**
-     * @dev mint option token to an address. Can only be called by marginAccount
+     * @dev mint option token to an address. Can only be called by corresponding margin engine
      * @param _recipient    where to mint token to
      * @param _tokenId      tokenId to mint
      * @param _amount       amount to mint
@@ -48,12 +50,12 @@ contract OptionToken is ERC1155, IOptionToken {
         uint256 _tokenId,
         uint256 _amount
     ) external {
-        _checkAccess();
+        _checkAccessAndTokenId(_tokenId);
         _mint(_recipient, _tokenId, _amount, "");
     }
 
     /**
-     * @dev burn option token from an address. Can only be called by marginAccount
+     * @dev burn option token from an address. Can only be called by corresponding margin engine
      * @param _from         account to burn from
      * @param _tokenId      tokenId to burn
      * @param _amount       amount to burn
@@ -63,29 +65,71 @@ contract OptionToken is ERC1155, IOptionToken {
         uint256 _tokenId,
         uint256 _amount
     ) external {
-        _checkAccess();
+        _checkAccess(_tokenId);
         _burn(_from, _tokenId, _amount);
     }
 
     /**
-     * @dev burn batch of option token from an address. Can only be called by marginAccount
+     * @dev burn option token from an address. Can only be called by grappa, used for settlement
+     * @param _from         account to burn from
+     * @param _tokenId      tokenId to burn
+     * @param _amount       amount to burn
+     **/
+    function burnGrappaOnly(
+        address _from,
+        uint256 _tokenId,
+        uint256 _amount
+    ) external {
+        _checkIsGrappa();
+        _burn(_from, _tokenId, _amount);
+    }
+
+    /**
+     * @dev burn batch of option token from an address. Can only be called by grappa
      * @param _from         account to burn from
      * @param _ids          tokenId to burn
      * @param _amounts      amount to burn
      **/
-    function batchBurn(
+    function batchBurnGrappaOnly(
         address _from,
         uint256[] memory _ids,
         uint256[] memory _amounts
     ) external {
-        _checkAccess();
+        _checkIsGrappa();
         _batchBurn(_from, _ids, _amounts);
     }
 
     /**
      * @dev check if msg.sender is the marginAccount
      */
-    function _checkAccess() internal view {
-        if (msg.sender != marginAccount) revert NoAccess();
+    function _checkIsGrappa() internal view {
+        if (msg.sender != address(grappa)) revert NoAccess();
+    }
+
+    function _checkAccess(uint256 _tokenId) internal view {
+        (, uint32 productId, , , ) = TokenIdUtil.parseTokenId(_tokenId);
+        (uint8 engineId, , , ) = ProductIdUtil.parseProductId(productId);
+        if (msg.sender != grappa.engines(engineId)) revert OT_Not_Authorized_Engine();
+    }
+
+    /**
+     * @dev check if msg.sender is eligible for burning or minting certain token
+     */
+    function _checkAccessAndTokenId(uint256 _tokenId) internal view {
+        (TokenType optionType, uint32 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) = TokenIdUtil
+            .parseTokenId(_tokenId);
+        (uint8 engineId, , , ) = ProductIdUtil.parseProductId(productId);
+        if (msg.sender != grappa.engines(engineId)) revert OT_Not_Authorized_Engine();
+
+        // check option type and strikes
+        // check that vanilla options doesnt have a shortStrike argument
+        if ((optionType == TokenType.CALL || optionType == TokenType.PUT) && (shortStrike != 0)) revert OT_BadStrikes();
+
+        // check that you cannot mint a "credit spread" token
+        if (optionType == TokenType.CALL_SPREAD && (shortStrike < longStrike)) revert OT_BadStrikes();
+        if (optionType == TokenType.PUT_SPREAD && (shortStrike > longStrike)) revert OT_BadStrikes();
+
+        // check expiry
+        if (expiry <= block.timestamp) revert OT_InvalidExpiry();
     }
 }

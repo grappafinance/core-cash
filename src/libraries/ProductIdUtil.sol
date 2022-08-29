@@ -13,7 +13,7 @@ library ProductIdUtil {
         internal
         pure
         returns (
-            uint8 amEngineId,
+            uint8 engineId,
             uint8 underlyingId,
             uint8 strikeId,
             uint8 collateralId
@@ -21,7 +21,7 @@ library ProductIdUtil {
     {
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            amEngineId := shr(24, _productId)
+            engineId := shr(24, _productId)
             underlyingId := shr(16, _productId)
             strikeId := shr(8, _productId)
         }
@@ -32,7 +32,7 @@ library ProductIdUtil {
      * @dev parse collateral id from product Id.
      *      since collateral id is uint8 of the last 8 bits of productId, we can just cast to uint8
      *                        * ----------------- | ---------------------- | ------------------ | ---------------------- *
-     * productId (32 bits) =  | amEngineId (8 bits) | underlying ID (8 bits) | strike ID (8 bits) | collateral ID (8 bits) |
+     * productId (32 bits) =  | engineId (8 bits) | underlying ID (8 bits) | strike ID (8 bits) | collateral ID (8 bits) |
      *                        * ----------------- | ---------------------- | ------------------ | ---------------------- *
      */
     function getCollateralId(uint32 _productId) internal pure returns (uint8) {
@@ -43,21 +43,21 @@ library ProductIdUtil {
      * @notice    get product id from underlying, strike and collateral address
      * @dev       function will still return even if some of the assets are not registered
      *                        * ----------------- | ---------------------- | ------------------ | ---------------------- *
-     * productId (32 bits) =  | amEngineId (8 bits) | underlying ID (8 bits) | strike ID (8 bits) | collateral ID (8 bits) |
+     * productId (32 bits) =  | engineId (8 bits) | underlying ID (8 bits) | strike ID (8 bits) | collateral ID (8 bits) |
      *                        * ----------------- | ---------------------- | ------------------ | ---------------------- *
      * @param underlyingId  underlying id
      * @param strikeId      strike id
      * @param collateralId  collateral id
      */
     function getProductId(
-        uint8 amEngineId,
+        uint8 engineId,
         uint8 underlyingId,
         uint8 strikeId,
         uint8 collateralId
     ) internal pure returns (uint32 id) {
         unchecked {
             id =
-                (uint32(amEngineId) << 24) +
+                (uint32(engineId) << 24) +
                 (uint32(underlyingId) << 16) +
                 (uint32(strikeId) << 8) +
                 (uint32(collateralId));

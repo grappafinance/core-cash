@@ -2,6 +2,7 @@
 pragma solidity =0.8.13;
 
 import "../config/enums.sol";
+import "../config/errors.sol";
 
 library TokenIdUtil {
     /**

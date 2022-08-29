@@ -24,7 +24,7 @@ import "../../../config/errors.sol";
 //         usdc.mint(alice, 1000_000 * 1e6);
 
 //         vm.startPrank(alice);
-//         usdc.approve(address(amEngine), type(uint256).max);
+//         usdc.approve(address(engine), type(uint256).max);
 
 //         expiry = block.timestamp + 7 days;
 
@@ -44,7 +44,7 @@ import "../../../config/errors.sol";
 //         actions[1] = createMintAction(tokenId, address(this), amount);
 
 //         // mint option
-//         grappa.execute(amEngineId, accountId, actions);
+//         engine.execute(accountId, actions);
 
 //         vm.stopPrank();
 //     }
@@ -54,13 +54,13 @@ import "../../../config/errors.sol";
 
 //         uint256 usdcBalanceBefore = usdc.balanceOf(alice);
 //         uint256 systemUsdcBalanceBefore = usdc.balanceOf(address(grappa));
-//         (, , , , uint80 collateralBefore, ) = amEngine.marginAccounts(accountId);
+//         (, , , , uint80 collateralBefore, ) = engine.marginAccounts(accountId);
 
-//         amEngine.topUp(accountId, uint80(initialCollateral));
+//         engineId.topUp(accountId, uint80(initialCollateral));
 
 //         uint256 usdcBalanceAfter = usdc.balanceOf(alice);
 //         uint256 systemUsdcBalanceAfter = usdc.balanceOf(address(grappa));
-//         (, , , , uint80 collateralAfter, ) = amEngine.marginAccounts(accountId);
+//         (, , , , uint80 collateralAfter, ) = engine.marginAccounts(accountId);
 
 //         assertEq(usdcBalanceBefore - usdcBalanceAfter, initialCollateral);
 //         assertEq(systemUsdcBalanceAfter - systemUsdcBalanceBefore, initialCollateral);
@@ -71,17 +71,17 @@ import "../../../config/errors.sol";
 
 //     function testAnyoneCanTopUpAliceAccount() public {
 //         usdc.mint(address(this), initialCollateral);
-//         usdc.approve(address(amEngine), type(uint256).max);
+//         usdc.approve(address(engine), type(uint256).max);
 
 //         uint256 usdcBalanceBefore = usdc.balanceOf(address(this));
 //         uint256 systemUsdcBalanceBefore = usdc.balanceOf(address(grappa));
-//         (, , , , uint80 collateralBefore, ) = amEngine.marginAccounts(accountId);
+//         (, , , , uint80 collateralBefore, ) = engine.marginAccounts(accountId);
 
-//         amEngine.topUp(accountId, uint80(initialCollateral));
+//         engineId.topUp(accountId, uint80(initialCollateral));
 
 //         uint256 usdcBalanceAfter = usdc.balanceOf(address(this));
 //         uint256 systemUsdcBalanceAfter = usdc.balanceOf(address(grappa));
-//         (, , , , uint80 collateralAfter, ) = amEngine.marginAccounts(accountId);
+//         (, , , , uint80 collateralAfter, ) = engine.marginAccounts(accountId);
 
 //         assertEq(usdcBalanceBefore - usdcBalanceAfter, initialCollateral);
 //         assertEq(systemUsdcBalanceAfter - systemUsdcBalanceBefore, initialCollateral);
