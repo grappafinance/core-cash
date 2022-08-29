@@ -86,26 +86,30 @@ slither ./src/core/
 
 ## Basic Contract Architecture
 
-![architecture](https://i.imgur.com/ZuG0kdG.png)
+![architecture](https://i.imgur.com/1HVOLYG.png)
 
 This is the basic diagram of how contracts interact with each other in the draft version. A more detail diagram will be added later.
 
 The 4 pieces that compose Grappa are `Oracle`, `MarginEngine` `OptionToken` and `Grappa`.
 
-- `Grappa`: entry point for all the users. In charge of minting the correct product according to the connected **MarginEngine** rules
+- `Grappa`: served as a registry for margin engines, assets. Also used for settling optionTokens.
 - `OptionToken`: ERC1155 token that represent the right to claim for a non-negative payout at expiry. It can represent a long call position, a long put position, or debit spreads.
 - `Oracle`: contract to report spot price and expiry price of an asset.
-- `MarginEngine`: each margin engine can mint different option token by keeping the collateral and do internal accounting. There should be multiple margin engines working together to provide user flexibilities to choose from, based on user preference such as gas fee, capital efficiency, composability and risk.
+- `MarginEngine`: each margin engine can be authorized to mint different option tokens. There should be multiple margin engines working together to provide user flexibilities to choose from, based on user preference such as gas fee, capital efficiency, composability and risk.
 
 ## List of Margin Engines
 
-- `AdvancedMargin`: The first version of the margin system that complies with the `IMarginEngine` interface that stores account structure. The current **Advanced Margin** system is capable of dealing with:
+- `FullMargin`: fully collateralized margin. can be used to mint:
+  - covered call (collateralized with underlying)
+  - covered put (collateralized with strike)
+  - call spread (collateralized with strike or underlying)
+  - put spread (collateralized with strike)
+- `AdvancedMargin`: mint partially collateralized options which is 3x - 20x more capital efficient compared to fully collateralized options. Requires dependencies on vol oracle to estimate the value of option. Each 'subAccounts' can process:
   - single collateral type
   - can mint 1 call (or call spread) + 1 put (or put spread) in a single account.
 
 ### Work-in-Progress Margin systems / Ideas
 
-- **Simple Margin**: fully collateralized version with minimal oracle needed and risk associated.
 - **PortfolioMargin**: Support up to 30(?) positions and calculate max loss as required collateral.
 
 Other margin system can be added to Grappa as long as it complies with the interface.
