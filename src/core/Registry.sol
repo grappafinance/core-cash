@@ -67,15 +67,6 @@ contract Registry is Ownable {
     }
 
     /**
-     * @dev parse only the engine address from productId
-     * @param _productId product id
-     */
-    function getEngineFromProductId(uint32 _productId) public view returns (address engine) {
-        (uint8 engineId, , , ) = ProductIdUtil.parseProductId(_productId);
-        engine = engines[engineId];
-    }
-
-    /**
      * @notice    get product id from underlying, strike and collateral address
      * @dev       function will still return even if some of the assets are not registered
      * @param underlying  underlying address

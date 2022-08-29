@@ -211,15 +211,4 @@ contract Grappa is ReentrancyGuard, Registry {
 
         return (engine, collateral, payoutPerOption);
     }
-
-    /**
-     * @dev revert if the calling engine can not mint the token.
-     * @param _engine address of the engine
-     * @param _tokenId tokenid
-     */
-    function _assertIsAuthorizedEngineForToken(address _engine, uint256 _tokenId) internal view {
-        (, uint32 productId, , , ) = TokenIdUtil.parseTokenId(_tokenId);
-        address engine = getEngineFromProductId(productId);
-        if (_engine != engine) revert GP_Not_Authorized_Engine();
-    }
 }
