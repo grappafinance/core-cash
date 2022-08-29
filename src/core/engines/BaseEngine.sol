@@ -25,7 +25,7 @@ import "../../config/errors.sol";
  * @author  @antoncoding
  * @notice  util functions for MarginEngines
  */
-contract BaseEngine  {
+contract BaseEngine {
     using SafeERC20 for IERC20;
     using TokenIdUtil for uint256;
 

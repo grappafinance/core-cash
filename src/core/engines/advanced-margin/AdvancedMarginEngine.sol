@@ -118,8 +118,9 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
 
         // update the account memory and do external calls on the flight
         for (uint256 i; i < actions.length; ) {
-            if (actions[i].action == ActionType.AddCollateral) _addCollateral(account, _subAccount,  actions[i].data);
-            else if (actions[i].action == ActionType.RemoveCollateral) _removeCollateral(account, _subAccount, actions[i].data);
+            if (actions[i].action == ActionType.AddCollateral) _addCollateral(account, _subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.RemoveCollateral)
+                _removeCollateral(account, _subAccount, actions[i].data);
             else if (actions[i].action == ActionType.MintShort) _mintOption(account, _subAccount, actions[i].data);
             else if (actions[i].action == ActionType.BurnShort) _burnOption(account, _subAccount, actions[i].data);
             else if (actions[i].action == ActionType.MergeOptionToken) _merge(account, _subAccount, actions[i].data);
@@ -132,7 +133,9 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
                 i++;
             }
         }
-        if(!_isAccountHealthy(account)) revert GP_AccountUnderwater();
+        if (!_isAccountHealthy(account)) revert GP_AccountUnderwater();
+
+        marginAccounts[_subAccount] = account;
     }
 
     function previewMinCollateral(address _subAccount, ActionArgs[] calldata actions) external view returns (uint256) {
@@ -170,8 +173,6 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
         uint256[] memory tokensToBurn,
         uint256[] memory amountsToBurn
     ) external returns (address collateral, uint80 collateralToPay) {
-        _assertCallerIsGrappa();
-
         uint256 repayCallAmount = amountsToBurn[0];
         uint256 repayPutAmount = amountsToBurn[1];
 
@@ -208,13 +209,12 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
 
         // update account's debt and perform "safe" external calls
         if (hasShortCall) {
-            account.burnOption(account.shortCallId, uint64(repayCallAmount));
             optionToken.burn(msg.sender, account.shortCallId, amountsToBurn[0]);
+            account.burnOption(account.shortCallId, uint64(repayCallAmount));
         }
         if (hasShortPut) {
-            // cacheShortPutId = account.shortPutId;
-            account.burnOption(account.shortPutId, uint64(repayPutAmount));
             optionToken.burn(msg.sender, account.shortPutId, amountsToBurn[1]);
+            account.burnOption(account.shortPutId, uint64(repayPutAmount));
         }
 
         // update account's collateral
@@ -228,8 +228,6 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
 
         // write new accout to storage
         marginAccounts[_subAccount] = account;
-
-        
 
         IERC20(collateral).safeTransfer(msg.sender, collateralToPay);
     }
@@ -308,7 +306,11 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
      * @dev pull token from user, increase collateral in account memory
             the collateral has to be provided by either caller, or the primary owner of subaccount
      */
-    function _addCollateral(Account memory _account, address _subAccount, bytes memory _data) internal {
+    function _addCollateral(
+        Account memory _account,
+        address _subAccount,
+        bytes memory _data
+    ) internal {
         // decode parameters
         (address from, uint80 amount, uint8 collateralId) = abi.decode(_data, (address, uint80, uint8));
 
@@ -328,13 +330,17 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
      * @dev push token to user, decrease collateral in account memory
      * @param _data bytes data to decode
      */
-    function _removeCollateral(Account memory _account, address _subAccount, bytes memory _data) internal {
+    function _removeCollateral(
+        Account memory _account,
+        address _subAccount,
+        bytes memory _data
+    ) internal {
         // decode parameters
         (uint80 amount, address recipient, uint8 collateralId) = abi.decode(_data, (uint80, address, uint8));
-        
+
         // update the data structure in corresponding engine
         _account.removeCollateral(amount, collateralId);
-        
+
         address collateral = grappa.assets(collateralId).addr;
 
         emit CollateralRemoved(_subAccount, collateral, amount);
@@ -346,7 +352,11 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
      * @dev mint option token to user, increase short position (debt) in account memory
      * @param _data bytes data to decode
      */
-    function _mintOption(Account memory _account, address _subAccount, bytes memory _data) internal {
+    function _mintOption(
+        Account memory _account,
+        address _subAccount,
+        bytes memory _data
+    ) internal {
         // decode parameters
         (uint256 tokenId, address recipient, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
 
@@ -364,7 +374,11 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
             the option has to be provided by either caller, or the primary owner of subaccount
      * @param _data bytes data to decode
      */
-    function _burnOption(Account memory _account, address _subAccount, bytes memory _data) internal {
+    function _burnOption(
+        Account memory _account,
+        address _subAccount,
+        bytes memory _data
+    ) internal {
         // decode parameters
         (uint256 tokenId, address from, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
 
@@ -385,7 +399,9 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
      * @param _data bytes data to decode
      */
     function _merge(
-        Account memory _account, address _subAccount, bytes memory _data
+        Account memory _account,
+        address _subAccount,
+        bytes memory _data
     ) internal {
         // decode parameters
         (uint256 longTokenId, uint256 shortTokenId, address from, uint64 amount) = abi.decode(
@@ -411,7 +427,11 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
      * @dev Change existing spread position to short, and mint option token for recipient
      * @param _subAccount subaccount that will be update in place
      */
-    function _split(Account memory _account, address _subAccount, bytes memory _data) internal {
+    function _split(
+        Account memory _account,
+        address _subAccount,
+        bytes memory _data
+    ) internal {
         // decode parameters
         (uint256 spreadId, uint64 amount, address recipient) = abi.decode(_data, (uint256, uint64, address));
 
@@ -430,15 +450,12 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
      * @dev     this update the account memory in-place
      */
     function _settle(Account memory _account, address _subAccount) internal {
-
         uint256 payout = _getPayoutFromAccount(_account);
 
         emit AccountSettled(_subAccount, payout);
 
         _account.settleAtExpiry(uint80(payout));
     }
-
-    
 
     /** ========================================================= **
                             Internal Functions

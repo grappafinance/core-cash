@@ -16,39 +16,42 @@ import "forge-std/console2.sol";
 contract AdvancedMarginLibTest is Test {
     using AdvancedMarginLib for Account;
 
-    Account public emptyAccount;
-    Account public nonEmptyAccount;
-
     uint8 public collateralId1 = 1;
     uint8 public collateralId2 = 2;
 
     uint80 public amount = uint80(UNIT);
 
-    function setUp() public {
-        nonEmptyAccount.addCollateral(amount, collateralId1);
-    }
-
     function testAddCollateral() public {
-        emptyAccount.addCollateral(amount, collateralId1);
+        Account memory account;
+        account.addCollateral(amount, collateralId1);
 
-        assertEq(emptyAccount.collateralId, collateralId1);
-        assertEq(emptyAccount.collateralAmount, amount);
+        assertEq(account.collateralId, collateralId1);
+        assertEq(account.collateralAmount, amount);
     }
 
     function testCannotAddDiffCollateral() public {
+        Account memory account;
+        account.addCollateral(amount, collateralId1);
+
         vm.expectRevert(AM_WrongCollateralId.selector);
-        nonEmptyAccount.addCollateral(amount, collateralId2);
+        account.addCollateral(amount, collateralId2);
     }
 
     function testRemoveHalfCollateral() public {
-        nonEmptyAccount.removeCollateral((amount / 2), collateralId1);
-        assertEq(nonEmptyAccount.collateralId, collateralId1);
-        assertEq(nonEmptyAccount.collateralAmount, (amount / 2));
+        Account memory account;
+        account.addCollateral(amount, collateralId1);
+
+        account.removeCollateral((amount / 2), collateralId1);
+        assertEq(account.collateralId, collateralId1);
+        assertEq(account.collateralAmount, (amount / 2));
     }
 
     function testRemoveAllCollateral() public {
-        nonEmptyAccount.removeCollateral(amount, collateralId1);
-        assertEq(emptyAccount.collateralId, 0);
-        assertEq(emptyAccount.collateralAmount, 0);
+        Account memory account;
+        account.addCollateral(amount, collateralId1);
+
+        account.removeCollateral(amount, collateralId1);
+        assertEq(account.collateralId, 0);
+        assertEq(account.collateralAmount, 0);
     }
 }

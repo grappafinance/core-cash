@@ -187,7 +187,6 @@ library AdvancedMarginLib {
         }
     }
 
-
     function checkTokenIdTypeAndStrike(
         TokenType optionType,
         uint256 longStrike,

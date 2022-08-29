@@ -62,7 +62,7 @@ contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
         optionToken = IOptionToken(_optionToken);
     }
 
-   /*///////////////////////////////////////////////////////////////
+    /*///////////////////////////////////////////////////////////////
                                 Events
     //////////////////////////////////////////////////////////////*/
 
@@ -80,7 +80,6 @@ contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
 
     event AccountSettled(address subAccount, uint256 payout);
 
-
     /*///////////////////////////////////////////////////////////////
                         External Functions
     //////////////////////////////////////////////////////////////*/
@@ -92,8 +91,9 @@ contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
 
         // update the account memory and do external calls on the flight
         for (uint256 i; i < actions.length; ) {
-            if (actions[i].action == ActionType.AddCollateral) _addCollateral(account, _subAccount,  actions[i].data);
-            else if (actions[i].action == ActionType.RemoveCollateral) _removeCollateral(account, _subAccount, actions[i].data);
+            if (actions[i].action == ActionType.AddCollateral) _addCollateral(account, _subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.RemoveCollateral)
+                _removeCollateral(account, _subAccount, actions[i].data);
             else if (actions[i].action == ActionType.MintShort) _mintOption(account, _subAccount, actions[i].data);
             else if (actions[i].action == ActionType.BurnShort) _burnOption(account, _subAccount, actions[i].data);
             else if (actions[i].action == ActionType.MergeOptionToken) _merge(account, _subAccount, actions[i].data);
@@ -106,7 +106,9 @@ contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
                 i++;
             }
         }
-        if(!_isAccountHealthy(account)) revert GP_AccountUnderwater();
+        if (!_isAccountHealthy(account)) revert GP_AccountUnderwater();
+
+        marginAccounts[_subAccount] = account;
     }
 
     function previewMinCollateral(address _subAccount, ActionArgs[] calldata actions) external view returns (uint256) {
@@ -155,7 +157,11 @@ contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
      * @dev pull token from user, increase collateral in account memory
             the collateral has to be provided by either caller, or the primary owner of subaccount
      */
-    function _addCollateral(FullMarginAccount memory _account, address _subAccount, bytes memory _data) internal {
+    function _addCollateral(
+        FullMarginAccount memory _account,
+        address _subAccount,
+        bytes memory _data
+    ) internal {
         // decode parameters
         (address from, uint80 amount, uint8 collateralId) = abi.decode(_data, (address, uint80, uint8));
 
@@ -175,14 +181,17 @@ contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
      * @dev push token to user, decrease collateral in account memory
      * @param _data bytes data to decode
      */
-    function _removeCollateral(FullMarginAccount memory _account, address _subAccount, bytes memory _data) internal {
+    function _removeCollateral(
+        FullMarginAccount memory _account,
+        address _subAccount,
+        bytes memory _data
+    ) internal {
         // decode parameters
         (uint80 amount, address recipient, uint8 collateralId) = abi.decode(_data, (uint80, address, uint8));
 
-        
         // update the data structure in corresponding engine
         _account.removeCollateral(amount, collateralId);
-        
+
         address collateral = grappa.assets(collateralId).addr;
 
         emit CollateralRemoved(_subAccount, collateral, amount);
@@ -194,7 +203,11 @@ contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
      * @dev mint option token to user, increase short position (debt) in account memory
      * @param _data bytes data to decode
      */
-    function _mintOption(FullMarginAccount memory _account, address _subAccount, bytes memory _data) internal {
+    function _mintOption(
+        FullMarginAccount memory _account,
+        address _subAccount,
+        bytes memory _data
+    ) internal {
         // decode parameters
         (uint256 tokenId, address recipient, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
 
@@ -212,7 +225,11 @@ contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
             the option has to be provided by either caller, or the primary owner of subaccount
      * @param _data bytes data to decode
      */
-    function _burnOption(FullMarginAccount memory _account, address _subAccount, bytes memory _data) internal {
+    function _burnOption(
+        FullMarginAccount memory _account,
+        address _subAccount,
+        bytes memory _data
+    ) internal {
         // decode parameters
         (uint256 tokenId, address from, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
 
@@ -233,7 +250,9 @@ contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
      * @param _data bytes data to decode
      */
     function _merge(
-        FullMarginAccount memory _account, address _subAccount, bytes memory _data
+        FullMarginAccount memory _account,
+        address _subAccount,
+        bytes memory _data
     ) internal {
         // decode parameters
         (uint256 longTokenId, uint256 shortTokenId, address from, uint64 amount) = abi.decode(
@@ -259,7 +278,11 @@ contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
      * @dev Change existing spread position to short, and mint option token for recipient
      * @param _subAccount subaccount that will be update in place
      */
-    function _split(FullMarginAccount memory _account, address _subAccount, bytes memory _data) internal {
+    function _split(
+        FullMarginAccount memory _account,
+        address _subAccount,
+        bytes memory _data
+    ) internal {
         // decode parameters
         (uint256 spreadId, uint64 amount, address recipient) = abi.decode(_data, (uint256, uint64, address));
 
@@ -278,7 +301,6 @@ contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
      * @dev     this update the account memory in-place
      */
     function _settle(FullMarginAccount memory _account, address _subAccount) internal {
-
         (, , uint256 payout) = grappa.getPayout(_account.tokenId, _account.shortAmount);
 
         emit AccountSettled(_subAccount, payout);
@@ -286,7 +308,7 @@ contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
         _account.settleAtExpiry(uint80(payout));
     }
 
-   /**
+    /**
      * @notice payout to user on settlement.
      * @dev this can only triggered by Grappa, would only be called on settlement.
      * @param _asset asset to transfer
@@ -343,7 +365,9 @@ contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
         view
         returns (FullMarginDetail memory detail)
     {
-        (TokenType tokenType, uint32 productId, , uint64 longStrike, uint64 shortStrike) = account.tokenId.parseTokenId();
+        (TokenType tokenType, uint32 productId, , uint64 longStrike, uint64 shortStrike) = account
+            .tokenId
+            .parseTokenId();
 
         (, , uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(productId);
 
