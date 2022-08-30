@@ -15,5 +15,7 @@ enum ActionType {
     BurnShort,
     MergeOptionToken,
     SplitOptionToken,
+    AddLong,
+    RemoveLong,
     SettleAccount
 }

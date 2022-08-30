@@ -100,7 +100,7 @@ contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
             else if (actions[i].action == ActionType.MergeOptionToken) _merge(account, _subAccount, actions[i].data);
             else if (actions[i].action == ActionType.SplitOptionToken) _split(account, _subAccount, actions[i].data);
             else if (actions[i].action == ActionType.SettleAccount) _settle(account, _subAccount);
-            else revert("unsupported");
+            else revert EG_UnsupportedAction();
 
             // increase i without checking overflow
             unchecked {
@@ -318,15 +318,8 @@ contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
         address _recipient,
         uint256 _amount
     ) external {
-        _assertCallerIsGrappa();
-        IERC20(_asset).safeTransfer(_recipient, _amount);
-    }
-
-    /**
-     * @notice revert if called by non-grappa controller
-     */
-    function _assertCallerIsGrappa() internal view {
         if (msg.sender != address(grappa)) revert NoAccess();
+        IERC20(_asset).safeTransfer(_recipient, _amount);
     }
 
     /** ========================================================= **
