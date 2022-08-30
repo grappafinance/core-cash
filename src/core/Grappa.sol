@@ -213,7 +213,10 @@ contract Grappa is Ownable {
     {
         uint256 payoutPerOption;
         (engine, collateral, payoutPerOption) = _getPayoutPerToken(_tokenId);
-        payout = payoutPerOption.mulDivDown(_amount, UNIT);
+        payout = payoutPerOption * _amount;
+        unchecked {
+            payout = payout / UNIT;
+        }
     }
 
     /*///////////////////////////////////////////////////////////////
