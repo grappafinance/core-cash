@@ -6,11 +6,12 @@ library NumberUtil {
      * @dev use it in uncheck so overflow will still be checked.
      */
     function mul(uint256 x, uint256 y) internal pure returns (uint256 z) {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             // Store x * y in z for now.
             z := mul(x, y)
 
-            // Equivalent to require(denominator != 0 && (x == 0 || (x * y) / x == y))
+            // Equivalent to require(x == 0 || (x * y) / x == y)
             if iszero(or(iszero(x), eq(div(z, x), y))) {
                 revert(0, 0)
             }

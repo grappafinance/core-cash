@@ -195,18 +195,16 @@ library AdvancedMarginMath {
         // uint256 otmReq = max(_vol, UNIT).mulDivUp(_spot, UNIT).mulDivUp(_spot, _strike);
         uint256 otmReq = (max(_vol, UNIT) * _spot).mulDivUp(_spot, _strike);
         unchecked {
-            otmReq = otmReq / UNIT;   
+            otmReq = otmReq / UNIT;
         }
 
         tempMin = min(tempMin, otmReq);
 
         uint256 requiredCollateral = tempMin;
         unchecked {
-            requiredCollateral = tempMin.mulDivUp(timeValueDecay, BPS) + cashValue;
-        }
-        uint256 scaledRequirement = requiredCollateral * _shortAmount;
-        unchecked {
-            return scaledRequirement / UNIT;
+            // use mul() and / instead of mulDiv to skip check
+            requiredCollateral = tempMin.mul(timeValueDecay) / BPS + cashValue;
+            return requiredCollateral.mul(_shortAmount) / UNIT;
         }
     }
 
@@ -230,7 +228,9 @@ library AdvancedMarginMath {
         uint256 _vol,
         ProductMarginParams memory params
     ) internal view returns (uint256) {
-        if (_spot == 0) return _strike.mulDivUp(_shortAmount, UNIT);
+        unchecked {
+            if (_spot == 0) return _strike.mul(_shortAmount) / UNIT;
+        }
 
         // get time decay in BPS
         uint256 timeValueDecay = getTimeDecay(_expiry, params);
@@ -246,13 +246,9 @@ library AdvancedMarginMath {
         }
         tempMin = min(tempMin, otmReq);
 
-        uint256 requiredCollateral;
         unchecked {
-            requiredCollateral = tempMin.mulDivUp(timeValueDecay, BPS) + cashValue;
-        }
-        uint256 scaledRequirement = requiredCollateral * _shortAmount;
-        unchecked {
-            return scaledRequirement / UNIT;
+            uint256 requiredCollateral = tempMin.mul(timeValueDecay) / BPS + cashValue;
+            return requiredCollateral.mul(_shortAmount) / UNIT;
         }
     }
 
