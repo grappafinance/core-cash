@@ -190,13 +190,21 @@ library AdvancedMarginMath {
 
         uint256 tempMin = min(_strike, _spot);
 
-        uint256 otmReq = max(_vol, UNIT).mulDivUp(_spot, UNIT).mulDivUp(_spot, _strike);
+        // uint256 otmReq = max(_vol, UNIT).mulDivUp(_spot, UNIT).mulDivUp(_spot, _strike);
+        uint256 otmReq = (max(_vol, UNIT) * _spot).mulDivUp(_spot, _strike);
+        unchecked {
+            otmReq = otmReq / UNIT;   
+        }
 
         tempMin = min(tempMin, otmReq);
 
+        uint256 requiredCollateral = tempMin;
         unchecked {
-            uint256 requireCollateral = tempMin.mulDivUp(timeValueDecay, BPS) + cashValue;
-            return (requireCollateral * _shortAmount) / UNIT;
+            requiredCollateral = tempMin.mulDivUp(timeValueDecay, BPS) + cashValue;
+        }
+        uint256 scaledRequirement = requiredCollateral * _shortAmount;
+        unchecked {
+            return scaledRequirement / UNIT;
         }
     }
 
@@ -229,12 +237,20 @@ library AdvancedMarginMath {
 
         uint256 tempMin = min(_strike, _spot);
 
-        uint256 otmReq = max(_vol, UNIT).mulDivUp(_strike, UNIT).mulDivUp(_strike, _spot);
+        // uint256 otmReq = max(_vol, UNIT).mulDivUp(_strike, UNIT).mulDivUp(_strike, _spot);
+        uint256 otmReq = (max(_vol, UNIT) * _strike).mulDivUp(_strike, _spot);
+        unchecked {
+            otmReq = otmReq / UNIT;
+        }
         tempMin = min(tempMin, otmReq);
 
+        uint256 requiredCollateral;
         unchecked {
-            uint256 requireCollateral = tempMin.mulDivUp(timeValueDecay, BPS) + cashValue;
-            return (requireCollateral * _shortAmount) / UNIT;
+            requiredCollateral = tempMin.mulDivUp(timeValueDecay, BPS) + cashValue;
+        }
+        uint256 scaledRequirement = requiredCollateral * _shortAmount;
+        unchecked {
+            return scaledRequirement / UNIT;
         }
     }
 
