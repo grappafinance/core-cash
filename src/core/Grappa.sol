@@ -181,12 +181,10 @@ contract Grappa is Ownable {
                 lastEngine = engine;
                 lastCollateral = collateral;
             }
-
-            lastTotalPayout += payout;
-
             emit OptionSettled(_account, _tokenIds[i], _amounts[i], payout);
 
             unchecked {
+                lastTotalPayout = lastTotalPayout + payout;
                 i++;
             }
         }
