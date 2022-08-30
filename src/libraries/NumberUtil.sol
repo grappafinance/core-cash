@@ -3,6 +3,22 @@ pragma solidity =0.8.13;
 
 library NumberUtil {
     /**
+     * @dev use it in uncheck so overflow will still be checked.
+     */
+    function mul(uint256 x, uint256 y) internal pure returns (uint256 z) {
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            // Store x * y in z for now.
+            z := mul(x, y)
+
+            // Equivalent to require(x == 0 || (x * y) / x == y)
+            if iszero(or(iszero(x), eq(div(z, x), y))) {
+                revert(0, 0)
+            }
+        }
+    }
+
+    /**
      * @notice convert decimals of an amount
      *
      * @param  _amount      number to convert
@@ -22,8 +38,9 @@ library NumberUtil {
             uint8 diff;
             unchecked {
                 diff = _fromDecimals - _toDecimals;
+                // div cannot underflow because diff 10**diff != 0
+                return _amount / (10**diff);
             }
-            return _amount / (10**diff);
         } else {
             uint8 diff;
             unchecked {

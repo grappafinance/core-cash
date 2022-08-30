@@ -37,8 +37,14 @@ library FullMarginMath {
                 // only call spread has option to be collateralized by strike or underlying
                 if (_account.collateralizedWithStrike) {
                     // ex: 2000-4000 call spread with usdc collateral
+                    // return (longStrike - shortStrike) * amount / unit
+
                     unchecked {
-                        unitAmount = (_account.longStrike - _account.shortStrike).mulDivUp(_account.shortAmount, UNIT);
+                        unitAmount = (_account.longStrike - _account.shortStrike);
+                    }
+                    unitAmount = unitAmount * _account.shortAmount;
+                    unchecked {
+                        unitAmount = unitAmount / UNIT;
                     }
                 } else {
                     // ex: 2000-4000 call spread with eth collateral
@@ -51,13 +57,23 @@ library FullMarginMath {
                 }
             }
         } else if (_account.tokenType == TokenType.PUT) {
-            unitAmount = (_account.shortStrike).mulDivUp(_account.shortAmount, UNIT);
+            // unitAmount = shortStrike * amount / UNIT
+            unitAmount = _account.shortStrike * _account.shortAmount;
+            unchecked {
+                unitAmount = unitAmount / UNIT;
+            }
         } else if (_account.tokenType == TokenType.PUT_SPREAD) {
             // if long strike >= short strike, all loss is covered, amount = 0
             // only consider when long strike < short strike
             if (_account.longStrike < _account.shortStrike) {
+                // unitAmount = (shortStrike - longStrike) * amount / UNIT
+
                 unchecked {
-                    unitAmount = (_account.shortStrike - _account.longStrike).mulDivUp(_account.shortAmount, UNIT);
+                    unitAmount = (_account.shortStrike - _account.longStrike);
+                }
+                unitAmount = unitAmount * _account.shortAmount;
+                unchecked {
+                    unitAmount = unitAmount / UNIT;
                 }
             }
         } else {

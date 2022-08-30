@@ -46,6 +46,7 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
     using AdvancedMarginLib for AdvancedMarginAccount;
     using SafeERC20 for IERC20;
     using NumberUtil for uint256;
+    using FixedPointMathLib for uint256;
 
     IGrappa public immutable grappa;
     IOptionToken public immutable optionToken;
@@ -177,22 +178,28 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
         // compute portion of the collateral the liquidator is repaying, in BPS.
         // @note: expected to lost precision becuase of performing division before multiplication
         uint256 portionBPS;
-        if (hasShortCall && hasShortPut) {
-            // if the account is short call and put at the same time,
-            // amounts to liquidate needs to be the same portion of short call and short put amount.
-            uint256 callPortionBPS = (repayCallAmount * BPS) / account.shortCallAmount;
-            uint256 putPortionBPS = (repayPutAmount * BPS) / account.shortPutAmount;
-            if (callPortionBPS != putPortionBPS) revert AM_WrongRepayAmounts();
-            portionBPS = callPortionBPS;
-        } else if (hasShortCall) {
-            // account only short call
-            if (repayPutAmount != 0) revert AM_WrongRepayAmounts();
-            portionBPS = (repayCallAmount * BPS) / account.shortCallAmount;
-        } else {
-            // if account is underwater, it must have shortCall or shortPut. in this branch it will sure have shortPutAmount > 0;
-            // account only short put
-            if (repayCallAmount != 0) revert AM_WrongRepayAmounts();
-            portionBPS = (repayPutAmount * BPS) / account.shortPutAmount;
+        unchecked {
+            // use uncheck because
+            // repayAmount * 1000000 cannot overflow uint256, also shortAmount > 0
+
+            if (hasShortCall && hasShortPut) {
+                // if the account is short call and put at the same time,
+                // amounts to liquidate needs to be the same portion of short call and short put amount.
+
+                uint256 callPortionBPS = (repayCallAmount * BPS) / account.shortCallAmount;
+                uint256 putPortionBPS = (repayPutAmount * BPS) / account.shortPutAmount;
+                if (callPortionBPS != putPortionBPS) revert AM_WrongRepayAmounts();
+                portionBPS = callPortionBPS;
+            } else if (hasShortCall) {
+                // account only short call
+                if (repayPutAmount != 0) revert AM_WrongRepayAmounts();
+                portionBPS = (repayCallAmount * BPS) / account.shortCallAmount;
+            } else {
+                // if account is underwater, it must have shortCall or shortPut. in this branch it will sure have shortPutAmount > 0;
+                // account only short put
+                if (repayCallAmount != 0) revert AM_WrongRepayAmounts();
+                portionBPS = (repayPutAmount * BPS) / account.shortPutAmount;
+            }
         }
 
         // update account's debt and perform "safe" external calls
@@ -206,8 +213,9 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
         }
 
         // update account's collateral
-        // address collateral = grappa.assets(account.collateralId);
-        collateralToPay = uint80((account.collateralAmount * portionBPS) / BPS);
+        unchecked {
+            collateralToPay = uint80((account.collateralAmount * portionBPS) / BPS);
+        }
 
         collateral = grappa.assets(account.collateralId).addr;
 
@@ -272,8 +280,8 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
         productParams[_productId] = ProductMarginParams({
             dUpper: _dUpper,
             dLower: _dLower,
-            sqrtDUpper: uint32(FixedPointMathLib.sqrt(uint256(_dUpper))),
-            sqrtDLower: uint32(FixedPointMathLib.sqrt(uint256(_dLower))),
+            sqrtDUpper: uint32(uint256(_dUpper).sqrt()),
+            sqrtDLower: uint32(uint256(_dLower).sqrt()),
             rUpper: _rUpper,
             rLower: _rLower,
             volMultiplier: _volMultiplier

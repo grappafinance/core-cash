@@ -36,7 +36,7 @@ contract AdvancedMarginMathTest is Test {
             vol,
             getDefaultConfig()
         );
-        assertEq(minCollat, 405771429); // 405 USD
+        assertEq(minCollat, 405771428); // 405 USD
 
         // spot decrease, min collateral also decrease
         spot = 2500 * base;
@@ -48,7 +48,7 @@ contract AdvancedMarginMathTest is Test {
             vol,
             getDefaultConfig()
         );
-        assertEq(minCollat2, 281785715); // 281 USD
+        assertEq(minCollat2, 281785714); // 281 USD
     }
 
     function testMinCollateralITMCall() public {
@@ -95,7 +95,7 @@ contract AdvancedMarginMathTest is Test {
             vol,
             getDefaultConfig()
         );
-        assertEq(minCollat, 405771429); // ~406 USD
+        assertEq(minCollat, 405771428); // ~406 USD
 
         // increasing spot price, the min collateral stay the same
         spot = 4000 * base;

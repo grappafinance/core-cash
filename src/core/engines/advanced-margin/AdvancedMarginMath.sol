@@ -3,6 +3,7 @@ pragma solidity =0.8.13;
 
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import {MoneynessLib} from "../../../libraries/MoneynessLib.sol";
+import "../../../libraries/NumberUtil.sol";
 
 import "../../../config/constants.sol";
 import "../../../config/types.sol";
@@ -26,6 +27,7 @@ import "../../../config/errors.sol";
  */
 library AdvancedMarginMath {
     using FixedPointMathLib for uint256;
+    using NumberUtil for uint256;
 
     /**
      * @notice get minimum collateral denominated in strike asset
@@ -130,7 +132,7 @@ library AdvancedMarginMath {
 
         // we calculate the max loss of spread, dominated in strke asset (usually USD)
         unchecked {
-            uint256 maxLoss = (_account.longCallStrike - _account.shortCallStrike).mulDivUp(_account.callAmount, UNIT);
+            uint256 maxLoss = (_account.longCallStrike - _account.shortCallStrike).mul(_account.callAmount) / UNIT;
             return min(maxLoss, minCollateralShortCall);
         }
     }
@@ -158,7 +160,7 @@ library AdvancedMarginMath {
 
         // we calculate the max loss of the put spread
         unchecked {
-            uint256 maxLoss = (_account.shortPutStrike - _account.longPutStrike).mulDivUp(_account.putAmount, UNIT);
+            uint256 maxLoss = (_account.shortPutStrike - _account.longPutStrike).mul(_account.putAmount) / UNIT;
             return min(minCollateralShortPut, maxLoss);
         }
     }
@@ -190,12 +192,20 @@ library AdvancedMarginMath {
 
         uint256 tempMin = min(_strike, _spot);
 
-        uint256 otmReq = max(_vol, 1).mulDivUp(_spot, UNIT).mulDivUp(_spot, _strike);
+        // uint256 otmReq = max(_vol, UNIT).mulDivUp(_spot, UNIT).mulDivUp(_spot, _strike);
+        uint256 otmReq = (max(_vol, UNIT) * _spot).mulDivUp(_spot, _strike);
+        unchecked {
+            otmReq = otmReq / UNIT;
+        }
+
         tempMin = min(tempMin, otmReq);
 
-        uint256 requireCollateral = tempMin.mulDivUp(timeValueDecay, BPS) + cashValue;
-
-        return requireCollateral.mulDivUp(_shortAmount, UNIT);
+        uint256 requiredCollateral = tempMin;
+        unchecked {
+            // use mul() and / instead of mulDiv to skip check
+            requiredCollateral = tempMin.mul(timeValueDecay) / BPS + cashValue;
+            return requiredCollateral.mul(_shortAmount) / UNIT;
+        }
     }
 
     /**
@@ -218,7 +228,9 @@ library AdvancedMarginMath {
         uint256 _vol,
         ProductMarginParams memory params
     ) internal view returns (uint256) {
-        if (_spot == 0) return _strike.mulDivUp(_shortAmount, UNIT);
+        unchecked {
+            if (_spot == 0) return _strike.mul(_shortAmount) / UNIT;
+        }
 
         // get time decay in BPS
         uint256 timeValueDecay = getTimeDecay(_expiry, params);
@@ -227,13 +239,17 @@ library AdvancedMarginMath {
 
         uint256 tempMin = min(_strike, _spot);
 
-        uint256 otmReq = max(_vol, 1).mulDivUp(_strike, UNIT).mulDivUp(_strike, _spot);
+        // uint256 otmReq = max(_vol, UNIT).mulDivUp(_strike, UNIT).mulDivUp(_strike, _spot);
+        uint256 otmReq = (max(_vol, UNIT) * _strike).mulDivUp(_strike, _spot);
+        unchecked {
+            otmReq = otmReq / UNIT;
+        }
         tempMin = min(tempMin, otmReq);
 
-        uint256 requireCollateral = tempMin.mulDivUp(timeValueDecay, BPS) + cashValue;
-
-        uint256 ans = requireCollateral.mulDivUp(_shortAmount, UNIT);
-        return ans;
+        unchecked {
+            uint256 requiredCollateral = tempMin.mul(timeValueDecay) / BPS + cashValue;
+            return requiredCollateral.mul(_shortAmount) / UNIT;
+        }
     }
 
     /**
@@ -251,14 +267,17 @@ library AdvancedMarginMath {
     function getTimeDecay(uint256 _expiry, ProductMarginParams memory params) internal view returns (uint256) {
         if (_expiry <= block.timestamp) return 0;
 
-        uint256 timeToExpiry = _expiry - block.timestamp;
-        if (timeToExpiry > params.dUpper) return uint256(params.rUpper);
-        if (timeToExpiry < params.dLower) return uint256(params.rLower);
+        unchecked {
+            uint256 timeToExpiry = _expiry - block.timestamp;
 
-        return
-            uint256(params.rLower) +
-            ((timeToExpiry.sqrt() - params.sqrtDLower) * (params.rUpper - params.rLower)) /
-            (params.sqrtDUpper - params.sqrtDLower);
+            if (timeToExpiry > params.dUpper) return uint256(params.rUpper);
+            if (timeToExpiry < params.dLower) return uint256(params.rLower);
+
+            return
+                uint256(params.rLower) +
+                ((timeToExpiry.sqrt() - params.sqrtDLower) * (params.rUpper - params.rLower)) /
+                (params.sqrtDUpper - params.sqrtDLower);
+        }
     }
 
     /// @dev return the max of a and b
