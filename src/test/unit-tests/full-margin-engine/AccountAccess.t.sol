@@ -19,7 +19,7 @@ contract AdvancedMarginEngineAccessTest is FullMarginFixture {
         subAccountIdToModify = address(uint160(alice) ^ uint160(1));
     }
 
-    function testTransferAccount() public {
+    function testTransferAMAccount() public {
         vm.startPrank(alice);
         engine.transferAccount(subAccountIdToModify, address(this));
         vm.stopPrank();

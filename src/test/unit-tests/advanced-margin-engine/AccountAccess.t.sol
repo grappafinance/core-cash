@@ -28,7 +28,7 @@ contract AdvancedMarginEngineAccessTest is AdvancedFixture {
         _assertCanAccessAccount(address(this), true);
     }
 
-    function testCannotTransferToOverrideAnotherAccount() public {
+    function testCannotOverrideAnotherAccount() public {
         // write something to account "address(this)"
         _assertCanAccessAccount(address(this), true);
 

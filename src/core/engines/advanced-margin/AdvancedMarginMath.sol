@@ -190,12 +190,14 @@ library AdvancedMarginMath {
 
         uint256 tempMin = min(_strike, _spot);
 
-        uint256 otmReq = max(_vol, 1).mulDivUp(_spot, UNIT).mulDivUp(_spot, _strike);
+        uint256 otmReq = max(_vol, UNIT).mulDivUp(_spot, UNIT).mulDivUp(_spot, _strike);
+        
         tempMin = min(tempMin, otmReq);
 
-        uint256 requireCollateral = tempMin.mulDivUp(timeValueDecay, BPS) + cashValue;
-
-        return requireCollateral.mulDivUp(_shortAmount, UNIT);
+        unchecked {
+            uint256 requireCollateral = tempMin.mulDivUp(timeValueDecay, BPS) + cashValue;
+            return requireCollateral * _shortAmount / UNIT;    
+        }
     }
 
     /**
@@ -227,13 +229,13 @@ library AdvancedMarginMath {
 
         uint256 tempMin = min(_strike, _spot);
 
-        uint256 otmReq = max(_vol, 1).mulDivUp(_strike, UNIT).mulDivUp(_strike, _spot);
+        uint256 otmReq = max(_vol, UNIT).mulDivUp(_strike, UNIT).mulDivUp(_strike, _spot);
         tempMin = min(tempMin, otmReq);
-
-        uint256 requireCollateral = tempMin.mulDivUp(timeValueDecay, BPS) + cashValue;
-
-        uint256 ans = requireCollateral.mulDivUp(_shortAmount, UNIT);
-        return ans;
+        
+        unchecked {
+            uint256 requireCollateral = tempMin.mulDivUp(timeValueDecay, BPS) + cashValue;
+            return requireCollateral * _shortAmount / UNIT;
+        }
     }
 
     /**
