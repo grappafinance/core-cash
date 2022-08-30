@@ -251,14 +251,16 @@ library AdvancedMarginMath {
     function getTimeDecay(uint256 _expiry, ProductMarginParams memory params) internal view returns (uint256) {
         if (_expiry <= block.timestamp) return 0;
 
-        uint256 timeToExpiry = _expiry - block.timestamp;
-        if (timeToExpiry > params.dUpper) return uint256(params.rUpper);
-        if (timeToExpiry < params.dLower) return uint256(params.rLower);
+        unchecked {
+            uint256 timeToExpiry = _expiry - block.timestamp;    
 
-        return
-            uint256(params.rLower) +
-            ((timeToExpiry.sqrt() - params.sqrtDLower) * (params.rUpper - params.rLower)) /
-            (params.sqrtDUpper - params.sqrtDLower);
+            if (timeToExpiry > params.dUpper) return uint256(params.rUpper);
+            if (timeToExpiry < params.dLower) return uint256(params.rLower);
+
+            return uint256(params.rLower) +
+                ((timeToExpiry.sqrt() - params.sqrtDLower) * (params.rUpper - params.rLower)) /
+                (params.sqrtDUpper - params.sqrtDLower);
+        }
     }
 
     /// @dev return the max of a and b
