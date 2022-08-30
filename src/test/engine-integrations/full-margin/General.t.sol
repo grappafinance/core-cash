@@ -53,10 +53,9 @@ contract FullMarginEngineGernal is FullMarginFixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
-        
+
         engine.execute(address(this), actions);
-        
+
         assertEq(engine.getMinCollateral(address(this)), depositAmount);
-    
     }
 }
