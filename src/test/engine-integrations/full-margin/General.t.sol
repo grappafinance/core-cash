@@ -20,24 +20,24 @@ contract FullMarginEngineGernal is FullMarginFixture {
         weth.approve(address(engine), type(uint256).max);
     }
 
-    // function testCannotCallAddLong() public {
-    //     ActionArgs[] memory actions = new ActionArgs[](1);
-    //     actions[0] = ActionArgs({action: ActionType.AddLong, data: abi.encode(0)});
+    function testCannotCallAddLong() public {
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = ActionArgs({action: ActionType.AddLong, data: abi.encode(0)});
 
-    //     vm.expectRevert(EG_UnsupportedAction.selector);
-    //     engine.execute(address(this), actions);
-    // }
+        vm.expectRevert(EG_UnsupportedAction.selector);
+        engine.execute(address(this), actions);
+    }
 
-    // function testCannotCallRemoveLong() public {
-    //     ActionArgs[] memory actions = new ActionArgs[](1);
-    //     actions[0] = ActionArgs({action: ActionType.RemoveLong, data: abi.encode(0)});
+    function testCannotCallRemoveLong() public {
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = ActionArgs({action: ActionType.RemoveLong, data: abi.encode(0)});
 
-    //     vm.expectRevert(EG_UnsupportedAction.selector);
-    //     engine.execute(address(this), actions);
-    // }
+        vm.expectRevert(EG_UnsupportedAction.selector);
+        engine.execute(address(this), actions);
+    }
 
-    // function testCannotCallPayoutFromAnybody() public {
-    //     vm.expectRevert(NoAccess.selector);
-    //     engine.payCashValue(address(usdc), address(this), UNIT);
-    // }
+    function testCannotCallPayoutFromAnybody() public {
+        vm.expectRevert(NoAccess.selector);
+        engine.payCashValue(address(usdc), address(this), UNIT);
+    }
 }
