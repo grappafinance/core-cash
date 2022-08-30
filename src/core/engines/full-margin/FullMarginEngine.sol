@@ -100,7 +100,7 @@ contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
             else if (actions[i].action == ActionType.MergeOptionToken) _merge(account, _subAccount, actions[i].data);
             else if (actions[i].action == ActionType.SplitOptionToken) _split(account, _subAccount, actions[i].data);
             else if (actions[i].action == ActionType.SettleAccount) _settle(account, _subAccount);
-            else revert("unsupported");
+            else revert EG_UnsupportedAction();
 
             // increase i without checking overflow
             unchecked {

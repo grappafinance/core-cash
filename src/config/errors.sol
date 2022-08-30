@@ -20,6 +20,10 @@ error GP_WrongArgumentLength();
 /// @dev cannot settle an unexpired option
 error GP_NotExpired();
 
+// Common engine errors
+
+error EG_UnsupportedAction();
+
 // Common error in BaseMargin
 
 /// @dev can only merge subaccount with put or call.
