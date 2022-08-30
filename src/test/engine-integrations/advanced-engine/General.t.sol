@@ -35,4 +35,9 @@ contract AdvanceEngineGernal is AdvancedFixture {
         vm.expectRevert(EG_UnsupportedAction.selector);
         engine.execute(address(this), actions);
     }
+
+    function testCannotCallPayoutFromAnybody() public {
+        vm.expectRevert(NoAccess.selector);
+        engine.payCashValue(address(usdc), address(this), UNIT);
+    }
 }

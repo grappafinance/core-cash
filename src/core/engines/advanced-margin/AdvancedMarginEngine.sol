@@ -232,8 +232,7 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
         address _recipient,
         uint256 _amount
     ) external {
-        _assertCallerIsGrappa();
-
+        if (msg.sender != address(grappa)) revert NoAccess();
         IERC20(_asset).safeTransfer(_recipient, _amount);
     }
 
@@ -449,13 +448,6 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
     /** ========================================================= **
                             Internal Functions
      ** ========================================================= **/
-
-    /**
-     * @notice revert if called by non-grappa controller
-     */
-    function _assertCallerIsGrappa() internal view {
-        if (msg.sender != address(grappa)) revert NoAccess();
-    }
 
     /**
      * @dev return whether if an account is healthy.

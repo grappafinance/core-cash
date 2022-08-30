@@ -318,15 +318,8 @@ contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
         address _recipient,
         uint256 _amount
     ) external {
-        _assertCallerIsGrappa();
-        IERC20(_asset).safeTransfer(_recipient, _amount);
-    }
-
-    /**
-     * @notice revert if called by non-grappa controller
-     */
-    function _assertCallerIsGrappa() internal view {
         if (msg.sender != address(grappa)) revert NoAccess();
+        IERC20(_asset).safeTransfer(_recipient, _amount);
     }
 
     /** ========================================================= **
