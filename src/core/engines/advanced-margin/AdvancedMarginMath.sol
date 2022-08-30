@@ -3,6 +3,7 @@ pragma solidity =0.8.13;
 
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import {MoneynessLib} from "../../../libraries/MoneynessLib.sol";
+import "../../../libraries/NumberUtil.sol";
 
 import "../../../config/constants.sol";
 import "../../../config/types.sol";
@@ -26,6 +27,7 @@ import "../../../config/errors.sol";
  */
 library AdvancedMarginMath {
     using FixedPointMathLib for uint256;
+    using NumberUtil for uint256;
 
     /**
      * @notice get minimum collateral denominated in strike asset
@@ -130,7 +132,7 @@ library AdvancedMarginMath {
 
         // we calculate the max loss of spread, dominated in strke asset (usually USD)
         unchecked {
-            uint256 maxLoss = (_account.longCallStrike - _account.shortCallStrike).mulDivUp(_account.callAmount, UNIT);
+            uint256 maxLoss = (_account.longCallStrike - _account.shortCallStrike).mul(_account.callAmount) / UNIT;
             return min(maxLoss, minCollateralShortCall);
         }
     }
@@ -158,7 +160,7 @@ library AdvancedMarginMath {
 
         // we calculate the max loss of the put spread
         unchecked {
-            uint256 maxLoss = (_account.shortPutStrike - _account.longPutStrike).mulDivUp(_account.putAmount, UNIT);
+            uint256 maxLoss = (_account.shortPutStrike - _account.longPutStrike).mul(_account.putAmount) / UNIT;
             return min(minCollateralShortPut, maxLoss);
         }
     }
