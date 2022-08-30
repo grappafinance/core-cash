@@ -191,12 +191,12 @@ library AdvancedMarginMath {
         uint256 tempMin = min(_strike, _spot);
 
         uint256 otmReq = max(_vol, UNIT).mulDivUp(_spot, UNIT).mulDivUp(_spot, _strike);
-        
+
         tempMin = min(tempMin, otmReq);
 
         unchecked {
             uint256 requireCollateral = tempMin.mulDivUp(timeValueDecay, BPS) + cashValue;
-            return requireCollateral * _shortAmount / UNIT;    
+            return (requireCollateral * _shortAmount) / UNIT;
         }
     }
 
@@ -231,10 +231,10 @@ library AdvancedMarginMath {
 
         uint256 otmReq = max(_vol, UNIT).mulDivUp(_strike, UNIT).mulDivUp(_strike, _spot);
         tempMin = min(tempMin, otmReq);
-        
+
         unchecked {
             uint256 requireCollateral = tempMin.mulDivUp(timeValueDecay, BPS) + cashValue;
-            return requireCollateral * _shortAmount / UNIT;
+            return (requireCollateral * _shortAmount) / UNIT;
         }
     }
 
@@ -254,12 +254,13 @@ library AdvancedMarginMath {
         if (_expiry <= block.timestamp) return 0;
 
         unchecked {
-            uint256 timeToExpiry = _expiry - block.timestamp;    
+            uint256 timeToExpiry = _expiry - block.timestamp;
 
             if (timeToExpiry > params.dUpper) return uint256(params.rUpper);
             if (timeToExpiry < params.dLower) return uint256(params.rLower);
 
-            return uint256(params.rLower) +
+            return
+                uint256(params.rLower) +
                 ((timeToExpiry.sqrt() - params.sqrtDLower) * (params.rUpper - params.rLower)) /
                 (params.sqrtDUpper - params.sqrtDLower);
         }

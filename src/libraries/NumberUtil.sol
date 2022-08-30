@@ -22,8 +22,9 @@ library NumberUtil {
             uint8 diff;
             unchecked {
                 diff = _fromDecimals - _toDecimals;
+                // div cannot underflow because diff 10**diff != 0
+                return _amount / (10**diff);
             }
-            return _amount / (10**diff);
         } else {
             uint8 diff;
             unchecked {

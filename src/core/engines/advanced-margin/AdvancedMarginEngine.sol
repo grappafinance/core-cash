@@ -185,9 +185,9 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
             if (hasShortCall && hasShortPut) {
                 // if the account is short call and put at the same time,
                 // amounts to liquidate needs to be the same portion of short call and short put amount.
-                
+
                 uint256 callPortionBPS = (repayCallAmount * BPS) / account.shortCallAmount;
-                uint256 putPortionBPS = (repayPutAmount * BPS) / account.shortPutAmount;    
+                uint256 putPortionBPS = (repayPutAmount * BPS) / account.shortPutAmount;
                 if (callPortionBPS != putPortionBPS) revert AM_WrongRepayAmounts();
                 portionBPS = callPortionBPS;
             } else if (hasShortCall) {
