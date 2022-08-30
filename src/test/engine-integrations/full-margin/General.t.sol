@@ -40,4 +40,23 @@ contract FullMarginEngineGernal is FullMarginFixture {
         vm.expectRevert(NoAccess.selector);
         engine.payCashValue(address(usdc), address(this), UNIT);
     }
+
+    function testGetMinCollateral() public {
+        uint256 expiry = block.timestamp + 1 days;
+        uint256 depositAmount = 3000 * 1e6;
+
+        uint256 strikePrice = 3000 * UNIT;
+        uint256 amount = 1 * UNIT;
+
+        uint256 tokenId = getTokenId(TokenType.PUT, pidUsdcCollat, expiry, strikePrice, 0);
+
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
+        actions[1] = createMintAction(tokenId, address(this), amount);
+        
+        engine.execute(address(this), actions);
+        
+        assertEq(engine.getMinCollateral(address(this)), depositAmount);
+    
+    }
 }
