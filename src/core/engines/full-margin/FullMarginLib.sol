@@ -48,7 +48,7 @@ library FullMarginLib {
         uint80 amount
     ) internal {
         if (account.collateralId != collateralId) revert FM_WrongCollateralId();
-        
+
         uint80 newAmount = account.collateralAmount - amount;
         account.collateralAmount = newAmount;
         if (newAmount == 0) {

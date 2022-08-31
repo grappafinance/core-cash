@@ -236,37 +236,61 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
     }
 
     /** ========================================================= **
-    *               Override Sate changing functions             *
-    ** ========================================================= **/
+     *               Override Sate changing functions             *
+     ** ========================================================= **/
 
-    function _addCollateralToAccount(address _subAccount, uint8 collateralId, uint80 amount) internal override {
+    function _addCollateralToAccount(
+        address _subAccount,
+        uint8 collateralId,
+        uint80 amount
+    ) internal override {
         marginAccounts[_subAccount].addCollateral(collateralId, amount);
     }
 
-    function _removeCollateralFromAccount(address _subAccount, uint8 collateralId, uint80 amount) internal override {
+    function _removeCollateralFromAccount(
+        address _subAccount,
+        uint8 collateralId,
+        uint80 amount
+    ) internal override {
         marginAccounts[_subAccount].removeCollateral(collateralId, amount);
     }
 
-    function _increaseShortInAccount(address _subAccount, uint256 tokenId, uint64 amount) internal override {
+    function _increaseShortInAccount(
+        address _subAccount,
+        uint256 tokenId,
+        uint64 amount
+    ) internal override {
         marginAccounts[_subAccount].mintOption(tokenId, amount);
     }
 
-    function _decreaseShortInAccount(address _subAccount, uint256 tokenId, uint64 amount) internal override {
+    function _decreaseShortInAccount(
+        address _subAccount,
+        uint256 tokenId,
+        uint64 amount
+    ) internal override {
         marginAccounts[_subAccount].burnOption(tokenId, amount);
     }
 
-    function _mergeLongIntoSpread(address _subAccount, uint256 shortTokenId, uint256 longTokenId, uint64 amount) internal override {
+    function _mergeLongIntoSpread(
+        address _subAccount,
+        uint256 shortTokenId,
+        uint256 longTokenId,
+        uint64 amount
+    ) internal override {
         marginAccounts[_subAccount].merge(shortTokenId, longTokenId, amount);
     }
 
-    function _splitSpreadInAccount(address _subAccount, uint256 spreadId, uint64 amount) internal override {
+    function _splitSpreadInAccount(
+        address _subAccount,
+        uint256 spreadId,
+        uint64 amount
+    ) internal override {
         marginAccounts[_subAccount].split(spreadId, amount);
     }
 
     function _settleAccount(address _subAccount, uint80 payout) internal override {
         marginAccounts[_subAccount].settleAtExpiry(payout);
     }
-    
 
     /** ========================================================= **
                             Override view functions
@@ -277,7 +301,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
      * @param _subAccount subaccount id
      * @return isHealthy true if account is in good condition, false if it's underwater (liquidatable)
      */
-    function _isAccountAboveWater(address _subAccount) internal override view returns (bool isHealthy) {
+    function _isAccountAboveWater(address _subAccount) internal view override returns (bool isHealthy) {
         AdvancedMarginAccount memory account = marginAccounts[_subAccount];
         AdvancedMarginDetail memory detail = _getAccountDetail(account);
         uint256 minCollateral = _getMinCollateral(detail);
@@ -289,13 +313,12 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
      * @dev     this function will revert when called before expiry
      * @param _subAccount account id
      */
-    function _getAccountPayout(address _subAccount) internal override view returns (uint80 payout) {
+    function _getAccountPayout(address _subAccount) internal view override returns (uint80 payout) {
         (uint256 callPayout, uint256 putPayout) = (0, 0);
         AdvancedMarginAccount memory account = marginAccounts[_subAccount];
         if (account.shortCallAmount > 0)
             (, , callPayout) = grappa.getPayout(account.shortCallId, account.shortCallAmount);
-        if (account.shortPutAmount > 0)
-            (, , putPayout) = grappa.getPayout(account.shortPutId, account.shortPutAmount);
+        if (account.shortPutAmount > 0) (, , putPayout) = grappa.getPayout(account.shortPutId, account.shortPutAmount);
         return uint80(callPayout + putPayout);
     }
 
