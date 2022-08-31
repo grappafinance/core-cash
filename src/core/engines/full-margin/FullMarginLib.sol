@@ -27,14 +27,15 @@ library FullMarginLib {
     ///@dev Increase the collateral in the account
     ///@param account FullMarginAccount memory that will be updated
     function addCollateral(
-        FullMarginAccount memory account,
+        FullMarginAccount storage account,
         uint80 amount,
         uint8 collateralId
-    ) internal pure {
-        if (account.collateralId == 0) {
+    ) internal {
+        uint80 cacheId = account.collateralId;
+        if (cacheId == 0) {
             account.collateralId = collateralId;
         } else {
-            if (account.collateralId != collateralId) revert FM_WrongCollateralId();
+            if (cacheId != collateralId) revert FM_WrongCollateralId();
         }
         account.collateralAmount += amount;
     }
@@ -42,11 +43,12 @@ library FullMarginLib {
     ///@dev Reduce the collateral in the account
     ///@param account FullMarginAccount memory that will be updated
     function removeCollateral(
-        FullMarginAccount memory account,
+        FullMarginAccount storage account,
         uint80 amount,
         uint8 collateralId
-    ) internal pure {
+    ) internal {
         if (account.collateralId != collateralId) revert FM_WrongCollateralId();
+        
         uint80 newAmount = account.collateralAmount - amount;
         account.collateralAmount = newAmount;
         if (newAmount == 0) {
@@ -57,10 +59,10 @@ library FullMarginLib {
     ///@dev Increase the amount of short call or put (debt) of the account
     ///@param account FullMarginAccount memory that will be updated
     function mintOption(
-        FullMarginAccount memory account,
+        FullMarginAccount storage account,
         uint256 tokenId,
         uint64 amount
-    ) internal pure {
+    ) internal {
         (TokenType optionType, uint32 productId, , , ) = tokenId.parseTokenId();
 
         // assign collateralId or check collateral id is the same
@@ -78,14 +80,16 @@ library FullMarginLib {
         if ((optionType == TokenType.PUT_SPREAD || optionType == TokenType.PUT) && strikeId != collateralId)
             revert FM_CannotMintOptionWithThisCollateral();
 
-        if (account.collateralId == 0) {
+        uint80 cacheCollatId = account.collateralId;
+        if (cacheCollatId == 0) {
             account.collateralId = collateralId;
         } else {
-            if (account.collateralId != collateralId) revert FM_CollateraliMisMatch();
+            if (cacheCollatId != collateralId) revert FM_CollateraliMisMatch();
         }
 
-        if (account.tokenId == 0) account.tokenId = tokenId;
-        else if (account.tokenId != tokenId) revert FM_InvalidToken();
+        uint256 cacheTokenId = account.tokenId;
+        if (cacheTokenId == 0) account.tokenId = tokenId;
+        else if (cacheTokenId != tokenId) revert FM_InvalidToken();
 
         account.shortAmount += amount;
     }
@@ -93,14 +97,15 @@ library FullMarginLib {
     ///@dev Remove the amount of short call or put (debt) of the account
     ///@param account FullMarginAccount memory that will be updated in-place
     function burnOption(
-        FullMarginAccount memory account,
+        FullMarginAccount storage account,
         uint256 tokenId,
         uint64 amount
-    ) internal pure {
+    ) internal {
         if (account.tokenId != tokenId) revert FM_InvalidToken();
 
-        account.shortAmount -= amount;
-        if (account.shortAmount == 0) account.tokenId = 0;
+        uint64 newShortAmount = account.shortAmount - amount;
+        if (newShortAmount == 0) account.tokenId = 0;
+        account.shortAmount = newShortAmount;
     }
 
     ///@dev merge an OptionToken into the accunt, changing existing short to spread
@@ -111,11 +116,11 @@ library FullMarginLib {
     ///               e.g: if the account currenly have short call, we can added another "call token" into the account
     ///               and convert the short position to a spread.
     function merge(
-        FullMarginAccount memory account,
+        FullMarginAccount storage account,
         uint256 shortId,
         uint256 longId,
         uint64 amount
-    ) internal pure {
+    ) internal {
         // get token attribute for incoming token
         (, , , uint64 mergingStrike, ) = longId.parseTokenId();
 
@@ -130,10 +135,10 @@ library FullMarginLib {
     ///@param account FullMarginAccount memory that will be updated in-place
     ///@param spreadId id of spread to be parsed
     function split(
-        FullMarginAccount memory account,
+        FullMarginAccount storage account,
         uint256 spreadId,
         uint64 amount
-    ) internal pure {
+    ) internal {
         // passed in spreadId should match the one in account memory (shortCallId or shortPutId)
         if (spreadId != account.tokenId) revert FM_InvalidToken();
         if (amount != account.shortAmount) revert FM_SplitAmountMisMatch();
@@ -142,7 +147,7 @@ library FullMarginLib {
         account.tokenId = TokenIdUtil.convertToVanillaId(spreadId);
     }
 
-    function settleAtExpiry(FullMarginAccount memory account, uint80 _payout) internal pure {
+    function settleAtExpiry(FullMarginAccount storage account, uint80 _payout) internal {
         // clear all debt
         account.tokenId = 0;
         account.shortAmount = 0;
