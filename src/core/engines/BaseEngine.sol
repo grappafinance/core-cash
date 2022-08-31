@@ -123,13 +123,6 @@ abstract contract BaseEngine is ReentrancyGuard {
                    Internal Functions For Each Action
      ** ========================================================= **/
 
-    /** ========================================================= **
-     *                 * -------------------- *                    *
-     *                 |  Actions  Functions  |                    *
-     *                 * -------------------- *                    *
-     *                                                             *
-     ** ========================================================= **/
-
     /**
      * @dev pull token from user, increase collateral in account memory
             the collateral has to be provided by either caller, or the primary owner of subaccount
