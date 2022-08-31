@@ -4,20 +4,16 @@ pragma solidity =0.8.13;
 // imported contracts and libraries
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import {SafeERC20} from "openzeppelin/token/ERC20/utils/SafeERC20.sol";
-import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 import {Ownable} from "openzeppelin/access/Ownable.sol";
-import {ReentrancyGuard} from "solmate/utils/ReentrancyGuard.sol";
+import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 
 // inheriting contracts
 import {BaseEngine} from "../BaseEngine.sol";
 
 // interfaces
 import {IOracle} from "../../../interfaces/IOracle.sol";
-import {IOptionToken} from "../../../interfaces/IOptionToken.sol";
-import {IGrappa} from "../../../interfaces/IGrappa.sol";
 import {IMarginEngine} from "../../../interfaces/IMarginEngine.sol";
 import {IVolOracle} from "../../../interfaces/IVolOracle.sol";
-import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 
 // librarise
 import {TokenIdUtil} from "../../../libraries/TokenIdUtil.sol";
@@ -72,7 +68,6 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
     ) BaseEngine(_grappa, _optionToken) {
         oracle = IOracle(_oracle);
         volOracle = IVolOracle(_volOracle);
-        // optionToken = IOptionToken(_optionToken);
     }
 
     /*///////////////////////////////////////////////////////////////
