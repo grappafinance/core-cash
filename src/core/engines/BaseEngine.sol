@@ -140,14 +140,14 @@ abstract contract BaseEngine is ReentrancyGuard {
 
         if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert BM_InvalidFromAddress();
 
-        // update the account in the state
+        // update the account in state
         _addCollateralToAccount(_subAccount, collateralId, amount);
 
         address collateral = grappa.assets(collateralId).addr;
 
-        IERC20(collateral).safeTransferFrom(from, address(this), amount);
-
         emit CollateralAdded(_subAccount, collateral, amount);
+
+        IERC20(collateral).safeTransferFrom(from, address(this), amount);
     }
 
     /**
@@ -160,7 +160,6 @@ abstract contract BaseEngine is ReentrancyGuard {
 
         // update the account in state
         _removeCollateralFromAccount(_subAccount, collateralId, amount);
-        // marginAccounts[_subAccount].removeCollateral(amount, collateralId);
 
         address collateral = grappa.assets(collateralId).addr;
 
@@ -177,11 +176,10 @@ abstract contract BaseEngine is ReentrancyGuard {
         // decode parameters
         (uint256 tokenId, address recipient, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
 
-        emit OptionTokenMinted(_subAccount, tokenId, amount);
-
         // update the account in state
-        // marginAccounts[_subAccount].mintOption(tokenId, amount);
         _increaseShortInAccount(_subAccount, tokenId, amount);
+
+        emit OptionTokenMinted(_subAccount, tokenId, amount);
 
         // mint option token
         optionToken.mint(recipient, tokenId, amount);
@@ -199,10 +197,10 @@ abstract contract BaseEngine is ReentrancyGuard {
         // token being burn must come from caller or the primary account for this subAccount
         if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert BM_InvalidFromAddress();
 
-        emit OptionTokenBurned(_subAccount, tokenId, amount);
-
-        // update the account in memory
+        // update the account in state
         _decreaseShortInAccount(_subAccount, tokenId, amount);
+
+        emit OptionTokenBurned(_subAccount, tokenId, amount);
 
         optionToken.burn(from, tokenId, amount);
     }
@@ -224,10 +222,10 @@ abstract contract BaseEngine is ReentrancyGuard {
 
         _verifyMergeTokenIds(longTokenId, shortTokenId);
 
-        emit OptionTokenMerged(_subAccount, longTokenId, shortTokenId, amount);
-
         // update the account in state
         _mergeLongIntoSpread(_subAccount, shortTokenId, longTokenId, amount);
+
+        emit OptionTokenMerged(_subAccount, longTokenId, shortTokenId, amount);
 
         // this line will revert if usre is trying to burn an un-authrized tokenId
         optionToken.burn(from, longTokenId, amount);
@@ -243,10 +241,10 @@ abstract contract BaseEngine is ReentrancyGuard {
 
         uint256 tokenId = _verifySpreadIdAndGetLong(spreadId);
 
-        emit OptionTokenSplit(_subAccount, spreadId, amount);
-
-        // update the account in the state
+        // update the account in state
         _splitSpreadInAccount(_subAccount, spreadId, amount);
+
+        emit OptionTokenSplit(_subAccount, spreadId, amount);
 
         optionToken.mint(recipient, tokenId, amount);
     }
@@ -258,10 +256,10 @@ abstract contract BaseEngine is ReentrancyGuard {
     function _settle(address _subAccount) internal {
         uint80 payout = _getAccountPayout(_subAccount);
 
-        emit AccountSettled(_subAccount, payout);
-
-        // update the account in memory
+        // update the account in state
         _settleAccount(_subAccount, payout);
+
+        emit AccountSettled(_subAccount, payout);
     }
 
     /** ========================================================= **
