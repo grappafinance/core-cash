@@ -29,6 +29,8 @@ contract BaseEngine {
     using SafeERC20 for IERC20;
     using TokenIdUtil for uint256;
 
+    IGrappa public immutable grappa;
+
     ///@dev maskedAccount => operator => authorized
     ///     every account can authorize any amount of addresses to modify all sub-accounts he controls.
     mapping(uint160 => mapping(address => bool)) public authorized;
@@ -36,9 +38,14 @@ contract BaseEngine {
     /// Events
     event AccountAuthorizationUpdate(uint160 maskId, address account, bool isAuth);
 
+    constructor(address _grappa) {
+        grappa = IGrappa(_grappa);
+    }
+
     /** ========================================================= **
-                            Internal Functions
+                            External Functions
      ** ========================================================= **/
+    
 
     /**
      * @notice  grant or revoke an account access to all your sub-accounts
@@ -53,6 +60,27 @@ contract BaseEngine {
 
         emit AccountAuthorizationUpdate(maskedId, _account, _isAuthorized);
     }
+
+     /**
+     * @notice payout to user on settlement.
+     * @dev this can only triggered by Grappa, would only be called on settlement.
+     * @param _asset asset to transfer
+     * @param _recipient receiber
+     * @param _amount amount
+     */
+    function payCashValue(
+        address _asset,
+        address _recipient,
+        uint256 _amount
+    ) public virtual {
+        if (msg.sender != address(grappa)) revert NoAccess();
+        IERC20(_asset).safeTransfer(_recipient, _amount);
+    }
+
+    /** ========================================================= **
+                   Internal Functions For Access Control
+     ** ========================================================= **/
+    
 
     /**
      * @notice revert if the msg.sender is not authorized to access an subAccount id
@@ -72,6 +100,10 @@ contract BaseEngine {
     function _isPrimaryAccountFor(address _primary, address _subAccount) internal pure returns (bool) {
         return (uint160(_primary) | 0xFF) == (uint160(_subAccount) | 0xFF);
     }
+
+    /** ========================================================= **
+                Internal Functions for tokenId verification
+     ** ========================================================= **/
 
     /**
      * @dev make sure the user can merge 2 tokens (1 long and 1 short) into a spread

@@ -39,13 +39,13 @@ import "../../../config/errors.sol";
             Interacts with OptionToken to mint / burn
             Interacts with grappa to fetch registered asset info
  */
-contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
+contract FullMarginEngine is ReentrancyGuard, BaseEngine, IMarginEngine {
     using FullMarginLib for FullMarginAccount;
     using FullMarginMath for FullMarginDetail;
     using SafeERC20 for IERC20;
     using TokenIdUtil for uint256;
 
-    IGrappa public immutable grappa;
+    // IGrappa public immutable grappa;
 
     IOptionToken public immutable optionToken;
     /*///////////////////////////////////////////////////////////////
@@ -58,8 +58,7 @@ contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
     mapping(address => FullMarginAccount) public marginAccounts;
 
     // solhint-disable-next-line no-empty-blocks
-    constructor(address _grappa, address _optionToken) BaseEngine() {
-        grappa = IGrappa(_grappa);
+    constructor(address _grappa, address _optionToken) BaseEngine(_grappa) {
         optionToken = IOptionToken(_optionToken);
     }
 
@@ -317,9 +316,8 @@ contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
         address _asset,
         address _recipient,
         uint256 _amount
-    ) external {
-        if (msg.sender != address(grappa)) revert NoAccess();
-        IERC20(_asset).safeTransfer(_recipient, _amount);
+    ) public override(BaseEngine, IMarginEngine) {
+        BaseEngine.payCashValue(_asset, _recipient, _amount);
     }
 
     /** ========================================================= **

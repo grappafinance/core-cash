@@ -41,14 +41,14 @@ import "../../../config/errors.sol";
             Interacts with Oracle to read spot
             Interacts with VolOracle to read vol
  */
-contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyGuard {
+contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable, ReentrancyGuard {
     using AdvancedMarginMath for AdvancedMarginDetail;
     using AdvancedMarginLib for AdvancedMarginAccount;
     using SafeERC20 for IERC20;
     using NumberUtil for uint256;
     using FixedPointMathLib for uint256;
 
-    IGrappa public immutable grappa;
+    // IGrappa public immutable grappa;
     IOptionToken public immutable optionToken;
     IOracle public immutable oracle;
     IVolOracle public immutable volOracle;
@@ -70,8 +70,7 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
         address _oracle,
         address _volOracle,
         address _optionToken
-    ) {
-        grappa = IGrappa(_grappa);
+    ) BaseEngine(_grappa) {
         oracle = IOracle(_oracle);
         volOracle = IVolOracle(_volOracle);
         optionToken = IOptionToken(_optionToken);
@@ -229,22 +228,6 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
     }
 
     /**
-     * @notice payout to user on settlement.
-     * @dev this can only triggered by Grappa, would only be called on settlement.
-     * @param _asset asset to transfer
-     * @param _recipient receiber
-     * @param _amount amount
-     */
-    function payCashValue(
-        address _asset,
-        address _recipient,
-        uint256 _amount
-    ) external {
-        if (msg.sender != address(grappa)) revert NoAccess();
-        IERC20(_asset).safeTransfer(_recipient, _amount);
-    }
-
-    /**
      * @notice  move an account to someone else
      * @dev     expected to be call by account owner
      * @param _subAccount the id of subaccount to trnasfer
@@ -257,6 +240,14 @@ contract AdvancedMarginEngine is BaseEngine, IMarginEngine, Ownable, ReentrancyG
         marginAccounts[_newSubAccount] = marginAccounts[_subAccount];
 
         delete marginAccounts[_subAccount];
+    }
+
+    function payCashValue(
+        address _asset,
+        address _recipient,
+        uint256 _amount
+    ) public override(BaseEngine, IMarginEngine) {
+        BaseEngine.payCashValue(_asset, _recipient, _amount);
     }
 
     /**
