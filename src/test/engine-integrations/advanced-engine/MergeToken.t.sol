@@ -118,7 +118,7 @@ contract TestMergeOption is AdvancedFixture {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createMergeAction(newTokenId, existingTokenId, address(alice), amount);
 
-        vm.expectRevert(AM_InvalidFromAddress.selector);
+        vm.expectRevert(BM_InvalidFromAddress.selector);
         engine.execute(address(this), actions);
     }
 

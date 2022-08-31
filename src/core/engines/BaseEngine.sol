@@ -9,6 +9,7 @@ import {ReentrancyGuard} from "solmate/utils/ReentrancyGuard.sol";
 
 // interfaces
 import {IGrappa} from "../../interfaces/IGrappa.sol";
+import {IOptionToken} from "../../interfaces/IOptionToken.sol";
 import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 
 // librarise
@@ -25,11 +26,12 @@ import "../../config/errors.sol";
  * @author  @antoncoding
  * @notice  util functions for MarginEngines
  */
-contract BaseEngine {
+abstract contract BaseEngine is ReentrancyGuard {
     using SafeERC20 for IERC20;
     using TokenIdUtil for uint256;
 
     IGrappa public immutable grappa;
+    IOptionToken public immutable optionToken;
 
     ///@dev maskedAccount => operator => authorized
     ///     every account can authorize any amount of addresses to modify all sub-accounts he controls.
@@ -38,14 +40,54 @@ contract BaseEngine {
     /// Events
     event AccountAuthorizationUpdate(uint160 maskId, address account, bool isAuth);
 
-    constructor(address _grappa) {
+    event CollateralAdded(address subAccount, address collateral, uint256 amount);
+
+    event CollateralRemoved(address subAccount, address collateral, uint256 amount);
+
+    event OptionTokenMinted(address subAccount, uint256 tokenId, uint256 amount);
+
+    event OptionTokenBurned(address subAccount, uint256 tokenId, uint256 amount);
+
+    event OptionTokenMerged(address subAccount, uint256 longToken, uint256 shortToken, uint64 amount);
+
+    event OptionTokenSplit(address subAccount, uint256 spreadId, uint64 amount);
+
+    event AccountSettled(address subAccount, uint256 payout);
+
+    /** ========================================================= **
+                            External Functions
+     ** ========================================================= **/
+
+    constructor(address _grappa, address _optionToken) {
         grappa = IGrappa(_grappa);
+        optionToken = IOptionToken(_optionToken);
     }
 
     /** ========================================================= **
                             External Functions
      ** ========================================================= **/
-    
+
+    function execute(address _subAccount, ActionArgs[] calldata actions) public virtual nonReentrant {
+        _assertCallerHasAccess(_subAccount);
+
+        // update the account memory and do external calls on the flight
+        for (uint256 i; i < actions.length; ) {
+            if (actions[i].action == ActionType.AddCollateral) _addCollateral(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.RemoveCollateral) _removeCollateral(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.MintShort) _mintOption(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.BurnShort) _burnOption(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.MergeOptionToken) _merge(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.SplitOptionToken) _split(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.SettleAccount) _settle(_subAccount);
+            else revert EG_UnsupportedAction();
+
+            // increase i without checking overflow
+            unchecked {
+                i++;
+            }
+        }
+        if (!_isAccountAboveWater(_subAccount)) revert BM_AccountUnderwater();
+    }
 
     /**
      * @notice  grant or revoke an account access to all your sub-accounts
@@ -61,7 +103,7 @@ contract BaseEngine {
         emit AccountAuthorizationUpdate(maskedId, _account, _isAuthorized);
     }
 
-     /**
+    /**
      * @notice payout to user on settlement.
      * @dev this can only triggered by Grappa, would only be called on settlement.
      * @param _asset asset to transfer
@@ -78,9 +120,210 @@ contract BaseEngine {
     }
 
     /** ========================================================= **
-                   Internal Functions For Access Control
+                   Internal Functions For Each Action
      ** ========================================================= **/
-    
+
+    /** ========================================================= **
+     *                 * -------------------- *                    *
+     *                 |  Actions  Functions  |                    *
+     *                 * -------------------- *                    *
+     *                                                             *
+     ** ========================================================= **/
+
+    /**
+     * @dev pull token from user, increase collateral in account memory
+            the collateral has to be provided by either caller, or the primary owner of subaccount
+     */
+    function _addCollateral(address _subAccount, bytes memory _data) internal {
+        // decode parameters
+        (address from, uint80 amount, uint8 collateralId) = abi.decode(_data, (address, uint80, uint8));
+
+        if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert BM_InvalidFromAddress();
+
+        // update the account in the state
+        _addCollateralToAccount(_subAccount, collateralId, amount);
+
+        address collateral = grappa.assets(collateralId).addr;
+
+        IERC20(collateral).safeTransferFrom(from, address(this), amount);
+
+        emit CollateralAdded(_subAccount, collateral, amount);
+    }
+
+    /**
+     * @dev push token to user, decrease collateral in account memory
+     * @param _data bytes data to decode
+     */
+    function _removeCollateral(address _subAccount, bytes memory _data) internal {
+        // decode parameters
+        (uint80 amount, address recipient, uint8 collateralId) = abi.decode(_data, (uint80, address, uint8));
+
+        // update the account in state
+        _removeCollateralFromAccount(_subAccount, collateralId, amount);
+        // marginAccounts[_subAccount].removeCollateral(amount, collateralId);
+
+        address collateral = grappa.assets(collateralId).addr;
+
+        emit CollateralRemoved(_subAccount, collateral, amount);
+
+        IERC20(collateral).safeTransfer(recipient, amount);
+    }
+
+    /**
+     * @dev mint option token to user, increase short position (debt) in account memory
+     * @param _data bytes data to decode
+     */
+    function _mintOption(address _subAccount, bytes memory _data) internal {
+        // decode parameters
+        (uint256 tokenId, address recipient, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
+
+        emit OptionTokenMinted(_subAccount, tokenId, amount);
+
+        // update the account in state
+        // marginAccounts[_subAccount].mintOption(tokenId, amount);
+        _increaseShortInAccount(_subAccount, tokenId, amount);
+
+        // mint option token
+        optionToken.mint(recipient, tokenId, amount);
+    }
+
+    /**
+     * @dev burn option token from user, decrease short position (debt) in account memory
+            the option has to be provided by either caller, or the primary owner of subaccount
+     * @param _data bytes data to decode
+     */
+    function _burnOption(address _subAccount, bytes memory _data) internal {
+        // decode parameters
+        (uint256 tokenId, address from, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
+
+        // token being burn must come from caller or the primary account for this subAccount
+        if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert BM_InvalidFromAddress();
+
+        emit OptionTokenBurned(_subAccount, tokenId, amount);
+
+        // update the account in memory
+        _decreaseShortInAccount(_subAccount, tokenId, amount);
+
+        optionToken.burn(from, tokenId, amount);
+    }
+
+    /**
+     * @dev burn option token and change the short position to spread. This will reduce collateral requirement
+            the option has to be provided by either caller, or the primary owner of subaccount
+     * @param _data bytes data to decode
+     */
+    function _merge(address _subAccount, bytes memory _data) internal {
+        // decode parameters
+        (uint256 longTokenId, uint256 shortTokenId, address from, uint64 amount) = abi.decode(
+            _data,
+            (uint256, uint256, address, uint64)
+        );
+
+        // token being burn must come from caller or the primary account for this subAccount
+        if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert BM_InvalidFromAddress();
+
+        _verifyMergeTokenIds(longTokenId, shortTokenId);
+
+        emit OptionTokenMerged(_subAccount, longTokenId, shortTokenId, amount);
+
+        // update the account in state
+        _mergeLongIntoSpread(_subAccount, shortTokenId, longTokenId, amount);
+
+        // this line will revert if usre is trying to burn an un-authrized tokenId
+        optionToken.burn(from, longTokenId, amount);
+    }
+
+    /**
+     * @dev Change existing spread position to short, and mint option token for recipient
+     * @param _subAccount subaccount that will be update in place
+     */
+    function _split(address _subAccount, bytes memory _data) internal {
+        // decode parameters
+        (uint256 spreadId, uint64 amount, address recipient) = abi.decode(_data, (uint256, uint64, address));
+
+        uint256 tokenId = _verifySpreadIdAndGetLong(spreadId);
+
+        emit OptionTokenSplit(_subAccount, spreadId, amount);
+
+        // update the account in the state
+        _splitSpreadInAccount(_subAccount, spreadId, amount);
+
+        optionToken.mint(recipient, tokenId, amount);
+    }
+
+    /**
+     * @notice  settle the margin account at expiry
+     * @dev     this update the account memory in-place
+     */
+    function _settle(address _subAccount) internal {
+        uint80 payout = _getAccountPayout(_subAccount);
+
+        emit AccountSettled(_subAccount, payout);
+
+        // update the account in memory
+        _settleAccount(_subAccount, payout);
+    }
+
+    /** ========================================================= **
+                   State changing functions to override
+     ** ========================================================= **/
+
+    function _addCollateralToAccount(
+        address _subAccount,
+        uint8 collateralId,
+        uint80 amount
+    ) internal virtual;
+
+    function _removeCollateralFromAccount(
+        address _subAccount,
+        uint8 collateralId,
+        uint80 amount
+    ) internal virtual;
+
+    function _increaseShortInAccount(
+        address _subAccount,
+        uint256 tokenId,
+        uint64 amount
+    ) internal virtual;
+
+    function _decreaseShortInAccount(
+        address _subAccount,
+        uint256 tokenId,
+        uint64 amount
+    ) internal virtual;
+
+    function _mergeLongIntoSpread(
+        address _subAccount,
+        uint256 shortTokenId,
+        uint256 longTokenId,
+        uint64 amount
+    ) internal virtual;
+
+    function _splitSpreadInAccount(
+        address _subAccount,
+        uint256 spreadId,
+        uint64 amount
+    ) internal virtual;
+
+    function _settleAccount(address _subAccount, uint80 payout) internal virtual;
+
+    /** ========================================================= **
+                   View functions to override
+     ** ========================================================= **/
+
+    /**
+     * @notice  return amount of collateral that should be reserved to payout long positions
+     * @dev     this function will revert when called before expiry
+     * @param _subAccount account id
+     */
+    function _getAccountPayout(address _subAccount) internal view virtual returns (uint80);
+
+    /**
+     * @dev return whether if an account is healthy.
+     * @param _subAccount subaccount id
+     * @return isHealthy true if account is in good condition, false if it's underwater (liquidatable)
+     */
+    function _isAccountAboveWater(address _subAccount) internal view virtual returns (bool);
 
     /**
      * @notice revert if the msg.sender is not authorized to access an subAccount id

@@ -21,37 +21,37 @@ contract AdvancedMarginLibTest is Test {
 
     uint80 public amount = uint80(UNIT);
 
-    function testAddCollateral() public {
-        AdvancedMarginAccount memory account;
-        account.addCollateral(amount, collateralId1);
+    // function testAddCollateral() public {
+    //     AdvancedMarginAccount memory account;
+    //     account.addCollateral(amount, collateralId1);
 
-        assertEq(account.collateralId, collateralId1);
-        assertEq(account.collateralAmount, amount);
-    }
+    //     assertEq(account.collateralId, collateralId1);
+    //     assertEq(account.collateralAmount, amount);
+    // }
 
-    function testCannotAddDiffCollateral() public {
-        AdvancedMarginAccount memory account;
-        account.addCollateral(amount, collateralId1);
+    // function testCannotAddDiffCollateral() public {
+    //     AdvancedMarginAccount memory account;
+    //     account.addCollateral(amount, collateralId1);
 
-        vm.expectRevert(AM_WrongCollateralId.selector);
-        account.addCollateral(amount, collateralId2);
-    }
+    //     vm.expectRevert(AM_WrongCollateralId.selector);
+    //     account.addCollateral(amount, collateralId2);
+    // }
 
-    function testRemoveHalfCollateral() public {
-        AdvancedMarginAccount memory account;
-        account.addCollateral(amount, collateralId1);
+    // function testRemoveHalfCollateral() public {
+    //     AdvancedMarginAccount memory account;
+    //     account.addCollateral(amount, collateralId1);
 
-        account.removeCollateral((amount / 2), collateralId1);
-        assertEq(account.collateralId, collateralId1);
-        assertEq(account.collateralAmount, (amount / 2));
-    }
+    //     account.removeCollateral((amount / 2), collateralId1);
+    //     assertEq(account.collateralId, collateralId1);
+    //     assertEq(account.collateralAmount, (amount / 2));
+    // }
 
-    function testRemoveAllCollateral() public {
-        AdvancedMarginAccount memory account;
-        account.addCollateral(amount, collateralId1);
+    // function testRemoveAllCollateral() public {
+    //     AdvancedMarginAccount memory account;
+    //     account.addCollateral(amount, collateralId1);
 
-        account.removeCollateral(amount, collateralId1);
-        assertEq(account.collateralId, 0);
-        assertEq(account.collateralAmount, 0);
-    }
+    //     account.removeCollateral(amount, collateralId1);
+    //     assertEq(account.collateralId, 0);
+    //     assertEq(account.collateralAmount, 0);
+    // }
 }

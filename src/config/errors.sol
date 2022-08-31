@@ -44,13 +44,13 @@ error BM_MergeExpiryMismatch();
 /// @dev cannot merge type with the same strike. (should use burn instead)
 error BM_MergeWithSameStrike();
 
-// Fully Collateralized Margin
-
 /// @dev account is not healthy / account is underwater
-error FM_AccountUnderwater();
+error BM_AccountUnderwater();
 
 /// @dev msg.sender is not authorized to ask margin account to pull token from {from} address
-error FM_InvalidFromAddress();
+error BM_InvalidFromAddress();
+
+// Fully Collateralized Margin
 
 /// @dev invalid collateral:
 ///         call can only be collateralized by underlying
@@ -76,12 +76,6 @@ error FM_SplitAmountMisMatch();
 error FM_CollateraliMisMatch();
 
 // Advanced Margin and AdvancedMarginLib Errors
-
-/// @dev account is not healthy / account is underwater
-error AM_AccountUnderwater();
-
-/// @dev msg.sender is not authorized to ask margin account to pull token from {from} address
-error AM_InvalidFromAddress();
 
 /// @dev collateral id is wrong: the id doesn't match the existing collateral
 error AM_WrongCollateralId();

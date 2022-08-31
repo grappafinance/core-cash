@@ -41,7 +41,7 @@ import "../../../config/errors.sol";
             Interacts with Oracle to read spot
             Interacts with VolOracle to read vol
  */
-contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable, ReentrancyGuard {
+contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
     using AdvancedMarginMath for AdvancedMarginDetail;
     using AdvancedMarginLib for AdvancedMarginAccount;
     using SafeERC20 for IERC20;
@@ -49,7 +49,6 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable, ReentrancyG
     using FixedPointMathLib for uint256;
 
     // IGrappa public immutable grappa;
-    IOptionToken public immutable optionToken;
     IOracle public immutable oracle;
     IVolOracle public immutable volOracle;
 
@@ -70,29 +69,15 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable, ReentrancyG
         address _oracle,
         address _volOracle,
         address _optionToken
-    ) BaseEngine(_grappa) {
+    ) BaseEngine(_grappa, _optionToken) {
         oracle = IOracle(_oracle);
         volOracle = IVolOracle(_volOracle);
-        optionToken = IOptionToken(_optionToken);
+        // optionToken = IOptionToken(_optionToken);
     }
 
     /*///////////////////////////////////////////////////////////////
                                 Events
     //////////////////////////////////////////////////////////////*/
-
-    event CollateralAdded(address subAccount, address collateral, uint256 amount);
-
-    event CollateralRemoved(address subAccount, address collateral, uint256 amount);
-
-    event OptionTokenMinted(address subAccount, uint256 tokenId, uint256 amount);
-
-    event OptionTokenBurned(address subAccount, uint256 tokenId, uint256 amount);
-
-    event OptionTokenMerged(address subAccount, uint256 longToken, uint256 shortToken, uint64 amount);
-
-    event OptionTokenSplit(address subAccount, uint256 spreadId, uint64 amount);
-
-    event AccountSettled(address subAccount, uint256 payout);
 
     event ProductConfigurationUpdated(
         uint32 productId,
@@ -107,36 +92,9 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable, ReentrancyG
                         External Functions
     //////////////////////////////////////////////////////////////*/
 
-    function execute(address _subAccount, ActionArgs[] calldata actions) external nonReentrant {
-        _assertCallerHasAccess(_subAccount);
-
-        AdvancedMarginAccount memory account = marginAccounts[_subAccount];
-
-        // update the account memory and do external calls on the flight
-        for (uint256 i; i < actions.length; ) {
-            if (actions[i].action == ActionType.AddCollateral) _addCollateral(account, _subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.RemoveCollateral)
-                _removeCollateral(account, _subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.MintShort) _mintOption(account, _subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.BurnShort) _burnOption(account, _subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.MergeOptionToken) _merge(account, _subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.SplitOptionToken) _split(account, _subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.SettleAccount) _settle(account, _subAccount);
-            else revert EG_UnsupportedAction();
-
-            // increase i without checking overflow
-            unchecked {
-                i++;
-            }
-        }
-        if (!_isAccountHealthy(account)) revert AM_AccountUnderwater();
-
-        marginAccounts[_subAccount] = account;
+    function execute(address _subAccount, ActionArgs[] calldata actions) public override(IMarginEngine, BaseEngine) {
+        BaseEngine.execute(_subAccount, actions);
     }
-
-    // function previewMinCollateral(address _subAccount, ActionArgs[] calldata actions) external view returns (uint256) {
-    //     return 0;
-    // }
 
     /**
      * @notice get minimum collateral needed for a margin account
@@ -151,7 +109,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable, ReentrancyG
     }
 
     function isAccountHealthy(address _subAccount) external view returns (bool) {
-        return _isAccountHealthy(marginAccounts[_subAccount]);
+        return _isAccountAboveWater(_subAccount);
     }
 
     /**
@@ -169,7 +127,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable, ReentrancyG
         uint256 repayPutAmount
     ) external nonReentrant returns (address collateral, uint80 collateralToPay) {
         AdvancedMarginAccount memory account = marginAccounts[_subAccount];
-        if (_isAccountHealthy(account)) revert AM_AccountIsHealthy();
+        if (_isAccountAboveWater(_subAccount)) revert AM_AccountIsHealthy();
 
         bool hasShortCall = account.shortCallAmount != 0;
         bool hasShortPut = account.shortPutAmount != 0;
@@ -180,7 +138,6 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable, ReentrancyG
         unchecked {
             // use uncheck because
             // repayAmount * 1000000 cannot overflow uint256, also shortAmount > 0
-
             if (hasShortCall && hasShortPut) {
                 // if the account is short call and put at the same time,
                 // amounts to liquidate needs to be the same portion of short call and short put amount.
@@ -204,11 +161,11 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable, ReentrancyG
         // update account's debt and perform "safe" external calls
         if (hasShortCall) {
             optionToken.burn(msg.sender, account.shortCallId, repayCallAmount);
-            account.burnOption(account.shortCallId, uint64(repayCallAmount));
+            marginAccounts[_subAccount].burnOption(account.shortCallId, uint64(repayCallAmount));
         }
         if (hasShortPut) {
             optionToken.burn(msg.sender, account.shortPutId, repayPutAmount);
-            account.burnOption(account.shortPutId, uint64(repayPutAmount));
+            marginAccounts[_subAccount].burnOption(account.shortPutId, uint64(repayPutAmount));
         }
 
         // update account's collateral
@@ -219,10 +176,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable, ReentrancyG
         collateral = grappa.assets(account.collateralId).addr;
 
         // if liquidator is trying to remove more collateral than owned, this line will revert
-        account.removeCollateral(collateralToPay, account.collateralId);
-
-        // write new accout to storage
-        marginAccounts[_subAccount] = account;
+        marginAccounts[_subAccount].removeCollateral(account.collateralId, collateralToPay);
 
         IERC20(collateral).safeTransfer(msg.sender, collateralToPay);
     }
@@ -282,181 +236,67 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable, ReentrancyG
     }
 
     /** ========================================================= **
-     *                 * -------------------- *                    *
-     *                 |  Actions  Functions  |                    *
-     *                 * -------------------- *                    *
-     *       These functions all update account memory             *
-     ** ========================================================= **/
+    *               Override Sate changing functions             *
+    ** ========================================================= **/
 
-    /**
-     * @dev pull token from user, increase collateral in account memory
-            the collateral has to be provided by either caller, or the primary owner of subaccount
-     */
-    function _addCollateral(
-        AdvancedMarginAccount memory _account,
-        address _subAccount,
-        bytes memory _data
-    ) internal {
-        // decode parameters
-        (address from, uint80 amount, uint8 collateralId) = abi.decode(_data, (address, uint80, uint8));
-
-        if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert AM_InvalidFromAddress();
-
-        // update the account in memory
-        _account.addCollateral(amount, collateralId);
-
-        address collateral = grappa.assets(collateralId).addr;
-
-        IERC20(collateral).safeTransferFrom(from, address(this), amount);
-
-        emit CollateralAdded(_subAccount, collateral, amount);
+    function _addCollateralToAccount(address _subAccount, uint8 collateralId, uint80 amount) internal override {
+        marginAccounts[_subAccount].addCollateral(collateralId, amount);
     }
 
-    /**
-     * @dev push token to user, decrease collateral in account memory
-     * @param _data bytes data to decode
-     */
-    function _removeCollateral(
-        AdvancedMarginAccount memory _account,
-        address _subAccount,
-        bytes memory _data
-    ) internal {
-        // decode parameters
-        (uint80 amount, address recipient, uint8 collateralId) = abi.decode(_data, (uint80, address, uint8));
-
-        // update the account in memory
-        _account.removeCollateral(amount, collateralId);
-
-        address collateral = grappa.assets(collateralId).addr;
-
-        emit CollateralRemoved(_subAccount, collateral, amount);
-
-        IERC20(collateral).safeTransfer(recipient, amount);
+    function _removeCollateralFromAccount(address _subAccount, uint8 collateralId, uint80 amount) internal override {
+        marginAccounts[_subAccount].removeCollateral(collateralId, amount);
     }
 
-    /**
-     * @dev mint option token to user, increase short position (debt) in account memory
-     * @param _data bytes data to decode
-     */
-    function _mintOption(
-        AdvancedMarginAccount memory _account,
-        address _subAccount,
-        bytes memory _data
-    ) internal {
-        // decode parameters
-        (uint256 tokenId, address recipient, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
-
-        emit OptionTokenMinted(_subAccount, tokenId, amount);
-
-        // update the account in memory
-        _account.mintOption(tokenId, amount);
-
-        // mint option token
-        optionToken.mint(recipient, tokenId, amount);
+    function _increaseShortInAccount(address _subAccount, uint256 tokenId, uint64 amount) internal override {
+        marginAccounts[_subAccount].mintOption(tokenId, amount);
     }
 
-    /**
-     * @dev burn option token from user, decrease short position (debt) in account memory
-            the option has to be provided by either caller, or the primary owner of subaccount
-     * @param _data bytes data to decode
-     */
-    function _burnOption(
-        AdvancedMarginAccount memory _account,
-        address _subAccount,
-        bytes memory _data
-    ) internal {
-        // decode parameters
-        (uint256 tokenId, address from, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
-
-        // token being burn must come from caller or the primary account for this subAccount
-        if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert AM_InvalidFromAddress();
-
-        emit OptionTokenBurned(_subAccount, tokenId, amount);
-
-        // update the account in memory
-        _account.burnOption(tokenId, amount);
-
-        optionToken.burn(from, tokenId, amount);
+    function _decreaseShortInAccount(address _subAccount, uint256 tokenId, uint64 amount) internal override {
+        marginAccounts[_subAccount].burnOption(tokenId, amount);
     }
 
-    /**
-     * @dev burn option token and change the short position to spread. This will reduce collateral requirement
-            the option has to be provided by either caller, or the primary owner of subaccount
-     * @param _data bytes data to decode
-     */
-    function _merge(
-        AdvancedMarginAccount memory _account,
-        address _subAccount,
-        bytes memory _data
-    ) internal {
-        // decode parameters
-        (uint256 longTokenId, uint256 shortTokenId, address from, uint64 amount) = abi.decode(
-            _data,
-            (uint256, uint256, address, uint64)
-        );
-
-        // token being burn must come from caller or the primary account for this subAccount
-        if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert AM_InvalidFromAddress();
-
-        _verifyMergeTokenIds(longTokenId, shortTokenId);
-
-        emit OptionTokenMerged(_subAccount, longTokenId, shortTokenId, amount);
-
-        // update the account in memory
-        _account.merge(shortTokenId, longTokenId, amount);
-
-        // this line will revert if usre is trying to burn an un-authrized tokenId
-        optionToken.burn(from, longTokenId, amount);
+    function _mergeLongIntoSpread(address _subAccount, uint256 shortTokenId, uint256 longTokenId, uint64 amount) internal override {
+        marginAccounts[_subAccount].merge(shortTokenId, longTokenId, amount);
     }
 
-    /**
-     * @dev Change existing spread position to short, and mint option token for recipient
-     * @param _subAccount subaccount that will be update in place
-     */
-    function _split(
-        AdvancedMarginAccount memory _account,
-        address _subAccount,
-        bytes memory _data
-    ) internal {
-        // decode parameters
-        (uint256 spreadId, uint64 amount, address recipient) = abi.decode(_data, (uint256, uint64, address));
-
-        uint256 tokenId = _verifySpreadIdAndGetLong(spreadId);
-
-        emit OptionTokenSplit(_subAccount, spreadId, amount);
-
-        // update the account in memory
-        _account.split(spreadId, amount);
-
-        optionToken.mint(recipient, tokenId, amount);
+    function _splitSpreadInAccount(address _subAccount, uint256 spreadId, uint64 amount) internal override {
+        marginAccounts[_subAccount].split(spreadId, amount);
     }
 
-    /**
-     * @notice  settle the margin account at expiry
-     * @dev     this update the account memory in-place
-     */
-    function _settle(AdvancedMarginAccount memory _account, address _subAccount) internal {
-        uint256 payout = _getPayoutFromAccount(_account);
-
-        emit AccountSettled(_subAccount, payout);
-
-        // update the account in memory
-        _account.settleAtExpiry(uint80(payout));
+    function _settleAccount(address _subAccount, uint80 payout) internal override {
+        marginAccounts[_subAccount].settleAtExpiry(payout);
     }
+    
 
     /** ========================================================= **
-                            Internal Functions
+                            Override view functions
      ** ========================================================= **/
 
     /**
      * @dev return whether if an account is healthy.
-     * @param account account structure in memory
-     * @return isHealthy true if account is in good condition, false if it's liquidatable
+     * @param _subAccount subaccount id
+     * @return isHealthy true if account is in good condition, false if it's underwater (liquidatable)
      */
-    function _isAccountHealthy(AdvancedMarginAccount memory account) internal view returns (bool isHealthy) {
+    function _isAccountAboveWater(address _subAccount) internal override view returns (bool isHealthy) {
+        AdvancedMarginAccount memory account = marginAccounts[_subAccount];
         AdvancedMarginDetail memory detail = _getAccountDetail(account);
         uint256 minCollateral = _getMinCollateral(detail);
         isHealthy = account.collateralAmount >= minCollateral;
+    }
+
+    /**
+     * @notice  return amount of collateral that should be reserved to payout long positions
+     * @dev     this function will revert when called before expiry
+     * @param _subAccount account id
+     */
+    function _getAccountPayout(address _subAccount) internal override view returns (uint80 payout) {
+        (uint256 callPayout, uint256 putPayout) = (0, 0);
+        AdvancedMarginAccount memory account = marginAccounts[_subAccount];
+        if (account.shortCallAmount > 0)
+            (, , callPayout) = grappa.getPayout(account.shortCallId, account.shortCallAmount);
+        if (account.shortPutAmount > 0)
+            (, , putPayout) = grappa.getPayout(account.shortPutId, account.shortPutAmount);
+        return uint80(callPayout + putPayout);
     }
 
     /**
@@ -492,24 +332,6 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable, ReentrancyG
         );
 
         minCollateral = minCollateralInUnit.convertDecimals(UNIT_DECIMALS, product.collateralDecimals);
-    }
-
-    /**
-     * @notice  return amount of collateral that should be reserved to payout long positions
-     * @dev     this function will revert when called before expiry
-     * @param _account account memory
-     */
-    function _getPayoutFromAccount(AdvancedMarginAccount memory _account)
-        internal
-        view
-        returns (uint80 reservedPayout)
-    {
-        (uint256 callPayout, uint256 putPayout) = (0, 0);
-        if (_account.shortCallAmount > 0)
-            (, , callPayout) = grappa.getPayout(_account.shortCallId, _account.shortCallAmount);
-        if (_account.shortPutAmount > 0)
-            (, , putPayout) = grappa.getPayout(_account.shortPutId, _account.shortPutAmount);
-        return uint80(callPayout + putPayout);
     }
 
     /**

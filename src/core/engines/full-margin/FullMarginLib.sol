@@ -20,7 +20,7 @@ library FullMarginLib {
     /**
      * @dev return true if the account has no short positions nor collateral
      */
-    function isEmpty(FullMarginAccount memory account) internal pure returns (bool) {
+    function isEmpty(FullMarginAccount storage account) internal view returns (bool) {
         return account.collateralAmount == 0 && account.shortAmount == 0;
     }
 
@@ -28,8 +28,8 @@ library FullMarginLib {
     ///@param account FullMarginAccount memory that will be updated
     function addCollateral(
         FullMarginAccount storage account,
-        uint80 amount,
-        uint8 collateralId
+        uint8 collateralId,
+        uint80 amount
     ) internal {
         uint80 cacheId = account.collateralId;
         if (cacheId == 0) {
@@ -44,8 +44,8 @@ library FullMarginLib {
     ///@param account FullMarginAccount memory that will be updated
     function removeCollateral(
         FullMarginAccount storage account,
-        uint80 amount,
-        uint8 collateralId
+        uint8 collateralId,
+        uint80 amount
     ) internal {
         if (account.collateralId != collateralId) revert FM_WrongCollateralId();
         
