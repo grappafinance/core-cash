@@ -4,6 +4,7 @@ pragma solidity =0.8.13;
 // imported contracts and libraries
 import {SafeERC20} from "openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
+import {IERC1155} from "openzeppelin/token/ERC1155/IERC1155.sol";
 import {Ownable} from "openzeppelin/access/Ownable.sol";
 import {ReentrancyGuard} from "solmate/utils/ReentrancyGuard.sol";
 
@@ -52,6 +53,10 @@ abstract contract BaseEngine is ReentrancyGuard {
 
     event OptionTokenSplit(address subAccount, uint256 spreadId, uint64 amount);
 
+    event OptionTokenAdded(address subAccount, uint256 tokenId, uint64 amount);
+
+    event OptionTokenRemoved(address subAccount, uint256 tokenId, uint64 amount);
+
     event AccountSettled(address subAccount, uint256 payout);
 
     /** ========================================================= **
@@ -79,6 +84,8 @@ abstract contract BaseEngine is ReentrancyGuard {
             else if (actions[i].action == ActionType.MergeOptionToken) _merge(_subAccount, actions[i].data);
             else if (actions[i].action == ActionType.SplitOptionToken) _split(_subAccount, actions[i].data);
             else if (actions[i].action == ActionType.SettleAccount) _settle(_subAccount);
+            else if (actions[i].action == ActionType.AddLong) _addOption(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.RemoveLong) _removeOption(_subAccount, actions[i].data);
             else revert EG_UnsupportedAction();
 
             // increase i without checking overflow
@@ -243,6 +250,45 @@ abstract contract BaseEngine is ReentrancyGuard {
     }
 
     /**
+     * @dev Add long token into the account to reduce capital requirement.
+     * @param _subAccount subaccount that will be update in place
+     */
+    function _addOption(address _subAccount, bytes memory _data) internal {
+        // decode parameters
+        (uint256 tokenId, uint64 amount, address from) = abi.decode(_data, (uint256, uint64, address));
+
+        // token being burn must come from caller or the primary account for this subAccount
+        if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert BM_InvalidFromAddress();
+
+        _verifyLongTokenIdToAdd(tokenId);
+
+        // update the state
+        _addOptionToAccount(_subAccount, tokenId, amount);
+
+        emit OptionTokenAdded(_subAccount, tokenId, amount);
+
+        // transfer the option token in
+        IERC1155(address(optionToken)).safeTransferFrom(from, address(this), tokenId, amount, "");
+    }
+
+     /**
+     * @dev Add long token into the account to reduce capital requirement.
+     * @param _subAccount subaccount that will be update in place
+     */
+    function _removeOption(address _subAccount, bytes memory _data) internal {
+        // decode parameters
+        (uint256 tokenId, uint64 amount, address to) = abi.decode(_data, (uint256, uint64, address));
+
+        // update the state
+        _removeOptionfromAccount(_subAccount, tokenId, amount);
+
+        emit OptionTokenRemoved(_subAccount, tokenId, amount);
+
+        // transfer the option token in
+        IERC1155(address(optionToken)).safeTransferFrom(address(this), to, tokenId, amount, "");
+    }
+
+    /**
      * @notice  settle the margin account at expiry
      * @dev     this update the account memory in-place
      */
@@ -296,6 +342,18 @@ abstract contract BaseEngine is ReentrancyGuard {
         uint64 amount
     ) internal virtual;
 
+    function _addOptionToAccount(
+        address _subAccount,
+        uint256 tokenId,
+        uint64 amount
+    ) internal virtual;
+
+    function _removeOptionfromAccount(
+        address _subAccount,
+        uint256 tokenId,
+        uint64 amount
+    ) internal virtual;
+
     function _settleAccount(address _subAccount, uint80 payout) internal virtual;
 
     /** ========================================================= **
@@ -315,6 +373,16 @@ abstract contract BaseEngine is ReentrancyGuard {
      * @return isHealthy true if account is in good condition, false if it's underwater (liquidatable)
      */
     function _isAccountAboveWater(address _subAccount) internal view virtual returns (bool);
+
+    /**
+     * @dev reverts if the account cannot add this token into the margin account.
+     * @param tokenId tokenId
+     */
+    function _verifyLongTokenIdToAdd(uint256 tokenId) internal view virtual;
+
+    /** ========================================================= **
+                   Internal view functions 
+     ** ========================================================= **/
 
     /**
      * @notice revert if the msg.sender is not authorized to access an subAccount id

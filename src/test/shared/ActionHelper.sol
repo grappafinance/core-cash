@@ -93,6 +93,22 @@ abstract contract ActionHelper {
         });
     }
 
+    function createAddLongAction(
+        uint256 tokenId,
+        address from,
+        uint256 amount
+    ) internal pure returns (ActionArgs memory action) {
+        action = ActionArgs({action: ActionType.AddLong, data: abi.encode(tokenId, uint64(amount), from)});
+    }
+
+    function createRemoveLongAction(
+        uint256 tokenId,
+        address to,
+        uint256 amount
+    ) internal pure returns (ActionArgs memory action) {
+        action = ActionArgs({action: ActionType.RemoveLong, data: abi.encode(tokenId, uint64(amount), to)});
+    }
+
     function createSettleAction() internal pure returns (ActionArgs memory action) {
         action = ActionArgs({action: ActionType.SettleAccount, data: abi.encode(0)});
     }

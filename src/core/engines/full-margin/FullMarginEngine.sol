@@ -150,6 +150,22 @@ contract FullMarginEngine is BaseEngine, IMarginEngine {
         marginAccounts[_subAccount].split(spreadId, amount);
     }
 
+    function _addOptionToAccount(
+        address, /**_subAccount**/
+        uint256, /**tokenId**/
+        uint64 /**amount**/
+    ) internal pure override {
+        revert FM_AddLongNotSupported();
+    }
+
+    function _removeOptionfromAccount(
+        address, /**_subAccount**/
+        uint256, /**tokenId**/
+        uint64 /**amount**/
+    ) internal pure override {
+        revert FM_RemoveLongNotSupported();
+    }
+
     function _settleAccount(address _subAccount, uint80 payout) internal override {
         marginAccounts[_subAccount].settleAtExpiry(payout);
     }
@@ -178,6 +194,12 @@ contract FullMarginEngine is BaseEngine, IMarginEngine {
         FullMarginAccount memory account = marginAccounts[_subAccount];
         (, , uint256 payout) = grappa.getPayout(account.tokenId, account.shortAmount);
         return uint80(payout);
+    }
+
+    function _verifyLongTokenIdToAdd(
+        uint256 /**_tokenId**/
+    ) internal pure override {
+        revert FM_AddLongNotSupported();
     }
 
     /** ========================================================= **

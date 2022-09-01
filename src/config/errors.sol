@@ -52,6 +52,12 @@ error BM_InvalidFromAddress();
 
 // Fully Collateralized Margin
 
+/// @dev Advanced margin doesn't support adding. use merge instead
+error FM_AddLongNotSupported();
+
+/// @dev Advanced margin doesn't support removing long. use split spread instead
+error FM_RemoveLongNotSupported();
+
 /// @dev invalid collateral:
 ///         call can only be collateralized by underlying
 ///         put can only be collateralized by strike
@@ -76,6 +82,12 @@ error FM_SplitAmountMisMatch();
 error FM_CollateraliMisMatch();
 
 // Advanced Margin and AdvancedMarginLib Errors
+
+/// @dev Advanced margin doesn't support adding. use merge instead
+error AM_AddLongNotSupported();
+
+/// @dev Advanced margin doesn't support removing long. use split spread instead
+error AM_RemoveLongNotSupported();
 
 /// @dev collateral id is wrong: the id doesn't match the existing collateral
 error AM_WrongCollateralId();

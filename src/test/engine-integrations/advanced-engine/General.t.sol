@@ -11,7 +11,7 @@ import "../../../config/errors.sol";
 
 import "../../../test/mocks/MockERC20.sol";
 
-contract AdvanceEngineGernal is AdvancedFixture {
+contract AdvanceEngineGenernal is AdvancedFixture {
     function setUp() public {
         usdc.mint(address(this), 1000_000 * 1e6);
         usdc.approve(address(engine), type(uint256).max);
@@ -22,17 +22,17 @@ contract AdvanceEngineGernal is AdvancedFixture {
 
     function testCannotCallAddLong() public {
         ActionArgs[] memory actions = new ActionArgs[](1);
-        actions[0] = ActionArgs({action: ActionType.AddLong, data: abi.encode(0)});
+        actions[0] = createAddLongAction(0, address(this), 0);
 
-        vm.expectRevert(EG_UnsupportedAction.selector);
+        vm.expectRevert(AM_AddLongNotSupported.selector);
         engine.execute(address(this), actions);
     }
 
     function testCannotCallRemoveLong() public {
         ActionArgs[] memory actions = new ActionArgs[](1);
-        actions[0] = ActionArgs({action: ActionType.RemoveLong, data: abi.encode(0)});
+        actions[0] = createRemoveLongAction(0, address(this), 0);
 
-        vm.expectRevert(EG_UnsupportedAction.selector);
+        vm.expectRevert(AM_RemoveLongNotSupported.selector);
         engine.execute(address(this), actions);
     }
 

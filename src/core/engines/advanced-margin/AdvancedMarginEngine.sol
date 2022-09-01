@@ -283,6 +283,22 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
         marginAccounts[_subAccount].split(spreadId, amount);
     }
 
+    function _addOptionToAccount(
+        address /**_subAccount**/,
+        uint256 /**tokenId**/,
+        uint64 /**amount**/
+    ) internal pure override {
+        revert AM_AddLongNotSupported();
+    }
+
+    function _removeOptionfromAccount(
+        address /**_subAccount**/,
+        uint256 /**tokenId**/,
+        uint64 /**amount**/
+    ) internal pure override {
+        revert AM_RemoveLongNotSupported();
+    }
+
     function _settleAccount(address _subAccount, uint80 payout) internal override {
         marginAccounts[_subAccount].settleAtExpiry(payout);
     }
@@ -316,6 +332,17 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
         if (account.shortPutAmount > 0) (, , putPayout) = grappa.getPayout(account.shortPutId, account.shortPutAmount);
         return uint80(callPayout + putPayout);
     }
+
+    /**
+     * @dev always revert, doesn't support adding any token
+     */
+    function _verifyLongTokenIdToAdd(uint256 /**_tokenId**/) internal pure override {
+        revert AM_AddLongNotSupported();
+    }
+
+    /** ========================================================= **
+                            Internal view functions
+     ** ========================================================= **/
 
     /**
      * @notice get minimum collateral needed for a margin account
