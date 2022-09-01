@@ -284,16 +284,16 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
     }
 
     function _addOptionToAccount(
-        address /**_subAccount**/,
-        uint256 /**tokenId**/,
+        address, /**_subAccount**/
+        uint256, /**tokenId**/
         uint64 /**amount**/
     ) internal pure override {
         revert AM_AddLongNotSupported();
     }
 
     function _removeOptionfromAccount(
-        address /**_subAccount**/,
-        uint256 /**tokenId**/,
+        address, /**_subAccount**/
+        uint256, /**tokenId**/
         uint64 /**amount**/
     ) internal pure override {
         revert AM_RemoveLongNotSupported();
@@ -336,7 +336,9 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
     /**
      * @dev always revert, doesn't support adding any token
      */
-    function _verifyLongTokenIdToAdd(uint256 /**_tokenId**/) internal pure override {
+    function _verifyLongTokenIdToAdd(
+        uint256 /**_tokenId**/
+    ) internal pure override {
         revert AM_AddLongNotSupported();
     }
 

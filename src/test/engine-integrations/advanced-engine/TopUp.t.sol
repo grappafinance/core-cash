@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 // import test base and helpers.
-import {AdvancedFixture} from "../../shared/AdvancedFixture.t.sol";
+import {AdvancedFixture} from "./AdvancedFixture.t.sol";
 
 import "../../../config/enums.sol";
 import "../../../config/types.sol";

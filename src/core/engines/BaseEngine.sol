@@ -271,7 +271,7 @@ abstract contract BaseEngine is ReentrancyGuard {
         IERC1155(address(optionToken)).safeTransferFrom(from, address(this), tokenId, amount, "");
     }
 
-     /**
+    /**
      * @dev Add long token into the account to reduce capital requirement.
      * @param _subAccount subaccount that will be update in place
      */

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 // import test base and helpers.
-import {FullMarginFixture} from "../../shared/FullMarginFixture.t.sol";
+import {FullMarginFixture} from "./FullMarginFixture.t.sol";
 
 import "../../../config/enums.sol";
 import "../../../config/types.sol";
@@ -28,7 +28,7 @@ contract FullMarginEngineGenernal is FullMarginFixture {
         engine.execute(address(this), actions);
     }
 
-    function testCannotCallRemoveLong() public {        
+    function testCannotCallRemoveLong() public {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createRemoveLongAction(0, address(this), 0);
 

@@ -3,21 +3,21 @@ pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
 
-import "../../test/mocks/MockERC20.sol";
-import "../../test/mocks/MockOracle.sol";
-import "../../test/mocks/MockChainlinkAggregator.sol";
+import "../../mocks/MockERC20.sol";
+import "../../mocks/MockOracle.sol";
+import "../../mocks/MockChainlinkAggregator.sol";
 
-import "../../core/engines/advanced-margin/AdvancedMarginEngine.sol";
-import "../../core/engines/advanced-margin/VolOracle.sol";
-import "../../core/Grappa.sol";
-import "../../core/OptionToken.sol";
+import "../../../core/engines/advanced-margin/AdvancedMarginEngine.sol";
+import "../../../core/engines/advanced-margin/VolOracle.sol";
+import "../../../core/Grappa.sol";
+import "../../../core/OptionToken.sol";
 
-import "../../config/enums.sol";
-import "../../config/types.sol";
+import "../../../config/enums.sol";
+import "../../../config/types.sol";
 
-import "../utils/Utilities.sol";
+import "../../utils/Utilities.sol";
 
-import {ActionHelper} from "../../test/shared/ActionHelper.sol";
+import {ActionHelper} from "../../shared/ActionHelper.sol";
 
 // solhint-disable max-states-count
 

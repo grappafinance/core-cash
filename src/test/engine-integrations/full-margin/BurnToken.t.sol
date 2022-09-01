@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 // import test base and helpers.
-import {FullMarginFixture} from "../../shared/FullMarginFixture.t.sol";
+import {FullMarginFixture} from "./FullMarginFixture.t.sol";
 import {stdError} from "forge-std/Test.sol";
 
 import "../../../config/enums.sol";
