@@ -14,13 +14,18 @@ import "../../config/enums.sol";
  * Mocked implementation to test base engine tx flow
  */
 contract MockEngine is BaseEngine {
-
     bool public isAboveWater;
+
+    uint80 public mockPayout;
 
     constructor(address _grappa, address _option) BaseEngine(_grappa, _option) {}
 
     function setIsAboveWater(bool _isAboveWater) external {
-      isAboveWater = _isAboveWater;
+        isAboveWater = _isAboveWater;
+    }
+
+    function setPayout(uint80 _payout) external {
+        mockPayout = _payout;
     }
 
     function payCashValue(
@@ -28,7 +33,7 @@ contract MockEngine is BaseEngine {
         address _recipient,
         uint256 _amount
     ) public override {
-        BaseEngine.payCashValue(_asset, _recipient, _amount);
+        // BaseEngine.payCashValue(_asset, _recipient, _amount);
     }
 
     /** ========================================================= **
@@ -90,12 +95,16 @@ contract MockEngine is BaseEngine {
                     Override view functions for BaseEngine
      ** ========================================================= **/
 
-    function _isAccountAboveWater(address /*_subAccount*/) internal view override returns (bool isHealthy) {
+    function _isAccountAboveWater(
+        address /*_subAccount*/
+    ) internal view override returns (bool isHealthy) {
         return isAboveWater;
     }
 
-    function _getAccountPayout(address /*_subAccount*/) internal pure override returns (uint80) {
-        return 0;
+    function _getAccountPayout(
+        address /*_subAccount*/
+    ) internal view override returns (uint80) {
+        return mockPayout;
     }
 
     function _verifyLongTokenIdToAdd(

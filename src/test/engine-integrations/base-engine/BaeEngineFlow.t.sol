@@ -11,8 +11,9 @@ import "../../../config/constants.sol";
 import "../../../config/errors.sol";
 
 contract BaseEngineFlow is BaseEngineSetup {
+    address public random = address(0xaabb);
 
-    address random = address(0xaabb);
+    event AccountSettled(address subAccount, uint256 payout);
 
     function setUp() public {
         usdc.mint(address(this), 10000 * 1e6);
@@ -22,6 +23,14 @@ contract BaseEngineFlow is BaseEngineSetup {
         weth.approve(address(engine), type(uint256).max);
 
         engine.setIsAboveWater(true);
+    }
+
+    function testExecuteShouldRevertIfUnderWater() public {
+        engine.setIsAboveWater(false);
+
+        vm.expectRevert(BM_AccountUnderwater.selector);
+        ActionArgs[] memory actions = new ActionArgs[](0);
+        engine.execute(address(this), actions);
     }
 
     function testAddCollateralMoveBalance() public {
@@ -57,7 +66,7 @@ contract BaseEngineFlow is BaseEngineSetup {
         // check before
         uint256 engineBalanceBefoe = usdc.balanceOf(address(engine));
         uint256 myBalanceBefoe = usdc.balanceOf(address(this));
-        
+
         // remove collateral
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createRemoveCollateralAction(depositAmount, usdcId, address(this));
@@ -76,7 +85,7 @@ contract BaseEngineFlow is BaseEngineSetup {
         ActionArgs[] memory _actions = new ActionArgs[](1);
         _actions[0] = createAddCollateralAction(usdcId, address(this), withdrawAmount);
         engine.execute(address(this), _actions);
-        
+
         // remove collateral should revert
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createRemoveCollateralAction(withdrawAmount + 1, usdcId, address(this));
@@ -95,7 +104,7 @@ contract BaseEngineFlow is BaseEngineSetup {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createMintAction(tokenId, address(this), amount);
         engine.execute(address(this), actions);
-        
+
         assertEq(option.balanceOf(address(this), tokenId), amount);
     }
 
@@ -111,7 +120,7 @@ contract BaseEngineFlow is BaseEngineSetup {
         ActionArgs[] memory _actions = new ActionArgs[](1);
         _actions[0] = createMintAction(tokenId, address(this), amount);
         engine.execute(address(this), _actions);
-        
+
         // burn
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createBurnAction(tokenId, address(this), amount);
@@ -126,7 +135,7 @@ contract BaseEngineFlow is BaseEngineSetup {
         uint256 strikePrice = 4000 * UNIT;
         uint256 amount = 1 * UNIT;
         uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
-        
+
         // burn
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createBurnAction(tokenId, random, amount);
@@ -148,7 +157,7 @@ contract BaseEngineFlow is BaseEngineSetup {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSplitAction(spreadId, amount, address(this));
         engine.execute(address(this), actions);
-        
+
         assertEq(option.balanceOf(address(this), expecetedLong), amount);
     }
 
@@ -170,7 +179,7 @@ contract BaseEngineFlow is BaseEngineSetup {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createMergeAction(tokenId, shortId, address(this), amount);
         engine.execute(address(this), actions);
-        
+
         assertEq(option.balanceOf(address(this), tokenId), 0);
     }
 
@@ -206,7 +215,7 @@ contract BaseEngineFlow is BaseEngineSetup {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createAddLongAction(tokenId, address(this), amount);
         engine.execute(address(this), actions);
-        
+
         assertEq(option.balanceOf(address(this), tokenId), 0);
         assertEq(option.balanceOf(address(engine), tokenId), amount);
     }
@@ -230,8 +239,21 @@ contract BaseEngineFlow is BaseEngineSetup {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createRemoveLongAction(tokenId, address(this), amount);
         engine.execute(address(this), actions);
-        
+
         assertEq(option.balanceOf(address(this), tokenId), amount);
         assertEq(option.balanceOf(address(engine), tokenId), 0);
+    }
+
+    function testSettlementShouldEmitEvent() public {
+        uint80 amount = 100 * 1e6;
+        engine.setPayout(amount);
+
+        // execute merge
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createSettleAction();
+
+        vm.expectEmit(false, false, false, true, address(engine));
+        emit AccountSettled(address(this), amount);
+        engine.execute(address(this), actions);
     }
 }

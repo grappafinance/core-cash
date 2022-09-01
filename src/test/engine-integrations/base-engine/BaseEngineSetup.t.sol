@@ -57,7 +57,6 @@ abstract contract BaseEngineSetup is Test, ActionHelper, Utilities {
 
         grappa = new Grappa(address(option), address(oracle)); // nonce: 5
 
-        
         engine = new MockEngine(address(grappa), address(option)); // nonce 6
 
         // register products
