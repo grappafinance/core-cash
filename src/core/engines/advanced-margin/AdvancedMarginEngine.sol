@@ -58,7 +58,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
     mapping(address => AdvancedMarginAccount) public marginAccounts;
 
     ///@dev mapping of productId to AdvancedMargin Parameters
-    mapping(uint32 => ProductMarginParams) public productParams;
+    mapping(uint40 => ProductMarginParams) public productParams;
 
     constructor(
         address _grappa,
@@ -75,7 +75,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
     //////////////////////////////////////////////////////////////*/
 
     event ProductConfigurationUpdated(
-        uint32 productId,
+        uint40 productId,
         uint32 dUpper,
         uint32 dLower,
         uint32 rUpper,
@@ -228,7 +228,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
      * @param _volMultiplier (BPS) multiplier used to apply to vol from oracle
      */
     function setProductMarginConfig(
-        uint32 _productId,
+        uint40 _productId,
         uint32 _dUpper,
         uint32 _dLower,
         uint32 _rUpper,
@@ -415,7 +415,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
         // use the OR operator, so as long as one of shortPutId or shortCallId is non-zero, got reflected here
         uint256 commonId = account.shortPutId | account.shortCallId;
 
-        (, uint32 productId, uint64 expiry, , ) = TokenIdUtil.parseTokenId(commonId);
+        (, uint40 productId, uint64 expiry, , ) = TokenIdUtil.parseTokenId(commonId);
         detail.productId = productId;
         detail.expiry = expiry;
     }
@@ -423,7 +423,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
     /**
      * @dev get a struct that stores all relevent token addresses, along with collateral asset decimals
      */
-    function _getProductAssets(uint32 _productId) internal view returns (ProductAssets memory info) {
+    function _getProductAssets(uint40 _productId) internal view returns (ProductAssets memory info) {
         (, address underlying, address strike, address collateral, uint8 collatDecimals) = grappa
             .getDetailFromProductId(_productId);
         info.underlying = underlying;

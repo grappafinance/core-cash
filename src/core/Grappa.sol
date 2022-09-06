@@ -31,7 +31,7 @@ contract Grappa is Ownable {
     using FixedPointMathLib for uint256;
     using NumberUtil for uint256;
     using TokenIdUtil for uint256;
-    using ProductIdUtil for uint32;
+    using ProductIdUtil for uint40;
 
     /// @dev optionToken address
     IOptionToken public immutable optionToken;
@@ -83,7 +83,7 @@ contract Grappa is Ownable {
      * @dev parse product id into composing asset and engine addresses
      * @param _productId product id
      */
-    function getDetailFromProductId(uint32 _productId)
+    function getDetailFromProductId(uint40 _productId)
         public
         view
         returns (
@@ -94,7 +94,7 @@ contract Grappa is Ownable {
             uint8 collateralDecimals
         )
     {
-        (uint8 engineId, uint8 underlyingId, uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(
+        (, uint8 engineId, uint8 underlyingId, uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(
             _productId
         );
         AssetDetail memory collateralDetail = assets[collateralId];
@@ -119,8 +119,8 @@ contract Grappa is Ownable {
         address underlying,
         address strike,
         address collateral
-    ) external view returns (uint32 id) {
-        id = ProductIdUtil.getProductId(engineId, assetIds[underlying], assetIds[strike], assetIds[collateral]);
+    ) external view returns (uint40 id) {
+        id = ProductIdUtil.getProductId(0, engineId, assetIds[underlying], assetIds[strike], assetIds[collateral]);
     }
 
     /**
@@ -290,7 +290,7 @@ contract Grappa is Ownable {
             uint256 payoutPerOption
         )
     {
-        (TokenType tokenType, uint32 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) = TokenIdUtil
+        (TokenType tokenType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) = TokenIdUtil
             .parseTokenId(_tokenId);
 
         if (block.timestamp < expiry) revert GP_NotExpired();

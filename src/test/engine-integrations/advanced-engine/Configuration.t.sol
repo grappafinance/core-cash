@@ -9,7 +9,7 @@ import "../../../core/engines/advanced-margin/AdvancedMarginEngine.sol";
 
 contract OwnerConfiguration is AdvancedFixture {
     event ProductConfigurationUpdated(
-        uint32 productId,
+        uint40 productId,
         uint32 dUpper,
         uint32 dLower,
         uint32 rUpper,

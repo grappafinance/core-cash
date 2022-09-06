@@ -52,7 +52,7 @@ contract GrappaRegistry is Test {
     function testReturnAssetsFromProductId() public {
         grappa.registerAsset(address(weth));
 
-        uint32 product = grappa.getProductId(0, address(weth), address(0), address(weth));
+        uint40 product = grappa.getProductId(0, address(weth), address(0), address(weth));
 
         (, address underlying, address strike, address collateral, uint8 collatDecimals) = grappa
             .getDetailFromProductId(product);
@@ -101,7 +101,7 @@ contract RegisterEngineTest is Test {
     function testReturnEngineFromProductId() public {
         uint8 id = grappa.registerEngine(engine1);
 
-        uint32 product = grappa.getProductId(id, address(0), address(0), address(0));
+        uint40 product = grappa.getProductId(id, address(0), address(0), address(0));
 
         (address engine, , , , ) = grappa.getDetailFromProductId(product);
 

@@ -33,10 +33,10 @@ abstract contract BaseEngineSetup is Test, ActionHelper, Utilities {
     MockOracle internal oracle;
 
     // usdc collateralized call / put
-    uint32 internal productId;
+    uint40 internal productId;
 
     // eth collateralized call / put
-    uint32 internal productIdEthCollat;
+    uint40 internal productIdEthCollat;
 
     uint8 internal usdcId;
     uint8 internal wethId;

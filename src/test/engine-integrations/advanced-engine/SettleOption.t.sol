@@ -786,7 +786,7 @@ contract TestSettleBTCCollateralizedCall is AdvancedFixture {
 
     MockERC20 private wbtc;
     uint8 private wbtcId;
-    uint32 private wbtcBackedProductId;
+    uint40 private wbtcBackedProductId;
 
     uint256 private mockedWbtcPrice = 40000 * UNIT;
 

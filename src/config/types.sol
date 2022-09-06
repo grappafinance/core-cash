@@ -62,7 +62,7 @@ struct AdvancedMarginDetail {
     uint256 shortPutStrike;
     uint256 expiry;
     uint256 collateralAmount;
-    uint32 productId;
+    uint40 productId;
 }
 
 /**

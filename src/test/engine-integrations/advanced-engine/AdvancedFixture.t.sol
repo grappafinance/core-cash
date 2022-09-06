@@ -40,10 +40,10 @@ abstract contract AdvancedFixture is Test, ActionHelper, Utilities {
     address internal bob;
 
     // usdc collateralized call / put
-    uint32 internal productId;
+    uint40 internal productId;
 
     // eth collateralized call / put
-    uint32 internal productIdEthCollat;
+    uint40 internal productIdEthCollat;
 
     uint8 internal usdcId;
     uint8 internal wethId;
@@ -118,7 +118,7 @@ abstract contract AdvancedFixture is Test, ActionHelper, Utilities {
     function mintOptionFor(
         address _recipient,
         uint256 _tokenId,
-        uint32 _productId,
+        uint40 _productId,
         uint256 _amount
     ) internal {
         address anon = address(0x42424242);
