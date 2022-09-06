@@ -75,6 +75,9 @@ error FM_SplitAmountMisMatch();
 /// @dev trying to collateralized the position with different collateral than specified in productId
 error FM_CollateraliMisMatch();
 
+/// @dev account contains a short that has expired
+error FM_ExpiredShortInAccount();
+
 // Advanced Margin and AdvancedMarginLib Errors
 
 /// @dev account is not healthy / account is underwater
@@ -109,6 +112,9 @@ error AM_AccountIsNotEmpty();
 
 /// @dev amounts to repay in liquidation are not valid. Missing call, put or not proportional to the amount in subaccount.
 error AM_WrongRepayAmounts();
+
+/// @dev account contains a short that has expired
+error AM_ExpiredShortInAccount();
 
 // OptionToken
 

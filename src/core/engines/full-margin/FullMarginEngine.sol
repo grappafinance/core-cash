@@ -185,7 +185,13 @@ contract FullMarginEngine is IMarginEngine, ReentrancyGuard, BaseEngine {
     ) internal {
         // decode parameters
         (uint80 amount, address recipient, uint8 collateralId) = abi.decode(_data, (uint80, address, uint8));
-
+        // check if there is an expired short still in the account, if there is then collateral cant be removed
+        // until the position is settled
+        if (_account.shortAmount > 0) {
+            (,, uint64 expiry,,) = TokenIdUtil.parseTokenId(_account.tokenId);
+            if (expiry < block.timestamp) revert FM_ExpiredShortInAccount();
+            // TODO: maybe settle here instead of reverting
+        }
         // update the account in memory
         _account.removeCollateral(amount, collateralId);
 
