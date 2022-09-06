@@ -12,8 +12,8 @@ import "../src/core/engines/advanced-margin/AdvancedMarginEngine.sol";
 import "../src/core/engines/advanced-margin/VolOracle.sol";
 
 // todo: add fallback pricer too
-import "../src/core/Oracle.sol";
-import "../src/core/pricers/ChainlinkPricer.sol";
+import "../src/core/oracles/Oracle.sol";
+import "../src/core/oracles/pricers/ChainlinkPricer.sol";
 
 import "../src/test/utils/Utilities.sol";
 

@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 // import test base and helpers.
 import "forge-std/Test.sol";
 
-import {Oracle} from "../../core/Oracle.sol";
+import {Oracle} from "../../core/oracles/Oracle.sol";
 
 import {MockERC20} from "../mocks/MockERC20.sol";
 import {MockPricer} from "../mocks/MockPricer.sol";

@@ -4,11 +4,11 @@ pragma solidity ^0.8.0;
 import {Ownable} from "openzeppelin/access/Ownable.sol";
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 
-import {IOracle} from "../../interfaces/IOracle.sol";
-import {IPricer} from "../../interfaces/IPricer.sol";
-import {IAggregatorV3} from "../../interfaces/IAggregatorV3.sol";
+import {IOracle} from "../../../interfaces/IOracle.sol";
+import {IPricer} from "../../../interfaces/IPricer.sol";
+import {IAggregatorV3} from "../../../interfaces/IAggregatorV3.sol";
 
-import "../../config/errors.sol";
+import "../../../config/errors.sol";
 
 /**
  * @title ChainlinkPricer
