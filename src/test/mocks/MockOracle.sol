@@ -33,13 +33,4 @@ contract MockOracle is IOracle {
     ) external {
         expiryPrice[base][quote] = _mockedExpiryPrice;
     }
-
-    function reportExpiryPrice(
-        address _base,
-        address _quote,
-        uint256, /**_expiry**/
-        uint256 _price
-    ) external {
-        expiryPrice[_base][_quote] = _price;
-    }
 }
