@@ -54,7 +54,7 @@ contract GrappaRegistry is Test {
 
         uint40 product = grappa.getProductId(0, 0, address(weth), address(0), address(weth));
 
-        (,, address underlying, address strike, address collateral, uint8 collatDecimals) = grappa
+        (, , address underlying, address strike, address collateral, uint8 collatDecimals) = grappa
             .getDetailFromProductId(product);
 
         assertEq(underlying, address(weth));
@@ -103,7 +103,7 @@ contract RegisterEngineTest is Test {
 
         uint40 product = grappa.getProductId(0, id, address(0), address(0), address(0));
 
-        (,address engine, , , , ) = grappa.getDetailFromProductId(product);
+        (, address engine, , , , ) = grappa.getDetailFromProductId(product);
 
         assertEq(engine, engine1);
     }
