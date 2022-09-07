@@ -18,7 +18,7 @@ contract GrappaRegistry is Test {
 
     constructor() {
         weth = new MockERC20("WETH", "WETH", 18);
-        grappa = new Grappa(address(0), address(0));
+        grappa = new Grappa(address(0));
     }
 
     function testCannotRegisterFromNonOwner() public {
@@ -52,9 +52,9 @@ contract GrappaRegistry is Test {
     function testReturnAssetsFromProductId() public {
         grappa.registerAsset(address(weth));
 
-        uint40 product = grappa.getProductId(0, address(weth), address(0), address(weth));
+        uint40 product = grappa.getProductId(0, 0, address(weth), address(0), address(weth));
 
-        (, address underlying, address strike, address collateral, uint8 collatDecimals) = grappa
+        (,, address underlying, address strike, address collateral, uint8 collatDecimals) = grappa
             .getDetailFromProductId(product);
 
         assertEq(underlying, address(weth));
@@ -76,7 +76,7 @@ contract RegisterEngineTest is Test {
 
     constructor() {
         engine1 = address(1);
-        grappa = new Grappa(address(0), address(0));
+        grappa = new Grappa(address(0));
     }
 
     function testCannotRegisterFromNonOwner() public {
@@ -92,7 +92,7 @@ contract RegisterEngineTest is Test {
         assertEq(grappa.engineIds(engine1), id);
     }
 
-    function testCannotRegistrySameAssetTwice() public {
+    function testCannotRegistrySameEngineTwice() public {
         grappa.registerEngine(engine1);
         vm.expectRevert(GP_EngineAlreadyRegistered.selector);
         grappa.registerEngine(engine1);
@@ -101,10 +101,52 @@ contract RegisterEngineTest is Test {
     function testReturnEngineFromProductId() public {
         uint8 id = grappa.registerEngine(engine1);
 
-        uint40 product = grappa.getProductId(id, address(0), address(0), address(0));
+        uint40 product = grappa.getProductId(0, id, address(0), address(0), address(0));
 
-        (address engine, , , , ) = grappa.getDetailFromProductId(product);
+        (,address engine, , , , ) = grappa.getDetailFromProductId(product);
 
         assertEq(engine, engine1);
+    }
+}
+
+/**
+ * @dev test grappa functions around registering engines
+ */
+contract RegisterOracleTest is Test {
+    Grappa public grappa;
+    address private oracle1;
+
+    constructor() {
+        oracle1 = address(1);
+        grappa = new Grappa(address(0));
+    }
+
+    function testCannotRegisterFromNonOwner() public {
+        vm.expectRevert("Ownable: caller is not the owner");
+        vm.prank(address(0xaacc));
+        grappa.registerOracle(oracle1);
+    }
+
+    function testRegisterOracleFromId1() public {
+        uint8 id = grappa.registerOracle(oracle1);
+        assertEq(id, 1);
+
+        assertEq(grappa.oracleIds(oracle1), id);
+    }
+
+    function testCannotRegistrySameOracleTwice() public {
+        grappa.registerOracle(oracle1);
+        vm.expectRevert(GP_OracleAlreadyRegistered.selector);
+        grappa.registerOracle(oracle1);
+    }
+
+    function testReturnEngineFromProductId() public {
+        uint8 id = grappa.registerOracle(oracle1);
+
+        uint40 product = grappa.getProductId(id, 0, address(0), address(0), address(0));
+
+        (address oracle, , , , , ) = grappa.getDetailFromProductId(product);
+
+        assertEq(oracle1, oracle);
     }
 }

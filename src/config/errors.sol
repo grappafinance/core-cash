@@ -14,6 +14,9 @@ error GP_AssetAlreadyRegistered();
 /// @dev margin engine already registered
 error GP_EngineAlreadyRegistered();
 
+/// @dev margin engine already registered
+error GP_OracleAlreadyRegistered();
+
 /// @dev amounts length speicified to batch settle doesn't match with tokenIds
 error GP_WrongArgumentLength();
 

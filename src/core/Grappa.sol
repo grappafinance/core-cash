@@ -36,7 +36,7 @@ contract Grappa is Ownable {
     /// @dev optionToken address
     IOptionToken public immutable optionToken;
     // IMarginEngine public immutable engine;
-    IOracle public immutable oracle;
+    // IOracle public immutable oracle;
 
     /*///////////////////////////////////////////////////////////////
                             State Variables
@@ -50,17 +50,27 @@ contract Grappa is Ownable {
     /// invariant:  any id in tokenId not greater than this number
     uint8 public nextengineId;
 
+    /// @dev next id used to represent an address
+    /// invariant:  any id in tokenId not greater than this number
+    uint8 public nextOracleId;
+
     /// @dev assetId => asset address
     mapping(uint8 => AssetDetail) public assets;
 
-    /// @dev assetId => margin engine address
+    /// @dev engineId => margin engine address
     mapping(uint8 => address) public engines;
+
+    /// @dev oracleId => oracle address
+    mapping(uint8 => address) public oracles;
 
     /// @dev address => assetId
     mapping(address => uint8) public assetIds;
 
     /// @dev address => engineId
     mapping(address => uint8) public engineIds;
+
+    /// @dev address => oracleId
+    mapping(address => uint8) public oracleIds;
 
     /*///////////////////////////////////////////////////////////////
                                 Events
@@ -69,10 +79,10 @@ contract Grappa is Ownable {
     event OptionSettled(address account, uint256 tokenId, uint256 amountSettled, uint256 payout);
     event AssetRegistered(address asset, uint8 id);
     event MarginEngineRegistered(address engine, uint8 id);
+    event OracleRegistered(address oracle, uint8 id);
 
-    constructor(address _optionToken, address _oracle) {
+    constructor(address _optionToken) {
         optionToken = IOptionToken(_optionToken);
-        oracle = IOracle(_oracle);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -87,6 +97,7 @@ contract Grappa is Ownable {
         public
         view
         returns (
+            address oracle,
             address engine,
             address underlying,
             address strike,
@@ -94,11 +105,11 @@ contract Grappa is Ownable {
             uint8 collateralDecimals
         )
     {
-        (, uint8 engineId, uint8 underlyingId, uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(
-            _productId
-        );
+        (uint8 oracleId, uint8 engineId, uint8 underlyingId, uint8 strikeId, uint8 collateralId) = ProductIdUtil
+            .parseProductId(_productId);
         AssetDetail memory collateralDetail = assets[collateralId];
         return (
+            oracles[oracleId],
             engines[engineId],
             assets[underlyingId].addr,
             assets[strikeId].addr,
@@ -115,12 +126,19 @@ contract Grappa is Ownable {
      * @param collateral  collateral address
      */
     function getProductId(
+        uint8 oracleId,
         uint8 engineId,
         address underlying,
         address strike,
         address collateral
     ) external view returns (uint40 id) {
-        id = ProductIdUtil.getProductId(0, engineId, assetIds[underlying], assetIds[strike], assetIds[collateral]);
+        id = ProductIdUtil.getProductId(
+            oracleId,
+            engineId,
+            assetIds[underlying],
+            assetIds[strike],
+            assetIds[collateral]
+        );
     }
 
     /**
@@ -274,6 +292,21 @@ contract Grappa is Ownable {
     }
 
     /**
+     * @dev register an oracle to report prices
+     * @param _oracle address of the new oracle
+     **/
+    function registerOracle(address _oracle) external onlyOwner returns (uint8 id) {
+        if (oracleIds[_oracle] != 0) revert GP_OracleAlreadyRegistered();
+
+        id = ++nextOracleId;
+        oracles[id] = _oracle;
+
+        oracleIds[_oracle] = id;
+
+        emit OracleRegistered(_oracle, id);
+    }
+
+    /**
      * @dev calculate the payout for one option token
      *
      * @param _tokenId  token id of option token
@@ -296,6 +329,7 @@ contract Grappa is Ownable {
         if (block.timestamp < expiry) revert GP_NotExpired();
 
         (
+            address oracle,
             address engine,
             address underlying,
             address strike,
@@ -304,7 +338,7 @@ contract Grappa is Ownable {
         ) = getDetailFromProductId(productId);
 
         // expiry price of underlying, denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
-        uint256 expiryPrice = oracle.getPriceAtExpiry(underlying, strike, expiry);
+        uint256 expiryPrice = IOracle(oracle).getPriceAtExpiry(underlying, strike, expiry);
 
         // cash value denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
         uint256 cashValue;
@@ -324,7 +358,7 @@ contract Grappa is Ownable {
             cashValue = cashValue.mulDivDown(UNIT, expiryPrice);
         } else if (collateral != strike) {
             // collateral is not underlying nor strike
-            uint256 collateralPrice = oracle.getPriceAtExpiry(collateral, strike, expiry);
+            uint256 collateralPrice = IOracle(oracle).getPriceAtExpiry(collateral, strike, expiry);
             cashValue = cashValue.mulDivDown(UNIT, collateralPrice);
         }
         payoutPerOption = cashValue.convertDecimals(UNIT_DECIMALS, collateralDecimals);

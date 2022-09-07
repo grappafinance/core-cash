@@ -49,6 +49,7 @@ abstract contract AdvancedFixture is Test, ActionHelper, Utilities {
     uint8 internal wethId;
 
     uint8 internal engineId;
+    uint8 internal oracleId;
 
     constructor() {
         usdc = new MockERC20("USDC", "USDC", 6); // nonce: 1
@@ -62,7 +63,7 @@ abstract contract AdvancedFixture is Test, ActionHelper, Utilities {
 
         option = new OptionToken(grappaAddr); // nonce: 4
 
-        grappa = new Grappa(address(option), address(oracle)); // nonce: 5
+        grappa = new Grappa(address(option)); // nonce: 5
 
         volOracle = new VolOracle();
 
@@ -80,10 +81,10 @@ abstract contract AdvancedFixture is Test, ActionHelper, Utilities {
 
         engineId = grappa.registerEngine(address(engine));
 
-        // engineId = grappa.registerEngine(address(engine));
+        oracleId = grappa.registerOracle(address(oracle));
 
-        productId = grappa.getProductId(engineId, address(weth), address(usdc), address(usdc));
-        productIdEthCollat = grappa.getProductId(engineId, address(weth), address(usdc), address(weth));
+        productId = grappa.getProductId(oracleId, engineId, address(weth), address(usdc), address(usdc));
+        productIdEthCollat = grappa.getProductId(oracleId, engineId, address(weth), address(usdc), address(weth));
 
         engine.setProductMarginConfig(productId, 180 days, 1 days, 6400, 800, 10000);
         engine.setProductMarginConfig(productIdEthCollat, 180 days, 1 days, 6400, 800, 10000);

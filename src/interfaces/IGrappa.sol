@@ -10,6 +10,7 @@ interface IGrappa {
         external
         view
         returns (
+            address oracle,
             address engine,
             address underlying,
             address strike,
