@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity =0.8.13;
+pragma solidity ^0.8.0;
 
 import {IVolOracle} from "../../../interfaces/IVolOracle.sol";
 import {IAggregatorV3} from "../../../interfaces/IAggregatorV3.sol";

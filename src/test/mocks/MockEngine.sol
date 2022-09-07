@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // solhint-disable no-empty-blocks
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.0;
 
 import {IMarginEngine} from "../../interfaces/IMarginEngine.sol";
 import {BaseEngine} from "../../core/engines/BaseEngine.sol";
