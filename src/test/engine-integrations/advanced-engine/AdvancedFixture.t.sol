@@ -67,7 +67,7 @@ abstract contract AdvancedFixture is Test, ActionHelper, Utilities {
 
         volOracle = new VolOracle();
 
-        engine = new AdvancedMarginEngine(address(grappa), address(oracle), address(volOracle), address(option)); // nonce 6
+        engine = new AdvancedMarginEngine(address(grappa), address(volOracle), address(option)); // nonce 6
 
         // mock vol oracles
         ethVolAggregator = new MockChainlinkAggregator(6);

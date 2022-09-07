@@ -39,7 +39,7 @@ library AdvancedMarginMath {
      */
     function getMinCollateral(
         AdvancedMarginDetail memory _account,
-        ProductAssets memory _assets,
+        ProductDetails memory _assets,
         uint256 _spotUnderlyingStrike,
         uint256 _spotCollateralStrike,
         uint256 _vol,
