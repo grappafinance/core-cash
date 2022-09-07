@@ -31,7 +31,9 @@ contract MockEngine is BaseEngine {
         mockPayout = _payout;
     }
 
-    function _getAccountPayout(address /*subAccount*/) internal view override returns (uint80) {
+    function _getAccountPayout(
+        address /*subAccount*/
+    ) internal view override returns (uint80) {
         return mockPayout;
     }
 
@@ -63,7 +65,9 @@ contract MockEngine is BaseEngine {
         if (!_isAccountAboveWater(_subAccount)) revert BM_AccountUnderwater();
     }
 
-    function _isAccountAboveWater(address /*_subAccount*/) internal view override returns (bool) {
+    function _isAccountAboveWater(
+        address /*_subAccount*/
+    ) internal view override returns (bool) {
         return isAboveWater;
     }
 
