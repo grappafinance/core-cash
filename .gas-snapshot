@@ -256,6 +256,7 @@ ChainlinkOracleTestWriteOracle:testCannotReportWhenAggregatorIsNotSet() (gas: 29
 ChainlinkOracleTests:testDecimalConversion0Decimals() (gas: 1284)
 ChainlinkOracleTests:testDecimalConversionDiffDecimals() (gas: 2538)
 ChainlinkOracleTests:testDecimalConversionDiffDecimals2() (gas: 2539)
-ChainlinkOracleTests:testDecimalConversionDiffDecimalsFuzz(uint8,uint8) (runs: 256, μ: 5812, ~: 5791)
+ChainlinkOracleTests:testDecimalConversionDiffDecimals3() (gas: 2517)
+ChainlinkOracleTests:testDecimalConversionDiffDecimalsFuzz(uint8,uint8) (runs: 256, μ: 5817, ~: 5791)
 ChainlinkOracleTests:testDecimalConversionNormalDecimals() (gas: 1482)
 >>>>>>> 3624bd7 (chore: cleanup)

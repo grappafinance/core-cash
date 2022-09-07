@@ -36,6 +36,7 @@ contract ChainlinkOracleTests is ChainlinkOracle, Test {
     }
 
     function testDecimalConversionDiffDecimals() public {
+        // baseMulDecimals = UNIT_DECIMALS + int8(_quoteDecimals) - int8(_baseDecimals) < 0
         uint8 baseDecimals = uint8(18);
         uint8 quoteDecimals = uint8(8);
         uint256 base = 3000 * (10**baseDecimals);
@@ -47,8 +48,21 @@ contract ChainlinkOracleTests is ChainlinkOracle, Test {
     }
 
     function testDecimalConversionDiffDecimals2() public {
+        // baseMulDecimals = UNIT_DECIMALS + int8(_quoteDecimals) - int8(_baseDecimals) > 0
         uint8 baseDecimals = uint8(8);
         uint8 quoteDecimals = uint8(18);
+        uint256 base = 3000 * (10**baseDecimals);
+        uint256 quote = 1 * (10**quoteDecimals);
+        uint256 price = _toPriceWithUnitDecimals(base, quote, baseDecimals, quoteDecimals);
+
+        // should return base denominated in 1e6 (UNIT)
+        assertEq(price, 3000 * UNIT);
+    }
+
+    function testDecimalConversionDiffDecimals3() public {
+        // baseMulDecimals = UNIT_DECIMALS + int8(_quoteDecimals) - int8(_baseDecimals) == 0
+        uint8 baseDecimals = uint8(6);
+        uint8 quoteDecimals = uint8(12);
         uint256 base = 3000 * (10**baseDecimals);
         uint256 quote = 1 * (10**quoteDecimals);
         uint256 price = _toPriceWithUnitDecimals(base, quote, baseDecimals, quoteDecimals);
