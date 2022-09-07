@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity =0.8.13;
 
+// solhint-disable no-empty-blocks
+
 // imported contracts and libraries
 import {SafeERC20} from "openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
@@ -72,6 +74,10 @@ abstract contract BaseEngine is ReentrancyGuard {
                             External Functions
      ** ========================================================= **/
 
+    /**
+     * @notice default behavior of the engine 'execute' function
+     * @dev put the default implementation here to have unit tests for all token transfer flows
+     */
     function execute(address _subAccount, ActionArgs[] calldata actions) public virtual nonReentrant {
         _assertCallerHasAccess(_subAccount);
 
@@ -304,12 +310,11 @@ abstract contract BaseEngine is ReentrancyGuard {
     /** ========================================================= **
                    State changing functions to override
      ** ========================================================= **/
-
     function _addCollateralToAccount(
         address _subAccount,
         uint8 collateralId,
         uint80 amount
-    ) internal virtual;
+    ) internal virtual {}
 
     function _removeCollateralFromAccount(
         address _subAccount,
@@ -321,38 +326,38 @@ abstract contract BaseEngine is ReentrancyGuard {
         address _subAccount,
         uint256 tokenId,
         uint64 amount
-    ) internal virtual;
+    ) internal virtual {}
 
     function _decreaseShortInAccount(
         address _subAccount,
         uint256 tokenId,
         uint64 amount
-    ) internal virtual;
+    ) internal virtual {}
 
     function _mergeLongIntoSpread(
         address _subAccount,
         uint256 shortTokenId,
         uint256 longTokenId,
         uint64 amount
-    ) internal virtual;
+    ) internal virtual {}
 
     function _splitSpreadInAccount(
         address _subAccount,
         uint256 spreadId,
         uint64 amount
-    ) internal virtual;
+    ) internal virtual {}
 
     function _addOptionToAccount(
         address _subAccount,
         uint256 tokenId,
         uint64 amount
-    ) internal virtual;
+    ) internal virtual {}
 
     function _removeOptionfromAccount(
         address _subAccount,
         uint256 tokenId,
         uint64 amount
-    ) internal virtual;
+    ) internal virtual {}
 
     function _settleAccount(address _subAccount, uint80 payout) internal virtual;
 
@@ -378,7 +383,7 @@ abstract contract BaseEngine is ReentrancyGuard {
      * @dev reverts if the account cannot add this token into the margin account.
      * @param tokenId tokenId
      */
-    function _verifyLongTokenIdToAdd(uint256 tokenId) internal view virtual;
+    function _verifyLongTokenIdToAdd(uint256 tokenId) internal view virtual {}
 
     /** ========================================================= **
                    Internal view functions 

@@ -20,11 +20,10 @@ error GP_WrongArgumentLength();
 /// @dev cannot settle an unexpired option
 error GP_NotExpired();
 
-// Common engine errors
-
-error EG_UnsupportedAction();
-
 // Common error in BaseMargin
+
+/// @dev not supported action, only in base margin
+error EG_UnsupportedAction();
 
 /// @dev can only merge subaccount with put or call.
 error BM_CannotMergeSpread();
@@ -52,11 +51,8 @@ error BM_InvalidFromAddress();
 
 // Fully Collateralized Margin
 
-/// @dev Advanced margin doesn't support adding. use merge instead
-error FM_AddLongNotSupported();
-
-/// @dev Advanced margin doesn't support removing long. use split spread instead
-error FM_RemoveLongNotSupported();
+/// @dev full margin doesn't support this action
+error FM_UnsupportedAction();
 
 /// @dev invalid collateral:
 ///         call can only be collateralized by underlying
@@ -83,11 +79,8 @@ error FM_CollateraliMisMatch();
 
 // Advanced Margin and AdvancedMarginLib Errors
 
-/// @dev Advanced margin doesn't support adding. use merge instead
-error AM_AddLongNotSupported();
-
-/// @dev Advanced margin doesn't support removing long. use split spread instead
-error AM_RemoveLongNotSupported();
+/// @dev full margin doesn't support this action (add long and remove long)
+error AM_UnsupportedAction();
 
 /// @dev collateral id is wrong: the id doesn't match the existing collateral
 error AM_WrongCollateralId();

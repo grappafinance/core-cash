@@ -87,8 +87,30 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
                         External Functions
     //////////////////////////////////////////////////////////////*/
 
-    function execute(address _subAccount, ActionArgs[] calldata actions) public override(IMarginEngine, BaseEngine) {
-        BaseEngine.execute(_subAccount, actions);
+    function execute(address _subAccount, ActionArgs[] calldata actions)
+        public
+        override(BaseEngine, IMarginEngine)
+        nonReentrant
+    {
+        _assertCallerHasAccess(_subAccount);
+
+        // update the account memory and do external calls on the flight
+        for (uint256 i; i < actions.length; ) {
+            if (actions[i].action == ActionType.AddCollateral) _addCollateral(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.RemoveCollateral) _removeCollateral(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.MintShort) _mintOption(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.BurnShort) _burnOption(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.MergeOptionToken) _merge(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.SplitOptionToken) _split(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.SettleAccount) _settle(_subAccount);
+            else revert AM_UnsupportedAction();
+
+            // increase i without checking overflow
+            unchecked {
+                i++;
+            }
+        }
+        if (!_isAccountAboveWater(_subAccount)) revert BM_AccountUnderwater();
     }
 
     /**
@@ -283,22 +305,6 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
         marginAccounts[_subAccount].split(spreadId, amount);
     }
 
-    function _addOptionToAccount(
-        address, /**_subAccount**/
-        uint256, /**tokenId**/
-        uint64 /**amount**/
-    ) internal pure override {
-        revert AM_AddLongNotSupported();
-    }
-
-    function _removeOptionfromAccount(
-        address, /**_subAccount**/
-        uint256, /**tokenId**/
-        uint64 /**amount**/
-    ) internal pure override {
-        revert AM_RemoveLongNotSupported();
-    }
-
     function _settleAccount(address _subAccount, uint80 payout) internal override {
         marginAccounts[_subAccount].settleAtExpiry(payout);
     }
@@ -331,15 +337,6 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
             (, , callPayout) = grappa.getPayout(account.shortCallId, account.shortCallAmount);
         if (account.shortPutAmount > 0) (, , putPayout) = grappa.getPayout(account.shortPutId, account.shortPutAmount);
         return uint80(callPayout + putPayout);
-    }
-
-    /**
-     * @dev always revert, doesn't support adding any token
-     */
-    function _verifyLongTokenIdToAdd(
-        uint256 /**_tokenId**/
-    ) internal pure override {
-        revert AM_AddLongNotSupported();
     }
 
     /** ========================================================= **

@@ -24,7 +24,7 @@ contract FullMarginEngineGenernal is FullMarginFixture {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createAddLongAction(0, address(this), 0);
 
-        vm.expectRevert(FM_AddLongNotSupported.selector);
+        vm.expectRevert(FM_UnsupportedAction.selector);
         engine.execute(address(this), actions);
     }
 
@@ -32,7 +32,7 @@ contract FullMarginEngineGenernal is FullMarginFixture {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createRemoveLongAction(0, address(this), 0);
 
-        vm.expectRevert(FM_RemoveLongNotSupported.selector);
+        vm.expectRevert(FM_UnsupportedAction.selector);
         engine.execute(address(this), actions);
     }
 

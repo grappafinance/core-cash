@@ -24,7 +24,7 @@ contract AdvanceEngineGenernal is AdvancedFixture {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createAddLongAction(0, address(this), 0);
 
-        vm.expectRevert(AM_AddLongNotSupported.selector);
+        vm.expectRevert(AM_UnsupportedAction.selector);
         engine.execute(address(this), actions);
     }
 
@@ -32,7 +32,7 @@ contract AdvanceEngineGenernal is AdvancedFixture {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createRemoveLongAction(0, address(this), 0);
 
-        vm.expectRevert(AM_RemoveLongNotSupported.selector);
+        vm.expectRevert(AM_UnsupportedAction.selector);
         engine.execute(address(this), actions);
     }
 
