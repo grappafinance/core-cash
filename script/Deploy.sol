@@ -11,7 +11,6 @@ import "../src/core/Grappa.sol";
 import "../src/core/engines/advanced-margin/AdvancedMarginEngine.sol";
 import "../src/core/engines/advanced-margin/VolOracle.sol";
 
-// todo: add fallback pricer too
 import "../src/core/oracles/ChainlinkOracle.sol";
 
 import "../src/test/utils/Utilities.sol";
