@@ -25,9 +25,6 @@ error GP_NotExpired();
 
 // Common error in BaseMargin
 
-/// @dev not supported action, only in base margin
-error EG_UnsupportedAction();
-
 /// @dev can only merge subaccount with put or call.
 error BM_CannotMergeSpread();
 

@@ -55,7 +55,6 @@ contract MockEngine is BaseEngine {
             else if (actions[i].action == ActionType.SettleAccount) _settle(_subAccount);
             else if (actions[i].action == ActionType.AddLong) _addOption(_subAccount, actions[i].data);
             else if (actions[i].action == ActionType.RemoveLong) _removeOption(_subAccount, actions[i].data);
-            else revert EG_UnsupportedAction();
 
             // increase i without checking overflow
             unchecked {
