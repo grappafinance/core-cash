@@ -75,34 +75,6 @@ abstract contract BaseEngine is ReentrancyGuard {
      ** ========================================================= **/
 
     /**
-     * @notice default behavior of the engine 'execute' function
-     * @dev put the default implementation here to have unit tests for all token transfer flows
-     */
-    function execute(address _subAccount, ActionArgs[] calldata actions) public virtual nonReentrant {
-        _assertCallerHasAccess(_subAccount);
-
-        // update the account memory and do external calls on the flight
-        for (uint256 i; i < actions.length; ) {
-            if (actions[i].action == ActionType.AddCollateral) _addCollateral(_subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.RemoveCollateral) _removeCollateral(_subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.MintShort) _mintOption(_subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.BurnShort) _burnOption(_subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.MergeOptionToken) _merge(_subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.SplitOptionToken) _split(_subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.SettleAccount) _settle(_subAccount);
-            else if (actions[i].action == ActionType.AddLong) _addOption(_subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.RemoveLong) _removeOption(_subAccount, actions[i].data);
-            else revert EG_UnsupportedAction();
-
-            // increase i without checking overflow
-            unchecked {
-                i++;
-            }
-        }
-        if (!_isAccountAboveWater(_subAccount)) revert BM_AccountUnderwater();
-    }
-
-    /**
      * @notice  grant or revoke an account access to all your sub-accounts
      * @dev     expected to be call by account owner
      *          usually user should only give access to helper contracts
@@ -320,7 +292,7 @@ abstract contract BaseEngine is ReentrancyGuard {
         address _subAccount,
         uint8 collateralId,
         uint80 amount
-    ) internal virtual;
+    ) internal virtual {}
 
     function _increaseShortInAccount(
         address _subAccount,
@@ -359,21 +331,21 @@ abstract contract BaseEngine is ReentrancyGuard {
         uint64 amount
     ) internal virtual {}
 
-    function _settleAccount(address _subAccount, uint80 payout) internal virtual;
+    function _settleAccount(address _subAccount, uint80 payout) internal virtual {}
 
     /** ========================================================= **
                    View functions to override
      ** ========================================================= **/
 
     /**
-     * @notice  return amount of collateral that should be reserved to payout long positions
+     * @notice [MUST Implement] return amount of collateral that should be reserved to payout long positions
      * @dev     this function will revert when called before expiry
      * @param _subAccount account id
      */
     function _getAccountPayout(address _subAccount) internal view virtual returns (uint80);
 
     /**
-     * @dev return whether if an account is healthy.
+     * @dev [MUST Implement] return whether if an account is healthy.
      * @param _subAccount subaccount id
      * @return isHealthy true if account is in good condition, false if it's underwater (liquidatable)
      */

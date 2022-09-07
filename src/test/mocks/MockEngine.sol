@@ -9,9 +9,12 @@ import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin/token/ERC20/utils/SafeERC20.sol";
 
 import "../../config/enums.sol";
+import "../../config/types.sol";
+import "../../config/errors.sol";
 
 /**
- * Mocked implementation to test base engine tx flow
+ * @title   MockEngine
+ * @notice  Implement execute to test all flow in BaseEngine
  */
 contract MockEngine is BaseEngine {
     bool public isAboveWater;
@@ -28,88 +31,41 @@ contract MockEngine is BaseEngine {
         mockPayout = _payout;
     }
 
-    function payCashValue(
-        address _asset,
-        address _recipient,
-        uint256 _amount
-    ) public override {
-        // BaseEngine.payCashValue(_asset, _recipient, _amount);
-    }
-
-    /** ========================================================= **
-     *               Override Sate changing functions             *
-     ** ========================================================= **/
-
-    function _addCollateralToAccount(
-        address _subAccount,
-        uint8 collateralId,
-        uint80 amount
-    ) internal override {}
-
-    function _removeCollateralFromAccount(
-        address _subAccount,
-        uint8 collateralId,
-        uint80 amount
-    ) internal override {}
-
-    function _increaseShortInAccount(
-        address _subAccount,
-        uint256 tokenId,
-        uint64 amount
-    ) internal override {}
-
-    function _decreaseShortInAccount(
-        address _subAccount,
-        uint256 tokenId,
-        uint64 amount
-    ) internal override {}
-
-    function _mergeLongIntoSpread(
-        address _subAccount,
-        uint256 shortTokenId,
-        uint256 longTokenId,
-        uint64 amount
-    ) internal override {}
-
-    function _splitSpreadInAccount(
-        address _subAccount,
-        uint256 spreadId,
-        uint64 amount
-    ) internal override {}
-
-    function _addOptionToAccount(
-        address, /**_subAccount**/
-        uint256, /**tokenId**/
-        uint64 /**amount**/
-    ) internal pure override {}
-
-    function _removeOptionfromAccount(
-        address, /**_subAccount**/
-        uint256, /**tokenId**/
-        uint64 /**amount**/
-    ) internal pure override {}
-
-    function _settleAccount(address _subAccount, uint80 payout) internal override {}
-
-    /** ========================================================= **
-                    Override view functions for BaseEngine
-     ** ========================================================= **/
-
-    function _isAccountAboveWater(
-        address /*_subAccount*/
-    ) internal view override returns (bool isHealthy) {
-        return isAboveWater;
-    }
-
-    function _getAccountPayout(
-        address /*_subAccount*/
-    ) internal view override returns (uint80) {
+    function _getAccountPayout(address /*subAccount*/) internal view override returns (uint80) {
         return mockPayout;
     }
 
-    function _verifyLongTokenIdToAdd(
-        uint256 /**_tokenId**/
-    ) internal pure override {}
+    /**
+     * @notice default behavior of the engine 'execute' function
+     * @dev put the default implementation here to have unit tests for all token transfer flows
+     */
+    function execute(address _subAccount, ActionArgs[] calldata actions) public virtual nonReentrant {
+        _assertCallerHasAccess(_subAccount);
+
+        // update the account memory and do external calls on the flight
+        for (uint256 i; i < actions.length; ) {
+            if (actions[i].action == ActionType.AddCollateral) _addCollateral(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.RemoveCollateral) _removeCollateral(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.MintShort) _mintOption(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.BurnShort) _burnOption(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.MergeOptionToken) _merge(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.SplitOptionToken) _split(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.SettleAccount) _settle(_subAccount);
+            else if (actions[i].action == ActionType.AddLong) _addOption(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.RemoveLong) _removeOption(_subAccount, actions[i].data);
+            else revert EG_UnsupportedAction();
+
+            // increase i without checking overflow
+            unchecked {
+                i++;
+            }
+        }
+        if (!_isAccountAboveWater(_subAccount)) revert BM_AccountUnderwater();
+    }
+
+    function _isAccountAboveWater(address /*_subAccount*/) internal view override returns (bool) {
+        return isAboveWater;
+    }
 
     function onERC1155Received(
         address,

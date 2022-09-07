@@ -51,11 +51,7 @@ contract FullMarginEngine is BaseEngine, IMarginEngine {
                         External Functions
     //////////////////////////////////////////////////////////////*/
 
-    function execute(address _subAccount, ActionArgs[] calldata actions)
-        public
-        override(BaseEngine, IMarginEngine)
-        nonReentrant
-    {
+    function execute(address _subAccount, ActionArgs[] calldata actions) public override nonReentrant {
         _assertCallerHasAccess(_subAccount);
 
         // update the account memory and do external calls on the flight
