@@ -45,6 +45,8 @@ contract TestMintVanillaOption is AdvancedFixture {
         assertEq(shortPutId, 0);
         assertEq(shortCallAmount, amount);
         assertEq(shortPutAmount, 0);
+
+        assertEq(engine.isAccountHealthy(address(this)), true);
     }
 
     function testMintCoveredCall() public {
