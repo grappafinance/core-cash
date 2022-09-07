@@ -9,11 +9,4 @@ interface IOracle {
         address _quote,
         uint256 _expiry
     ) external view returns (uint256);
-
-    function reportExpiryPrice(
-        address _base,
-        address _quote,
-        uint256 _expiry,
-        uint256 _price
-    ) external;
 }

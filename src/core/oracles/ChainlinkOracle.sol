@@ -4,42 +4,51 @@ pragma solidity ^0.8.0;
 import {Ownable} from "openzeppelin/access/Ownable.sol";
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 
-import {IOracle} from "../../../interfaces/IOracle.sol";
-import {IPricer} from "../../../interfaces/IPricer.sol";
-import {IAggregatorV3} from "../../../interfaces/IAggregatorV3.sol";
+// interfaces
+import {IOracle} from "../../interfaces/IOracle.sol";
+import {IAggregatorV3} from "../../interfaces/IAggregatorV3.sol";
 
-import "../../../config/errors.sol";
+// constants and types
+import "../../config/errors.sol";
+import "../../config/constants.sol";
 
 /**
- * @title ChainlinkPricer
- * @author antoncoding
- * @dev return base / quote price from requesting both prices in USD term from Chainlink Oracle
+ * @title ChainlinkOracle
+ * @author @antoncoding
+ * @dev return base / quote price, with 6 decimals
  */
-contract ChainlinkPricer is IPricer, Ownable {
+contract ChainlinkOracle is IOracle, Ownable {
     using FixedPointMathLib for uint256;
 
+    struct ExpiryPrice {
+        bool reported;
+        uint128 price;
+    }
+
     struct AggregatorData {
-        uint160 addr;
+        address addr;
         uint8 decimals;
         uint32 maxDelay;
         bool isStable; // answer of stable asset can be used as long as the answer is not stale
     }
 
-    uint256 internal constant UNIT = 10**6;
-
-    int8 internal constant UNIT_DECIMALS = 6;
-
-    address public immutable oracle;
+    ///@dev base => quote => expiry => price.
+    mapping(address => mapping(address => mapping(uint256 => ExpiryPrice))) public expiryPrices;
 
     // asset => aggregator
     mapping(address => AggregatorData) public aggregators;
 
-    constructor(address _oracle) {
-        oracle = _oracle;
-    }
+    /*///////////////////////////////////////////////////////////////
+                            External Functions
+    //////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice return spot price for a base/quote pair
+     * @notice  get spot price of _base, denominated in _quote.
+     *
+     * @param _base base asset. for ETH/USD price, ETH is the base asset
+     * @param _quote quote asset. for ETH/USD price, USD is the quote asset
+     *
+     * @return price with 6 decimals
      */
     function getSpotPrice(address _base, address _quote) external view returns (uint256) {
         (uint256 basePrice, uint8 baseDecimals) = _getSpotPriceFromAggregator(_base);
@@ -48,7 +57,29 @@ contract ChainlinkPricer is IPricer, Ownable {
     }
 
     /**
-     * report expiry price and write it to Oracle
+     * @dev get expiry price of underlying, denominated in strike asset.
+            can revert if expiry is in the future, or the price has not been reported by authorized party
+     *
+     * @param _base base asset. for ETH/USD price, ETH is the base asset
+     * @param _quote quote asset. for ETH/USD price, USD is the quote asset
+     * @param _expiry expiry timestamp
+     *
+     * @return price with 6 decimals
+     */
+    function getPriceAtExpiry(
+        address _base,
+        address _quote,
+        uint256 _expiry
+    ) external view returns (uint256 price) {
+        ExpiryPrice memory data = expiryPrices[_base][_quote][_expiry];
+        if (!data.reported) revert OC_PriceNotReported();
+
+        return data.price;
+    }
+
+    /**
+     * @notice report expiry price and write to storage
+     * @dev anyone can call this function and freeze the expiry price
      */
     function reportExpiryPrice(
         address _base,
@@ -61,8 +92,16 @@ contract ChainlinkPricer is IPricer, Ownable {
         (uint256 quotePrice, uint8 quoteDecimals) = _getLastPriceBeforeExpiry(_quote, _quoteRoundId, _expiry);
         uint256 price = _toPriceWithUnitDecimals(basePrice, quotePrice, baseDecimals, quoteDecimals);
 
-        IOracle(oracle).reportExpiryPrice(_base, _quote, _expiry, price);
+        // revert when trying to set price for the future
+        if (_expiry > block.timestamp) revert OC_CannotReportForFuture();
+
+        //todo: safeCast to be extra safe
+        expiryPrices[_base][_quote][_expiry] = ExpiryPrice(true, uint128(price));
     }
+
+    /*///////////////////////////////////////////////////////////////
+                            Admin Functions
+    //////////////////////////////////////////////////////////////*/
 
     /**
      * @dev admin function to set aggregator address for an asset
@@ -74,8 +113,12 @@ contract ChainlinkPricer is IPricer, Ownable {
         bool _isStable
     ) external onlyOwner {
         uint8 decimals = IAggregatorV3(_aggregator).decimals();
-        aggregators[_asset] = AggregatorData(uint160(_aggregator), decimals, _maxDelay, _isStable);
+        aggregators[_asset] = AggregatorData(_aggregator, decimals, _maxDelay, _isStable);
     }
+
+    /*///////////////////////////////////////////////////////////////
+                            Internal functions
+    //////////////////////////////////////////////////////////////*/
 
     /**
      * @notice  convert prices from aggregator of base & quote asset to base / quote, denominated in UNIT
@@ -96,15 +139,18 @@ contract ChainlinkPricer is IPricer, Ownable {
             price = _basePrice.mulDivUp(UNIT, _quotePrice);
         } else {
             // we will return basePrice * 10^(baseMulDecimals) / quotePrice;
-            int8 baseMulDecimals = UNIT_DECIMALS + int8(_quoteDecimals) - int8(_baseDecimals);
+            int8 baseMulDecimals = int8(UNIT_DECIMALS) + int8(_quoteDecimals) - int8(_baseDecimals);
             if (baseMulDecimals > 0) return _basePrice.mulDivUp(10**uint8(baseMulDecimals), _quotePrice);
             price = _basePrice / (10**uint8(-baseMulDecimals)) / _quotePrice;
         }
     }
 
+    /**
+     * @dev fetch price with their native decimals from Chainlink aggregator
+     */
     function _getSpotPriceFromAggregator(address _asset) internal view returns (uint256 price, uint8 decimals) {
         AggregatorData memory aggregator = aggregators[_asset];
-        if (aggregator.addr == 0) revert CL_AggregatorNotSet();
+        if (aggregator.addr == address(0)) revert CL_AggregatorNotSet();
 
         // request answer from Chainlink
         (, int256 answer, , uint256 updatedAt, ) = IAggregatorV3(address(aggregator.addr)).latestRoundData();
@@ -126,7 +172,7 @@ contract ChainlinkPricer is IPricer, Ownable {
         uint256 _expiry
     ) internal view returns (uint256 price, uint8 decimals) {
         AggregatorData memory aggregator = aggregators[_asset];
-        if (aggregator.addr == 0) revert CL_AggregatorNotSet();
+        if (aggregator.addr == address(0)) revert CL_AggregatorNotSet();
 
         // request answer from Chainlink
         (, int256 answer, , uint256 updatedAt, ) = IAggregatorV3(address(aggregator.addr)).getRoundData(_roundId);
