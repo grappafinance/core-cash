@@ -30,48 +30,42 @@ contract Deploy is Script, Utilities {
         public
         returns (
             Grappa grappa,
-            ChainlinkOracle oracle,
             address optionToken,
             address advancedMarginEngine
         )
     {
-        // uint256 nonce = vm.getNonce(msg.sender);
-        // console.log("nonce", nonce);
+        uint256 nonce = vm.getNonce(msg.sender);
+        console.log("nonce", nonce);
 
-        // console.log("deploying with", msg.sender);
-        // console.log("---- START ----");
+        console.log("deploying with", msg.sender);
+        console.log("---- START ----");
 
-        // address oracleAddr = predictAddress(msg.sender, nonce + 1);
+        // prepare bytecode for Grappa
+        address optionTokenAddr = predictAddress(msg.sender, nonce + 2);
+        console.log("optionToken address (prediction)", optionTokenAddr);
 
-        // address chainlinkPricer = address(new ChainlinkPricer(oracleAddr)); // nonce + 0
-        // console.log("chainlinkPricer", address(chainlinkPricer));
+        grappa = new Grappa(optionTokenAddr); // nonce + 1
+        console.log("grappa", address(grappa));
 
-        // oracle = new Oracle(chainlinkPricer, address(0)); // nonce + 1
-        // console.log("oracle", address(oracle));
-        // console.log("primary pricer set: ", address(Oracle(oracle).primaryPricer()));
+        // deploy following contracts directly, just so the address is the same as predicted by `create` (optionTokenAddr)
+        optionToken = address(new OptionToken(address(grappa))); // nonce: 2
+        console.log("optionToken", optionToken);
 
-        // // prepare bytecode for Grappa
-        // address optionTokenAddr = predictAddress(msg.sender, nonce + 3);
-        // console.log("optionToken address (prediction)", optionTokenAddr);
+        address volOracle = address(new VolOracle()); // nonce: 3
 
-        // grappa = new Grappa(optionTokenAddr, address(oracle)); // nonce + 2
-        // console.log("grappa", address(grappa));
+        advancedMarginEngine = address(
+            new AdvancedMarginEngine(address(grappa), volOracle, address(optionToken))
+        ); // nonce: 5
+        console.log("advancedMarginEngine", advancedMarginEngine);
 
-        // // deploy following contracts directly, just so the address is the same as predicted by `create` (optionTokenAddr)
-        // optionToken = address(new OptionToken(address(grappa))); // nonce: 3
-        // console.log("optionToken", optionToken);
+        // setup
+        uint8 engineId1 = Grappa(grappa).registerEngine(advancedMarginEngine);
+        console.log("advancedMargin engine registered, id:", engineId1);
 
-        // address volOracle = address(new VolOracle()); // nonce: 4
+        // setup oracle
+        address oracle = address(new ChainlinkOracle()); 
 
-        // advancedMarginEngine = address(
-        //     new AdvancedMarginEngine(address(grappa), address(oracle), volOracle, address(optionToken))
-        // ); // nonce: 5
-        // console.log("advancedMarginEngine", advancedMarginEngine);
-
-        // // setup
-        // uint8 engineId1 = Grappa(grappa).registerEngine(advancedMarginEngine);
-        // console.log("advancedMargin engine registered, id:", engineId1);
-
-        // todo: setup vol oracles
+        uint8 oracleId1 = Grappa(grappa).registerOracle(oracle);
+        console.log("chainlink oracle registered, id:", oracleId1);
     }
 }
