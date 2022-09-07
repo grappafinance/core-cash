@@ -250,6 +250,8 @@ contract ChainlinkOracleTestWriteOracle is Test {
 
         // mock 1 answer for usdc
         usdcAggregator.setMockRound(usdcRoundIdToReport, 1 * 1e8, expiry - 12960 + 50);
+
+        vm.warp(expiry + 30);
     }
 
     function testCanReportPrice() public {
@@ -263,6 +265,16 @@ contract ChainlinkOracleTestWriteOracle is Test {
         vm.expectRevert(OC_PriceNotReported.selector);
         oracle.getPriceAtExpiry(weth, usdc, expiry);
     }
+
+    function testCannotReportPriceInTheFuture() public {
+        // assume for whatever reason, weth aggregator has data for the future
+        wethAggregator.setMockRound(wethRoundIdToReport + 1, 4003 * 1e8, block.timestamp + 30);
+
+        // the oracle should still revert if someone is trying to set the price for the future
+        vm.expectRevert(OC_CannotReportForFuture.selector);
+        oracle.reportExpiryPrice(weth, usdc, block.timestamp + 10, wethRoundIdToReport, usdcRoundIdToReport);
+    }
+
 
     function testCannotReportWhenAggregatorIsNotSet() public {
         vm.expectRevert(CL_AggregatorNotSet.selector);
