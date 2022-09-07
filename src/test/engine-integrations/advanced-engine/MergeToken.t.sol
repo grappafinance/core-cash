@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 // import test base and helpers.
-import {AdvancedFixture} from "../../shared/AdvancedFixture.t.sol";
+import {AdvancedFixture} from "./AdvancedFixture.t.sol";
 
 import "../../../config/enums.sol";
 import "../../../config/types.sol";
@@ -118,7 +118,7 @@ contract TestMergeOption is AdvancedFixture {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createMergeAction(newTokenId, existingTokenId, address(alice), amount);
 
-        vm.expectRevert(AM_InvalidFromAddress.selector);
+        vm.expectRevert(BM_InvalidFromAddress.selector);
         engine.execute(address(this), actions);
     }
 

@@ -20,11 +20,10 @@ error GP_WrongArgumentLength();
 /// @dev cannot settle an unexpired option
 error GP_NotExpired();
 
-// Common engine errors
-
-error EG_UnsupportedAction();
-
 // Common error in BaseMargin
+
+/// @dev not supported action, only in base margin
+error EG_UnsupportedAction();
 
 /// @dev can only merge subaccount with put or call.
 error BM_CannotMergeSpread();
@@ -44,13 +43,16 @@ error BM_MergeExpiryMismatch();
 /// @dev cannot merge type with the same strike. (should use burn instead)
 error BM_MergeWithSameStrike();
 
-// Fully Collateralized Margin
-
 /// @dev account is not healthy / account is underwater
-error FM_AccountUnderwater();
+error BM_AccountUnderwater();
 
 /// @dev msg.sender is not authorized to ask margin account to pull token from {from} address
-error FM_InvalidFromAddress();
+error BM_InvalidFromAddress();
+
+// Fully Collateralized Margin
+
+/// @dev full margin doesn't support this action
+error FM_UnsupportedAction();
 
 /// @dev invalid collateral:
 ///         call can only be collateralized by underlying
@@ -77,11 +79,8 @@ error FM_CollateraliMisMatch();
 
 // Advanced Margin and AdvancedMarginLib Errors
 
-/// @dev account is not healthy / account is underwater
-error AM_AccountUnderwater();
-
-/// @dev msg.sender is not authorized to ask margin account to pull token from {from} address
-error AM_InvalidFromAddress();
+/// @dev full margin doesn't support this action (add long and remove long)
+error AM_UnsupportedAction();
 
 /// @dev collateral id is wrong: the id doesn't match the existing collateral
 error AM_WrongCollateralId();

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 // import test base and helpers.
-import {FullMarginFixture} from "../../shared/FullMarginFixture.t.sol";
+import {FullMarginFixture} from "../../engine-integrations/full-margin/FullMarginFixture.t.sol";
 
 import "../../../config/types.sol";
 import "../../../config/errors.sol";

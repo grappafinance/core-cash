@@ -4,94 +4,80 @@
 pragma solidity ^0.8.13;
 
 import {IMarginEngine} from "../../interfaces/IMarginEngine.sol";
+import {BaseEngine} from "../../core/engines/BaseEngine.sol";
 import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin/token/ERC20/utils/SafeERC20.sol";
 
 import "../../config/enums.sol";
+import "../../config/types.sol";
+import "../../config/errors.sol";
 
-// contract MockEngine is IMarginEngine {
-//     bool public isSafe;
-//     uint256 public minCollateral;
-//     using SafeERC20 for IERC20;
+/**
+ * @title   MockEngine
+ * @notice  Implement execute to test all flow in BaseEngine
+ */
+contract MockEngine is BaseEngine {
+    bool public isAboveWater;
 
-//     function isAccountHealthy(
-//         address /*_subAccount*/
-//     ) external view returns (bool) {
-//         return isSafe;
-//     }
+    uint80 public mockPayout;
 
-//     function setIsAccountSafe(bool _safe) external {
-//         isSafe = _safe;
-//     }
+    constructor(address _grappa, address _option) BaseEngine(_grappa, _option) {}
 
-//     function getMinCollateral(
-//         address /*_subAccount*/
-//     ) external view returns (uint256) {
-//         return minCollateral;
-//     }
+    function setIsAboveWater(bool _isAboveWater) external {
+        isAboveWater = _isAboveWater;
+    }
 
-//     function increaseCollateral(
-//         address, /*_subAccount*/
-//         address _from,
-//         address _collateral,
-//         uint8, /*_collateralId*/
-//         uint80 _amount
-//     ) external {
-//         IERC20(_collateral).safeTransferFrom(_from, address(this), _amount);
-//     }
+    function setPayout(uint80 _payout) external {
+        mockPayout = _payout;
+    }
 
-//     function decreaseCollateral(
-//         address, /*_subAccount*/
-//         address _to,
-//         address _collateral,
-//         uint8, /* _collateralId*/
-//         uint80 _amount
-//     ) external {
-//         IERC20(_collateral).safeTransfer(_to, _amount);
-//     }
+    function _getAccountPayout(
+        address /*subAccount*/
+    ) internal view override returns (uint80) {
+        return mockPayout;
+    }
 
-//     function increaseDebt(
-//         address _subAccount,
-//         uint256 optionId,
-//         uint64 amount
-//     ) external {
-//         // do nothing
-//     }
+    /**
+     * @notice default behavior of the engine 'execute' function
+     * @dev put the default implementation here to have unit tests for all token transfer flows
+     */
+    function execute(address _subAccount, ActionArgs[] calldata actions) public virtual nonReentrant {
+        _assertCallerHasAccess(_subAccount);
 
-//     function decreaseDebt(
-//         address _subAccount,
-//         uint256 optionId,
-//         uint64 amount
-//     ) external {
-//         // do nothing
-//     }
+        // update the account memory and do external calls on the flight
+        for (uint256 i; i < actions.length; ) {
+            if (actions[i].action == ActionType.AddCollateral) _addCollateral(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.RemoveCollateral) _removeCollateral(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.MintShort) _mintOption(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.BurnShort) _burnOption(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.MergeOptionToken) _merge(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.SplitOptionToken) _split(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.SettleAccount) _settle(_subAccount);
+            else if (actions[i].action == ActionType.AddLong) _addOption(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.RemoveLong) _removeOption(_subAccount, actions[i].data);
+            else revert EG_UnsupportedAction();
 
-//     function merge(address _subAccount, uint256 _optionId) external returns (uint64 burnAmount) {
-//         // do nothing
-//     }
+            // increase i without checking overflow
+            unchecked {
+                i++;
+            }
+        }
+        if (!_isAccountAboveWater(_subAccount)) revert BM_AccountUnderwater();
+    }
 
-//     function split(address _subAccount, uint256 _spreadId) external returns (uint256 optionId, uint64 mintAmount) {
-//         // do nothing
-//     }
+    function _isAccountAboveWater(
+        address /*_subAccount*/
+    ) internal view override returns (bool) {
+        return isAboveWater;
+    }
 
-//     function liquidate(
-//         address _subAccount,
-//         address _liquidator,
-//         uint256[] memory tokensToBurn,
-//         uint256[] memory amountsToBurn
-//     ) external returns (address collateral, uint80 amountToPay) {
-//         // do nothing
-//     }
-
-//     function payCashValue(
-//         address _asset,
-//         address _recipient,
-//         uint256 _amount
-//     ) external {
-//         IERC20(_asset).safeTransfer(_recipient, _amount);
-//     }
-
-//     function settleAtExpiry(address _subAccount) external {
-//         // do nothing
-//     }
-// }
+    function onERC1155Received(
+        address,
+        address,
+        uint256,
+        uint256,
+        bytes calldata
+    ) external virtual returns (bytes4) {
+        return this.onERC1155Received.selector;
+    }
+}

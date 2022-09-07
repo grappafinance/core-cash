@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 // import test base and helpers.
-import {AdvancedFixture} from "../../shared/AdvancedFixture.t.sol";
+import {AdvancedFixture} from "./AdvancedFixture.t.sol";
 
 import "../../../config/enums.sol";
 import "../../../config/types.sol";
@@ -61,14 +61,14 @@ import "forge-std/console2.sol";
 //     function testCannotTakeoverPositionWithoutPayingCollateral() public {
 //         oracle.setSpotPrice(address(weth), 3800 * UNIT);
 
-//         vm.expectRevert(AM_AccountUnderwater.selector);
+//         vm.expectRevert(BM_AccountUnderwater.selector);
 //         engineId.takeoverPosition(accountId, address(this), 0);
 //     }
 
 //     function testCannotTakeoverPositionWithoutPayingEnoughCollateral() public {
 //         oracle.setSpotPrice(address(weth), 3800 * UNIT);
 
-//         vm.expectRevert(AM_AccountUnderwater.selector);
+//         vm.expectRevert(BM_AccountUnderwater.selector);
 //         engineId.takeoverPosition(accountId, address(this), uint80(50 * 1e6));
 //     }
 

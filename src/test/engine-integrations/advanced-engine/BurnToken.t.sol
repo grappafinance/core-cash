@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 // import test base and helpers.
-import {AdvancedFixture} from "../../shared/AdvancedFixture.t.sol";
+import {AdvancedFixture} from "./AdvancedFixture.t.sol";
 import {stdError} from "forge-std/Test.sol";
 
 import "../../../config/enums.sol";
@@ -83,7 +83,7 @@ contract TestBurnCall is AdvancedFixture {
         actions[0] = createBurnAction(tokenId, alice, amount);
 
         // expect error
-        vm.expectRevert(AM_InvalidFromAddress.selector);
+        vm.expectRevert(BM_InvalidFromAddress.selector);
         engine.execute(address(this), actions);
     }
 

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 // import test base and helpers.
-import {AdvancedFixture} from "../../shared/AdvancedFixture.t.sol";
+import {AdvancedFixture} from "./AdvancedFixture.t.sol";
 
 import "../../../config/enums.sol";
 import "../../../config/types.sol";
@@ -68,7 +68,7 @@ contract TestSplitCallSpread is AdvancedFixture {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSplitAction(spreadId, amount, address(this));
 
-        vm.expectRevert(AM_AccountUnderwater.selector);
+        vm.expectRevert(BM_AccountUnderwater.selector);
         engine.execute(address(this), actions);
     }
 }
@@ -132,7 +132,7 @@ contract TestSplitPutSpread is AdvancedFixture {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSplitAction(spreadId, amount, address(this));
 
-        vm.expectRevert(AM_AccountUnderwater.selector);
+        vm.expectRevert(BM_AccountUnderwater.selector);
         engine.execute(address(this), actions);
     }
 
