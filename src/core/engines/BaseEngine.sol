@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity =0.8.13;
+pragma solidity ^0.8.0;
 
 // solhint-disable no-empty-blocks
 
@@ -358,7 +358,7 @@ abstract contract BaseEngine is ReentrancyGuard {
     function _verifyLongTokenIdToAdd(uint256 tokenId) internal view virtual {}
 
     /** ========================================================= **
-                   Internal view functions 
+                   Internal view functions
      ** ========================================================= **/
 
     /**

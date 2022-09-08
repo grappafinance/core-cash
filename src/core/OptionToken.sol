@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity =0.8.13;
+pragma solidity ^0.8.0;
 
 // external librares
 import {ERC1155} from "solmate/tokens/ERC1155.sol";
@@ -49,7 +49,7 @@ contract OptionToken is ERC1155, IOptionToken {
         address _recipient,
         uint256 _tokenId,
         uint256 _amount
-    ) external {
+    ) external override {
         _checkAccessAndTokenId(_tokenId);
         _mint(_recipient, _tokenId, _amount, "");
     }
@@ -64,7 +64,7 @@ contract OptionToken is ERC1155, IOptionToken {
         address _from,
         uint256 _tokenId,
         uint256 _amount
-    ) external {
+    ) external override {
         _checkAccess(_tokenId);
         _burn(_from, _tokenId, _amount);
     }
@@ -79,7 +79,7 @@ contract OptionToken is ERC1155, IOptionToken {
         address _from,
         uint256 _tokenId,
         uint256 _amount
-    ) external {
+    ) external override {
         _checkIsGrappa();
         _burn(_from, _tokenId, _amount);
     }
@@ -94,7 +94,7 @@ contract OptionToken is ERC1155, IOptionToken {
         address _from,
         uint256[] memory _ids,
         uint256[] memory _amounts
-    ) external {
+    ) external override {
         _checkIsGrappa();
         _batchBurn(_from, _ids, _amounts);
     }

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity =0.8.13;
+pragma solidity ^0.8.0;
 
 // inheriting contracts
 import {BaseEngine} from "../BaseEngine.sol";
@@ -94,7 +94,7 @@ contract FullMarginEngine is BaseEngine, IMarginEngine {
      * @param _subAccount account id.
      * @return minCollateral minimum collateral required, in collateral asset's decimals
      */
-    function getMinCollateral(address _subAccount) external view returns (uint256 minCollateral) {
+    function getMinCollateral(address _subAccount) external view override returns (uint256 minCollateral) {
         FullMarginAccount memory account = marginAccounts[_subAccount];
         FullMarginDetail memory detail = _getAccountDetail(account);
         minCollateral = detail.getMinCollateral();

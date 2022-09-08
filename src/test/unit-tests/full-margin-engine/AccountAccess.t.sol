@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.0;
 
 // import test base and helpers.
 import {FullMarginFixture} from "../../engine-integrations/full-margin/FullMarginFixture.t.sol";

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity =0.8.13;
+pragma solidity ^0.8.0;
 
 // imported contracts and libraries
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
@@ -124,6 +124,25 @@ contract Grappa is Ownable {
     }
 
     /**
+     * @notice    get token id from type, productId, expiry, strike
+     * @dev       function will still return even if some of the assets are not registered
+     * @param tokenType TokenType enum
+     * @param productId if of the product
+     * @param expiry timestamp of option expiry
+     * @param longStrike strike price of the long option, with 6 decimals
+     * @param shortStrike strike price of the short (upper bond for call and lower bond for put) if this is a spread. 6 decimals
+     */
+    function getTokenId(
+        TokenType tokenType,
+        uint32 productId,
+        uint256 expiry,
+        uint256 longStrike,
+        uint256 shortStrike
+    ) external pure returns (uint256 id) {
+        id = TokenIdUtil.formatTokenId(tokenType, productId, uint64(expiry), uint64(longStrike), uint64(shortStrike));
+    }
+
+    /**
      * @notice burn option token and get out cash value at expiry
      *
      * @param _account who to settle for
@@ -150,7 +169,7 @@ contract Grappa is Ownable {
      * @param _account who to settle for
      * @param _tokenIds array of tokenIds to burn
      * @param _amounts   array of amounts to burn
-     
+
      */
     function batchSettleOptions(
         address _account,

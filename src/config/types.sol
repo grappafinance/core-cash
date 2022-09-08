@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity =0.8.13;
+pragma solidity ^0.8.0;
 
 import "./enums.sol";
 
@@ -44,14 +44,14 @@ struct AdvancedMarginAccount {
  *      all these data can be derived from Account struct
  * @param callAmount        amount of call minted
  * @param putAmount         amount of put minted
- * @param longCallStrike    the strike of call the account is long, only present if account minted call spread 
- * @param shortCallStrike   the strike of call the account is short, only present if account minted call (or call spread) 
- * @param longPutStrike     the strike of put the account is long, only present if account minted put spread 
+ * @param longCallStrike    the strike of call the account is long, only present if account minted call spread
+ * @param shortCallStrike   the strike of call the account is short, only present if account minted call (or call spread)
+ * @param longPutStrike     the strike of put the account is long, only present if account minted put spread
  * @param shortPutStrike    the strike of put the account is short, only present if account minted put (or call spread)
- * @param expiry            expiry of the call or put. if call and put have different expiry, 
+ * @param expiry            expiry of the call or put. if call and put have different expiry,
                             they should not be able to be put into the same account
  * @param collateralAmount  amount of collateral in its native token decimal
- * @param productId         uint32 number representing the productId. 
+ * @param productId         uint32 number representing the productId.
  */
 struct AdvancedMarginDetail {
     uint256 callAmount;

@@ -1,10 +1,20 @@
 // SPDX-License-Identifier: MIT
-pragma solidity =0.8.13;
+pragma solidity ^0.8.0;
 
 import "../config/enums.sol";
 import "../config/errors.sol";
 
 library TokenIdUtil {
+    function getTokenId(
+        TokenType tokenType,
+        uint32 productId,
+        uint256 expiry,
+        uint256 longStrike,
+        uint256 shortStrike
+    ) internal pure returns (uint256 tokenId) {
+        tokenId = formatTokenId(tokenType, productId, uint64(expiry), uint64(longStrike), uint64(shortStrike));
+    }
+
     /**
      * @notice calculate ERC1155 token id for given option parameters
      *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *

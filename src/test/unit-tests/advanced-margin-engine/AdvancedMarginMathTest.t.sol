@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity =0.8.13;
+pragma solidity ^0.8.0;
 
 import {Test} from "forge-std/Test.sol";
 
@@ -10,7 +10,7 @@ import "../../../config/types.sol";
 
 /**
  * Test if the formula is working properly for min collateral calculation:
- * Desmos file with same parameter can be found here: 
+ * Desmos file with same parameter can be found here:
             https://www.desmos.com/calculator/mx6le8msfo
  */
 contract AdvancedMarginMathTest is Test {
