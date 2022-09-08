@@ -1,5 +1,8 @@
 <div align="center">
-  <h1 align="center"> Grappa 🥂</h1>
+  <h1 align="center"> Grappa</h1>
+  <img height=60 src="https://i.imgur.com/vSIO8xJ.png"> </image>
+  <br/>
+  <br/>
   <a href=https://github.com/antoncoding/grappa/actions/workflows/Slither.yml""><img src="https://github.com/antoncoding/grappa/actions/workflows/Slither.yml/badge.svg?branch=master" > </a>
   <a href=https://github.com/antoncoding/grappa/actions/workflows/CI.yml""><img src="https://github.com/antoncoding/grappa/actions/workflows/CI.yml/badge.svg?branch=master"> </a>
 
@@ -21,9 +24,29 @@
 
 # Introduction
 
-Grappa is a grape-based pomace brandy originally made to prevent waste by using leftovers.
+We believe that the core values of DeFi are composability and decentralization. The current DeFi option space is suffering a lot from liquidity segmentation because no one has build a trust-worthy base layer that everyone feel comfortable building on top of. Our goal is to become that base layer, and also serve as an exchange layer for people to easily exchange options across products.
 
-We believe there're lots of waste in capital when it comes to DeFi options. Grappa is here to change that.
+The project is 100% open sourced and publically funded on [Gitcoin](https://gitcoin.co/grants/7713/grappa-finance). 
+
+## System TLDR
+
+Grappa is mainly composed of 2 parts:
+
+### 1. Base Layer: Decentralized settlement layer for options and spreads 
+
+The base layer is a decentralized option (derivative) token that can be created by different **margin engine**. Users with different risk tolerance can choose among different engines based on gas cost, capital efficiency and risk of liquidation.
+
+We also natively support call spread and put spread that can increase capital efficiency a lot while being fully collateralized.
+
+### 2. Exchange Layer (research in progress)
+
+We also planned to build an exchange layer between the same kind of option token created by different margin engine. For example: AMM to exchange between fully collateralized and partially collateralized options.
+
+There's no development on the exchange layer yet since we're still finalizing the design of the base layer. Please go to forum to see more discussion on the design of the AMM.
+
+### What does "Grappa" mean?
+
+Grappa is a grape-based pomace brandy originally made to prevent waste by using leftovers. We believe there're lots of waste in capital when it comes to DeFi options. Grappa is here to change that.
 
 ## Getting Started
 
@@ -84,7 +107,7 @@ slither ./src/core/AdvancedMargin
 slither ./src/core/
 ```
 
-## Basic Contract Architecture
+## Base Layer Contract Architecture
 
 ![architecture](https://i.imgur.com/1HVOLYG.png)
 
@@ -92,10 +115,14 @@ This is the basic diagram of how contracts interact with each other in the draft
 
 The 4 pieces that compose Grappa are `Oracle`, `MarginEngine` `OptionToken` and `Grappa`.
 
-- `Grappa`: served as a registry for margin engines, assets. Also used for settling optionTokens.
+- `Grappa`: served as a registry for margin engines, assets and oracles. Also used for settling optionTokens.
 - `OptionToken`: ERC1155 token that represent the right to claim for a non-negative payout at expiry. It can represent a long call position, a long put position, or debit spreads.
-- `Oracle`: contract to report spot price and expiry price of an asset.
+- `Oracle`: contracts to report spot price and expiry price of an asset. People can choose to create options that settled with different oracles.
 - `MarginEngine`: each margin engine can be authorized to mint different option tokens. There should be multiple margin engines working together to provide user flexibilities to choose from, based on user preference such as gas fee, capital efficiency, composability and risk.
+
+## List of Oracles
+
+* `ChainlinkOracle`
 
 ## List of Margin Engines
 
