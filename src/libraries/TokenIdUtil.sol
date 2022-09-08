@@ -16,7 +16,7 @@ import "../config/errors.sol";
 library TokenIdUtil {
     function getTokenId(
         TokenType tokenType,
-        uint32 productId,
+        uint40 productId,
         uint256 expiry,
         uint256 longStrike,
         uint256 shortStrike

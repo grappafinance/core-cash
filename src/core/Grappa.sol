@@ -119,6 +119,27 @@ contract Grappa is Ownable {
     }
 
     /**
+     * @dev parse token id into composing option details
+     * @param _tokenId product id
+     */
+    function getDetailFromTokenId(uint256 _tokenId)
+        public
+        pure
+        returns (
+            TokenType tokenType,
+            uint40 productId,
+            uint64 expiry,
+            uint64 longStrike,
+            uint64 shortStrike
+        )
+    {
+        (TokenType _tokenType, uint40 _productId, uint64 _expiry, uint64 _longStrike, uint64 _shortStrike) = TokenIdUtil
+            .parseTokenId(_tokenId);
+
+        return (_tokenType, _productId, _expiry, _longStrike, _shortStrike);
+    }
+
+    /**
      * @notice    get product id from underlying, strike and collateral address
      * @dev       function will still return even if some of the assets are not registered
      * @param underlying  underlying address
@@ -126,15 +147,15 @@ contract Grappa is Ownable {
      * @param collateral  collateral address
      */
     function getProductId(
-        uint8 oracleId,
-        uint8 engineId,
+        address oracle,
+        address engine,
         address underlying,
         address strike,
         address collateral
     ) external view returns (uint40 id) {
         id = ProductIdUtil.getProductId(
-            oracleId,
-            engineId,
+            oracleIds[oracle],
+            engineIds[engine],
             assetIds[underlying],
             assetIds[strike],
             assetIds[collateral]
@@ -152,12 +173,12 @@ contract Grappa is Ownable {
      */
     function getTokenId(
         TokenType tokenType,
-        uint32 productId,
+        uint40 productId,
         uint256 expiry,
         uint256 longStrike,
         uint256 shortStrike
     ) external pure returns (uint256 id) {
-        id = TokenIdUtil.formatTokenId(tokenType, productId, uint64(expiry), uint64(longStrike), uint64(shortStrike));
+        id = TokenIdUtil.getTokenId(tokenType, productId, expiry, longStrike, shortStrike);
     }
 
     /**

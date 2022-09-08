@@ -73,8 +73,8 @@ abstract contract FullMarginFixture is Test, ActionHelper, Utilities {
 
         oracleId = grappa.registerOracle(address(oracle));
 
-        pidUsdcCollat = grappa.getProductId(oracleId, engineId, address(weth), address(usdc), address(usdc));
-        pidEthCollat = grappa.getProductId(oracleId, engineId, address(weth), address(usdc), address(weth));
+        pidUsdcCollat = grappa.getProductId(address(oracle), address(engine), address(weth), address(usdc), address(usdc));
+        pidEthCollat = grappa.getProductId(address(oracle), address(engine), address(weth), address(usdc), address(weth));
 
         charlie = address(0xcccc);
         vm.label(charlie, "Charlie");

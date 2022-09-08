@@ -78,8 +78,8 @@ contract TestMintVanillaOption is AdvancedFixture {
         // register wbtc in the system
         uint8 wbtcId = grappa.registerAsset(address(wbtc));
         uint40 productIdBtcCollat = grappa.getProductId(
-            oracleId,
-            engineId,
+            address(oracle),
+            address(engine),
             address(weth),
             address(usdc),
             address(wbtc)
@@ -130,7 +130,13 @@ contract TestMintVanillaOption is AdvancedFixture {
         uint256 amount = 1 * UNIT;
 
         // try to mint a tokenId that belongs to another margin engine
-        uint40 fakeProductId = grappa.getProductId(oracleId, engineId + 1, address(weth), address(usdc), address(weth));
+        uint40 fakeProductId = grappa.getProductId(
+            address(oracle),
+            address(1),
+            address(weth),
+            address(usdc),
+            address(weth)
+        );
         uint256 tokenId = getTokenId(TokenType.CALL, fakeProductId, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
