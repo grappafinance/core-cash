@@ -24,7 +24,7 @@
 
 # Introduction
 
-We believe that the core values of DeFi are composability and decentralization. The current DeFi option space is suffering a lot from liquidity segmentation because no one has build a trust-worthy base layer that everyone feel comfortable building on top of. Our goal is to become that base layer, and also serve as an exchange layer for people to easily exchange options across products.
+We believe that the core values of DeFi are composability and decentralization. The current DeFi option space is suffering a lot from liquidity segmentation because no one has build a trust-worthy base layer that everyone feel comfortable building on top of. Our goal is to become that base layer, and also build an exchange layer for people to easily exchange options across products.
 
 The project is 100% open sourced and publicaly funded on [Gitcoin](https://gitcoin.co/grants/7713/grappa-finance).
 
@@ -32,11 +32,11 @@ The project is 100% open sourced and publicaly funded on [Gitcoin](https://gitco
 
 Grappa is mainly composed of 2 parts:
 
-### 1. Base Layer: Decentralized settlement layer for options and spreads 
+### 1. Base Layer: Decentralized settlement layer for options and spreads
 
 The base layer is a decentralized option (derivative) token that can be created by different **margin engine**. Users with different risk tolerance can choose among different engines based on gas cost, capital efficiency and risk of liquidation.
 
-We also natively support call spread and put spread that can increase capital efficiency a lot while being fully collateralized.
+We also natively support call spread and put spread that can increase capital efficiency by a lot while being fully collateralized.
 
 ### 2. Exchange Layer (research in progress)
 
@@ -44,7 +44,7 @@ We also planned to build an exchange layer between the same kind of option token
 
 There's no development on the exchange layer yet since we're still finalizing the design of the base layer. Please go to forum to see more discussion on the design of the AMM.
 
-### What does "Grappa" mean?
+### Why is it called "Grappa"?
 
 Grappa is a grape-based pomace brandy originally made to prevent waste by using leftovers. We believe there're lots of waste in capital when it comes to DeFi options. Grappa is here to change that.
 
@@ -122,7 +122,7 @@ The 4 pieces that compose Grappa are `Oracle`, `MarginEngine` `OptionToken` and 
 
 ## List of Oracles
 
-* `ChainlinkOracle`
+- `ChainlinkOracle`
 
 ## List of Margin Engines
 
@@ -135,7 +135,7 @@ The 4 pieces that compose Grappa are `Oracle`, `MarginEngine` `OptionToken` and 
   - single collateral type
   - can mint 1 call (or call spread) + 1 put (or put spread) in a single account.
 
-### Work-in-Progress Margin systems / Ideas
+### WIP Margin Engines
 
 - **PortfolioMargin**: Support up to 30(?) positions and calculate max loss as required collateral.
 
