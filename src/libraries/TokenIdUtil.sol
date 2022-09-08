@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: MIT
-<<<<<<< HEAD
-pragma solidity ^0.8.0;
-=======
 // solhint-disable max-line-length
-pragma solidity =0.8.13;
->>>>>>> 03fd585 (build: add oracle id into productId)
+
+pragma solidity ^0.8.0;
 
 import "../config/enums.sol";
 import "../config/errors.sol";
