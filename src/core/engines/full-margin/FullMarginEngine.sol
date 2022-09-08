@@ -215,11 +215,11 @@ contract FullMarginEngine is BaseEngine, IMarginEngine {
         view
         returns (FullMarginDetail memory detail)
     {
-        (TokenType tokenType, uint32 productId, , uint64 longStrike, uint64 shortStrike) = account
+        (TokenType tokenType, uint40 productId, , uint64 longStrike, uint64 shortStrike) = account
             .tokenId
             .parseTokenId();
 
-        (, , uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(productId);
+        (, , , uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(productId);
 
         bool collateralizedWithStrike = collateralId == strikeId;
 

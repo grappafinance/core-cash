@@ -786,7 +786,7 @@ contract TestSettleBTCCollateralizedCall is AdvancedFixture {
 
     MockERC20 private wbtc;
     uint8 private wbtcId;
-    uint32 private wbtcBackedProductId;
+    uint40 private wbtcBackedProductId;
 
     uint256 private mockedWbtcPrice = 40000 * UNIT;
 
@@ -808,7 +808,7 @@ contract TestSettleBTCCollateralizedCall is AdvancedFixture {
 
         strike = uint64(4000 * UNIT);
 
-        wbtcBackedProductId = grappa.getProductId(engineId, address(weth), address(usdc), address(wbtc));
+        wbtcBackedProductId = grappa.getProductId(oracleId, engineId, address(weth), address(usdc), address(wbtc));
         wbtcbackedTokenId = getTokenId(TokenType.CALL, wbtcBackedProductId, expiry, strike, 0);
         engine.setProductMarginConfig(wbtcBackedProductId, 180 days, 1 days, 6400, 800, 10000);
 

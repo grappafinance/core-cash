@@ -107,8 +107,8 @@ contract OptionToken is ERC1155, IOptionToken {
     }
 
     function _checkAccess(uint256 _tokenId) internal view {
-        (, uint32 productId, , , ) = TokenIdUtil.parseTokenId(_tokenId);
-        (uint8 engineId, , , ) = ProductIdUtil.parseProductId(productId);
+        (, uint40 productId, , , ) = TokenIdUtil.parseTokenId(_tokenId);
+        (, uint8 engineId, , , ) = ProductIdUtil.parseProductId(productId);
         if (msg.sender != grappa.engines(engineId)) revert OT_Not_Authorized_Engine();
     }
 
@@ -116,9 +116,9 @@ contract OptionToken is ERC1155, IOptionToken {
      * @dev check if msg.sender is eligible for burning or minting certain token
      */
     function _checkAccessAndTokenId(uint256 _tokenId) internal view {
-        (TokenType optionType, uint32 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) = TokenIdUtil
+        (TokenType optionType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) = TokenIdUtil
             .parseTokenId(_tokenId);
-        (uint8 engineId, , , ) = ProductIdUtil.parseProductId(productId);
+        (, uint8 engineId, , , ) = ProductIdUtil.parseProductId(productId);
         if (msg.sender != grappa.engines(engineId)) revert OT_Not_Authorized_Engine();
 
         // check option type and strikes

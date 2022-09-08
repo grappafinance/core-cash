@@ -38,15 +38,16 @@ abstract contract FullMarginFixture is Test, ActionHelper, Utilities {
     address internal bob;
 
     // usdc collateralized call / put
-    uint32 internal pidUsdcCollat;
+    uint40 internal pidUsdcCollat;
 
     // eth collateralized call / put
-    uint32 internal pidEthCollat;
+    uint40 internal pidEthCollat;
 
     uint8 internal usdcId;
     uint8 internal wethId;
 
     uint8 internal engineId;
+    uint8 internal oracleId;
 
     constructor() {
         usdc = new MockERC20("USDC", "USDC", 6); // nonce: 1
@@ -60,7 +61,7 @@ abstract contract FullMarginFixture is Test, ActionHelper, Utilities {
 
         option = new OptionToken(grappaAddr); // nonce: 4
 
-        grappa = new Grappa(address(option), address(oracle)); // nonce: 5
+        grappa = new Grappa(address(option)); // nonce: 5
 
         engine = new FullMarginEngine(address(grappa), address(option)); // nonce 6
 
@@ -70,8 +71,10 @@ abstract contract FullMarginFixture is Test, ActionHelper, Utilities {
 
         engineId = grappa.registerEngine(address(engine));
 
-        pidUsdcCollat = grappa.getProductId(engineId, address(weth), address(usdc), address(usdc));
-        pidEthCollat = grappa.getProductId(engineId, address(weth), address(usdc), address(weth));
+        oracleId = grappa.registerOracle(address(oracle));
+
+        pidUsdcCollat = grappa.getProductId(oracleId, engineId, address(weth), address(usdc), address(usdc));
+        pidEthCollat = grappa.getProductId(oracleId, engineId, address(weth), address(usdc), address(weth));
 
         charlie = address(0xcccc);
         vm.label(charlie, "Charlie");
@@ -103,7 +106,7 @@ abstract contract FullMarginFixture is Test, ActionHelper, Utilities {
     function mintOptionFor(
         address _recipient,
         uint256 _tokenId,
-        uint32 _productId,
+        uint40 _productId,
         uint256 _amount
     ) internal {
         address anon = address(0x42424242);

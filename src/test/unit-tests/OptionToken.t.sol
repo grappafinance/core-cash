@@ -13,7 +13,7 @@ contract OptionTokenTest is Test {
     address public grappa;
 
     function setUp() public {
-        grappa = address(new Grappa(address(0), address(0)));
+        grappa = address(new Grappa(address(0)));
         option = new OptionToken(grappa);
     }
 

@@ -28,6 +28,11 @@ contract AdvancedMarginEngineAccessTest is AdvancedFixture {
         _assertCanAccessAccount(address(this), true);
     }
 
+    function testCannotTransferUnAuthorizedAccount() public {
+        vm.expectRevert(NoAccess.selector);
+        engine.transferAccount(alice, address(this));
+    }
+
     function testCannotOverrideAnotherAccount() public {
         // write something to account "address(this)"
         _assertCanAccessAccount(address(this), true);

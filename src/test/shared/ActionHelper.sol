@@ -10,7 +10,7 @@ import "../../libraries/TokenIdUtil.sol";
 abstract contract ActionHelper {
     function getTokenId(
         TokenType tokenType,
-        uint32 productId,
+        uint40 productId,
         uint256 expiry,
         uint256 longStrike,
         uint256 shortStrike
@@ -29,7 +29,7 @@ abstract contract ActionHelper {
         pure
         returns (
             TokenType tokenType,
-            uint32 productId,
+            uint40 productId,
             uint64 expiry,
             uint64 longStrike,
             uint64 shortStrike

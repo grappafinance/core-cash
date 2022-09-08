@@ -33,15 +33,16 @@ abstract contract BaseEngineSetup is Test, ActionHelper, Utilities {
     MockOracle internal oracle;
 
     // usdc collateralized call / put
-    uint32 internal productId;
+    uint40 internal productId;
 
     // eth collateralized call / put
-    uint32 internal productIdEthCollat;
+    uint40 internal productIdEthCollat;
 
     uint8 internal usdcId;
     uint8 internal wethId;
 
     uint8 internal engineId;
+    uint8 internal oracleId;
 
     constructor() {
         usdc = new MockERC20("USDC", "USDC", 6); // nonce: 1
@@ -55,7 +56,7 @@ abstract contract BaseEngineSetup is Test, ActionHelper, Utilities {
 
         option = new OptionToken(grappaAddr); // nonce: 4
 
-        grappa = new Grappa(address(option), address(oracle)); // nonce: 5
+        grappa = new Grappa(address(option)); // nonce: 5
 
         engine = new MockEngine(address(grappa), address(option)); // nonce 6
 
@@ -65,10 +66,10 @@ abstract contract BaseEngineSetup is Test, ActionHelper, Utilities {
 
         engineId = grappa.registerEngine(address(engine));
 
-        // engineId = grappa.registerEngine(address(engine));
+        oracleId = grappa.registerOracle(address(oracle));
 
-        productId = grappa.getProductId(engineId, address(weth), address(usdc), address(usdc));
-        productIdEthCollat = grappa.getProductId(engineId, address(weth), address(usdc), address(weth));
+        productId = grappa.getProductId(oracleId, engineId, address(weth), address(usdc), address(usdc));
+        productIdEthCollat = grappa.getProductId(oracleId, engineId, address(weth), address(usdc), address(weth));
     }
 
     function onERC1155Received(

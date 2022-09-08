@@ -44,8 +44,6 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
     using NumberUtil for uint256;
     using FixedPointMathLib for uint256;
 
-    // IGrappa public immutable grappa;
-    IOracle public immutable oracle;
     IVolOracle public immutable volOracle;
 
     /*///////////////////////////////////////////////////////////////
@@ -58,15 +56,13 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
     mapping(address => AdvancedMarginAccount) public marginAccounts;
 
     ///@dev mapping of productId to AdvancedMargin Parameters
-    mapping(uint32 => ProductMarginParams) public productParams;
+    mapping(uint40 => ProductMarginParams) public productParams;
 
     constructor(
         address _grappa,
-        address _oracle,
         address _volOracle,
         address _optionToken
     ) BaseEngine(_grappa, _optionToken) {
-        oracle = IOracle(_oracle);
         volOracle = IVolOracle(_volOracle);
     }
 
@@ -75,7 +71,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
     //////////////////////////////////////////////////////////////*/
 
     event ProductConfigurationUpdated(
-        uint32 productId,
+        uint40 productId,
         uint32 dUpper,
         uint32 dLower,
         uint32 rUpper,
@@ -228,7 +224,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
      * @param _volMultiplier (BPS) multiplier used to apply to vol from oracle
      */
     function setProductMarginConfig(
-        uint32 _productId,
+        uint40 _productId,
         uint32 _dUpper,
         uint32 _dLower,
         uint32 _rUpper,
@@ -345,14 +341,14 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
      * @return minCollateral minimum collateral required, in collateral asset's decimals
      */
     function _getMinCollateral(AdvancedMarginDetail memory detail) internal view returns (uint256 minCollateral) {
-        ProductAssets memory product = _getProductAssets(detail.productId);
+        ProductDetails memory product = _getProductDetails(detail.productId);
 
         // read spot price of the product, denominated in {UNIT_DECIMALS}.
         // Pass in 0 if margin account has not debt
         uint256 spotPrice;
         uint256 vol;
         if (detail.productId != 0) {
-            spotPrice = oracle.getSpotPrice(product.underlying, product.strike);
+            spotPrice = IOracle(product.oracle).getSpotPrice(product.underlying, product.strike);
             vol = volOracle.getImpliedVol(product.underlying);
         }
 
@@ -360,7 +356,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
         uint256 collateralStrikePrice = 0;
         if (product.collateral == product.underlying) collateralStrikePrice = spotPrice;
         else if (product.collateral != product.strike) {
-            collateralStrikePrice = oracle.getSpotPrice(product.collateral, product.strike);
+            collateralStrikePrice = IOracle(product.oracle).getSpotPrice(product.collateral, product.strike);
         }
 
         uint256 minCollateralInUnit = detail.getMinCollateral(
@@ -415,7 +411,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
         // use the OR operator, so as long as one of shortPutId or shortCallId is non-zero, got reflected here
         uint256 commonId = account.shortPutId | account.shortCallId;
 
-        (, uint32 productId, uint64 expiry, , ) = TokenIdUtil.parseTokenId(commonId);
+        (, uint40 productId, uint64 expiry, , ) = TokenIdUtil.parseTokenId(commonId);
         detail.productId = productId;
         detail.expiry = expiry;
     }
@@ -423,9 +419,10 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
     /**
      * @dev get a struct that stores all relevent token addresses, along with collateral asset decimals
      */
-    function _getProductAssets(uint32 _productId) internal view returns (ProductAssets memory info) {
-        (, address underlying, address strike, address collateral, uint8 collatDecimals) = grappa
+    function _getProductDetails(uint40 _productId) internal view returns (ProductDetails memory info) {
+        (address oracle, , address underlying, address strike, address collateral, uint8 collatDecimals) = grappa
             .getDetailFromProductId(_productId);
+        info.oracle = oracle;
         info.underlying = underlying;
         info.strike = strike;
         info.collateral = collateral;

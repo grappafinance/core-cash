@@ -6,10 +6,11 @@ import "../config/types.sol";
 interface IGrappa {
     function authorized(uint160 maskedAccountId, address caller) external view returns (bool);
 
-    function getDetailFromProductId(uint32 _productId)
+    function getDetailFromProductId(uint40 _productId)
         external
         view
         returns (
+            address oracle,
             address engine,
             address underlying,
             address strike,

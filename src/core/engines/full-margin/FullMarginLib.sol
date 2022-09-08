@@ -15,7 +15,7 @@ import "../../../config/errors.sol";
  */
 library FullMarginLib {
     using TokenIdUtil for uint256;
-    using ProductIdUtil for uint32;
+    using ProductIdUtil for uint40;
 
     /**
      * @dev return true if the account has no short positions nor collateral
@@ -63,10 +63,10 @@ library FullMarginLib {
         uint256 tokenId,
         uint64 amount
     ) internal {
-        (TokenType optionType, uint32 productId, , , ) = tokenId.parseTokenId();
+        (TokenType optionType, uint40 productId, , , ) = tokenId.parseTokenId();
 
         // assign collateralId or check collateral id is the same
-        (, uint8 underlyingId, uint8 strikeId, uint8 collateralId) = productId.parseProductId();
+        (, , uint8 underlyingId, uint8 strikeId, uint8 collateralId) = productId.parseProductId();
 
         // call can only collateralized by underlying
         if ((optionType == TokenType.CALL) && underlyingId != collateralId)

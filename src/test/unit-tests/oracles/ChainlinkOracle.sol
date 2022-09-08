@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 // import test base and helpers.
 import "forge-std/Test.sol";
 
-import {ChainlinkPricer} from "../../../core/pricers/ChainlinkPricer.sol";
+import {ChainlinkOracle} from "../../../core/oracles/ChainlinkOracle.sol";
 
 import {MockERC20} from "../../mocks/MockERC20.sol";
 import {MockOracle} from "../../mocks/MockOracle.sol";
@@ -18,10 +18,7 @@ import "../../../config/errors.sol";
 /**
  * @dev test internal function _toPriceWithUnitDecimals
  */
-contract ChainlinkPricerInternalTests is ChainlinkPricer, Test {
-    // solhint-disable-next-line no-empty-blocks
-    constructor() ChainlinkPricer(address(0)) {}
-
+contract ChainlinkOracleTests is ChainlinkOracle, Test {
     function testDecimalConversion0Decimals() public {
         uint256 base = 1000;
         uint256 price = _toPriceWithUnitDecimals(base, 1, 0, 0);
@@ -39,6 +36,7 @@ contract ChainlinkPricerInternalTests is ChainlinkPricer, Test {
     }
 
     function testDecimalConversionDiffDecimals() public {
+        // baseMulDecimals = UNIT_DECIMALS + int8(_quoteDecimals) - int8(_baseDecimals) < 0
         uint8 baseDecimals = uint8(18);
         uint8 quoteDecimals = uint8(8);
         uint256 base = 3000 * (10**baseDecimals);
@@ -50,8 +48,21 @@ contract ChainlinkPricerInternalTests is ChainlinkPricer, Test {
     }
 
     function testDecimalConversionDiffDecimals2() public {
+        // baseMulDecimals = UNIT_DECIMALS + int8(_quoteDecimals) - int8(_baseDecimals) > 0
         uint8 baseDecimals = uint8(8);
         uint8 quoteDecimals = uint8(18);
+        uint256 base = 3000 * (10**baseDecimals);
+        uint256 quote = 1 * (10**quoteDecimals);
+        uint256 price = _toPriceWithUnitDecimals(base, quote, baseDecimals, quoteDecimals);
+
+        // should return base denominated in 1e6 (UNIT)
+        assertEq(price, 3000 * UNIT);
+    }
+
+    function testDecimalConversionDiffDecimals3() public {
+        // baseMulDecimals = UNIT_DECIMALS + int8(_quoteDecimals) - int8(_baseDecimals) == 0
+        uint8 baseDecimals = uint8(6);
+        uint8 quoteDecimals = uint8(12);
         uint256 base = 3000 * (10**baseDecimals);
         uint256 quote = 1 * (10**quoteDecimals);
         uint256 price = _toPriceWithUnitDecimals(base, quote, baseDecimals, quoteDecimals);
@@ -75,8 +86,8 @@ contract ChainlinkPricerInternalTests is ChainlinkPricer, Test {
 /**
  * @dev test the onlyOwner functions (setAggregator)
  */
-contract ChainlinkPricerConfigurationTest is Test {
-    ChainlinkPricer private pricer;
+contract ChainlinkOracleConfigurationTest is Test {
+    ChainlinkOracle private oracle;
 
     address private weth;
     address private usdc;
@@ -91,16 +102,15 @@ contract ChainlinkPricerConfigurationTest is Test {
         usdc = address(new MockERC20("USDC", "USDC", 6));
         weth = address(new MockERC20("WETH", "WETH", 18));
 
-        address oracle = address(new MockOracle());
-        pricer = new ChainlinkPricer(oracle);
+        oracle = new ChainlinkOracle();
         aggregator = address(new MockChainlinkAggregator(8));
     }
 
     function testOwnerCanSetAggregator() public {
-        pricer.setAggregator(weth, aggregator, 3600, false);
-        (uint160 addr, uint8 decimals, uint32 maxDelay, bool _isStable) = pricer.aggregators(weth);
+        oracle.setAggregator(weth, aggregator, 3600, false);
+        (address addr, uint8 decimals, uint32 maxDelay, bool _isStable) = oracle.aggregators(weth);
 
-        assertEq(address(addr), aggregator);
+        assertEq(addr, aggregator);
         assertEq(decimals, 8);
         assertEq(maxDelay, 3600);
         assertEq(_isStable, false);
@@ -110,24 +120,24 @@ contract ChainlinkPricerConfigurationTest is Test {
         vm.startPrank(random);
 
         vm.expectRevert("Ownable: caller is not the owner");
-        pricer.setAggregator(weth, aggregator, 3600, false);
+        oracle.setAggregator(weth, aggregator, 3600, false);
 
         vm.stopPrank();
     }
 
     function testCanResetAggregator() public {
-        pricer.setAggregator(weth, aggregator, 360, false);
-        pricer.setAggregator(weth, aggregator, 20000, false);
+        oracle.setAggregator(weth, aggregator, 360, false);
+        oracle.setAggregator(weth, aggregator, 20000, false);
     }
 }
 
 /**
  * @dev test public functions
  */
-contract ChainlinkPricerTest is Test {
+contract ChainlinkOracleTest is Test {
     uint256 private aggregatorUint = 1e8;
 
-    ChainlinkPricer private pricer;
+    ChainlinkOracle private oracle;
 
     address private weth;
     address private usdc;
@@ -150,8 +160,7 @@ contract ChainlinkPricerTest is Test {
         usdc = address(new MockERC20("USDC", "USDC", 6));
         weth = address(new MockERC20("WETH", "WETH", 18));
 
-        address oracle = address(new MockOracle());
-        pricer = new ChainlinkPricer(oracle);
+        oracle = new ChainlinkOracle();
 
         wethAggregator = new MockChainlinkAggregator(8);
         usdcAggregator = new MockChainlinkAggregator(8);
@@ -160,11 +169,11 @@ contract ChainlinkPricerTest is Test {
         usdAggregatorHighDecimals = new MockChainlinkAggregator(18);
         usdAggregatorLowDecimals = new MockChainlinkAggregator(1);
 
-        pricer.setAggregator(weth, address(wethAggregator), 3600, false);
-        pricer.setAggregator(usdc, address(usdcAggregator), 129600, true);
+        oracle.setAggregator(weth, address(wethAggregator), 3600, false);
+        oracle.setAggregator(usdc, address(usdcAggregator), 129600, true);
 
-        pricer.setAggregator(usd1, address(usdAggregatorHighDecimals), 129600, true);
-        pricer.setAggregator(usd2, address(usdAggregatorLowDecimals), 129600, true);
+        oracle.setAggregator(usd1, address(usdAggregatorHighDecimals), 129600, true);
+        oracle.setAggregator(usd2, address(usdAggregatorLowDecimals), 129600, true);
 
         wethAggregator.setMockState(0, int256(4000 * aggregatorUint), block.timestamp);
         usdcAggregator.setMockState(0, int256(1 * aggregatorUint), block.timestamp);
@@ -174,22 +183,22 @@ contract ChainlinkPricerTest is Test {
     }
 
     function testSpotPrice() public {
-        uint256 spot = pricer.getSpotPrice(weth, usdc);
+        uint256 spot = oracle.getSpotPrice(weth, usdc);
         assertEq(spot, 4000 * UNIT);
     }
 
     function testSpotPriceDiffDecimals1() public {
-        uint256 spot = pricer.getSpotPrice(weth, usd1);
+        uint256 spot = oracle.getSpotPrice(weth, usd1);
         assertEq(spot, 4000 * UNIT);
     }
 
     function testSpotPriceDiffDecimals2() public {
-        uint256 spot = pricer.getSpotPrice(weth, usd2);
+        uint256 spot = oracle.getSpotPrice(weth, usd2);
         assertEq(spot, 4000 * UNIT);
     }
 
     function testSpotPriceReverse() public {
-        uint256 spot = pricer.getSpotPrice(usdc, weth);
+        uint256 spot = oracle.getSpotPrice(usdc, weth);
         assertEq(spot, UNIT / 4000);
     }
 
@@ -197,22 +206,22 @@ contract ChainlinkPricerTest is Test {
         wethAggregator.setMockState(0, int256(4000 * aggregatorUint), block.timestamp - 3601);
 
         vm.expectRevert(CL_StaleAnswer.selector);
-        pricer.getSpotPrice(usdc, weth);
+        oracle.getSpotPrice(usdc, weth);
     }
 
     function testCannotGetSpotWhenAggregatorIsNotSet() public {
         vm.expectRevert(CL_AggregatorNotSet.selector);
-        pricer.getSpotPrice(usdc, address(1234));
+        oracle.getSpotPrice(usdc, address(1234));
     }
 }
 
 /**
  * @dev test reporting expiry price and interaction with Oracle
  */
-contract ChainlinkPricerTestWriteOracle is Test {
+contract ChainlinkOracleTestWriteOracle is Test {
     uint256 private aggregatorUint = 1e8;
 
-    ChainlinkPricer private pricer;
+    ChainlinkOracle private oracle;
 
     address private weth;
     address private usdc;
@@ -241,14 +250,13 @@ contract ChainlinkPricerTestWriteOracle is Test {
         usdc = address(new MockERC20("USDC", "USDC", 6));
         weth = address(new MockERC20("WETH", "WETH", 18));
 
-        address oracle = address(new MockOracle());
-        pricer = new ChainlinkPricer(oracle);
+        oracle = new ChainlinkOracle();
 
         wethAggregator = new MockChainlinkAggregator(8);
         usdcAggregator = new MockChainlinkAggregator(8);
 
-        pricer.setAggregator(weth, address(wethAggregator), wethMaxDelay, false);
-        pricer.setAggregator(usdc, address(usdcAggregator), usdcMaxDelay, true);
+        oracle.setAggregator(weth, address(wethAggregator), wethMaxDelay, false);
+        oracle.setAggregator(usdc, address(usdcAggregator), usdcMaxDelay, true);
 
         // mock 2 answers aruond expiry
         wethAggregator.setMockRound(wethRoundIdToReport, 4000 * 1e8, expiry - 1);
@@ -256,15 +264,34 @@ contract ChainlinkPricerTestWriteOracle is Test {
 
         // mock 1 answer for usdc
         usdcAggregator.setMockRound(usdcRoundIdToReport, 1 * 1e8, expiry - 12960 + 50);
+
+        vm.warp(expiry + 30);
     }
 
     function testCanReportPrice() public {
-        pricer.reportExpiryPrice(weth, usdc, expiry, wethRoundIdToReport, usdcRoundIdToReport);
+        oracle.reportExpiryPrice(weth, usdc, expiry, wethRoundIdToReport, usdcRoundIdToReport);
+
+        uint256 price = oracle.getPriceAtExpiry(weth, usdc, expiry);
+        assertEq(price, 4000 * UNIT);
+    }
+
+    function testCannotGetUnreportedExpiry() public {
+        vm.expectRevert(OC_PriceNotReported.selector);
+        oracle.getPriceAtExpiry(weth, usdc, expiry);
+    }
+
+    function testCannotReportPriceInTheFuture() public {
+        // assume for whatever reason, weth aggregator has data for the future
+        wethAggregator.setMockRound(wethRoundIdToReport + 1, 4003 * 1e8, block.timestamp + 30);
+
+        // the oracle should still revert if someone is trying to set the price for the future
+        vm.expectRevert(OC_CannotReportForFuture.selector);
+        oracle.reportExpiryPrice(weth, usdc, block.timestamp + 10, wethRoundIdToReport, usdcRoundIdToReport);
     }
 
     function testCannotReportWhenAggregatorIsNotSet() public {
         vm.expectRevert(CL_AggregatorNotSet.selector);
-        pricer.reportExpiryPrice(weth, address(1234), expiry, wethRoundIdToReport, usdcRoundIdToReport);
+        oracle.reportExpiryPrice(weth, address(1234), expiry, wethRoundIdToReport, usdcRoundIdToReport);
     }
 
     function testCannotReportPriceIfStablePriceIsStale() public {
@@ -272,7 +299,7 @@ contract ChainlinkPricerTestWriteOracle is Test {
         usdcAggregator.setMockRound(usdcRoundIdToReport, 1 * 1e8, expiry - usdcMaxDelay - 10);
 
         vm.expectRevert(CL_StaleAnswer.selector);
-        pricer.reportExpiryPrice(weth, usdc, expiry, wethRoundIdToReport, usdcRoundIdToReport);
+        oracle.reportExpiryPrice(weth, usdc, expiry, wethRoundIdToReport, usdcRoundIdToReport);
     }
 
     function testCannotReportPriceIfUnderlyingPriceIsStale() public {
@@ -280,7 +307,7 @@ contract ChainlinkPricerTestWriteOracle is Test {
         wethAggregator.setMockRound(wethRoundIdToReport, 4001 * 1e8, expiry - wethMaxDelay - 10);
 
         vm.expectRevert(CL_StaleAnswer.selector);
-        pricer.reportExpiryPrice(weth, usdc, expiry, wethRoundIdToReport, usdcRoundIdToReport);
+        oracle.reportExpiryPrice(weth, usdc, expiry, wethRoundIdToReport, usdcRoundIdToReport);
     }
 
     function testCannotReportPriceIfWrongIdIsSpecified() public {
@@ -290,7 +317,7 @@ contract ChainlinkPricerTestWriteOracle is Test {
         wethAggregator.setMockRound(wethRoundIdToReport + 1, 4005 * 1e8, expiry - 2);
 
         vm.expectRevert(CL_RoundIdTooSmall.selector);
-        pricer.reportExpiryPrice(weth, usdc, expiry, wethRoundIdToReport, usdcRoundIdToReport);
+        oracle.reportExpiryPrice(weth, usdc, expiry, wethRoundIdToReport, usdcRoundIdToReport);
     }
 
     function testCannotReportPriceIfRoundIDIsTooHigh() public {
@@ -298,6 +325,6 @@ contract ChainlinkPricerTestWriteOracle is Test {
         wethAggregator.setMockRound(wethRoundIdToReport, 4001 * 1e8, expiry + 1);
 
         vm.expectRevert(stdError.arithmeticError);
-        pricer.reportExpiryPrice(weth, usdc, expiry, wethRoundIdToReport, usdcRoundIdToReport);
+        oracle.reportExpiryPrice(weth, usdc, expiry, wethRoundIdToReport, usdcRoundIdToReport);
     }
 }

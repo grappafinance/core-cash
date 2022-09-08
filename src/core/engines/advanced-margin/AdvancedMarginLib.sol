@@ -15,7 +15,7 @@ import "../../../config/errors.sol";
  */
 library AdvancedMarginLib {
     using TokenIdUtil for uint256;
-    using ProductIdUtil for uint32;
+    using ProductIdUtil for uint40;
 
     /**
      * @dev return true if the account has no short positions nor collateral
@@ -61,7 +61,7 @@ library AdvancedMarginLib {
         uint256 tokenId,
         uint64 amount
     ) internal {
-        (TokenType optionType, uint32 productId, , , ) = tokenId.parseTokenId();
+        (TokenType optionType, uint40 productId, , , ) = tokenId.parseTokenId();
 
         // assign collateralId or check collateral id is the same
         uint8 collateralId = productId.getCollateralId();

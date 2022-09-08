@@ -9,7 +9,7 @@ import "../../config/enums.sol";
 contract TokenIdUtilTest is Test {
     function testTokenIdHigherThan0(
         uint8 tokenType,
-        uint32 productId,
+        uint40 productId,
         uint64 expiry,
         uint64 longStrike,
         uint64 shortStrike
@@ -24,7 +24,7 @@ contract TokenIdUtilTest is Test {
 
     function testFormatAndParseAreMirrored(
         uint8 tokenType,
-        uint32 productId,
+        uint40 productId,
         uint64 expiry,
         uint64 longStrike,
         uint64 shortStrike
@@ -33,7 +33,7 @@ contract TokenIdUtilTest is Test {
         vm.assume(productId > 0);
 
         uint256 id = TokenIdUtil.formatTokenId(TokenType(tokenType), productId, expiry, longStrike, shortStrike);
-        (TokenType _tokenType, uint32 _productId, uint64 _expiry, uint64 _longStrike, uint64 _shortStrike) = TokenIdUtil
+        (TokenType _tokenType, uint40 _productId, uint64 _expiry, uint64 _longStrike, uint64 _shortStrike) = TokenIdUtil
             .parseTokenId(id);
 
         assertEq(uint8(tokenType), uint8(_tokenType));

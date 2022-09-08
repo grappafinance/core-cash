@@ -62,7 +62,7 @@ struct AdvancedMarginDetail {
     uint256 shortPutStrike;
     uint256 expiry;
     uint256 collateralAmount;
-    uint32 productId;
+    uint40 productId;
 }
 
 /**
@@ -72,7 +72,8 @@ struct AdvancedMarginDetail {
  * @param collateral    collateral address
  * @param collateralDecimals collateral asset decimals
  */
-struct ProductAssets {
+struct ProductDetails {
+    address oracle;
     address underlying;
     address strike;
     address collateral;
