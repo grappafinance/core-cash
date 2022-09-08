@@ -26,7 +26,7 @@
 
 We believe that the core values of DeFi are composability and decentralization. The current DeFi option space is suffering a lot from liquidity segmentation because no one has build a trust-worthy base layer that everyone feel comfortable building on top of. Our goal is to become that base layer, and also serve as an exchange layer for people to easily exchange options across products.
 
-The project is 100% open sourced and publically funded on [Gitcoin](https://gitcoin.co/grants/7713/grappa-finance). 
+The project is 100% open sourced and publicaly funded on [Gitcoin](https://gitcoin.co/grants/7713/grappa-finance).
 
 ## System TLDR
 
