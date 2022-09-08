@@ -24,7 +24,9 @@
 
 # Introduction
 
-We believe that the core values of DeFi are composability and decentralization. The current DeFi option space is suffering a lot from liquidity segmentation because no one has build a trust-worthy base layer that everyone feel comfortable building on top of. Our goal is to become that base layer, and also build an exchange layer for people to easily exchange options across products.
+We believe that the core values of DeFi are composability and decentralization. The current DeFi option space is suffering a lot from liquidity segmentation because no one has build a trust-worthy base layer that everyone feel comfortable building on top of.
+
+Grappa is here to be that base layer that meets different needs, and also provide an efficient exchange layer (aggregatir) for people to easily exchange options across products.
 
 The project is 100% open sourced and publicaly funded on [Gitcoin](https://gitcoin.co/grants/7713/grappa-finance).
 
