@@ -10,7 +10,7 @@ contract MockOracle is IOracle {
     function getSpotPrice(
         address _underlying,
         address /*_strike*/
-    ) external view returns (uint256) {
+    ) external view override returns (uint256) {
         return spotPrice[_underlying];
     }
 
@@ -18,7 +18,7 @@ contract MockOracle is IOracle {
         address base,
         address quote,
         uint256 /*_expiry*/
-    ) external view returns (uint256) {
+    ) external view override returns (uint256) {
         return expiryPrice[base][quote];
     }
 

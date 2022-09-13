@@ -68,8 +68,14 @@ abstract contract BaseEngineSetup is Test, ActionHelper, Utilities {
 
         oracleId = grappa.registerOracle(address(oracle));
 
-        productId = grappa.getProductId(oracleId, engineId, address(weth), address(usdc), address(usdc));
-        productIdEthCollat = grappa.getProductId(oracleId, engineId, address(weth), address(usdc), address(weth));
+        productId = grappa.getProductId(address(oracle), address(engine), address(weth), address(usdc), address(usdc));
+        productIdEthCollat = grappa.getProductId(
+            address(oracle),
+            address(engine),
+            address(weth),
+            address(usdc),
+            address(weth)
+        );
     }
 
     function onERC1155Received(

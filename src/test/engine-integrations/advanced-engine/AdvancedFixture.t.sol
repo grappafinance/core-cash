@@ -83,8 +83,14 @@ abstract contract AdvancedFixture is Test, ActionHelper, Utilities {
 
         oracleId = grappa.registerOracle(address(oracle));
 
-        productId = grappa.getProductId(oracleId, engineId, address(weth), address(usdc), address(usdc));
-        productIdEthCollat = grappa.getProductId(oracleId, engineId, address(weth), address(usdc), address(weth));
+        productId = grappa.getProductId(address(oracle), address(engine), address(weth), address(usdc), address(usdc));
+        productIdEthCollat = grappa.getProductId(
+            address(oracle),
+            address(engine),
+            address(weth),
+            address(usdc),
+            address(weth)
+        );
 
         engine.setProductMarginConfig(productId, 180 days, 1 days, 6400, 800, 10000);
         engine.setProductMarginConfig(productIdEthCollat, 180 days, 1 days, 6400, 800, 10000);

@@ -8,6 +8,8 @@ import {Grappa} from "../../core/Grappa.sol";
 import {MockERC20} from "../mocks/MockERC20.sol";
 
 import "../../config/errors.sol";
+import "../../config/enums.sol";
+import "../../config/constants.sol";
 
 /**
  * @dev test grappa register related functions
@@ -52,7 +54,7 @@ contract GrappaRegistry is Test {
     function testReturnAssetsFromProductId() public {
         grappa.registerAsset(address(weth));
 
-        uint40 product = grappa.getProductId(0, 0, address(weth), address(0), address(weth));
+        uint40 product = grappa.getProductId(address(0), address(0), address(weth), address(0), address(weth));
 
         (, , address underlying, address strike, address collateral, uint8 collatDecimals) = grappa
             .getDetailFromProductId(product);
@@ -64,6 +66,27 @@ contract GrappaRegistry is Test {
         assertEq(underlying, address(weth));
         assertEq(collateral, address(weth));
         assertEq(collatDecimals, 18);
+    }
+
+    function testReturnOptionDetailsFromTokenId() public {
+        uint256 expiryTimestamp = block.timestamp + 14 days;
+        uint256 strikePrice = 4000 * UNIT;
+
+        grappa.registerAsset(address(weth));
+
+        uint40 product = grappa.getProductId(address(0), address(0), address(weth), address(0), address(weth));
+        uint256 token = grappa.getTokenId(TokenType.CALL, product, expiryTimestamp, strikePrice, 0);
+
+        (TokenType tokenType, uint40 productId, uint256 expiry, uint256 longStrike, uint256 shortStrike) = grappa
+            .getDetailFromTokenId(token);
+
+        assertEq(uint8(tokenType), uint8(TokenType.CALL));
+        assertEq(productId, product);
+
+        // strike is empty
+        assertEq(expiry, expiryTimestamp);
+        assertEq(longStrike, strikePrice);
+        assertEq(shortStrike, 0);
     }
 }
 
@@ -99,9 +122,9 @@ contract RegisterEngineTest is Test {
     }
 
     function testReturnEngineFromProductId() public {
-        uint8 id = grappa.registerEngine(engine1);
+        grappa.registerEngine(engine1);
 
-        uint40 product = grappa.getProductId(0, id, address(0), address(0), address(0));
+        uint40 product = grappa.getProductId(address(0), address(engine1), address(0), address(0), address(0));
 
         (, address engine, , , , ) = grappa.getDetailFromProductId(product);
 
@@ -141,9 +164,9 @@ contract RegisterOracleTest is Test {
     }
 
     function testReturnEngineFromProductId() public {
-        uint8 id = grappa.registerOracle(oracle1);
+        grappa.registerOracle(oracle1);
 
-        uint40 product = grappa.getProductId(id, 0, address(0), address(0), address(0));
+        uint40 product = grappa.getProductId(address(oracle1), address(0), address(0), address(0), address(0));
 
         (address oracle, , , , , ) = grappa.getDetailFromProductId(product);
 
