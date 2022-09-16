@@ -50,7 +50,7 @@ There's no development on the exchange layer yet since we're still finalizing th
 
 Grappa is a grape-based pomace brandy originally made to prevent waste by using leftovers. We believe there're lots of waste in capital when it comes to DeFi options. Grappa is here to change that.
 
-## Getting Started
+## Get Started with Grappa
 
 ```shell
 forge build
@@ -142,3 +142,26 @@ The 4 pieces that compose Grappa are `Oracle`, `MarginEngine` `OptionToken` and 
 - **PortfolioMargin**: Support up to 30(?) positions and calculate max loss as required collateral.
 
 Other margin system can be added to Grappa as long as it complies with the interface.
+
+
+## Install Grappa into your project
+
+With hardhat 
+
+```shell
+yarn add @grappafinance/grappa-contracts
+```
+
+With Foundry
+
+```shell
+forge install antoncoding/grappa
+```
+
+Then you will be able to import the libraries or contract interface 
+
+```solidity
+pragma solidity ^0.8.0;
+
+import "@grappafinance/grappa-contracts/src/libraries/ActionUtil.sol";
+```

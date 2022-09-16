@@ -1,5 +1,5 @@
 {
-  "name": "grappa",
+  "name": "@grappafinance/grappa-contracts",
   "author": "antoncoding",
   "version": "1.0.0",
   "description": "option protocol built with forge template",
