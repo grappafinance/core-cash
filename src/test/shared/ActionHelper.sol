@@ -5,8 +5,8 @@ import "../../config/enums.sol";
 import "../../config/types.sol";
 
 import "../../libraries/TokenIdUtil.sol";
+import "../../libraries/ActionUtil.sol";
 
-// todo: make this a library?
 abstract contract ActionHelper {
     function getTokenId(
         TokenType tokenType,
@@ -43,7 +43,7 @@ abstract contract ActionHelper {
         address from,
         uint256 amount
     ) internal pure returns (ActionArgs memory action) {
-        action = ActionArgs({action: ActionType.AddCollateral, data: abi.encode(from, uint80(amount), collateralId)});
+        return ActionUtil.createAddCollateralAction(collateralId, amount, from);
     }
 
     function createRemoveCollateralAction(
@@ -51,10 +51,7 @@ abstract contract ActionHelper {
         uint8 collateralId,
         address recipient
     ) internal pure returns (ActionArgs memory action) {
-        action = ActionArgs({
-            action: ActionType.RemoveCollateral,
-            data: abi.encode(uint80(amount), recipient, collateralId)
-        });
+        return ActionUtil.createRemoveCollateralAction(collateralId, amount, recipient);
     }
 
     function createMintAction(
@@ -62,7 +59,7 @@ abstract contract ActionHelper {
         address recipient,
         uint256 amount
     ) internal pure returns (ActionArgs memory action) {
-        action = ActionArgs({action: ActionType.MintShort, data: abi.encode(tokenId, recipient, uint64(amount))});
+        return ActionUtil.createMintAction(tokenId, amount, recipient);
     }
 
     function createBurnAction(
@@ -70,7 +67,7 @@ abstract contract ActionHelper {
         address from,
         uint256 amount
     ) internal pure returns (ActionArgs memory action) {
-        action = ActionArgs({action: ActionType.BurnShort, data: abi.encode(tokenId, from, uint64(amount))});
+        return ActionUtil.createBurnAction(tokenId, amount, from);
     }
 
     function createMergeAction(
@@ -79,7 +76,7 @@ abstract contract ActionHelper {
         address from,
         uint256 amount
     ) internal pure returns (ActionArgs memory action) {
-        action = ActionArgs({action: ActionType.MergeOptionToken, data: abi.encode(tokenId, shortId, from, amount)});
+        return ActionUtil.createMergeAction(tokenId, shortId, amount, from);
     }
 
     function createSplitAction(
@@ -87,10 +84,7 @@ abstract contract ActionHelper {
         uint256 amount,
         address recipient
     ) internal pure returns (ActionArgs memory action) {
-        action = ActionArgs({
-            action: ActionType.SplitOptionToken,
-            data: abi.encode(spreadId, uint64(amount), recipient)
-        });
+        return ActionUtil.createSplitAction(spreadId, amount, recipient);
     }
 
     function createAddLongAction(
@@ -98,15 +92,15 @@ abstract contract ActionHelper {
         address from,
         uint256 amount
     ) internal pure returns (ActionArgs memory action) {
-        action = ActionArgs({action: ActionType.AddLong, data: abi.encode(tokenId, uint64(amount), from)});
+        return ActionUtil.createAddLongAction(tokenId, amount, from);
     }
 
     function createRemoveLongAction(
         uint256 tokenId,
-        address to,
+        address recipient,
         uint256 amount
     ) internal pure returns (ActionArgs memory action) {
-        action = ActionArgs({action: ActionType.RemoveLong, data: abi.encode(tokenId, uint64(amount), to)});
+        return ActionUtil.createRemoveLongAction(tokenId, amount, recipient);
     }
 
     function createSettleAction() internal pure returns (ActionArgs memory action) {
