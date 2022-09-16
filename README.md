@@ -60,7 +60,7 @@ forge test
 For auto linting and running gas snapshot, you will also need to setup npm environment.
 
 ```shell
-npm i
+yarn
 ```
 
 ### Test locally
