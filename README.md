@@ -150,6 +150,10 @@ With hardhat
 
 ```shell
 yarn add @grappafinance/grappa-contracts
+
+// or
+
+npm install @grappafinance/grappa-contracts
 ```
 
 With Foundry

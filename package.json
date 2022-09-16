@@ -1,7 +1,7 @@
 {
   "name": "@grappafinance/grappa-contracts",
   "author": "antoncoding",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "option protocol built with forge template",
   "homepage": "https://github.com/antoncoding/grappa",
   "repository": {
@@ -9,7 +9,6 @@
     "url": "git@github.com:antoncoding/grappa.git"
   },
   "scripts": {
-    "postinstall": "husky install",
     "prettier": "prettier --write 'src/**/*.sol'",
     "prettier:list": "prettier --list-different 'src/**/*.sol'",
     "prettier:check": "prettier --check 'src/**/*.sol'",
