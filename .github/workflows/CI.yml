@@ -16,7 +16,7 @@ jobs:
           submodules: recursive
       - uses: actions/setup-node@v3
       - name: Install dev dependencies
-        run: npm install
+        run: yarn
 
       - name: Run lint check
         run: npm run lint:check
