@@ -7,9 +7,8 @@ gas_reports = [
   # "*",
   "Grappa", 
   "OptionToken",
-  "AdvancedMarginEngine",
   "FullMarginEngine",
-  "ChainlinkPricer"
+  "ChainlinkOracle"
 ]
 
 [profile.lite]
