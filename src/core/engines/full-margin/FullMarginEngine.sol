@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 // inheriting contracts
 import {BaseEngine} from "../BaseEngine.sol";
+import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
 
 // interfaces
 import {IOracle} from "../../../interfaces/IOracle.sol";
@@ -34,6 +35,7 @@ contract FullMarginEngine is BaseEngine, IMarginEngine {
     using FullMarginLib for FullMarginAccount;
     using FullMarginMath for FullMarginDetail;
     using TokenIdUtil for uint256;
+    using SafeCast for uint256;
 
     /*///////////////////////////////////////////////////////////////
                                   Variables
@@ -89,7 +91,6 @@ contract FullMarginEngine is BaseEngine, IMarginEngine {
     }
 
     /**
-     * todo: consider movingg this to viewer contract
      * @notice get minimum collateral needed for a margin account
      * @param _subAccount account id.
      * @return minCollateral minimum collateral required, in collateral asset's decimals
@@ -195,7 +196,7 @@ contract FullMarginEngine is BaseEngine, IMarginEngine {
     function _getAccountPayout(address _subAccount) internal view override returns (uint80) {
         FullMarginAccount memory account = marginAccounts[_subAccount];
         (, , uint256 payout) = grappa.getPayout(account.tokenId, account.shortAmount);
-        return uint80(payout);
+        return payout.toUint80();
     }
 
     /** ========================================================= **

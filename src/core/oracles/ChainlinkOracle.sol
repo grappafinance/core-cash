@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import {Ownable} from "openzeppelin/access/Ownable.sol";
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
+import {SafeCastLib} from "solmate/utils/SafeCastLib.sol";
 
 // interfaces
 import {IOracle} from "../../interfaces/IOracle.sol";
@@ -19,6 +20,7 @@ import "../../config/constants.sol";
  */
 contract ChainlinkOracle is IOracle, Ownable {
     using FixedPointMathLib for uint256;
+    using SafeCastLib for uint256;
 
     struct ExpiryPrice {
         bool reported;
@@ -95,8 +97,7 @@ contract ChainlinkOracle is IOracle, Ownable {
         // revert when trying to set price for the future
         if (_expiry > block.timestamp) revert OC_CannotReportForFuture();
 
-        //todo: safeCast to be extra safe
-        expiryPrices[_base][_quote][_expiry] = ExpiryPrice(true, uint128(price));
+        expiryPrices[_base][_quote][_expiry] = ExpiryPrice(true, price.safeCastTo128());
     }
 
     /*///////////////////////////////////////////////////////////////

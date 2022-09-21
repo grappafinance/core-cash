@@ -4,6 +4,8 @@ pragma solidity ^0.8.0;
 // imported contracts and libraries
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import {Ownable} from "openzeppelin/access/Ownable.sol";
+// use SafeCastLib to  more efficiently cast to uint80
+import {SafeCastLib} from "solmate/utils/SafeCastLib.sol";
 
 // interfaces
 import {IERC20Metadata} from "openzeppelin/token/ERC20/extensions/IERC20Metadata.sol";
@@ -29,6 +31,7 @@ import "../config/errors.sol";
  */
 contract Grappa is Ownable {
     using FixedPointMathLib for uint256;
+    using SafeCastLib for uint256;
     using NumberUtil for uint256;
     using TokenIdUtil for uint256;
     using ProductIdUtil for uint40;
@@ -193,7 +196,7 @@ contract Grappa is Ownable {
         uint256 _tokenId,
         uint256 _amount
     ) external {
-        (address engine, address collateral, uint256 payout) = getPayout(_tokenId, uint64(_amount));
+        (address engine, address collateral, uint256 payout) = getPayout(_tokenId, _amount.safeCastTo64());
 
         emit OptionSettled(_account, _tokenId, _amount, payout);
 
@@ -227,7 +230,7 @@ contract Grappa is Ownable {
         uint256 lastTotalPayout;
 
         for (uint256 i; i < _tokenIds.length; ) {
-            (address engine, address collateral, uint256 payout) = getPayout(_tokenIds[i], uint64(_amounts[i]));
+            (address engine, address collateral, uint256 payout) = getPayout(_tokenIds[i], _amounts[i].safeCastTo64());
 
             // if engine or collateral changes, payout and clear temporary parameters
             if (lastEngine == address(0)) {

@@ -9,6 +9,7 @@ import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 
 // inheriting contracts
 import {BaseEngine} from "../BaseEngine.sol";
+import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
 
 // interfaces
 import {IOracle} from "../../../interfaces/IOracle.sol";
@@ -43,6 +44,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
     using SafeERC20 for IERC20;
     using NumberUtil for uint256;
     using FixedPointMathLib for uint256;
+    using SafeCast for uint256;
 
     IVolOracle public immutable volOracle;
 
@@ -170,16 +172,16 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
         // update account's debt and perform "safe" external calls
         if (hasShortCall) {
             optionToken.burn(msg.sender, account.shortCallId, repayCallAmount);
-            marginAccounts[_subAccount].burnOption(account.shortCallId, uint64(repayCallAmount));
+            marginAccounts[_subAccount].burnOption(account.shortCallId, repayCallAmount.toUint64());
         }
         if (hasShortPut) {
             optionToken.burn(msg.sender, account.shortPutId, repayPutAmount);
-            marginAccounts[_subAccount].burnOption(account.shortPutId, uint64(repayPutAmount));
+            marginAccounts[_subAccount].burnOption(account.shortPutId, repayPutAmount.toUint64());
         }
 
         // update account's collateral
         unchecked {
-            collateralToPay = uint80((account.collateralAmount * portionBPS) / BPS);
+            collateralToPay = ((account.collateralAmount * portionBPS) / BPS).toUint80();
         }
 
         collateral = grappa.assets(account.collateralId).addr;
@@ -328,7 +330,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
         if (account.shortCallAmount > 0)
             (, , callPayout) = grappa.getPayout(account.shortCallId, account.shortCallAmount);
         if (account.shortPutAmount > 0) (, , putPayout) = grappa.getPayout(account.shortPutId, account.shortPutAmount);
-        return uint80(callPayout + putPayout);
+        return (callPayout + putPayout).toUint80();
     }
 
     /** ========================================================= **
