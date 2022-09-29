@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./enums.sol";
 
+///@dev easy data structure for fully collat margin engine
 struct FullMarginAccount {
     uint256 tokenId;
     uint64 shortAmount;
@@ -18,6 +19,20 @@ struct FullMarginDetail {
     uint8 collateralDecimals;
     bool collateralizedWithStrike;
     TokenType tokenType;
+}
+
+///@dev storage structure that holds multiple long and short positions
+struct FullMarginAccountV2 {
+    uint8 collateralId;
+    uint80 collateralAmount;
+    uint256[] longCalls;
+    uint256[] shortCalls;
+    uint256[] longPuts;
+    uint256[] shortPuts;
+    uint256[] longCallAmounts;
+    uint256[] shortCallAmounts;
+    uint256[] longPutAmounts;
+    uint256[] shortPutAmounts;
 }
 
 /**
