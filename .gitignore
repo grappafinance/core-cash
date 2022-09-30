@@ -4,3 +4,4 @@ node_modules
 broadcast/
 coverage
 lcov.info
+.DS_Store

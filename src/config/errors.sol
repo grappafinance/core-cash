@@ -65,6 +65,9 @@ error FM_WrongCollateralId();
 /// @dev invalid tokenId specify to mint / burn actions
 error FM_InvalidToken();
 
+/// @dev unsupported token type
+error FM_UnsupportedTokenType();
+
 /// @dev trying to merge an long with a non-existant short position
 error FM_ShortDoesnotExist();
 
@@ -76,6 +79,9 @@ error FM_SplitAmountMisMatch();
 
 /// @dev trying to collateralized the position with different collateral than specified in productId
 error FM_CollateraliMisMatch();
+
+/// @dev cannot override a non-empty subaccount id
+error FM_AccountIsNotEmpty();
 
 // Advanced Margin and AdvancedMarginLib Errors
 

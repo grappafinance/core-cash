@@ -20,6 +20,25 @@ struct FullMarginDetail {
     TokenType tokenType;
 }
 
+struct FullMarginAccountV2 {
+    uint256[] shorts;
+    uint64[] shortAmounts;
+    uint256[] longs;
+    uint64[] longAmounts;
+    uint8[] collaterals;
+    uint80[] collateralAmounts;
+}
+
+struct FullMarginDetailV2 {
+    uint256 shortAmount;
+    uint256 longStrike;
+    uint256 shortStrike;
+    uint256 collateralAmount;
+    uint8 collateralDecimals;
+    bool collateralizedWithStrike;
+    TokenType tokenType;
+}
+
 /**
  * @dev base unit of margin account. This is the data stored in the state
  *      storage packing is utilized to save gas.
@@ -40,7 +59,7 @@ struct AdvancedMarginAccount {
 }
 
 /**
- * @dev struct used in memory to represnet a margin account's status
+ * @dev struct used in memory to represent a margin account's status
  *      all these data can be derived from Account struct
  * @param callAmount        amount of call minted
  * @param putAmount         amount of put minted
