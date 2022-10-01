@@ -18,12 +18,12 @@ library console {
         _sendLogPayload(abi.encodeWithSignature("log()"));
     }
 
-    function logInt(int256 p0) internal view {
-        _sendLogPayload(abi.encodeWithSignature("log(int)", p0));
-    }
-
     function logUint(uint256 p0) internal view {
         _sendLogPayload(abi.encodeWithSignature("log(uint)", p0));
+    }
+
+    function logInt(int256 p0) internal view {
+        _sendLogPayload(abi.encodeWithSignature("log(int)", p0));
     }
 
     function logString(string memory p0) internal view {
@@ -186,6 +186,15 @@ library console {
     function log(uint256[] memory p0) internal view {
         for (uint256 i; i < p0.length; ) {
             _sendLogPayload(abi.encodeWithSignature("log(uint)", p0[i]));
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    function log(int256[] memory p0) internal view {
+        for (uint256 i; i < p0.length; ) {
+            _sendLogPayload(abi.encodeWithSignature("log(int)", p0[i]));
             unchecked {
                 ++i;
             }

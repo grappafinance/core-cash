@@ -30,13 +30,11 @@ struct FullMarginAccountV2 {
 }
 
 struct FullMarginDetailV2 {
-    uint256 shortAmount;
-    uint256 longStrike;
-    uint256 shortStrike;
-    uint256 collateralAmount;
-    uint8 collateralDecimals;
-    bool collateralizedWithStrike;
-    TokenType tokenType;
+    int256[] putWeights;
+    uint256[] putStrikes;
+    int256[] callWeights;
+    uint256[] callStrikes;
+    uint256 spotPrice;
 }
 
 /**
