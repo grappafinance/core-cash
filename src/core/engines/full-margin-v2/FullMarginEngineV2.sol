@@ -204,7 +204,6 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
                             Internal Functions
      ** ========================================================= **/
 
-
     // /**
     //  * @notice  convert Account struct from storage to in-memory detail struct
     //  */

@@ -67,11 +67,15 @@ library FullMarginLibV2 {
         uint256 tokenId,
         uint64 amount
     ) internal {
-        (TokenType optionType, uint40 productId, uint64 expiry , , ) = tokenId.parseTokenId();
+        (TokenType optionType, uint40 productId, uint64 expiry, , ) = tokenId.parseTokenId();
         // assign collateralId or check collateral id is the same
         (, , , , uint8 collateralId) = productId.parseProductId();
 
-        (uint80 cacheCollatId, uint40 cachedProductId, uint64 cachedExpiry) = (account.collateralId, account.productId, account.expiry);
+        (uint80 cacheCollatId, uint40 cachedProductId, uint64 cachedExpiry) = (
+            account.collateralId,
+            account.productId,
+            account.expiry
+        );
         // check if expiry is the same as stored
         if (cachedExpiry == 0) {
             account.expiry = expiry;
@@ -96,15 +100,11 @@ library FullMarginLibV2 {
         // id used to store amounts.
         uint256 maskedId = _getMaskedTokenId(tokenId);
 
-        
         if (optionType == TokenType.CALL) {
             // add to short call array
         } else if (optionType == TokenType.PUT) {
             // add to short put array
-
-        } else if (
-            optionType == TokenType.CALL_SPREAD
-        ) {
+        } else if (optionType == TokenType.CALL_SPREAD) {
             // add to short call array & long call array
         } else if (optionType == TokenType.PUT_SPREAD) {
             // add to short put array & long put array
@@ -124,10 +124,7 @@ library FullMarginLibV2 {
             // add to short call array
         } else if (optionType == TokenType.PUT) {
             // add to short put array
-
-        } else if (
-            optionType == TokenType.CALL_SPREAD
-        ) {
+        } else if (optionType == TokenType.CALL_SPREAD) {
             // add to short call array & long call array
         } else if (optionType == TokenType.PUT_SPREAD) {
             // add to short put array & long put array
@@ -161,13 +158,9 @@ library FullMarginLibV2 {
         revert("not implemented");
     }
 
-    function settleAtExpiry(FullMarginAccountV2 storage account, uint80 _payout) internal {
-        
-    }
+    function settleAtExpiry(FullMarginAccountV2 storage account, uint80 _payout) internal {}
 
-    function getMinCollateral(FullMarginAccountV2 storage account) internal view returns (uint256 ) {
-
-    }
+    function getMinCollateral(FullMarginAccountV2 storage account) internal view returns (uint256) {}
 
     /**
      * @dev return masked token Id
@@ -176,7 +169,7 @@ library FullMarginLibV2 {
      * @return maskedId tokenId with first 24 bits being 0.
      */
     function _getMaskedTokenId(uint256 _tokenId) internal view returns (uint256 maskedId) {
-        maskedId = _tokenId << 24 >> 24;
+        maskedId = (_tokenId << 24) >> 24;
     }
 
     /**
@@ -186,6 +179,6 @@ library FullMarginLibV2 {
      * @return seriesId tokenId with first 24 bits and last 128 bits being zero.
      */
     function _getSeriesInfo(uint256 _tokenId) internal view returns (uint256 seriesId) {
-        seriesId = (_tokenId << 24 >> 24) >> 128 << 128;
+        seriesId = (((_tokenId << 24) >> 24) >> 128) << 128;
     }
 }
