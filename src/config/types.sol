@@ -3,6 +3,8 @@ pragma solidity ^0.8.0;
 
 import "./enums.sol";
 
+import "../libraries/LinkedList.sol";
+
 ///@dev easy data structure for fully collat margin engine
 struct FullMarginAccount {
     uint256 tokenId;
@@ -25,14 +27,12 @@ struct FullMarginDetail {
 struct FullMarginAccountV2 {
     uint8 collateralId;
     uint80 collateralAmount;
-    uint256[] longCalls;
-    uint256[] shortCalls;
-    uint256[] longPuts;
-    uint256[] shortPuts;
-    uint256[] longCallAmounts;
-    uint256[] shortCallAmounts;
-    uint256[] longPutAmounts;
-    uint256[] shortPutAmounts;
+    uint40 productId;
+    uint64 expiry;
+    LinkedList.ListWithAmount longCalls;
+    LinkedList.ListWithAmount longPuts;
+    LinkedList.ListWithAmount shortCalls;
+    LinkedList.ListWithAmount shortPuts;
 }
 
 /**

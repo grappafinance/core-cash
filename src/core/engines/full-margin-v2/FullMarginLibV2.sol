@@ -21,11 +21,11 @@ library FullMarginLibV2 {
      * @dev return true if the account has no short positions nor collateral
      */
     function isEmpty(FullMarginAccountV2 storage account) internal view returns (bool) {
-        return (
-            account.collateralAmount == 0 && 
-            account.shortPuts.length == 0 && account.longPuts.length == 0 &&
-            account.shortCalls.length == 0 && account.longCalls.length == 0 
-        );
+        return (account.collateralAmount == 0 &&
+            account.shortPuts.size == 0 &&
+            account.longPuts.size == 0 &&
+            account.shortCalls.size == 0 &&
+            account.longCalls.size == 0);
     }
 
     ///@dev Increase the collateral in the account
@@ -67,26 +67,48 @@ library FullMarginLibV2 {
         uint256 tokenId,
         uint64 amount
     ) internal {
-        (TokenType optionType, uint40 productId, , , ) = tokenId.parseTokenId();
-
+        (TokenType optionType, uint40 productId, uint64 expiry , , ) = tokenId.parseTokenId();
         // assign collateralId or check collateral id is the same
-        (, , uint8 underlyingId, uint8 strikeId, uint8 collateralId) = productId.parseProductId();
-        uint80 cacheCollatId = account.collateralId;
+        (, , , , uint8 collateralId) = productId.parseProductId();
+
+        (uint80 cacheCollatId, uint40 cachedProductId, uint64 cachedExpiry) = (account.collateralId, account.productId, account.expiry);
+        // check if expiry is the same as stored
+        if (cachedExpiry == 0) {
+            account.expiry = expiry;
+        } else {
+            if (cachedExpiry != expiry) revert("wrong expiry");
+        }
+
+        // check if productId is the same as stored
+        if (cachedProductId == 0) {
+            account.productId = productId;
+        } else {
+            if (cachedProductId != productId) revert("wrong product");
+        }
+
+        // check if collateralId is same as stored (if previously only deposited collateral, id has to match)
         if (cacheCollatId == 0) {
             account.collateralId = collateralId;
         } else {
             if (cacheCollatId != collateralId) revert FM_CollateraliMisMatch();
         }
 
+        // id used to store amounts.
+        uint256 maskedId = _getMaskedTokenId(tokenId);
+
+        
         if (optionType == TokenType.CALL) {
-            
+            // add to short call array
         } else if (optionType == TokenType.PUT) {
+            // add to short put array
 
-        } else if (optionType == TokenType.CALL_SPREAD) {
-            
+        } else if (
+            optionType == TokenType.CALL_SPREAD
+        ) {
+            // add to short call array & long call array
         } else if (optionType == TokenType.PUT_SPREAD) {
-
-        }        
+            // add to short put array & long put array
+        }
     }
 
     ///@dev Remove the amount of short call or put (debt) of the account
@@ -96,11 +118,20 @@ library FullMarginLibV2 {
         uint256 tokenId,
         uint64 amount
     ) internal {
-        if (account.tokenId != tokenId) revert FM_InvalidToken();
+        (TokenType optionType, , , , ) = tokenId.parseTokenId();
 
-        uint64 newShortAmount = account.shortAmount - amount;
-        if (newShortAmount == 0) account.tokenId = 0;
-        account.shortAmount = newShortAmount;
+        if (optionType == TokenType.CALL) {
+            // add to short call array
+        } else if (optionType == TokenType.PUT) {
+            // add to short put array
+
+        } else if (
+            optionType == TokenType.CALL_SPREAD
+        ) {
+            // add to short call array & long call array
+        } else if (optionType == TokenType.PUT_SPREAD) {
+            // add to short put array & long put array
+        }
     }
 
     ///@dev merge an OptionToken into the accunt, changing existing short to spread
@@ -116,14 +147,7 @@ library FullMarginLibV2 {
         uint256 longId,
         uint64 amount
     ) internal {
-        // get token attribute for incoming token
-        (, , , uint64 mergingStrike, ) = longId.parseTokenId();
-
-        if (account.tokenId != shortId) revert FM_ShortDoesnotExist();
-        if (account.shortAmount != amount) revert FM_MergeAmountMisMatch();
-
-        // this can make the vault in either credit spread of debit spread position
-        account.tokenId = TokenIdUtil.convertToSpreadId(shortId, mergingStrike);
+        revert("not implemented");
     }
 
     ///@dev split an accunt's spread position into short + 1 token
@@ -134,21 +158,34 @@ library FullMarginLibV2 {
         uint256 spreadId,
         uint64 amount
     ) internal {
-        // passed in spreadId should match the one in account memory (shortCallId or shortPutId)
-        if (spreadId != account.tokenId) revert FM_InvalidToken();
-        if (amount != account.shortAmount) revert FM_SplitAmountMisMatch();
-
-        // convert to call: remove the "short strike" and update "tokenType" field
-        account.tokenId = TokenIdUtil.convertToVanillaId(spreadId);
+        revert("not implemented");
     }
 
     function settleAtExpiry(FullMarginAccountV2 storage account, uint80 _payout) internal {
-        // clear all debt
-        account.tokenId = 0;
-        account.shortAmount = 0;
+        
+    }
 
-        // this line should not underflow because collateral should always be enough
-        // but keeping the underflow check to make sure
-        account.collateralAmount = account.collateralAmount - _payout;
+    function getMinCollateral(FullMarginAccountV2 storage account) internal view returns (uint256 ) {
+
+    }
+
+    /**
+     * @dev return masked token Id
+     * @dev masked tokenId is usual token Id without the information of tokenType
+     * @param _tokenId tokenId with TokenType in the first 24 bits
+     * @return maskedId tokenId with first 24 bits being 0.
+     */
+    function _getMaskedTokenId(uint256 _tokenId) internal view returns (uint256 maskedId) {
+        maskedId = _tokenId << 24 >> 24;
+    }
+
+    /**
+     * @dev return series Id (underlying - strike - collateral - expiry)
+     * @dev series Id is tokenId without information about TokenType & strikes
+     * @param _tokenId tokenId with TokenType in the first 24 bits
+     * @return seriesId tokenId with first 24 bits and last 128 bits being zero.
+     */
+    function _getSeriesInfo(uint256 _tokenId) internal view returns (uint256 seriesId) {
+        seriesId = (_tokenId << 24 >> 24) >> 128 << 128;
     }
 }

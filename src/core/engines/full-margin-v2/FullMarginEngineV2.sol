@@ -44,7 +44,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
     ///@dev subAccount => FullMarginAccount structure.
     ///     subAccount can be an address similar to the primary account, but has the last 8 bits different.
     ///     this give every account access to 256 sub-accounts
-    mapping(address => FullMarginAccount) public marginAccounts;
+    mapping(address => FullMarginAccountV2) private marginAccounts;
 
     // solhint-disable-next-line no-empty-blocks
     constructor(address _grappa, address _optionToken) BaseEngine(_grappa, _optionToken) {}
@@ -96,9 +96,8 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
      * @return minCollateral minimum collateral required, in collateral asset's decimals
      */
     function getMinCollateral(address _subAccount) external view override returns (uint256 minCollateral) {
-        FullMarginAccount memory account = marginAccounts[_subAccount];
-        FullMarginDetail memory detail = _getAccountDetail(account);
-        minCollateral = detail.getMinCollateral();
+        FullMarginAccountV2 storage account = marginAccounts[_subAccount];
+        minCollateral = account.getMinCollateral();
     }
 
     /**
@@ -108,12 +107,13 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
      * @param _newSubAccount the id of receiving account
      */
     function transferAccount(address _subAccount, address _newSubAccount) external {
-        if (!_isPrimaryAccountFor(msg.sender, _subAccount)) revert NoAccess();
+        revert("not-supported");
+        // if (!_isPrimaryAccountFor(msg.sender, _subAccount)) revert NoAccess();
 
-        if (!marginAccounts[_newSubAccount].isEmpty()) revert AM_AccountIsNotEmpty();
-        marginAccounts[_newSubAccount] = marginAccounts[_subAccount];
+        // if (!marginAccounts[_newSubAccount].isEmpty()) revert AM_AccountIsNotEmpty();
+        // marginAccounts[_newSubAccount] = marginAccounts[_subAccount];
 
-        delete marginAccounts[_subAccount];
+        // delete marginAccounts[_subAccount];
     }
 
     /** ========================================================= **
@@ -183,8 +183,8 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
      * @return isHealthy true if account is in good condition, false if it's underwater (liquidatable)
      */
     function _isAccountAboveWater(address _subAccount) internal view override returns (bool isHealthy) {
-        FullMarginAccount memory account = marginAccounts[_subAccount];
-        uint256 minCollateral = _getMinCollateral(account);
+        FullMarginAccountV2 storage account = marginAccounts[_subAccount];
+        uint256 minCollateral = account.getMinCollateral();
         isHealthy = account.collateralAmount >= minCollateral;
     }
 
@@ -194,46 +194,43 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
      * @param _subAccount account id
      */
     function _getAccountPayout(address _subAccount) internal view override returns (uint80) {
-        FullMarginAccount memory account = marginAccounts[_subAccount];
-        (, , uint256 payout) = grappa.getPayout(account.tokenId, account.shortAmount);
-        return payout.toUint80();
+        FullMarginAccountV2 storage account = marginAccounts[_subAccount];
+        return 1e18;
+        // (, , uint256 payout) = grappa.getPayout(account.tokenId, account.shortAmount);
+        // return payout.toUint80();
     }
 
     /** ========================================================= **
                             Internal Functions
      ** ========================================================= **/
 
-    function _getMinCollateral(FullMarginAccount memory account) internal view returns (uint256) {
-        FullMarginDetail memory detail = _getAccountDetail(account);
-        return detail.getMinCollateral();
-    }
 
-    /**
-     * @notice  convert Account struct from storage to in-memory detail struct
-     */
-    function _getAccountDetail(FullMarginAccount memory account)
-        internal
-        view
-        returns (FullMarginDetail memory detail)
-    {
-        (TokenType tokenType, uint40 productId, , uint64 longStrike, uint64 shortStrike) = account
-            .tokenId
-            .parseTokenId();
+    // /**
+    //  * @notice  convert Account struct from storage to in-memory detail struct
+    //  */
+    // function _getAccountDetail(FullMarginAccountV2 storage account)
+    //     internal
+    //     view
+    //     returns (FullMarginDetail memory detail)
+    // {
+    //     (TokenType tokenType, uint40 productId, , uint64 longStrike, uint64 shortStrike) = account
+    //         .tokenId
+    //         .parseTokenId();
 
-        (, , , uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(productId);
+    //     (, , , uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(productId);
 
-        bool collateralizedWithStrike = collateralId == strikeId;
+    //     bool collateralizedWithStrike = collateralId == strikeId;
 
-        uint8 collateralDecimals = grappa.assets(collateralId).decimals;
+    //     uint8 collateralDecimals = grappa.assets(collateralId).decimals;
 
-        detail = FullMarginDetail({
-            shortAmount: account.shortAmount,
-            longStrike: shortStrike,
-            shortStrike: longStrike,
-            collateralAmount: account.collateralAmount,
-            collateralDecimals: collateralDecimals,
-            collateralizedWithStrike: collateralizedWithStrike,
-            tokenType: tokenType
-        });
-    }
+    //     detail = FullMarginDetail({
+    //         shortAmount: account.shortAmount,
+    //         longStrike: shortStrike,
+    //         shortStrike: longStrike,
+    //         collateralAmount: account.collateralAmount,
+    //         collateralDecimals: collateralDecimals,
+    //         collateralizedWithStrike: collateralizedWithStrike,
+    //         tokenType: tokenType
+    //     });
+    // }
 }
