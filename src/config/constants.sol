@@ -10,4 +10,4 @@ int256 constant sUNIT = int256(UNIT);
 uint256 constant BPS = 10000;
 
 uint256 constant ZERO = 0;
-int256 constant sZERO = 0;
+int256 constant sZERO = int256(ZERO);

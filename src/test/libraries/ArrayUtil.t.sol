@@ -36,6 +36,14 @@ contract ArrayUtilTest is Test {
         assertEq(array1[1], 2);
         assertEq(array1[2], 3);
         assertEq(array1[3], 4);
+
+        array1 = new uint256[](0);
+        array1 = array1.add(1);
+        array2 = new uint256[](0);
+        array1 = array1.concat(array2);
+
+        assertEq(array1.length, 1);
+        assertEq(array1[0], 1);
     }
 
     function testNegativeIndexSelector() public {
@@ -82,10 +90,11 @@ contract ArrayUtilTest is Test {
         assertEq(slice[0], 3);
         assertEq(slice[1], 4);
 
-        slice = array.slice(2, -1);
-        assertEq(slice.length, 2);
-        assertEq(slice[0], 3);
-        assertEq(slice[1], 4);
+        slice = array.slice(1, -1);
+        assertEq(slice.length, 3);
+        assertEq(slice[0], 2);
+        assertEq(slice[1], 3);
+        assertEq(slice[2], 4);
 
         slice = array.slice(-3, -1);
         assertEq(slice.length, 2);
@@ -101,38 +110,4 @@ contract ArrayUtilTest is Test {
         slice = array.slice(-1, -2);
         assertEq(slice.length, 0);
     }
-
-    // function testCallCashValue() public {
-    //     uint256 spot = 3000 * base;
-    //     uint256 strike = 2900 * base;
-    //     uint256 cash = MoneynessLib.getCallCashValue(spot, strike);
-    //     assertEq(cash, 100 * base);
-
-    //     // spot < strike
-    //     spot = 2800 * base;
-    //     cash = MoneynessLib.getCallCashValue(spot, strike);
-    //     assertEq(cash, 0);
-
-    //     // spot = strike
-    //     spot = 2900 * base;
-    //     cash = MoneynessLib.getCallCashValue(spot, strike);
-    //     assertEq(cash, 0);
-    // }
-
-    // function testPutCashValue() public {
-    //     uint256 spot = 3000 * base;
-    //     uint256 strike = 2900 * base;
-    //     uint256 cash = MoneynessLib.getPutCashValue(spot, strike);
-    //     assertEq(cash, 0);
-
-    //     // spot < strike
-    //     spot = 2800 * base;
-    //     cash = MoneynessLib.getPutCashValue(spot, strike);
-    //     assertEq(cash, 100 * base);
-
-    //     // spot = strike
-    //     spot = 2900 * base;
-    //     cash = MoneynessLib.getPutCashValue(spot, strike);
-    //     assertEq(cash, 0);
-    // }
 }

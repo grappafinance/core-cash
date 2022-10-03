@@ -31,81 +31,64 @@ library FullMarginMathV2 {
     /**
      * @notice get minimum collateral denominated in strike asset
      * @param _detail margin details
-     * @return collateralNeeded with {BASE_UNIT} decimals
+     * @return cashCollateralNeeded with {BASE_UNIT} decimals
      * @return underlyingNeeded with {BASE_UNIT} decimals
      */
-    function getMinCollateral(FullMarginDetailV2 memory _detail)
-        internal
-        view
-        returns (int256 collateralNeeded, int256 underlyingNeeded)
-    {
+    function getMinCollateral(FullMarginDetailV2 memory _detail) internal view returns (uint256, uint256) {
+        int256 cashCollateralNeeded;
+        int256 underlyingNeeded;
+
         uint256 epsilon = _detail.spotPrice / 10;
 
-        console.log("epsilon", epsilon);
-
         // underlying price scenarios
-        uint256[] memory priceScenarios = new uint256[](0);
+        uint256[] memory pricePois = new uint256[](0);
 
-        uint256 maxCallStrike = _detail.callStrikes.max();
-        uint256 minPutStrike = _detail.putStrikes.min();
+        uint256 minPutStrike;
+        uint256 maxCallStrike;
 
-        priceScenarios = priceScenarios.add(minPutStrike - epsilon);
-        priceScenarios = priceScenarios.concat(_detail.putStrikes);
-        priceScenarios = priceScenarios.concat(_detail.callStrikes);
-        priceScenarios = priceScenarios.add(maxCallStrike + epsilon);
-
-        int256[] memory payouts = getPayouts(_detail, priceScenarios);
-
-        console.log("payouts");
-        console.log(payouts);
-
-        underlyingNeeded = getUnderlyingNeeded(priceScenarios, payouts, maxCallStrike, epsilon);
-
-        console.log("underlyingNeeded");
-        console.logInt(underlyingNeeded);
-
-        collateralNeeded = getCollateralNeeded(priceScenarios, payouts, minPutStrike, epsilon, _detail.spotPrice);
-
-        console.log("collateralNeeded");
-        console.logInt(collateralNeeded);
-
-        int256 minStrikePayout = -payouts.slice(1, -1).min();
-
-        console.log("minStrikePayout");
-        console.logInt(minStrikePayout);
-
-        if (collateralNeeded < minStrikePayout) {
-            (, uint256 index) = payouts.indexOf(-minStrikePayout);
-            int256 underlyingPayoutAtMinStrike = (priceScenarios[index].toInt256() * underlyingNeeded) / sUNIT;
-
-            console.log("underlyingPayoutAtMinStrike");
-            console.logInt(underlyingPayoutAtMinStrike);
-
-            if (underlyingPayoutAtMinStrike - minStrikePayout > 0) {
-                collateralNeeded = 0;
-            } else {
-                collateralNeeded = minStrikePayout - underlyingPayoutAtMinStrike;
-            }
-
-            console.log("collateralNeeded");
-            console.logInt(collateralNeeded);
+        if (_detail.putStrikes.length > 0) {
+            minPutStrike = _detail.putStrikes.min();
+            pricePois = pricePois.add(minPutStrike - epsilon);
+            pricePois = pricePois.concat(_detail.putStrikes);
         }
 
-        return (collateralNeeded, underlyingNeeded);
+        if (_detail.callStrikes.length > 0) {
+            maxCallStrike = _detail.callStrikes.max();
+            pricePois = pricePois.concat(_detail.callStrikes);
+            pricePois = pricePois.add(maxCallStrike + epsilon);
+        }
+
+        int256[] memory payouts = getPayouts(_detail, pricePois);
+
+        if (_detail.callStrikes.length > 0)
+            underlyingNeeded = getUnderlyingNeeded(pricePois, payouts, maxCallStrike, epsilon);
+
+        if (_detail.putStrikes.length > 0) {
+            cashCollateralNeeded = getCashCollateralNeeded(pricePois, payouts, minPutStrike, epsilon);
+
+            cashCollateralNeeded = getAdjustedCashCollateralNeeded(
+                _detail,
+                pricePois,
+                payouts,
+                cashCollateralNeeded,
+                underlyingNeeded
+            );
+        }
+        return (cashCollateralNeeded.toUint256(), underlyingNeeded.toUint256());
     }
 
-    function getPayouts(FullMarginDetailV2 memory _detail, uint256[] memory priceScenarios)
+    function getPayouts(FullMarginDetailV2 memory _detail, uint256[] memory pricePois)
         internal
         view
         returns (int256[] memory payouts)
     {
-        payouts = new int256[](priceScenarios.length);
+        payouts = new int256[](pricePois.length);
         payouts.fill(0);
 
         uint256 i;
         for (i = 0; i < _detail.putStrikes.length; i++) {
             payouts = payouts.add(
-                priceScenarios
+                pricePois
                     .subEachPosFrom(_detail.putStrikes[i])
                     .maximum(0)
                     .mulEachPosBy(_detail.putWeights[i])
@@ -115,7 +98,7 @@ library FullMarginMathV2 {
 
         for (i = 0; i < _detail.callStrikes.length; i++) {
             payouts = payouts.add(
-                priceScenarios
+                pricePois
                     .subEachPosBy(_detail.callStrikes[i])
                     .maximum(0)
                     .mulEachPosBy(_detail.callWeights[i])
@@ -124,29 +107,16 @@ library FullMarginMathV2 {
         }
     }
 
-    // this the largest loss from all the actual strikes
-    function getMaxLossBetweenStrikes(
-        uint256[] memory putStrikes,
-        uint256[] memory callStrikes,
-        uint256[] memory priceScenarios,
-        int256[] memory payouts
-    ) internal view returns (int256 minStrike) {
-        // uint256[] memory strikes = payouts.slice(1, -1).min();
-        // console.log(strikes);
-        // for
-        // minimum_k = -np.min(np.array([payouts[xs==k] for k in put_strikes + call_strikes]).flatten())
-    }
-
     // this computes the slope to the right of the right most strike, resulting in the delta hedge (underlying)
     function getUnderlyingNeeded(
-        uint256[] memory priceScenarios,
+        uint256[] memory pricePois,
         int256[] memory payouts,
         uint256 maxCallStrike,
         uint256 epsilon
-    ) internal pure returns (int256 underlyingNeeded) {
+    ) internal view returns (int256 underlyingNeeded) {
         int256 rightMostPayoutScenario = payouts.at(-1); // we placed it here
 
-        (, uint256 index) = priceScenarios.indexOf(maxCallStrike);
+        (, uint256 index) = pricePois.indexOf(maxCallStrike);
         int256 rightMostPayoutActual = payouts[index];
 
         underlyingNeeded = ((rightMostPayoutScenario - rightMostPayoutActual) * sUNIT) / epsilon.toInt256();
@@ -154,19 +124,46 @@ library FullMarginMathV2 {
     }
 
     // this computes the slope to the left of the left most strike
-    function getCollateralNeeded(
-        uint256[] memory priceScenarios,
+    function getCashCollateralNeeded(
+        uint256[] memory pricePois,
         int256[] memory payouts,
         uint256 minPutStrike,
-        uint256 epsilon,
-        uint256 spotPrice
-    ) internal pure returns (int256 collateralNeeded) {
+        uint256 epsilon
+    ) internal view returns (int256 cashCollateralNeeded) {
         int256 leftMostPayoutScenario = payouts[0]; // we placed it here
 
-        (, uint256 index) = priceScenarios.indexOf(minPutStrike);
+        (, uint256 index) = pricePois.indexOf(minPutStrike);
         int256 leftMostPayoutActual = payouts[index];
 
-        collateralNeeded = (leftMostPayoutActual - leftMostPayoutScenario) / epsilon.toInt256();
-        collateralNeeded = collateralNeeded * spotPrice.toInt256();
+        cashCollateralNeeded = ((leftMostPayoutActual - leftMostPayoutScenario) * sUNIT) / epsilon.toInt256();
+        cashCollateralNeeded = (cashCollateralNeeded * minPutStrike.toInt256()) / sUNIT;
+    }
+
+    function getAdjustedCashCollateralNeeded(
+        FullMarginDetailV2 memory _detail,
+        uint256[] memory pricePois,
+        int256[] memory payouts,
+        int256 cashCollateralNeeded,
+        int256 underlyingNeeded
+    ) internal view returns (int256) {
+        int256 putsStartPos = sZERO;
+        int256 callsEndPos = (_detail.putStrikes.length + _detail.callStrikes.length).toInt256();
+
+        if (_detail.putStrikes.length > 0) {
+            putsStartPos = 1;
+            callsEndPos += 1;
+        }
+
+        int256 minStrikePayout = -payouts.slice(putsStartPos, callsEndPos).min();
+
+        if (cashCollateralNeeded < minStrikePayout) {
+            (, uint256 index) = payouts.indexOf(-minStrikePayout);
+            int256 underlyingPayoutAtMinStrike = (pricePois[index].toInt256() * underlyingNeeded) / sUNIT;
+
+            if (underlyingPayoutAtMinStrike - minStrikePayout > 0) cashCollateralNeeded = 0;
+            else cashCollateralNeeded = minStrikePayout - underlyingPayoutAtMinStrike;
+        }
+
+        return cashCollateralNeeded;
     }
 }

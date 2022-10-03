@@ -176,20 +176,6 @@ library ArrayUtil {
         array[i] = element;
     }
 
-    function concat(uint256[] memory array1, uint256[] memory array2) internal pure returns (uint256[] memory array) {
-        array = new uint256[](array1.length + array2.length);
-        uint256 y = 0;
-        uint256 i;
-        for (i = 0; i < array1.length; i++) {
-            array[y] = array1[i];
-            y++;
-        }
-        for (i = 0; i < array2.length; i++) {
-            array[y] = array2[i];
-            y++;
-        }
-    }
-
     function concat(int256[] memory array1, int256[] memory array2) internal pure returns (int256[] memory array) {
         array = new int256[](array1.length + array2.length);
         uint256 y = 0;
@@ -202,6 +188,10 @@ library ArrayUtil {
             array[y] = array2[i];
             y++;
         }
+    }
+
+    function concat(uint256[] memory array1, uint256[] memory array2) internal pure returns (uint256[] memory array) {
+        return int256ToUint256(concat(uint256ToInt256(array1), uint256ToInt256(array2)));
     }
 
     function fill(int256[] memory data, int256 value) internal pure returns (int256[] memory) {
@@ -264,6 +254,14 @@ library ArrayUtil {
         int256 _end
     ) internal pure returns (uint256[] memory array) {
         return int256ToUint256(slice(uint256ToInt256(data), _start, _end));
+    }
+
+    function slice(
+        uint256[] memory data,
+        uint256 _start,
+        uint256 _end
+    ) internal pure returns (uint256[] memory array) {
+        return int256ToUint256(slice(uint256ToInt256(data), _start.toInt256(), _end.toInt256()));
     }
 
     function subEachPosFrom(uint256[] memory data, uint256 from) internal pure returns (int256[] memory array) {
