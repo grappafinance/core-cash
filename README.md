@@ -17,7 +17,7 @@
 
 <p align='center'>
     <img src='https://i.imgur.com/A04IOW6.jpg' alt='grappa' width="500" />
-</p>  
+</p>
 <h6 align="center"> Built with Foundry</h6>
 
 </div>
@@ -77,7 +77,7 @@ forge coverage
 
 ### Deployment
 
-Stimulate deployment
+Simulate deployment
 
 ```shell
 forge script script/Deploy.sol --private-key <your PK> --fork-url <RPC-endpoint> --ffi -vvv
@@ -143,10 +143,9 @@ The 4 pieces that compose Grappa are `Oracle`, `MarginEngine` `OptionToken` and 
 
 Other margin system can be added to Grappa as long as it complies with the interface.
 
-
 ## Install Grappa into your project
 
-With hardhat 
+With hardhat
 
 ```shell
 yarn add @grappafinance/grappa-contracts
@@ -162,10 +161,11 @@ With Foundry
 forge install antoncoding/grappa
 ```
 
-Then you will be able to import the libraries or contract interface 
+Then you will be able to import the libraries or contract interface
 
 ```solidity
 pragma solidity ^0.8.0;
 
 import "@grappafinance/grappa-contracts/src/libraries/ActionUtil.sol";
+
 ```

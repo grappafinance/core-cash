@@ -13,7 +13,9 @@ interface IGrappa {
             address oracle,
             address engine,
             address underlying,
+            uint8 underlyingDecimals,
             address strike,
+            uint8 strikeDecimals,
             address collateral,
             uint8 collateralDecimals
         );

@@ -65,35 +65,6 @@ contract TestMint_FMV2 is FullMarginFixtureV2 {
         engine.execute(address(this), actions);
     }
 
-    // since we allow collaterals per account, i dont believe this is applicable anymore.
-    // function testCannotMintCoveredCallUsingUsdcCollateral() public {
-    //     uint256 depositAmount = 1000 * UNIT;
-
-    //     uint256 strikePrice = 4000 * UNIT;
-    //     uint256 amount = 1 * UNIT;
-
-    //     // specify we want to mint with eth collateral
-    //     uint256 tokenId = getTokenId(TokenType.CALL, pidEthCollat, expiry, strikePrice, 0);
-
-    //     ActionArgs[] memory actions = new ActionArgs[](2);
-
-    //     // actually deposit usdc!
-    //     actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
-    //     actions[1] = createMintAction(tokenId, address(this), amount);
-
-    //     vm.expectRevert(FM_CollateraliMisMatch.selector);
-    //     engine.execute(address(this), actions);
-
-    //     ActionArgs[] memory actions2 = new ActionArgs[](2);
-
-    //     // reverse the 2 actions
-    //     actions2[0] = createMintAction(tokenId, address(this), amount);
-    //     actions2[1] = createAddCollateralAction(usdcId, address(this), depositAmount);
-
-    //     vm.expectRevert(FM_WrongCollateralId.selector);
-    //     engine.execute(address(this), actions2);
-    // }
-
     function testMintPut() public {
         uint256 depositAmount = 2000 * 1e6;
 
@@ -191,6 +162,51 @@ contract TestMint_FMV2 is FullMarginFixtureV2 {
         actions[1] = createMintAction(tokenId, address(this), amount);
 
         vm.expectRevert(FM_CannotMintOptionWithThisCollateral.selector);
+        engine.execute(address(this), actions);
+    }
+
+    function testCannotMintCallWithLittleCollateral() public {
+        uint256 depositAmount = 100 * 1e6;
+
+        uint256 strikePrice = 4000 * UNIT;
+        uint256 amount = 1 * UNIT;
+
+        uint256 tokenId = getTokenId(TokenType.CALL, pidEthCollat, expiry, strikePrice, 0);
+
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
+        actions[1] = createMintAction(tokenId, address(this), amount);
+
+        vm.expectRevert(BM_AccountUnderwater.selector);
+        engine.execute(address(this), actions);
+    }
+
+    function testCannotMintPutWithLittleCollateral() public {
+        uint256 depositAmount = 100 * 1e6;
+
+        uint256 strikePrice = 2000 * UNIT;
+        uint256 amount = 1 * UNIT;
+
+        uint256 tokenId = getTokenId(TokenType.PUT, pidUsdcCollat, expiry, strikePrice, 0);
+
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
+        actions[1] = createMintAction(tokenId, address(this), amount);
+
+        vm.expectRevert(BM_AccountUnderwater.selector);
+        engine.execute(address(this), actions);
+    }
+
+    function testCannotMintWithoutCollateral() public {
+        uint256 strikePrice = 3000 * UNIT;
+        uint256 amount = 1 * UNIT;
+
+        uint256 tokenId = getTokenId(TokenType.CALL, pidEthCollat, expiry, strikePrice, 0);
+
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createMintAction(tokenId, address(this), amount);
+
+        vm.expectRevert(BM_AccountUnderwater.selector);
         engine.execute(address(this), actions);
     }
 

@@ -34,7 +34,12 @@ struct FullMarginDetailV2 {
     uint256[] putStrikes;
     int256[] callWeights;
     uint256[] callStrikes;
+    uint8 underlyingId;
+    uint8 underlyingDecimals;
+    uint8 collateralId;
+    uint8 collateralDecimals;
     uint256 spotPrice;
+    uint256 expiry;
 }
 
 /**
@@ -90,9 +95,15 @@ struct AdvancedMarginDetail {
  * @param collateralDecimals collateral asset decimals
  */
 struct ProductDetails {
+    uint8 oracleId;
     address oracle;
+    uint8 underlyingId;
     address underlying;
+    uint8 underlyingDecimals;
+    uint8 strikeId;
     address strike;
+    uint8 strikeDecimals;
+    uint8 collateralId;
     address collateral;
     uint8 collateralDecimals;
 }

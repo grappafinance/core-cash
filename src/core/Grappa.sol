@@ -103,19 +103,25 @@ contract Grappa is Ownable {
             address oracle,
             address engine,
             address underlying,
+            uint8 underlyingDecimals,
             address strike,
+            uint8 strikeDecimals,
             address collateral,
             uint8 collateralDecimals
         )
     {
         (uint8 oracleId, uint8 engineId, uint8 underlyingId, uint8 strikeId, uint8 collateralId) = ProductIdUtil
             .parseProductId(_productId);
+        AssetDetail memory underlyingDetail = assets[underlyingId];
+        AssetDetail memory strikeDetail = assets[strikeId];
         AssetDetail memory collateralDetail = assets[collateralId];
         return (
             oracles[oracleId],
             engines[engineId],
-            assets[underlyingId].addr,
-            assets[strikeId].addr,
+            underlyingDetail.addr,
+            underlyingDetail.decimals,
+            strikeDetail.addr,
+            strikeDetail.decimals,
             collateralDetail.addr,
             collateralDetail.decimals
         );
@@ -356,7 +362,9 @@ contract Grappa is Ownable {
             address oracle,
             address engine,
             address underlying,
+            ,
             address strike,
+            ,
             address collateral,
             uint8 collateralDecimals
         ) = getDetailFromProductId(productId);

@@ -422,7 +422,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
      * @dev get a struct that stores all relevent token addresses, along with collateral asset decimals
      */
     function _getProductDetails(uint40 _productId) internal view returns (ProductDetails memory info) {
-        (address oracle, , address underlying, address strike, address collateral, uint8 collatDecimals) = grappa
+        (address oracle, , address underlying, , address strike, , address collateral, uint8 collatDecimals) = grappa
             .getDetailFromProductId(_productId);
         info.oracle = oracle;
         info.underlying = underlying;

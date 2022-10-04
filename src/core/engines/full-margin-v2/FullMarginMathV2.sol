@@ -6,7 +6,6 @@ import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import {MoneynessLib} from "../../../libraries/MoneynessLib.sol";
 import {NumberUtil} from "../../../libraries/NumberUtil.sol";
-import {TokensUtil} from "../../../libraries/TokensUtil.sol";
 import {ArrayUtil} from "../../../libraries/ArrayUtil.sol";
 
 import "../../../config/constants.sol";
@@ -26,7 +25,6 @@ library FullMarginMathV2 {
     using FixedPointMathLib for uint256;
     using SafeCast for int256;
     using SafeCast for uint256;
-    using TokensUtil for uint256[];
 
     /**
      * @notice get minimum collateral denominated in strike asset
@@ -34,9 +32,12 @@ library FullMarginMathV2 {
      * @return cashCollateralNeeded with {BASE_UNIT} decimals
      * @return underlyingNeeded with {BASE_UNIT} decimals
      */
-    function getMinCollateral(FullMarginDetailV2 memory _detail) internal view returns (uint256, uint256) {
-        int256 cashCollateralNeeded;
-        int256 underlyingNeeded;
+    function getMinCollateral(FullMarginDetailV2 memory _detail)
+        internal
+        pure
+        returns (int256 cashCollateralNeeded, int256 underlyingNeeded)
+    {
+        // TODO: requires weights and strikes are the same
 
         uint256 epsilon = _detail.spotPrice / 10;
 
@@ -48,14 +49,14 @@ library FullMarginMathV2 {
 
         if (_detail.putStrikes.length > 0) {
             minPutStrike = _detail.putStrikes.min();
-            pricePois = pricePois.add(minPutStrike - epsilon);
+            pricePois = pricePois.append(minPutStrike - epsilon);
             pricePois = pricePois.concat(_detail.putStrikes);
         }
 
         if (_detail.callStrikes.length > 0) {
             maxCallStrike = _detail.callStrikes.max();
             pricePois = pricePois.concat(_detail.callStrikes);
-            pricePois = pricePois.add(maxCallStrike + epsilon);
+            pricePois = pricePois.append(maxCallStrike + epsilon);
         }
 
         int256[] memory payouts = getPayouts(_detail, pricePois);
@@ -66,7 +67,7 @@ library FullMarginMathV2 {
         if (_detail.putStrikes.length > 0) {
             cashCollateralNeeded = getCashCollateralNeeded(pricePois, payouts, minPutStrike, epsilon);
 
-            cashCollateralNeeded = getAdjustedCashCollateralNeeded(
+            cashCollateralNeeded = getUnderlyingAdjustedCashCollateralNeeded(
                 _detail,
                 pricePois,
                 payouts,
@@ -74,12 +75,20 @@ library FullMarginMathV2 {
                 underlyingNeeded
             );
         }
-        return (cashCollateralNeeded.toUint256(), underlyingNeeded.toUint256());
+
+        return (
+            NumberUtil
+                .convertDecimals(cashCollateralNeeded.toUint256(), UNIT_DECIMALS, _detail.collateralDecimals)
+                .toInt256(),
+            NumberUtil
+                .convertDecimals(underlyingNeeded.toUint256(), UNIT_DECIMALS, _detail.underlyingDecimals)
+                .toInt256()
+        );
     }
 
     function getPayouts(FullMarginDetailV2 memory _detail, uint256[] memory pricePois)
         internal
-        view
+        pure
         returns (int256[] memory payouts)
     {
         payouts = new int256[](pricePois.length);
@@ -113,7 +122,7 @@ library FullMarginMathV2 {
         int256[] memory payouts,
         uint256 maxCallStrike,
         uint256 epsilon
-    ) internal view returns (int256 underlyingNeeded) {
+    ) internal pure returns (int256 underlyingNeeded) {
         int256 rightMostPayoutScenario = payouts.at(-1); // we placed it here
 
         (, uint256 index) = pricePois.indexOf(maxCallStrike);
@@ -129,7 +138,7 @@ library FullMarginMathV2 {
         int256[] memory payouts,
         uint256 minPutStrike,
         uint256 epsilon
-    ) internal view returns (int256 cashCollateralNeeded) {
+    ) internal pure returns (int256 cashCollateralNeeded) {
         int256 leftMostPayoutScenario = payouts[0]; // we placed it here
 
         (, uint256 index) = pricePois.indexOf(minPutStrike);
@@ -139,13 +148,13 @@ library FullMarginMathV2 {
         cashCollateralNeeded = (cashCollateralNeeded * minPutStrike.toInt256()) / sUNIT;
     }
 
-    function getAdjustedCashCollateralNeeded(
+    function getUnderlyingAdjustedCashCollateralNeeded(
         FullMarginDetailV2 memory _detail,
         uint256[] memory pricePois,
         int256[] memory payouts,
         int256 cashCollateralNeeded,
         int256 underlyingNeeded
-    ) internal view returns (int256) {
+    ) internal pure returns (int256) {
         int256 putsStartPos = sZERO;
         int256 callsEndPos = (_detail.putStrikes.length + _detail.callStrikes.length).toInt256();
 

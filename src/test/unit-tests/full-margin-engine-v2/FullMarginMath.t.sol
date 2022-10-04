@@ -54,12 +54,17 @@ contract TestStructures_FMMV2 is Test {
             putStrikes: putStrikes,
             callWeights: callWeights,
             callStrikes: callStrikes,
-            spotPrice: spotPrice
+            underlyingId: 0,
+            underlyingDecimals: UNIT_DECIMALS,
+            collateralId: 0,
+            collateralDecimals: UNIT_DECIMALS,
+            spotPrice: spotPrice,
+            expiry: 0
         });
 
-        (uint256 collateralNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(collateralNeeded, 28000 * UNIT);
-        assertEq(underlyingNeeded, ZERO);
+        (int256 collateralNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(collateralNeeded, 28000 * sUNIT);
+        assertEq(underlyingNeeded, sZERO);
     }
 
     function testMarginRequirement3() public {
@@ -70,12 +75,17 @@ contract TestStructures_FMMV2 is Test {
             putStrikes: putStrikes,
             callWeights: callWeights,
             callStrikes: callStrikes,
-            spotPrice: spotPrice
+            underlyingId: 0,
+            underlyingDecimals: UNIT_DECIMALS,
+            collateralId: 0,
+            collateralDecimals: UNIT_DECIMALS,
+            spotPrice: spotPrice,
+            expiry: 0
         });
 
-        (uint256 collateralNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(collateralNeeded, 28000 * UNIT);
-        assertEq(underlyingNeeded, ZERO);
+        (int256 collateralNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(collateralNeeded, 28000 * sUNIT);
+        assertEq(underlyingNeeded, sZERO);
     }
 
     function testMarginRequirement2() public {
@@ -86,12 +96,17 @@ contract TestStructures_FMMV2 is Test {
             putStrikes: putStrikes,
             callWeights: callWeights,
             callStrikes: callStrikes,
-            spotPrice: spotPrice
+            underlyingId: 0,
+            underlyingDecimals: UNIT_DECIMALS,
+            collateralId: 0,
+            collateralDecimals: UNIT_DECIMALS,
+            spotPrice: spotPrice,
+            expiry: 0
         });
 
-        (uint256 collateralNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(collateralNeeded, 3000 * UNIT);
-        assertEq(underlyingNeeded, 1 * UNIT);
+        (int256 collateralNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(collateralNeeded, 3000 * sUNIT);
+        assertEq(underlyingNeeded, 1 * sUNIT);
     }
 
     function testMarginRequirement4() public {
@@ -103,12 +118,17 @@ contract TestStructures_FMMV2 is Test {
             putStrikes: putStrikes,
             callWeights: callWeights,
             callStrikes: callStrikes,
-            spotPrice: spotPrice
+            underlyingId: 0,
+            underlyingDecimals: UNIT_DECIMALS,
+            collateralId: 0,
+            collateralDecimals: UNIT_DECIMALS,
+            spotPrice: spotPrice,
+            expiry: 0
         });
 
-        (uint256 collateralNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(collateralNeeded, 34000 * UNIT);
-        assertEq(underlyingNeeded, ZERO);
+        (int256 collateralNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(collateralNeeded, 34000 * sUNIT);
+        assertEq(underlyingNeeded, sZERO);
     }
 }
 
@@ -142,12 +162,17 @@ contract TestVanillaCall_FMMV2 is Test {
             putStrikes: putStrikes,
             callWeights: callWeights,
             callStrikes: callStrikes,
-            spotPrice: spotPrice
+            underlyingId: 0,
+            underlyingDecimals: UNIT_DECIMALS,
+            collateralId: 0,
+            collateralDecimals: UNIT_DECIMALS,
+            spotPrice: spotPrice,
+            expiry: 0
         });
 
-        (uint256 collateralNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(collateralNeeded, ZERO);
-        assertEq(underlyingNeeded, 1 * UNIT);
+        (int256 collateralNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(collateralNeeded, sZERO);
+        assertEq(underlyingNeeded, 1 * sUNIT);
     }
 }
 
@@ -181,11 +206,16 @@ contract TestVanillaPut_FMMV2 is Test {
             putStrikes: putStrikes,
             callWeights: callWeights,
             callStrikes: callStrikes,
-            spotPrice: spotPrice
+            underlyingId: 0,
+            underlyingDecimals: UNIT_DECIMALS,
+            collateralId: 0,
+            collateralDecimals: UNIT_DECIMALS,
+            spotPrice: spotPrice,
+            expiry: 0
         });
 
-        (uint256 collateralNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(collateralNeeded, 18000 * UNIT);
-        assertEq(underlyingNeeded, ZERO);
+        (int256 collateralNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(collateralNeeded, 18000 * sUNIT);
+        assertEq(underlyingNeeded, sZERO);
     }
 }

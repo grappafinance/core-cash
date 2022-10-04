@@ -19,16 +19,16 @@ contract ArrayUtilTest is Test {
 
     function testConcat() public {
         uint256[] memory array1 = new uint256[](0);
-        array1 = array1.add(1);
-        array1 = array1.add(2);
+        array1 = array1.append(1);
+        array1 = array1.append(2);
 
         assertEq(array1.length, 2);
         assertEq(array1[0], 1);
         assertEq(array1[1], 2);
 
         uint256[] memory array2 = new uint256[](0);
-        array2 = array2.add(3);
-        array2 = array2.add(4);
+        array2 = array2.append(3);
+        array2 = array2.append(4);
         array1 = array1.concat(array2);
 
         assertEq(array1.length, 4);
@@ -38,7 +38,7 @@ contract ArrayUtilTest is Test {
         assertEq(array1[3], 4);
 
         array1 = new uint256[](0);
-        array1 = array1.add(1);
+        array1 = array1.append(1);
         array2 = new uint256[](0);
         array1 = array1.concat(array2);
 
@@ -48,9 +48,9 @@ contract ArrayUtilTest is Test {
 
     function testNegativeIndexSelector() public {
         uint256[] memory array1 = new uint256[](0);
-        array1 = array1.add(1);
-        array1 = array1.add(2);
-        array1 = array1.add(3);
+        array1 = array1.append(1);
+        array1 = array1.append(2);
+        array1 = array1.append(3);
 
         uint256 element;
 

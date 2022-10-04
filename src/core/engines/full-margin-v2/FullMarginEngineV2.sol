@@ -7,7 +7,6 @@ import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
 
 // interfaces
 import {IOracle} from "../../../interfaces/IOracle.sol";
-import {IGrappa} from "../../../interfaces/IGrappa.sol";
 import {IMarginEngine} from "../../../interfaces/IMarginEngine.sol";
 
 // librarise
@@ -24,6 +23,8 @@ import "../../../config/enums.sol";
 import "../../../config/constants.sol";
 import "../../../config/errors.sol";
 
+import "../../../test/utils/Console.sol";
+
 /**
  * @title   FullMarginEngine
  * @author  @dsshap & @antoncoding
@@ -33,10 +34,17 @@ import "../../../config/errors.sol";
             Interacts with grappa to fetch registered asset info
  */
 contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
+    using ArrayUtil for bytes32[];
+    using ArrayUtil for uint8[];
+    using ArrayUtil for uint64[];
+    using ArrayUtil for uint80[];
+    using ArrayUtil for int256[];
+    using ArrayUtil for uint256[];
     using FullMarginLibV2 for FullMarginAccountV2;
-    using FullMarginMathV2 for FullMarginAccountV2;
-    using TokenIdUtil for uint256;
+    using FullMarginMathV2 for FullMarginDetailV2;
+    using SafeCast for uint64;
     using SafeCast for uint256;
+    using TokenIdUtil for uint256;
 
     /*///////////////////////////////////////////////////////////////
                                   Variables
@@ -92,13 +100,16 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
     /**
      * @notice get minimum collateral needed for a margin account
      * @param _subAccount account id.
-     * @return minCollateral minimum collateral required, in collateral asset's decimals
+     * @return collaterals array of collaterals
+     * @return amounts array of amounts
      */
-    function getMinCollateral(address _subAccount) external view override returns (uint256 minCollateral) {
-        // FullMarginAccountV2 memory account = accounts[_subAccount];
-        // FullMarginDetailV2 memory detail = _getAccountDetail(account);
-        // minCollateral = detail.getMinCollateral();
-        minCollateral = 0;
+    function getMinCollateral(address _subAccount)
+        external
+        view
+        returns (uint8[] memory collaterals, int256[] memory amounts)
+    {
+        FullMarginAccountV2 memory account = accounts[_subAccount];
+        (collaterals, amounts) = _getMinCollateral(account);
     }
 
     /**
@@ -190,10 +201,14 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
      * @return isHealthy true if account is in good condition, false if it's underwater (liquidatable)
      */
     function _isAccountAboveWater(address _subAccount) internal view override returns (bool isHealthy) {
-        // FullMarginAccount memory account = accounts[_subAccount];
-        // uint256 minCollateral = _getMinCollateral(account);
-        // isHealthy = account.collateralAmount >= minCollateral;
-        isHealthy = true;
+        FullMarginAccountV2 memory account = accounts[_subAccount];
+        (, int256[] memory collateralAmounts) = _getMinCollateral(account);
+
+        for (uint256 i = 0; i < collateralAmounts.length; i++) {
+            if (collateralAmounts[i] < 0) return false;
+        }
+
+        return true;
     }
 
     /**
@@ -212,38 +227,168 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
                             Internal Functions
      ** ========================================================= **/
 
-    function _getMinCollateral(FullMarginAccountV2 memory account) internal view returns (uint256) {
-        // FullMarginDetail memory detail = _getAccountDetail(account);
-        // return detail.getMinCollateral();
-        return 0;
+    function _getMinCollateral(FullMarginAccountV2 memory account)
+        internal
+        view
+        returns (uint8[] memory collaterals, int256[] memory collateralAmounts)
+    {
+        FullMarginDetailV2[] memory details = _getAccountDetails(account);
+
+        collaterals = account.collaterals;
+        collateralAmounts = account.collateralAmounts.toInt256();
+
+        if (details.length == 0) return (collaterals, collateralAmounts);
+
+        consoleG.log("before collaterals");
+        consoleG.log(collaterals);
+        consoleG.log("before amount");
+        consoleG.log(collateralAmounts);
+
+        bool found;
+        uint256 index;
+
+        for (uint256 i = 0; i < details.length; i++) {
+            FullMarginDetailV2 memory detail = details[i];
+
+            (int256 cashCollateralNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+
+            if (cashCollateralNeeded > 0) {
+                (found, index) = collaterals.indexOf(detail.collateralId);
+                if (found) collateralAmounts[index] -= cashCollateralNeeded;
+                else {
+                    collaterals = collaterals.append(detail.collateralId);
+                    collateralAmounts = collateralAmounts.append(-cashCollateralNeeded);
+                }
+            }
+
+            if (underlyingNeeded > 0) {
+                (found, index) = collaterals.indexOf(detail.underlyingId);
+                if (found) collateralAmounts[index] -= underlyingNeeded;
+                else {
+                    collaterals = collaterals.append(detail.underlyingId);
+                    collateralAmounts = collateralAmounts.append(-underlyingNeeded);
+                }
+            }
+            consoleG.log("cashCollateralNeeded");
+            consoleG.logInt(cashCollateralNeeded);
+            consoleG.log("underlyingNeeded");
+            consoleG.logInt(underlyingNeeded);
+        }
+
+        consoleG.log("after collaterals");
+        consoleG.log(collaterals);
+        consoleG.log("after amount");
+        consoleG.log(collateralAmounts);
     }
 
     /**
      * @notice  convert Account struct from storage to in-memory detail struct
      */
-    // function _getAccountDetail(FullMarginAccountV2 memory account)
-    //     internal
-    //     view
-    //     returns (FullMarginDetail memory detail)
-    // {
-    //     (TokenType tokenType, uint40 productId, , uint64 longStrike, uint64 shortStrike) = account
-    //         .tokenId
-    //         .parseTokenId();
+    function _getAccountDetails(FullMarginAccountV2 memory account)
+        internal
+        view
+        returns (FullMarginDetailV2[] memory details)
+    {
+        details = new FullMarginDetailV2[](0);
 
-    //     (, , , uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(productId);
+        bytes32[] memory uceLookUp = new bytes32[](0);
 
-    //     bool collateralizedWithStrike = collateralId == strikeId;
+        uint256[] memory tokenIds = account.shorts.concat(account.longs);
+        uint64[] memory tokenAmounts = account.shortAmounts.concat(account.longAmounts);
 
-    //     uint8 collateralDecimals = grappa.assets(collateralId).decimals;
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            (, uint40 productId, uint64 expiry, , ) = tokenIds[i].parseTokenId();
 
-    //     detail = FullMarginDetailV2({
-    //         shortAmount: account.shortAmount,
-    //         longStrike: shortStrike,
-    //         shortStrike: longStrike,
-    //         collateralAmount: account.collateralAmount,
-    //         collateralDecimals: collateralDecimals,
-    //         collateralizedWithStrike: collateralizedWithStrike,
-    //         tokenType: tokenType
-    //     });
-    // }
+            ProductDetails memory product = _getProductDetails(productId);
+
+            FullMarginDetailV2 memory detail;
+
+            bytes32 pos = keccak256(abi.encode(product.underlyingId, product.collateralId, expiry));
+            (bool found, uint256 index) = uceLookUp.indexOf(pos);
+
+            if (found) detail = details[index];
+            else {
+                uceLookUp = uceLookUp.append(pos);
+                details = _appendDetail(details, detail);
+
+                detail.underlyingId = product.underlyingId;
+                detail.underlyingDecimals = product.underlyingDecimals;
+                detail.collateralId = product.collateralId;
+                detail.collateralDecimals = product.collateralDecimals;
+                detail.spotPrice = IOracle(product.oracle).getSpotPrice(product.underlying, product.strike);
+                detail.expiry = expiry;
+            }
+
+            int256 amount = tokenAmounts[i].toInt256();
+            if (i < account.shorts.length) amount = -amount;
+
+            _processDetailWithToken(detail, tokenIds[i], amount);
+        }
+    }
+
+    function _processDetailWithToken(
+        FullMarginDetailV2 memory detail,
+        uint256 tokenId,
+        int256 amount
+    ) internal pure {
+        (TokenType tokenType, , , uint64 longStrike, ) = tokenId.parseTokenId();
+
+        bool found;
+        uint256 index;
+
+        if (tokenType == TokenType.CALL) {
+            (found, index) = detail.callStrikes.indexOf(longStrike);
+            if (found) detail.callWeights[index] += amount;
+            else {
+                detail.callStrikes = detail.callStrikes.append(longStrike);
+                detail.callWeights = detail.callWeights.append(amount);
+            }
+        }
+
+        if (tokenType == TokenType.PUT) {
+            (found, index) = detail.putStrikes.indexOf(longStrike);
+            if (found) detail.putWeights[index] += amount;
+            else {
+                detail.putStrikes = detail.putStrikes.append(longStrike);
+                detail.putWeights = detail.putWeights.append(amount);
+            }
+        }
+    }
+
+    function _appendDetail(FullMarginDetailV2[] memory array, FullMarginDetailV2 memory detail)
+        internal
+        pure
+        returns (FullMarginDetailV2[] memory details)
+    {
+        details = new FullMarginDetailV2[](array.length + 1);
+        uint256 i;
+        for (i = 0; i < array.length; i++) {
+            details[i] = array[i];
+        }
+        details[i] = detail;
+    }
+
+    function _getProductDetails(uint40 _productId) internal view returns (ProductDetails memory info) {
+        (, , uint8 underlyingId, , uint8 collateralId) = ProductIdUtil.parseProductId(_productId);
+
+        (
+            address oracle,
+            ,
+            address underlying,
+            uint8 underlyingDecimals,
+            address strike,
+            ,
+            address collateral,
+            uint8 collatDecimals
+        ) = grappa.getDetailFromProductId(_productId);
+
+        info.oracle = oracle;
+        info.underlying = underlying;
+        info.underlyingDecimals = underlyingDecimals;
+        info.strike = strike;
+        info.collateral = collateral;
+        info.collateralDecimals = collatDecimals;
+        info.underlyingId = underlyingId;
+        info.collateralId = collateralId;
+    }
 }
