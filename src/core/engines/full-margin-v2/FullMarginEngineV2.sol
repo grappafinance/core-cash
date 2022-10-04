@@ -23,8 +23,6 @@ import "../../../config/enums.sol";
 import "../../../config/constants.sol";
 import "../../../config/errors.sol";
 
-import "../../../test/utils/Console.sol";
-
 /**
  * @title   FullMarginEngine
  * @author  @dsshap & @antoncoding
@@ -239,11 +237,6 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
 
         if (details.length == 0) return (collaterals, collateralAmounts);
 
-        consoleG.log("before collaterals");
-        consoleG.log(collaterals);
-        consoleG.log("before amount");
-        consoleG.log(collateralAmounts);
-
         bool found;
         uint256 index;
 
@@ -269,16 +262,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
                     collateralAmounts = collateralAmounts.append(-underlyingNeeded);
                 }
             }
-            consoleG.log("cashCollateralNeeded");
-            consoleG.logInt(cashCollateralNeeded);
-            consoleG.log("underlyingNeeded");
-            consoleG.logInt(underlyingNeeded);
         }
-
-        consoleG.log("after collaterals");
-        consoleG.log(collaterals);
-        consoleG.log("after amount");
-        consoleG.log(collateralAmounts);
     }
 
     /**

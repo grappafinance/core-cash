@@ -2,7 +2,7 @@
 pragma solidity >=0.8.0;
 
 /* solhint-disable */
-library consoleG {
+library console {
     address constant CONSOLE_ADDRESS = address(0x000000000000000000636F6e736F6c652e6c6f67);
 
     function _sendLogPayload(bytes memory payload) private view {

@@ -109,7 +109,7 @@ struct ProductDetails {
 }
 
 /**
- * @notice  parameters for calculating min collateral for a speicif product
+ * @notice  parameters for calculating min collateral for a specific product
  * @dev     this formula and parameter struct is used for AdvancedMargin
  *
  *                  sqrt(expiry - now) - sqrt(D_lower)
