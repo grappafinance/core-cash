@@ -110,4 +110,21 @@ contract ArrayUtilTest is Test {
         slice = array.slice(-1, -2);
         assertEq(slice.length, 0);
     }
+
+    function testSort() public {
+        uint256[] memory array = new uint256[](5);
+        array[0] = 4;
+        array[1] = 2;
+        array[2] = 1;
+        array[3] = 5;
+        array[4] = 3;
+
+        uint256[] memory sorted = array.sort();
+        assertEq(sorted.length, 5);
+        assertEq(sorted[0], 1);
+        assertEq(sorted[1], 2);
+        assertEq(sorted[2], 3);
+        assertEq(sorted[3], 4);
+        assertEq(sorted[4], 5);
+    }
 }

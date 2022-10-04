@@ -23,6 +23,8 @@ import "../../../config/enums.sol";
 import "../../../config/constants.sol";
 import "../../../config/errors.sol";
 
+import "../../../test/utils/Console.sol";
+
 /**
  * @title   FullMarginEngine
  * @author  @dsshap & @antoncoding
@@ -40,7 +42,6 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
     using ArrayUtil for uint256[];
     using FullMarginLibV2 for FullMarginAccountV2;
     using FullMarginMathV2 for FullMarginDetailV2;
-    using SafeCast for uint64;
     using SafeCast for uint256;
     using TokenIdUtil for uint256;
 
@@ -150,6 +151,23 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
     }
 
     /** ========================================================= **
+                   Override Internal Functions For Each Action
+     ** ========================================================= **/
+
+    /**
+     * @notice  settle the margin account at expiry
+     * @dev     this update the account memory in-place
+     */
+    function _settle(address _subAccount) internal override {
+        (uint8[] memory collaterals, uint80[] memory payouts) = _getAccountPayout2(_subAccount);
+
+        // update the account in state
+        _settleAccount2(_subAccount, collaterals, payouts);
+
+        emit AccountSettled2(_subAccount, collaterals, payouts);
+    }
+
+    /** ========================================================= **
      *               Override Sate changing functions             *
      ** ========================================================= **/
 
@@ -185,8 +203,12 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
         accounts[_subAccount].burnOption(tokenId, amount);
     }
 
-    function _settleAccount(address _subAccount, uint80 payout) internal override {
-        accounts[_subAccount].settleAtExpiry(payout);
+    function _settleAccount2(
+        address _subAccount,
+        uint8[] memory collaterals,
+        uint80[] memory payouts
+    ) internal {
+        accounts[_subAccount].settleAtExpiry(collaterals, payouts);
     }
 
     /** ========================================================= **
@@ -209,16 +231,43 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
         return true;
     }
 
+    // figure out how to handle not implementing this version of _getAccountPayout
+    function _getAccountPayout(address _subAccount) internal view override returns (uint80) {}
+
     /**
      * @notice  return amount of collateral that should be reserved to payout long positions
      * @dev     this function will revert when called before expiry
      * @param _subAccount account id
+     * @return collaterals list of collaterals affected
+     * @return payouts list of payouts for each collateral
      */
-    function _getAccountPayout(address _subAccount) internal view override returns (uint80) {
-        // FullMarginAccountV2 memory account = accounts[_subAccount];
-        // (, , uint256 payout) = grappa.getPayout(account.tokenId, account.shortAmount);
-        // return payout.toUint80();
-        return 0;
+    function _getAccountPayout2(address _subAccount)
+        internal
+        view
+        returns (uint8[] memory collaterals, uint80[] memory payouts)
+    {
+        FullMarginAccountV2 memory account = accounts[_subAccount];
+
+        collaterals = new uint8[](0);
+        payouts = new uint80[](0);
+
+        for (uint256 i = 0; i < account.shorts.length; i++) {
+            uint256 tokenId = account.shorts[i];
+            (, uint40 productId, uint64 expiry, , ) = tokenId.parseTokenId();
+
+            if (block.timestamp < expiry) continue;
+
+            ProductDetails memory product = _getProductDetails(productId);
+
+            (, , uint256 payout) = grappa.getPayout(tokenId, account.shortAmounts[i]);
+
+            (bool found, uint256 index) = collaterals.indexOf(product.collateralId);
+            if (found) payouts[index] += payout.toUint80();
+            else {
+                collaterals = collaterals.append(product.collateralId);
+                payouts = payouts.append(payout.toUint80());
+            }
+        }
     }
 
     /** ========================================================= **
@@ -303,7 +352,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
                 detail.expiry = expiry;
             }
 
-            int256 amount = tokenAmounts[i].toInt256();
+            int256 amount = int256(int64(tokenAmounts[i]));
             if (i < account.shorts.length) amount = -amount;
 
             _processDetailWithToken(detail, tokenIds[i], amount);

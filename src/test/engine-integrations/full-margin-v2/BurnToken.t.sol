@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 // import test base and helpers.
 import {FullMarginFixtureV2} from "./FullMarginFixtureV2.t.sol";
+import {stdError} from "forge-std/Test.sol";
 
 import "../../../config/enums.sol";
 import "../../../config/types.sol";
@@ -62,5 +63,43 @@ contract TestBurnOption_FMV2 is FullMarginFixtureV2 {
         // action
         vm.expectRevert(FM_InvalidToken.selector);
         engine.execute(subAccount, actions); // execute on subaccount
+    }
+
+    function testCannotBurnForEmptyAccount() public {
+        address subAccount = address(uint160(address(this)) - 1);
+
+        // build burn account
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createBurnAction(tokenId, address(this), amount);
+
+        // action
+        vm.expectRevert(FM_InvalidToken.selector);
+        engine.execute(subAccount, actions); // execute on subaccount
+    }
+
+    function testCannotBurnWhenOptionTokenBalanceIsLow() public {
+        // prepare: transfer some optionToken out
+        option.safeTransferFrom(address(this), alice, tokenId, 1, "");
+
+        // build burn arg
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createBurnAction(tokenId, address(this), amount);
+
+        // expect
+        vm.expectRevert(stdError.arithmeticError);
+        engine.execute(address(this), actions);
+    }
+
+    function testCannotBurnFromUnAuthorizedAccount() public {
+        // send option to alice
+        option.safeTransferFrom(address(this), alice, tokenId, amount, "");
+
+        // build burn arg: try building with alice's options
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createBurnAction(tokenId, alice, amount);
+
+        // expect error
+        vm.expectRevert(BM_InvalidFromAddress.selector);
+        engine.execute(address(this), actions);
     }
 }

@@ -17,12 +17,12 @@ import "../../../test/utils/Console.sol";
  * @dev   This library is in charge of updating the simple account memory struct and do validations
  */
 library FullMarginLibV2 {
-    using TokenIdUtil for uint256;
-    using ProductIdUtil for uint40;
     using ArrayUtil for uint8[];
     using ArrayUtil for uint64[];
     using ArrayUtil for uint80[];
     using ArrayUtil for uint256[];
+    using ProductIdUtil for uint40;
+    using TokenIdUtil for uint256;
 
     /**
      * @dev return true if the account has no short,long positions nor collateral
@@ -113,18 +113,22 @@ library FullMarginLibV2 {
         } else account.shortAmounts[index] = newShortAmount;
     }
 
-    function settleAtExpiry(FullMarginAccountV2 storage account, uint80 _payout) internal {
+    function settleAtExpiry(
+        FullMarginAccountV2 storage account,
+        uint8[] memory collaterals,
+        uint80[] memory payouts
+    ) internal {
         // clear all debt
         delete account.shorts;
         delete account.shortAmounts;
 
-        // TODO need to choose collateral
+        for (uint256 i = 0; i < collaterals.length; i++) {
+            uint8 collateralId = collaterals[i];
+            uint80 payout = payouts[i];
 
-        // TODO: redeem longs?
+            (, uint256 index) = account.collaterals.indexOf(collateralId);
 
-        // this line should not underflow because collateral should always be enough
-        // but keeping the underflow check to make sure
-
-        // account.collateralAmount = account.collateralAmount - _payout;
+            account.collateralAmounts[index] = account.collateralAmounts[index] - payout;
+        }
     }
 }
