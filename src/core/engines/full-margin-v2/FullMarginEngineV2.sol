@@ -14,7 +14,6 @@ import {IMarginEngine} from "../../../interfaces/IMarginEngine.sol";
 import {TokenIdUtil} from "../../../libraries/TokenIdUtil.sol";
 import {ProductIdUtil} from "../../../libraries/ProductIdUtil.sol";
 
-import {FullMarginMathV2} from "./FullMarginMathV2.sol";
 import {FullMarginLibV2} from "./FullMarginLibV2.sol";
 
 // constants and types
@@ -33,7 +32,6 @@ import "../../../config/errors.sol";
  */
 contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
     using FullMarginLibV2 for FullMarginAccountV2;
-    using FullMarginMathV2 for FullMarginDetail;
     using TokenIdUtil for uint256;
     using SafeCast for uint256;
 
