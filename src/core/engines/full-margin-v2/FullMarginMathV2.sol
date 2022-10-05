@@ -47,6 +47,9 @@ library FullMarginMathV2 {
         returns (int256 cashCollateralNeeded, int256 underlyingNeeded)
     {
         // TODO: requires weights and strikes are the same
+        // assert(len(putWeights) == len(putStrikes))
+        // assert(len(callWeights)==len(callStrikes))
+        // assert(strikes are in ascending order)
 
         (
             uint256[] memory strikes,
@@ -151,6 +154,9 @@ library FullMarginMathV2 {
 
     function calcSlope(int256[] memory leftPoint, int256[] memory rightPoint) internal pure returns (int256) {
         // TODO add assertions
+        // assert(left_point[0] < right_point[0])
+        // assert(len(left_point)==2)
+        // assert(len(left_point)==len(right_point))
         return (((rightPoint[1] - leftPoint[1]) * sUNIT) / ((rightPoint[0] - leftPoint[0]) * sUNIT)) * sUNIT;
     }
 
@@ -168,6 +174,7 @@ library FullMarginMathV2 {
         rightPoint[0] = pois.at(-1).toInt256();
         rightPoint[1] = payouts.at(-1);
 
+        // slope
         underlyingNeeded = calcSlope(leftPoint, rightPoint);
         underlyingNeeded = underlyingNeeded < sZERO ? -underlyingNeeded : sZERO;
     }
@@ -183,7 +190,7 @@ library FullMarginMathV2 {
 
         cashCollateralNeeded = ((minStrike.toInt256() * cashCollateralNeeded) / sUNIT) - payouts[1];
 
-        if (cashCollateralNeeded < 0) cashCollateralNeeded = 0;
+        if (cashCollateralNeeded < sZERO) cashCollateralNeeded = sZERO;
     }
 
     function getUnderlyingAdjustedCashCollateralNeeded(
