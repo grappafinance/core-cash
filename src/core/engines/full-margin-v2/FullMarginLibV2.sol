@@ -131,13 +131,13 @@ library FullMarginLibV2 {
         } else if (optionType == TokenType.PUT) {
             _addIntoSortedListAndIncreaseAmount(account.longPuts, false, longStrike, amount);
         } else if (optionType == TokenType.CALL_SPREAD) {
-            // add a call spread: 
+            // add a call spread:
             // long array: + long strike
             // short array: + short strike
             _addIntoSortedListAndIncreaseAmount(account.longCalls, true, longStrike, amount);
             _addIntoSortedListAndIncreaseAmount(account.shortCalls, true, shortStrike, amount);
         } else if (optionType == TokenType.PUT_SPREAD) {
-            // add a put spread: 
+            // add a put spread:
             // long array: + long strike
             // short array: + short strike
             _addIntoSortedListAndIncreaseAmount(account.longPuts, false, longStrike, amount);
@@ -171,7 +171,6 @@ library FullMarginLibV2 {
         }
     }
 
-    
     function settleAtExpiry(FullMarginAccountV2 storage account, uint80 _payout) internal {}
 
     function getMinCollateral(
