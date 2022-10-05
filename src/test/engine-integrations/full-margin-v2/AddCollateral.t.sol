@@ -28,12 +28,10 @@ contract TestAddCollateral_FMV2 is FullMarginFixtureV2 {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         engine.execute(address(this), actions);
-        (, , , , uint8[] memory _collaterals, uint80[] memory _collateralAmounts) = engine.marginAccounts(
-            address(this)
-        );
+        (, , Balance[] memory _collaters) = engine.marginAccounts(address(this));
 
-        assertEq(_collaterals[0], usdcId);
-        assertEq(_collateralAmounts[0], depositAmount);
+        assertEq(_collaters[0].collateralId, usdcId);
+        assertEq(_collaters[0].amount, depositAmount);
     }
 
     function testAddCollateralMoveBalance() public {
@@ -79,16 +77,13 @@ contract TestAddCollateral_FMV2 is FullMarginFixtureV2 {
 
         engine.execute(address(this), actions);
 
-        (, , , , uint8[] memory _collaterals, uint80[] memory _collateralAmounts) = engine.marginAccounts(
-            address(this)
-        );
+        (, , Balance[] memory _collaterals) = engine.marginAccounts(address(this));
 
         assertEq(_collaterals.length, 2);
-        assertEq(_collateralAmounts.length, 2);
-        assertEq(_collaterals[0], usdcId);
-        assertEq(_collateralAmounts[0], usdcAmount);
-        assertEq(_collaterals[1], wethId);
-        assertEq(_collateralAmounts[1], wethAmount);
+        assertEq(_collaterals[0].collateralId, usdcId);
+        assertEq(_collaterals[0].amount, usdcAmount);
+        assertEq(_collaterals[1].collateralId, wethId);
+        assertEq(_collaterals[1].amount, wethAmount);
     }
 
     function testCannotAddCollatFromOthers() public {

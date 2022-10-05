@@ -85,9 +85,7 @@ contract TestSettleCoveredCall_FMV2 is FullMarginFixtureV2 {
         // expires out the money
         oracle.setExpiryPrice(address(weth), address(usdc), strike - 1);
 
-        (, , , , uint8[] memory collateralsBefore, uint80[] memory collateralAmountsBefore) = engine.marginAccounts(
-            address(this)
-        );
+        (, , Balance[] memory collateralsBefore) = engine.marginAccounts(address(this));
 
         // covered call, underlying and collateral are the same
         // uint256 uIndex = 0;
@@ -99,22 +97,14 @@ contract TestSettleCoveredCall_FMV2 is FullMarginFixtureV2 {
         engine.execute(address(this), actions);
 
         //margin account should be reset
-        (
-            uint256[] memory shorts,
-            uint64[] memory shortAmounts,
-            ,
-            ,
-            uint8[] memory collateralsAfter,
-            uint80[] memory collateralAmountsAfter
-        ) = engine.marginAccounts(address(this));
+        (Position[] memory shorts, , Balance[] memory collateralsAfter) = engine.marginAccounts(address(this));
 
         assertEq(shorts.length, 0);
-        assertEq(shortAmounts.length, 0);
         assertEq(collateralsAfter.length, collateralsBefore.length);
-        // assertEq(collateralsAfter[uIndex], collateralsBefore[uIndex]);
-        // assertEq(collateralAmountsAfter[uIndex], collateralAmountsBefore[uIndex]);
-        assertEq(collateralsAfter[cIndex], collateralsBefore[cIndex]);
-        assertEq(collateralAmountsAfter[cIndex], collateralAmountsBefore[cIndex]);
+        // assertEq(collateralsAfter[uIndex].collateralId, collateralsBefore[uIndex].collateralId);
+        // assertEq(collateralsAfter[uIndex].amount, collateralsBefore[uIndex].amount);
+        assertEq(collateralsAfter[cIndex].collateralId, collateralsBefore[cIndex].collateralId);
+        assertEq(collateralsAfter[cIndex].amount, collateralsBefore[cIndex].amount);
     }
 
     function testSellerCollateralIsReducedIfExpiresITM() public {
@@ -124,9 +114,7 @@ contract TestSettleCoveredCall_FMV2 is FullMarginFixtureV2 {
 
         uint256 expectedPayout = ((uint64(expiryPrice) - strike) / 5000) * (10**(18 - UNIT_DECIMALS));
 
-        (, , , , uint8[] memory collateralsBefore, uint80[] memory collateralAmountsBefore) = engine.marginAccounts(
-            address(this)
-        );
+        (, , Balance[] memory collateralsBefore) = engine.marginAccounts(address(this));
 
         // covered call, underlying and collateral are the same
         // uint256 uIndex = 0;
@@ -138,22 +126,14 @@ contract TestSettleCoveredCall_FMV2 is FullMarginFixtureV2 {
         engine.execute(address(this), actions);
 
         // margin account should be reset
-        (
-            uint256[] memory shorts,
-            uint64[] memory shortAmounts,
-            ,
-            ,
-            uint8[] memory collateralsAfter,
-            uint80[] memory collateralAmountsAfter
-        ) = engine.marginAccounts(address(this));
+        (Position[] memory shorts, , Balance[] memory collateralsAfter) = engine.marginAccounts(address(this));
 
         assertEq(shorts.length, 0);
-        assertEq(shortAmounts.length, 0);
         assertEq(collateralsAfter.length, collateralsBefore.length);
-        // assertEq(collateralsAfter[uIndex], collateralsBefore[uIndex]);
-        // assertEq(collateralAmountsBefore[uIndex] - collateralAmountsAfter[uIndex], expectedPayout);
-        assertEq(collateralsAfter[cIndex], collateralsBefore[cIndex]);
-        assertEq(collateralAmountsBefore[cIndex] - collateralAmountsAfter[cIndex], expectedPayout);
+        // assertEq(collateralsAfter[uIndex].collateralId, collateralsBefore[uIndex].collateralId);
+        // assertEq(collateralsBefore[uIndex].amount - collateralsAfter[uIndex].amount, expectedPayout);
+        assertEq(collateralsAfter[cIndex].collateralId, collateralsBefore[cIndex].collateralId);
+        assertEq(collateralsBefore[cIndex].amount - collateralsAfter[cIndex].amount, expectedPayout);
     }
 }
 
@@ -231,9 +211,7 @@ contract TestSettlePut_FMV2 is FullMarginFixtureV2 {
         // expires out the money
         oracle.setExpiryPrice(address(weth), address(usdc), strike + 1);
 
-        (, , , , uint8[] memory collateralsBefore, uint80[] memory collateralAmountsBefore) = engine.marginAccounts(
-            address(this)
-        );
+        (, , Balance[] memory collateralsBefore) = engine.marginAccounts(address(this));
 
         uint256 cIndex = 0;
 
@@ -243,22 +221,14 @@ contract TestSettlePut_FMV2 is FullMarginFixtureV2 {
         engine.execute(address(this), actions);
 
         //margin account should be reset
-        (
-            uint256[] memory shorts,
-            uint64[] memory shortAmounts,
-            ,
-            ,
-            uint8[] memory collateralsAfter,
-            uint80[] memory collateralAmountsAfter
-        ) = engine.marginAccounts(address(this));
+        (Position[] memory shorts, , Balance[] memory collateralsAfter) = engine.marginAccounts(address(this));
 
         assertEq(shorts.length, 0);
-        assertEq(shortAmounts.length, 0);
         assertEq(collateralsAfter.length, collateralsBefore.length);
-        // assertEq(collateralsAfter[uIndex], collateralsBefore[uIndex]);
-        // assertEq(collateralAmountsAfter[uIndex], collateralAmountsBefore[uIndex]);
-        assertEq(collateralsAfter[cIndex], collateralsBefore[cIndex]);
-        assertEq(collateralAmountsAfter[cIndex], collateralAmountsBefore[cIndex]);
+        // assertEq(collateralsAfter[uIndex].collateralId, collateralsBefore[uIndex].collateralId);
+        // assertEq(collateralsAfter[uIndex].amount, collateralsBefore[uIndex].amount);
+        assertEq(collateralsAfter[cIndex].collateralId, collateralsBefore[cIndex].collateralId);
+        assertEq(collateralsAfter[cIndex].amount, collateralsBefore[cIndex].amount);
     }
 
     function testSellerCollateralIsReducedIfExpiresITM() public {
@@ -268,9 +238,7 @@ contract TestSettlePut_FMV2 is FullMarginFixtureV2 {
 
         uint256 expectedPayout = strike - uint64(expiryPrice);
 
-        (, , , , uint8[] memory collateralsBefore, uint80[] memory collateralAmountsBefore) = engine.marginAccounts(
-            address(this)
-        );
+        (, , Balance[] memory collateralsBefore) = engine.marginAccounts(address(this));
 
         uint256 cIndex = 0;
 
@@ -280,21 +248,13 @@ contract TestSettlePut_FMV2 is FullMarginFixtureV2 {
         engine.execute(address(this), actions);
 
         // margin account should be reset
-        (
-            uint256[] memory shorts,
-            uint64[] memory shortAmounts,
-            ,
-            ,
-            uint8[] memory collateralsAfter,
-            uint80[] memory collateralAmountsAfter
-        ) = engine.marginAccounts(address(this));
+        (Position[] memory shorts, , Balance[] memory collateralsAfter) = engine.marginAccounts(address(this));
 
         assertEq(shorts.length, 0);
-        assertEq(shortAmounts.length, 0);
         assertEq(collateralsAfter.length, collateralsBefore.length);
-        // assertEq(collateralsAfter[uIndex], collateralsBefore[uIndex]);
-        // assertEq(collateralAmountsBefore[uIndex] - collateralAmountsAfter[uIndex], expectedPayout);
-        assertEq(collateralsAfter[cIndex], collateralsBefore[cIndex]);
-        assertEq(collateralAmountsBefore[cIndex] - collateralAmountsAfter[cIndex], expectedPayout);
+        // assertEq(collateralsAfter[uIndex].collateralId, collateralsBefore[uIndex].collateralId);
+        // assertEq(collateralsBefore[uIndex].amount - collateralsAfter[uIndex].amount, expectedPayout);
+        assertEq(collateralsAfter[cIndex].collateralId, collateralsBefore[cIndex].collateralId);
+        assertEq(collateralsBefore[cIndex].amount - collateralsAfter[cIndex].amount, expectedPayout);
     }
 }

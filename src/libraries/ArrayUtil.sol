@@ -142,7 +142,6 @@ library ArrayUtil {
         for (uint256 i; i < x.length; i++) {
             s += x[i];
         }
-        return s;
     }
 
     function sum(uint256[] memory x) internal pure returns (uint256 s) {
@@ -171,9 +170,10 @@ library ArrayUtil {
         return x;
     }
 
-    /**
-     * @dev Sort the array
-     */
+    function argSort(uint256[] memory x) internal pure returns (uint256[] memory y) {
+        // TODO
+    }
+
     function sort(uint256[] memory x) internal pure returns (uint256[] memory y) {
         y = new uint256[](x.length);
         populate(y, x, 0);

@@ -31,12 +31,23 @@ contract TestRemoveCollateral_FMV2 is FullMarginFixtureV2 {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createRemoveCollateralAction(depositAmount, usdcId, address(this));
         engine.execute(address(this), actions);
-        (, , , , uint8[] memory _collaterals, uint80[] memory _collateralAmounts) = engine.marginAccounts(
-            address(this)
-        );
+        (, , Balance[] memory _collaterals) = engine.marginAccounts(address(this));
 
         assertEq(_collaterals.length, 0);
-        assertEq(_collateralAmounts.length, 0);
+    }
+
+    function testRemoveCollateralRetainBalances() public {
+        uint256 wethDepositAmount = 10 * 1e18;
+
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        actions[0] = createAddCollateralAction(wethId, address(this), wethDepositAmount);
+        actions[1] = createRemoveCollateralAction(depositAmount, usdcId, address(this));
+        engine.execute(address(this), actions);
+        (, , Balance[] memory _collaterals) = engine.marginAccounts(address(this));
+
+        assertEq(_collaterals.length, 1);
+        assertEq(_collaterals[0].collateralId, wethId);
+        assertEq(_collaterals[0].amount, wethDepositAmount);
     }
 
     function testRemoveCollateralMoveBalance() public {

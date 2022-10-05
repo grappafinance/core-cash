@@ -42,11 +42,10 @@ contract TestBurnOption_FMV2 is FullMarginFixtureV2 {
 
         // action
         engine.execute(address(this), actions);
-        (uint256[] memory shorts, uint64[] memory shortAmounts, , , , ) = engine.marginAccounts(address(this));
+        (Position[] memory shorts, , ) = engine.marginAccounts(address(this));
 
         // check result
         assertEq(shorts.length, 0);
-        assertEq(shortAmounts.length, 0);
 
         assertEq(option.balanceOf(address(this), tokenId), 0);
     }

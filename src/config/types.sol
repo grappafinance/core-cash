@@ -21,12 +21,9 @@ struct FullMarginDetail {
 }
 
 struct FullMarginAccountV2 {
-    uint256[] shorts;
-    uint64[] shortAmounts;
-    uint256[] longs;
-    uint64[] longAmounts;
-    uint8[] collaterals;
-    uint80[] collateralAmounts;
+    Position[] shorts;
+    Position[] longs;
+    Balance[] collaterals;
 }
 
 struct FullMarginDetailV2 {
@@ -40,6 +37,21 @@ struct FullMarginDetailV2 {
     uint8 collateralDecimals;
     uint256 spotPrice;
     uint256 expiry;
+}
+
+struct Position {
+    uint256 tokenId;
+    uint64 amount;
+}
+
+struct Balance {
+    uint8 collateralId;
+    uint80 amount;
+}
+
+struct SBalance {
+    uint8 collateralId;
+    int80 amount;
 }
 
 /**

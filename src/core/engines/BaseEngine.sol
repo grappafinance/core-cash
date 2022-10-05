@@ -61,7 +61,7 @@ abstract contract BaseEngine is ReentrancyGuard {
 
     event AccountSettled(address subAccount, uint256 payout);
 
-    event AccountSettled2(address subAccount, uint8[] collaterals, uint80[] payouts);
+    event AccountSettled2(address subAccount, Balance[] payouts);
 
     /** ========================================================= **
                             External Functions

@@ -39,12 +39,11 @@ contract TestMint_FMV2 is FullMarginFixtureV2 {
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
         engine.execute(address(this), actions);
-        (uint256[] memory shorts, uint64[] memory shortAmounts, , , , ) = engine.marginAccounts(address(this));
+        (Position[] memory shorts, , ) = engine.marginAccounts(address(this));
 
         assertEq(shorts.length, 1);
-        assertEq(shorts[0], tokenId);
-        assertEq(shortAmounts.length, 1);
-        assertEq(shortAmounts[0], amount);
+        assertEq(shorts[0].tokenId, tokenId);
+        assertEq(shorts[0].amount, amount);
 
         assertEq(option.balanceOf(address(this), tokenId), amount);
     }
@@ -77,12 +76,11 @@ contract TestMint_FMV2 is FullMarginFixtureV2 {
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
         engine.execute(address(this), actions);
-        (uint256[] memory shorts, uint64[] memory shortAmounts, , , , ) = engine.marginAccounts(address(this));
+        (Position[] memory shorts, , ) = engine.marginAccounts(address(this));
 
         assertEq(shorts.length, 1);
-        assertEq(shorts[0], tokenId);
-        assertEq(shortAmounts.length, 1);
-        assertEq(shortAmounts[0], amount);
+        assertEq(shorts[0].tokenId, tokenId);
+        assertEq(shorts[0].amount, amount);
 
         assertEq(option.balanceOf(address(this), tokenId), amount);
     }
@@ -110,27 +108,19 @@ contract TestMint_FMV2 is FullMarginFixtureV2 {
         actions[3] = createMintAction(putTokenId, address(this), putAmount);
 
         engine.execute(address(this), actions);
-        (
-            uint256[] memory shorts,
-            uint64[] memory shortAmounts,
-            ,
-            ,
-            uint8[] memory collaterals,
-            uint80[] memory collateralAmounts
-        ) = engine.marginAccounts(address(this));
+        (Position[] memory shorts, , Balance[] memory collaterals) = engine.marginAccounts(address(this));
 
         assertEq(shorts.length, 2);
-        assertEq(shorts[0], callTokenId);
-        assertEq(shorts[1], putTokenId);
-        assertEq(shortAmounts.length, 2);
-        assertEq(shortAmounts[0], callAmount);
-        assertEq(shortAmounts[1], putAmount);
+        assertEq(shorts[0].tokenId, callTokenId);
+        assertEq(shorts[1].tokenId, putTokenId);
+        assertEq(shorts[0].amount, callAmount);
+        assertEq(shorts[1].amount, putAmount);
+
         assertEq(collaterals.length, 2);
-        assertEq(collaterals[0], wethId);
-        assertEq(collaterals[1], usdcId);
-        assertEq(collateralAmounts.length, 2);
-        assertEq(collateralAmounts[0], callDepositAmount);
-        assertEq(collateralAmounts[1], putDepositAmount);
+        assertEq(collaterals[0].collateralId, wethId);
+        assertEq(collaterals[1].collateralId, usdcId);
+        assertEq(collaterals[0].amount, callDepositAmount);
+        assertEq(collaterals[1].amount, putDepositAmount);
 
         assertEq(option.balanceOf(address(this), callTokenId), callAmount);
         assertEq(option.balanceOf(address(this), putTokenId), putAmount);

@@ -12,6 +12,7 @@ import {IMarginEngine} from "../../../interfaces/IMarginEngine.sol";
 // librarise
 import {TokenIdUtil} from "../../../libraries/TokenIdUtil.sol";
 import {ProductIdUtil} from "../../../libraries/ProductIdUtil.sol";
+import {AccountUtil} from "../../../libraries/AccountUtil.sol";
 import {ArrayUtil} from "../../../libraries/ArrayUtil.sol";
 
 import {FullMarginMathV2} from "./FullMarginMathV2.sol";
@@ -35,14 +36,21 @@ import "../../../test/utils/Console.sol";
  */
 contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
     using ArrayUtil for bytes32[];
-    using ArrayUtil for uint8[];
-    using ArrayUtil for uint64[];
-    using ArrayUtil for uint80[];
+    // using ArrayUtil for uint8[];
+    // using ArrayUtil for uint64[];
+    // using ArrayUtil for uint80[];
     using ArrayUtil for int256[];
     using ArrayUtil for uint256[];
+
+    using AccountUtil for Balance[];
+    using AccountUtil for FullMarginDetailV2[];
+    using AccountUtil for Position[];
+    using AccountUtil for SBalance[];
+
     using FullMarginLibV2 for FullMarginAccountV2;
     using FullMarginMathV2 for FullMarginDetailV2;
     using SafeCast for uint256;
+    using SafeCast for int256;
     using TokenIdUtil for uint256;
 
     /*///////////////////////////////////////////////////////////////
@@ -99,16 +107,11 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
     /**
      * @notice get minimum collateral needed for a margin account
      * @param _subAccount account id.
-     * @return collaterals array of collaterals
-     * @return amounts array of amounts
+     * @return balances array of collaterals and amount (signed)
      */
-    function getMinCollateral(address _subAccount)
-        external
-        view
-        returns (uint8[] memory collaterals, int256[] memory amounts)
-    {
+    function getMinCollateral(address _subAccount) external view returns (SBalance[] memory balances) {
         FullMarginAccountV2 memory account = accounts[_subAccount];
-        (collaterals, amounts) = _getMinCollateral(account);
+        balances = _getMinCollateral(account);
     }
 
     /**
@@ -130,24 +133,14 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
         external
         view
         returns (
-            uint256[] memory shorts,
-            uint64[] memory shortAmounts,
-            uint256[] memory longs,
-            uint64[] memory longAmounts,
-            uint8[] memory collaterals,
-            uint80[] memory collateralAmounts
+            Position[] memory shorts,
+            Position[] memory longs,
+            Balance[] memory collaterals
         )
     {
         FullMarginAccountV2 memory account = accounts[_subAccount];
 
-        return (
-            account.shorts,
-            account.shortAmounts,
-            account.longs,
-            account.longAmounts,
-            account.collaterals,
-            account.collateralAmounts
-        );
+        return (account.shorts, account.longs, account.collaterals);
     }
 
     /** ========================================================= **
@@ -159,12 +152,10 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
      * @dev     this update the account memory in-place
      */
     function _settle(address _subAccount) internal override {
-        (uint8[] memory collaterals, uint80[] memory payouts) = _getAccountPayout2(_subAccount);
-
+        Balance[] memory payouts = _getAccountPayout2(_subAccount);
         // update the account in state
-        _settleAccount2(_subAccount, collaterals, payouts);
-
-        emit AccountSettled2(_subAccount, collaterals, payouts);
+        _settleAccount2(_subAccount, payouts);
+        emit AccountSettled2(_subAccount, payouts);
     }
 
     /** ========================================================= **
@@ -203,12 +194,8 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
         accounts[_subAccount].burnOption(tokenId, amount);
     }
 
-    function _settleAccount2(
-        address _subAccount,
-        uint8[] memory collaterals,
-        uint80[] memory payouts
-    ) internal {
-        accounts[_subAccount].settleAtExpiry(collaterals, payouts);
+    function _settleAccount2(address _subAccount, Balance[] memory payouts) internal {
+        accounts[_subAccount].settleAtExpiry(payouts);
     }
 
     /** ========================================================= **
@@ -222,10 +209,14 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
      */
     function _isAccountAboveWater(address _subAccount) internal view override returns (bool isHealthy) {
         FullMarginAccountV2 memory account = accounts[_subAccount];
-        (, int256[] memory collateralAmounts) = _getMinCollateral(account);
+        SBalance[] memory balances = _getMinCollateral(account);
 
-        for (uint256 i = 0; i < collateralAmounts.length; i++) {
-            if (collateralAmounts[i] < 0) return false;
+        for (uint256 i; i < balances.length; ) {
+            if (balances[i].amount < 0) return false;
+
+            unchecked {
+                i++;
+            }
         }
 
         return true;
@@ -238,34 +229,31 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
      * @notice  return amount of collateral that should be reserved to payout long positions
      * @dev     this function will revert when called before expiry
      * @param _subAccount account id
-     * @return collaterals list of collaterals affected
-     * @return payouts list of payouts for each collateral
+     * @return payouts list of collaterals affected and the amounts paying out (unsigned)
      */
-    function _getAccountPayout2(address _subAccount)
-        internal
-        view
-        returns (uint8[] memory collaterals, uint80[] memory payouts)
-    {
+    function _getAccountPayout2(address _subAccount) internal view returns (Balance[] memory payouts) {
         FullMarginAccountV2 memory account = accounts[_subAccount];
 
-        collaterals = new uint8[](0);
-        payouts = new uint80[](0);
+        Position[] memory shorts = account.shorts;
 
-        for (uint256 i = 0; i < account.shorts.length; i++) {
-            uint256 tokenId = account.shorts[i];
+        for (uint256 i; i < shorts.length; ) {
+            uint256 tokenId = shorts[i].tokenId;
+
             (, uint40 productId, uint64 expiry, , ) = tokenId.parseTokenId();
 
             if (block.timestamp < expiry) continue;
 
             ProductDetails memory product = _getProductDetails(productId);
 
-            (, , uint256 payout) = grappa.getPayout(tokenId, account.shortAmounts[i]);
+            (, , uint256 payout) = grappa.getPayout(tokenId, shorts[i].amount);
 
-            (bool found, uint256 index) = collaterals.indexOf(product.collateralId);
-            if (found) payouts[index] += payout.toUint80();
-            else {
-                collaterals = collaterals.append(product.collateralId);
-                payouts = payouts.append(payout.toUint80());
+            (bool found, uint256 index) = payouts.indexOf(product.collateralId);
+
+            if (found) payouts[index].amount += payout.toUint80();
+            else payouts = payouts.append(Balance(product.collateralId, payout.toUint80()));
+
+            unchecked {
+                i++;
             }
         }
     }
@@ -274,42 +262,35 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
                             Internal Functions
      ** ========================================================= **/
 
-    function _getMinCollateral(FullMarginAccountV2 memory account)
-        internal
-        view
-        returns (uint8[] memory collaterals, int256[] memory collateralAmounts)
-    {
+    function _getMinCollateral(FullMarginAccountV2 memory account) internal view returns (SBalance[] memory balances) {
         FullMarginDetailV2[] memory details = _getAccountDetails(account);
 
-        collaterals = account.collaterals;
-        collateralAmounts = account.collateralAmounts.toInt256();
+        balances = account.collaterals.toInt80();
 
-        if (details.length == 0) return (collaterals, collateralAmounts);
+        if (details.length == 0) return balances;
 
         bool found;
         uint256 index;
 
-        for (uint256 i = 0; i < details.length; i++) {
+        for (uint256 i; i < details.length; ) {
             FullMarginDetailV2 memory detail = details[i];
 
             (int256 cashCollateralNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
 
             if (cashCollateralNeeded > 0) {
-                (found, index) = collaterals.indexOf(detail.collateralId);
-                if (found) collateralAmounts[index] -= cashCollateralNeeded;
-                else {
-                    collaterals = collaterals.append(detail.collateralId);
-                    collateralAmounts = collateralAmounts.append(-cashCollateralNeeded);
-                }
+                (found, index) = balances.indexOf(detail.collateralId);
+                if (found) balances[index].amount -= cashCollateralNeeded.toInt80();
+                else balances = balances.append(SBalance(detail.collateralId, -cashCollateralNeeded.toInt80()));
             }
 
             if (underlyingNeeded > 0) {
-                (found, index) = collaterals.indexOf(detail.underlyingId);
-                if (found) collateralAmounts[index] -= underlyingNeeded;
-                else {
-                    collaterals = collaterals.append(detail.underlyingId);
-                    collateralAmounts = collateralAmounts.append(-underlyingNeeded);
-                }
+                (found, index) = balances.indexOf(detail.underlyingId);
+                if (found) balances[index].amount -= underlyingNeeded.toInt80();
+                else balances = balances.append(SBalance(detail.underlyingId, -underlyingNeeded.toInt80()));
+            }
+
+            unchecked {
+                i++;
             }
         }
     }
@@ -326,23 +307,24 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
 
         bytes32[] memory uceLookUp = new bytes32[](0);
 
-        uint256[] memory tokenIds = account.shorts.concat(account.longs);
-        uint64[] memory tokenAmounts = account.shortAmounts.concat(account.longAmounts);
+        Position[] memory positions = account.shorts.concat(account.longs);
+        uint256 shortLength = account.shorts.length;
 
-        for (uint256 i = 0; i < tokenIds.length; i++) {
-            (, uint40 productId, uint64 expiry, , ) = tokenIds[i].parseTokenId();
+        for (uint256 i; i < positions.length; ) {
+            (, uint40 productId, uint64 expiry, , ) = positions[i].tokenId.parseTokenId();
 
             ProductDetails memory product = _getProductDetails(productId);
 
-            FullMarginDetailV2 memory detail;
-
             bytes32 pos = keccak256(abi.encode(product.underlyingId, product.collateralId, expiry));
+
             (bool found, uint256 index) = uceLookUp.indexOf(pos);
+
+            FullMarginDetailV2 memory detail;
 
             if (found) detail = details[index];
             else {
                 uceLookUp = uceLookUp.append(pos);
-                details = _appendDetail(details, detail);
+                details = details.append(detail);
 
                 detail.underlyingId = product.underlyingId;
                 detail.underlyingDecimals = product.underlyingDecimals;
@@ -352,10 +334,14 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
                 detail.expiry = expiry;
             }
 
-            int256 amount = int256(int64(tokenAmounts[i]));
-            if (i < account.shorts.length) amount = -amount;
+            int256 amount = int256(int64(positions[i].amount));
+            if (i < shortLength) amount = -amount;
 
-            _processDetailWithToken(detail, tokenIds[i], amount);
+            _processDetailWithToken(detail, positions[i].tokenId, amount);
+
+            unchecked {
+                i++;
+            }
         }
     }
 
@@ -386,19 +372,6 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
                 detail.putWeights = detail.putWeights.append(amount);
             }
         }
-    }
-
-    function _appendDetail(FullMarginDetailV2[] memory array, FullMarginDetailV2 memory detail)
-        internal
-        pure
-        returns (FullMarginDetailV2[] memory details)
-    {
-        details = new FullMarginDetailV2[](array.length + 1);
-        uint256 i;
-        for (i = 0; i < array.length; i++) {
-            details[i] = array[i];
-        }
-        details[i] = detail;
     }
 
     function _getProductDetails(uint40 productId) internal view returns (ProductDetails memory info) {

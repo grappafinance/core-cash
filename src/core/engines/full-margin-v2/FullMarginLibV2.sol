@@ -2,9 +2,10 @@
 pragma solidity ^0.8.0;
 
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
+
 import "../../../libraries/TokenIdUtil.sol";
 import "../../../libraries/ProductIdUtil.sol";
-import "../../../libraries/ArrayUtil.sol";
+import "../../../libraries/AccountUtil.sol";
 
 import "../../../config/types.sol";
 import "../../../config/constants.sol";
@@ -17,10 +18,8 @@ import "../../../test/utils/Console.sol";
  * @dev   This library is in charge of updating the simple account memory struct and do validations
  */
 library FullMarginLibV2 {
-    using ArrayUtil for uint8[];
-    using ArrayUtil for uint64[];
-    using ArrayUtil for uint80[];
-    using ArrayUtil for uint256[];
+    using AccountUtil for Balance[];
+    using AccountUtil for Position[];
     using ProductIdUtil for uint40;
     using TokenIdUtil for uint256;
 
@@ -28,8 +27,7 @@ library FullMarginLibV2 {
      * @dev return true if the account has no short,long positions nor collateral
      */
     function isEmpty(FullMarginAccountV2 storage account) internal view returns (bool) {
-        return
-            account.shortAmounts.sum() == 0 && account.longAmounts.sum() == 0 && account.collateralAmounts.sum() == 0;
+        return account.shorts.sum() == 0 && account.longs.sum() == 0 && account.collaterals.sum() == 0;
     }
 
     ///@dev Increase the collateral in the account
@@ -42,10 +40,8 @@ library FullMarginLibV2 {
         (bool found, uint256 index) = account.collaterals.indexOf(collateralId);
 
         if (!found) {
-            account.collaterals.push(collateralId);
-            account.collateralAmounts.push(amount);
-            index = account.collaterals.length - 1;
-        } else account.collateralAmounts[index] += amount;
+            account.collaterals.push(Balance(collateralId, amount));
+        } else account.collaterals[index].amount += amount;
     }
 
     ///@dev Reduce the collateral in the account
@@ -58,12 +54,11 @@ library FullMarginLibV2 {
         (bool found, uint256 index) = account.collaterals.indexOf(collateralId);
         if (!found) revert FM_WrongCollateralId();
 
-        uint80 newAmount = account.collateralAmounts[index] - amount;
+        uint80 newAmount = account.collaterals[index].amount - amount;
 
         if (newAmount == 0) {
-            account.collaterals = account.collaterals.remove(index);
-            account.collateralAmounts = account.collateralAmounts.remove(index);
-        } else account.collateralAmounts[index] = newAmount;
+            account.collaterals.remove(index);
+        } else account.collaterals[index].amount = newAmount;
     }
 
     ///@dev Increase the amount of short call or put (debt) of the account
@@ -90,9 +85,8 @@ library FullMarginLibV2 {
 
         (bool found, uint256 index) = account.shorts.indexOf(tokenId);
         if (!found) {
-            account.shorts.push(tokenId);
-            account.shortAmounts.push(amount);
-        } else account.shortAmounts[index] += amount;
+            account.shorts.push(Position(tokenId, amount));
+        } else account.shorts[index].amount += amount;
     }
 
     ///@dev Remove the amount of short call or put (debt) of the account
@@ -106,29 +100,26 @@ library FullMarginLibV2 {
 
         if (!found) revert FM_InvalidToken();
 
-        uint64 newShortAmount = account.shortAmounts[index] - amount;
+        uint64 newShortAmount = account.shorts[index].amount - amount;
         if (newShortAmount == 0) {
-            account.shorts = account.shorts.remove(index);
-            account.shortAmounts = account.shortAmounts.remove(index);
-        } else account.shortAmounts[index] = newShortAmount;
+            account.shorts.remove(index);
+        } else account.shorts[index].amount = newShortAmount;
     }
 
-    function settleAtExpiry(
-        FullMarginAccountV2 storage account,
-        uint8[] memory collaterals,
-        uint80[] memory payouts
-    ) internal {
+    function settleAtExpiry(FullMarginAccountV2 storage account, Balance[] memory payouts) internal {
         // clear all debt
         delete account.shorts;
-        delete account.shortAmounts;
 
-        for (uint256 i = 0; i < collaterals.length; i++) {
-            uint8 collateralId = collaterals[i];
-            uint80 payout = payouts[i];
+        Balance[] memory collaterals = account.collaterals;
 
-            (, uint256 index) = account.collaterals.indexOf(collateralId);
+        for (uint256 i; i < payouts.length; ) {
+            (, uint256 index) = collaterals.indexOf(payouts[i].collateralId);
 
-            account.collateralAmounts[index] = account.collateralAmounts[index] - payout;
+            account.collaterals[index].amount -= payouts[i].amount;
+
+            unchecked {
+                i++;
+            }
         }
     }
 }
