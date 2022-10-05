@@ -9,6 +9,7 @@ import {LinkedList} from "../../../libraries/LinkedList.sol";
 import "../../../config/types.sol";
 import "../../../config/constants.sol";
 import "../../../config/errors.sol";
+import "forge-std/console2.sol";
 
 /**
  * @title FullMarginLib
@@ -71,34 +72,8 @@ library FullMarginLibV2 {
     ) internal {
         (TokenType optionType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) = tokenId
             .parseTokenId();
-        // assign collateralId or check collateral id is the same
-        (, , , , uint8 collateralId) = productId.parseProductId();
 
-        (uint80 cacheCollatId, uint40 cachedProductId, uint64 cachedExpiry) = (
-            account.collateralId,
-            account.productId,
-            account.expiry
-        );
-        // check if expiry is the same as stored
-        if (cachedExpiry == 0) {
-            account.expiry = expiry;
-        } else {
-            if (cachedExpiry != expiry) revert("wrong expiry");
-        }
-
-        // check if productId is the same as stored
-        if (cachedProductId == 0) {
-            account.productId = productId;
-        } else {
-            if (cachedProductId != productId) revert("wrong product");
-        }
-
-        // check if collateralId is same as stored (if previously only deposited collateral, id has to match)
-        if (cacheCollatId == 0) {
-            account.collateralId = collateralId;
-        } else {
-            if (cacheCollatId != collateralId) revert FM_CollateraliMisMatch();
-        }
+        _verifyAndSetAccountInfo(account, productId, expiry);
 
         if (optionType == TokenType.CALL) {
             _addIntoSortedListAndIncreaseAmount(account.shortCalls, true, longStrike, amount);
@@ -120,49 +95,49 @@ library FullMarginLibV2 {
         uint256 tokenId,
         uint64 amount
     ) internal {
-        (TokenType optionType, , , , ) = tokenId.parseTokenId();
+        (TokenType optionType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) = tokenId
+            .parseTokenId();
+
+        _verifyAndSetAccountInfo(account, productId, expiry);
 
         if (optionType == TokenType.CALL) {
-            // add to short call array
+            _decreaseAmountAndRemoveFromListIfEmpty(account.shortCalls, longStrike, amount);
         } else if (optionType == TokenType.PUT) {
-            // add to short put array
+            _decreaseAmountAndRemoveFromListIfEmpty(account.shortPuts, longStrike, amount);
         } else if (optionType == TokenType.CALL_SPREAD) {
-            // add to short call array & long call array
+            _decreaseAmountAndRemoveFromListIfEmpty(account.shortCalls, longStrike, amount);
+            _decreaseAmountAndRemoveFromListIfEmpty(account.longCalls, shortStrike, amount);
         } else if (optionType == TokenType.PUT_SPREAD) {
-            // add to short put array & long put array
+            _decreaseAmountAndRemoveFromListIfEmpty(account.shortPuts, longStrike, amount);
+            _decreaseAmountAndRemoveFromListIfEmpty(account.longPuts, shortStrike, amount);
         }
     }
 
     ///@dev merge an OptionToken into the accunt, changing existing short to spread
     ///@dev shortId and longId already have the same optionType, productId, expiry
-    ///@param account FullMarginAccountV2 memory that will be updated in-place
-    ///@param shortId existing short position to be converted into spread
-    ///@param longId token to be "added" into the account. This is expected to have the same time of the exisiting short type.
-    ///               e.g: if the account currenly have short call, we can added another "call token" into the account
-    ///               and convert the short position to a spread.
     function merge(
-        FullMarginAccountV2 storage account,
-        uint256 shortId,
-        uint256 longId,
-        uint64 amount
-    ) internal {
+        FullMarginAccountV2 storage, /*account*/
+        uint256, /*shortId*/
+        uint256, /*longId*/
+        uint64 /*amount*/
+    ) internal pure {
         revert("not implemented");
     }
 
     ///@dev split an accunt's spread position into short + 1 token
-    ///@param account FullMarginAccountV2 memory that will be updated in-place
-    ///@param spreadId id of spread to be parsed
     function split(
-        FullMarginAccountV2 storage account,
-        uint256 spreadId,
-        uint64 amount
-    ) internal {
+        FullMarginAccountV2 storage, /*account*/
+        uint256, /*spreadId*/
+        uint64 /*amount*/
+    ) internal pure {
         revert("not implemented");
     }
 
     function settleAtExpiry(FullMarginAccountV2 storage account, uint80 _payout) internal {}
 
-    function getMinCollateral(FullMarginAccountV2 storage account) internal view returns (uint256) {
+    function getMinCollateral(
+        FullMarginAccountV2 storage /*account*/
+    ) internal pure returns (uint256) {
         return 0;
     }
 
@@ -172,7 +147,7 @@ library FullMarginLibV2 {
      * @param _tokenId tokenId with TokenType in the first 24 bits
      * @return maskedId tokenId with first 24 bits being 0.
      */
-    function _getMaskedTokenId(uint256 _tokenId) internal view returns (uint256 maskedId) {
+    function _getMaskedTokenId(uint256 _tokenId) internal pure returns (uint256 maskedId) {
         maskedId = (_tokenId << 24) >> 24;
     }
 
@@ -182,8 +157,43 @@ library FullMarginLibV2 {
      * @param _tokenId tokenId with TokenType in the first 24 bits
      * @return seriesId tokenId with first 24 bits and last 128 bits being zero.
      */
-    function _getSeriesInfo(uint256 _tokenId) internal view returns (uint256 seriesId) {
+    function _getSeriesInfo(uint256 _tokenId) internal pure returns (uint256 seriesId) {
         seriesId = (((_tokenId << 24) >> 24) >> 128) << 128;
+    }
+
+    function _verifyAndSetAccountInfo(
+        FullMarginAccountV2 storage account,
+        uint40 productId,
+        uint64 expiry
+    ) internal {
+        (uint80 cacheCollatId, uint40 cachedProductId, uint64 cachedExpiry) = (
+            account.collateralId,
+            account.productId,
+            account.expiry
+        );
+        // check if expiry is the same as stored
+        if (cachedExpiry == 0) {
+            account.expiry = expiry;
+        } else {
+            if (cachedExpiry != expiry) revert("wrong expiry");
+        }
+
+        // check if productId is the same as stored
+        if (cachedProductId == 0) {
+            account.productId = productId;
+        } else {
+            if (cachedProductId != productId) revert("wrong product");
+        }
+
+        // assign collateralId or check collateral id is the same
+        (, , , , uint8 collateralId) = productId.parseProductId();
+
+        // check if collateralId is same as stored (if previously only deposited collateral, id has to match)
+        if (cacheCollatId == 0) {
+            account.collateralId = collateralId;
+        } else {
+            if (cacheCollatId != collateralId) revert FM_CollateraliMisMatch();
+        }
     }
 
     /**
@@ -195,6 +205,7 @@ library FullMarginLibV2 {
         uint64 strike,
         uint64 amount
     ) internal {
+        // optimize: don't find exist and find first higher / lower in separate stpes
         bool exists = s.nodeExists(strike);
         if (!exists) {
             uint64 found;
@@ -211,5 +222,23 @@ library FullMarginLibV2 {
             }
         }
         s.values[strike] += amount;
+    }
+
+    /**
+     */
+    function _decreaseAmountAndRemoveFromListIfEmpty(
+        LinkedList.ListWithAmount storage s,
+        uint64 strike,
+        uint64 amount
+    ) internal {
+        uint64 existingAmount = s.values[strike];
+        if (existingAmount < amount) revert("cannot burn");
+        uint64 newAmount = existingAmount - amount;
+        if (newAmount == 0) {
+            // also remove value
+            s.remove(strike);
+        } else {
+            s.values[strike] = newAmount;
+        }
     }
 }

@@ -28,23 +28,45 @@ contract TestMint_FM2 is FullMarginV2Fixture {
     }
 
     function testMintCall() public {
-        uint256 depositAmount = 1 * 1e18;
+        uint256 depositAmount = 1000 * 1e6;
 
         uint256 strikePrice = 4000 * UNIT;
         uint256 amount = 1 * UNIT;
 
-        uint256 tokenId = getTokenId(TokenType.CALL, pidEthCollat, expiry, strikePrice, 0);
+        uint256 tokenId = getTokenId(TokenType.CALL, pidUsdcCollat, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
+        actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
         engine.execute(address(this), actions);
         uint256 shortAmount = engine.getAccountShortAmount(
             address(this),
-            pidEthCollat,
+            pidUsdcCollat,
             uint64(expiry),
             uint64(strikePrice),
             true
+        );
+        assertEq(shortAmount, amount);
+    }
+
+    function testMintPut() public {
+        uint256 depositAmount = 1000 * 1e6;
+
+        uint256 strikePrice = 4000 * UNIT;
+        uint256 amount = 1 * UNIT;
+
+        uint256 tokenId = getTokenId(TokenType.PUT, pidUsdcCollat, expiry, strikePrice, 0);
+
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
+        actions[1] = createMintAction(tokenId, address(this), amount);
+        engine.execute(address(this), actions);
+        uint256 shortAmount = engine.getAccountShortAmount(
+            address(this),
+            pidUsdcCollat,
+            uint64(expiry),
+            uint64(strikePrice),
+            false
         );
         assertEq(shortAmount, amount);
     }
