@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import "../../../libraries/TokenIdUtil.sol";
 import "../../../libraries/ProductIdUtil.sol";
+import {LinkedList} from "../../../libraries/LinkedList.sol";
 
 import "../../../config/types.sol";
 import "../../../config/constants.sol";
@@ -16,6 +17,7 @@ import "../../../config/errors.sol";
 library FullMarginLibV2 {
     using TokenIdUtil for uint256;
     using ProductIdUtil for uint40;
+    using LinkedList for LinkedList.ListWithAmount;
 
     /**
      * @dev return true if the account has no short positions nor collateral
@@ -67,7 +69,7 @@ library FullMarginLibV2 {
         uint256 tokenId,
         uint64 amount
     ) internal {
-        (TokenType optionType, uint40 productId, uint64 expiry, , ) = tokenId.parseTokenId();
+        (TokenType optionType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) = tokenId.parseTokenId();
         // assign collateralId or check collateral id is the same
         (, , , , uint8 collateralId) = productId.parseProductId();
 
@@ -97,17 +99,16 @@ library FullMarginLibV2 {
             if (cacheCollatId != collateralId) revert FM_CollateraliMisMatch();
         }
 
-        // id used to store amounts.
-        uint256 maskedId = _getMaskedTokenId(tokenId);
-
         if (optionType == TokenType.CALL) {
-            // add to short call array
+            _addIntoSortedListAndIncreaseAmount(account.shortCalls, true, longStrike, amount);
         } else if (optionType == TokenType.PUT) {
-            // add to short put array
+            _addIntoSortedListAndIncreaseAmount(account.shortPuts, false, longStrike, amount);
         } else if (optionType == TokenType.CALL_SPREAD) {
-            // add to short call array & long call array
+            _addIntoSortedListAndIncreaseAmount(account.shortCalls, true, longStrike, amount);
+            _addIntoSortedListAndIncreaseAmount(account.longCalls, true, shortStrike, amount);
         } else if (optionType == TokenType.PUT_SPREAD) {
-            // add to short put array & long put array
+            _addIntoSortedListAndIncreaseAmount(account.shortPuts, false, longStrike, amount);
+            _addIntoSortedListAndIncreaseAmount(account.longPuts, false, shortStrike, amount);
         }
     }
 
@@ -160,7 +161,9 @@ library FullMarginLibV2 {
 
     function settleAtExpiry(FullMarginAccountV2 storage account, uint80 _payout) internal {}
 
-    function getMinCollateral(FullMarginAccountV2 storage account) internal view returns (uint256) {}
+    function getMinCollateral(FullMarginAccountV2 storage account) internal view returns (uint256) {
+        return 0;
+    }
 
     /**
      * @dev return masked token Id
@@ -180,5 +183,28 @@ library FullMarginLibV2 {
      */
     function _getSeriesInfo(uint256 _tokenId) internal view returns (uint256 seriesId) {
         seriesId = (((_tokenId << 24) >> 24) >> 128) << 128;
+    }
+
+    /** 
+     * @param asc true if the list is sorted asc (low to high)
+     */
+    function _addIntoSortedListAndIncreaseAmount(LinkedList.ListWithAmount storage s, bool asc, uint64 strike, uint64 amount) internal {
+        bool exists = s.nodeExists(strike);
+        if (!exists) {
+            uint64 found;
+            if (asc) {
+                found = s.getFirstHigherThan(strike);
+            } else {
+                found = s.getFirstLowerThan(strike);
+            }
+
+            if (found > 0) {
+                s.insertBefore(found, strike);
+            } else {
+                s.pushBack(strike);
+            }
+            
+        }
+        s.values[strike] += amount;
     }
 }

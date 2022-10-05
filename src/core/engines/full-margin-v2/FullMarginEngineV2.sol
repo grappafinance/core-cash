@@ -75,6 +75,23 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
         if (!_isAccountAboveWater(_subAccount)) revert BM_AccountUnderwater();
     }
 
+    function getAccountShortAmount(
+        address _subAccount,
+        uint64 _productId,
+        uint64 _expiry,
+        uint64 _strike,
+        bool _isCall
+    ) external view returns (uint256) {
+        FullMarginAccountV2 storage account = marginAccounts[_subAccount];
+        if (_productId != account.productId) return 0;
+        if (_expiry != account.expiry) return 0;
+        if (_isCall) {
+            return account.shortCalls.values[_strike];
+        } else {
+            return account.shortPuts.values[_strike];
+        }
+    }
+
     /**
      * @notice payout to user on settlement.
      * @dev this can only triggered by Grappa, would only be called on settlement.

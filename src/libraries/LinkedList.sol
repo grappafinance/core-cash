@@ -2,26 +2,23 @@
 
 pragma solidity ^0.8.0;
 
-interface IStructureInterface {
-    function getValue(uint256 _id) external view returns (uint256);
-}
-
 /**
  * @title LinkedList
  * @author Vittorio Minacori (https://github.com/vittominacori)
  * @dev An utility library for using sorted linked list data structures in your Solidity project.
  */
 library LinkedList {
-    uint256 private constant _NULL = 0;
-    uint256 private constant _HEAD = 0;
+    uint64 private constant _NULL = 0;
+    uint64 private constant _HEAD = 0;
 
     bool private constant _PREV = false;
     bool private constant _NEXT = true;
 
     struct ListWithAmount {
         uint256 size;
-        mapping(uint256 => mapping(bool => uint256)) list;
-        mapping(uint256 => uint256) values;
+        mapping(uint64 => mapping(bool => uint64)) list;
+        // strike to amount
+        mapping(uint64 => uint64) values;
     }
 
     /**
@@ -44,7 +41,7 @@ library LinkedList {
      * @param _node a node to search for
      * @return bool true if node exists, false otherwise
      */
-    function nodeExists(ListWithAmount storage self, uint256 _node) internal view returns (bool) {
+    function nodeExists(ListWithAmount storage self, uint64 _node) internal view returns (bool) {
         if (self.list[_node][_PREV] == _HEAD && self.list[_node][_NEXT] == _HEAD) {
             if (self.list[_HEAD][_NEXT] == _node) {
                 return true;
@@ -71,7 +68,7 @@ library LinkedList {
      * @param _node id of the node to get
      * @return bool, uint256, uint256 true if node exists or false otherwise, previous node, next node
      */
-    function getNode(ListWithAmount storage self, uint256 _node)
+    function getNode(ListWithAmount storage self, uint64 _node)
         internal
         view
         returns (
@@ -96,9 +93,9 @@ library LinkedList {
      */
     function getAdjacent(
         ListWithAmount storage self,
-        uint256 _node,
+        uint64 _node,
         bool _direction
-    ) internal view returns (bool, uint256) {
+    ) internal view returns (bool, uint64) {
         if (!nodeExists(self, _node)) {
             return (false, 0);
         } else {
@@ -112,7 +109,7 @@ library LinkedList {
      * @param _node id of the node to step from
      * @return bool, uint256 true if node exists or false otherwise, next node
      */
-    function getNextNode(ListWithAmount storage self, uint256 _node) internal view returns (bool, uint256) {
+    function getNextNode(ListWithAmount storage self, uint64 _node) internal view returns (bool, uint256) {
         return getAdjacent(self, _node, _NEXT);
     }
 
@@ -122,7 +119,7 @@ library LinkedList {
      * @param _node id of the node to step from
      * @return bool, uint256 true if node exists or false otherwise, previous node
      */
-    function getPreviousNode(ListWithAmount storage self, uint256 _node) internal view returns (bool, uint256) {
+    function getPreviousNode(ListWithAmount storage self, uint64 _node) internal view returns (bool, uint256) {
         return getAdjacent(self, _node, _PREV);
     }
 
@@ -132,14 +129,14 @@ library LinkedList {
      * @dev If you want to order basing on other than `structure.getValue()` override this function
      * @param self stored linked list from contract
      * @param _value value to seek
-     * @return uint256 next node with a value less than _value
+     * @return uint64 next node with a value less than _value
      */
-    function getFirstLowerThan(ListWithAmount storage self, uint256 _value) internal view returns (uint256) {
+    function getFirstLowerThan(ListWithAmount storage self, uint256 _value) internal view returns (uint64) {
         if (sizeOf(self) == 0) {
             return 0;
         }
 
-        uint256 next;
+        uint64 next;
         (, next) = getAdjacent(self, _HEAD, _NEXT);
         while ((next != 0) && (_value > self.values[next])) {
             next = self.list[next][_NEXT];
@@ -153,34 +150,19 @@ library LinkedList {
      * @dev If you want to order basing on other than `structure.getValue()` override this function
      * @param self stored linked list from contract
      * @param _value value to seek
-     * @return uint256 next node with a value higher than _value
+     * @return uint64 next node with a value higher than _value
      */
-    function getFirstHigherThan(ListWithAmount storage self, uint256 _value) internal view returns (uint256) {
+    function getFirstHigherThan(ListWithAmount storage self, uint256 _value) internal view returns (uint64) {
         if (sizeOf(self) == 0) {
             return 0;
         }
 
-        uint256 next;
+        uint64 next;
         (, next) = getAdjacent(self, _HEAD, _NEXT);
         while ((next != 0) && _value < self.values[next]) {
             next = self.list[next][_NEXT];
         }
         return next;
-    }
-
-    /**
-     * @dev set the value of a node
-     * @dev values will be used for getFirstHigherThan or getFirstLowerThan
-     * @param self stored linked list from contract
-     * @param _node id of the node to set value
-     * @param _value value to store
-     */
-    function setValue(
-        ListWithAmount storage self,
-        uint256 _node,
-        uint256 _value
-    ) internal {
-        self.values[_node] = _value;
     }
 
     /**
@@ -192,8 +174,8 @@ library LinkedList {
      */
     function insertAfter(
         ListWithAmount storage self,
-        uint256 _node,
-        uint256 _new
+        uint64 _node,
+        uint64 _new
     ) internal returns (bool) {
         return _insert(self, _node, _new, _NEXT);
     }
@@ -207,8 +189,8 @@ library LinkedList {
      */
     function insertBefore(
         ListWithAmount storage self,
-        uint256 _node,
-        uint256 _new
+        uint64 _node,
+        uint64 _new
     ) internal returns (bool) {
         return _insert(self, _node, _new, _PREV);
     }
@@ -219,7 +201,7 @@ library LinkedList {
      * @param _node node to remove from the list
      * @return uint256 the removed node
      */
-    function remove(ListWithAmount storage self, uint256 _node) internal returns (uint256) {
+    function remove(ListWithAmount storage self, uint64 _node) internal returns (uint256) {
         if ((_node == _NULL) || (!nodeExists(self, _node))) {
             return 0;
         }
@@ -239,7 +221,7 @@ library LinkedList {
      * @param _node new entry to push to the head
      * @return bool true if success, false otherwise
      */
-    function pushFront(ListWithAmount storage self, uint256 _node) internal returns (bool) {
+    function pushFront(ListWithAmount storage self, uint64 _node) internal returns (bool) {
         return _push(self, _node, _NEXT);
     }
 
@@ -249,7 +231,7 @@ library LinkedList {
      * @param _node new entry to push to the tail
      * @return bool true if success, false otherwise
      */
-    function pushBack(ListWithAmount storage self, uint256 _node) internal returns (bool) {
+    function pushBack(ListWithAmount storage self, uint64 _node) internal returns (bool) {
         return _push(self, _node, _PREV);
     }
 
@@ -280,7 +262,7 @@ library LinkedList {
      */
     function _push(
         ListWithAmount storage self,
-        uint256 _node,
+        uint64 _node,
         bool _direction
     ) private returns (bool) {
         return _insert(self, _HEAD, _node, _direction);
@@ -293,7 +275,7 @@ library LinkedList {
      * @return uint256 the removed node
      */
     function _pop(ListWithAmount storage self, bool _direction) private returns (uint256) {
-        uint256 adj;
+        uint64 adj;
         (, adj) = getAdjacent(self, _HEAD, _direction);
         return remove(self, adj);
     }
@@ -308,12 +290,12 @@ library LinkedList {
      */
     function _insert(
         ListWithAmount storage self,
-        uint256 _node,
-        uint256 _new,
+        uint64 _node,
+        uint64 _new,
         bool _direction
     ) private returns (bool) {
         if (!nodeExists(self, _new) && nodeExists(self, _node)) {
-            uint256 c = self.list[_node][_direction];
+            uint64 c = self.list[_node][_direction];
             _createLink(self, _node, _new, _direction);
             _createLink(self, _new, c, _direction);
 
@@ -334,8 +316,8 @@ library LinkedList {
      */
     function _createLink(
         ListWithAmount storage self,
-        uint256 _node,
-        uint256 _link,
+        uint64 _node,
+        uint64 _link,
         bool _direction
     ) private {
         self.list[_link][!_direction] = _node;

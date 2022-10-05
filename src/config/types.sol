@@ -29,10 +29,10 @@ struct FullMarginAccountV2 {
     uint80 collateralAmount;
     uint40 productId;
     uint64 expiry;
-    LinkedList.ListWithAmount longCalls;
-    LinkedList.ListWithAmount longPuts;
-    LinkedList.ListWithAmount shortCalls;
-    LinkedList.ListWithAmount shortPuts;
+    LinkedList.ListWithAmount shortCalls; // sorted low => high [1000, 2000, 3000]
+    LinkedList.ListWithAmount longCalls; // sorted low => high [1000, 2000, 3000]
+    LinkedList.ListWithAmount shortPuts; // sorted high => low [1000, 900, 800]
+    LinkedList.ListWithAmount longPuts; // sorted high => low [1000, 900, 800]
 }
 
 /**
