@@ -401,8 +401,8 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
         details[i] = detail;
     }
 
-    function _getProductDetails(uint40 _productId) internal view returns (ProductDetails memory info) {
-        (, , uint8 underlyingId, , uint8 collateralId) = ProductIdUtil.parseProductId(_productId);
+    function _getProductDetails(uint40 productId) internal view returns (ProductDetails memory info) {
+        (, , uint8 underlyingId, , uint8 collateralId) = ProductIdUtil.parseProductId(productId);
 
         (
             address oracle,
@@ -413,7 +413,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
             ,
             address collateral,
             uint8 collatDecimals
-        ) = grappa.getDetailFromProductId(_productId);
+        ) = grappa.getDetailFromProductId(productId);
 
         info.oracle = oracle;
         info.underlying = underlying;

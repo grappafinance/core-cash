@@ -21,7 +21,6 @@ struct FullMarginDetail {
 }
 
 struct FullMarginAccountV2 {
-    // mapping(uint256 => uint64) shorts2;
     uint256[] shorts;
     uint64[] shortAmounts;
     uint256[] longs;

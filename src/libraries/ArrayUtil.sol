@@ -138,11 +138,15 @@ library ArrayUtil {
      * @dev Compute sum of all elements
      * @return s sum
      */
-    function sum(uint256[] memory x) internal pure returns (uint256 s) {
+    function sum(int256[] memory x) internal pure returns (int256 s) {
         for (uint256 i; i < x.length; i++) {
             s += x[i];
         }
         return s;
+    }
+
+    function sum(uint256[] memory x) internal pure returns (uint256 s) {
+        return sum(toInt256(x)).toUint256();
     }
 
     function sum(uint64[] memory x) internal pure returns (uint256) {
@@ -238,12 +242,24 @@ library ArrayUtil {
     }
 
     function populate(
+        int256[] memory a,
+        int256[] memory b,
+        uint256 z
+    ) internal pure returns (int256[] memory) {
+        for (uint256 i = 0; i < a.length; i++) {
+            a[z + i] = b[i];
+        }
+        return a;
+    }
+
+    function populate(
         uint256[] memory a,
         uint256[] memory b,
-        uint256 from
+        uint256 z
     ) internal pure returns (uint256[] memory) {
+        uint256[] memory x = toUint256(populate(toInt256(a), toInt256(b), z));
         for (uint256 i = 0; i < a.length; i++) {
-            a[from + i] = b[i];
+            a[i] = x[i];
         }
         return a;
     }
@@ -314,6 +330,13 @@ library ArrayUtil {
         }
     }
 
+    function addEachPosBy(int256[] memory x, int256 z) internal pure returns (int256[] memory y) {
+        y = new int256[](x.length);
+        for (uint256 i = 0; i < x.length; i++) {
+            y[i] = x[i] + z;
+        }
+    }
+
     function add(int256[] memory a, int256[] memory b) internal pure returns (int256[] memory y) {
         y = new int256[](a.length);
         for (uint256 i = 0; i < a.length; i++) {
@@ -332,6 +355,12 @@ library ArrayUtil {
         y = new int256[](x.length);
         for (uint256 i = 0; i < x.length; i++) {
             y[i] = x[i] / z;
+        }
+    }
+
+    function dot(int256[] memory a, int256[] memory b) internal pure returns (int256 s) {
+        for (uint256 i = 0; i < a.length; i++) {
+            s += a[i] * b[i];
         }
     }
 

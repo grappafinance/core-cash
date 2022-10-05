@@ -67,7 +67,7 @@ contract TestStructures_FMMV2 is Test {
         assertEq(underlyingNeeded, sZERO);
     }
 
-    function testMarginRequirement3() public {
+    function testMarginRequirement2() public {
         callWeights[3] = -7 * sUNIT;
 
         FullMarginDetailV2 memory detail = FullMarginDetailV2({
@@ -88,7 +88,7 @@ contract TestStructures_FMMV2 is Test {
         assertEq(underlyingNeeded, sZERO);
     }
 
-    function testMarginRequirement2() public {
+    function testMarginRequirement3() public {
         callWeights[3] = -8 * sUNIT;
 
         FullMarginDetailV2 memory detail = FullMarginDetailV2({
@@ -127,7 +127,7 @@ contract TestStructures_FMMV2 is Test {
         });
 
         (int256 collateralNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(collateralNeeded, 34000 * sUNIT);
+        assertEq(collateralNeeded, 33000 * sUNIT);
         assertEq(underlyingNeeded, sZERO);
     }
 }

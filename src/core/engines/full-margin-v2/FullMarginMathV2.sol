@@ -26,6 +26,15 @@ library FullMarginMathV2 {
     using SafeCast for int256;
     using SafeCast for uint256;
 
+    struct PayoutsParams {
+        uint256[] pois;
+        uint256[] strikes;
+        int256[] weights;
+        int256 underlyingWeight;
+        uint256 spotPrice;
+        int256 intrinsicValue;
+    }
+
     /**
      * @notice get minimum collateral denominated in strike asset
      * @param _detail margin details
@@ -39,37 +48,30 @@ library FullMarginMathV2 {
     {
         // TODO: requires weights and strikes are the same
 
-        uint256 epsilon = _detail.spotPrice / 10;
+        (
+            uint256[] memory strikes,
+            int256[] memory weights,
+            int256 underlyingWeight,
+            int256 intrinsicValue
+        ) = convertPutsToCalls(_detail);
 
-        // underlying price scenarios
-        uint256[] memory pricePois = new uint256[](0);
+        uint256 minStrike = strikes.min();
+        uint256 maxStrike = strikes.max();
 
-        uint256 minPutStrike;
-        uint256 maxCallStrike;
+        uint256[] memory pois = createPois(_detail, strikes, minStrike, maxStrike);
 
-        if (_detail.putStrikes.length > 0) {
-            minPutStrike = _detail.putStrikes.min();
-            pricePois = pricePois.append(minPutStrike - epsilon);
-            pricePois = pricePois.concat(_detail.putStrikes);
-        }
+        int256[] memory payouts = calculatePayouts(
+            PayoutsParams(pois, strikes, weights, underlyingWeight, _detail.spotPrice, intrinsicValue)
+        );
 
-        if (_detail.callStrikes.length > 0) {
-            maxCallStrike = _detail.callStrikes.max();
-            pricePois = pricePois.concat(_detail.callStrikes);
-            pricePois = pricePois.append(maxCallStrike + epsilon);
-        }
-
-        int256[] memory payouts = getPayouts(_detail, pricePois);
-
-        if (_detail.callStrikes.length > 0)
-            underlyingNeeded = getUnderlyingNeeded(pricePois, payouts, maxCallStrike, epsilon);
+        if (_detail.callStrikes.length > 0) underlyingNeeded = getUnderlyingNeeded(pois, payouts);
 
         if (_detail.putStrikes.length > 0) {
-            cashCollateralNeeded = getCashCollateralNeeded(pricePois, payouts, minPutStrike, epsilon);
+            cashCollateralNeeded = getCashCollateralNeeded(payouts, underlyingNeeded, underlyingWeight, minStrike);
 
             cashCollateralNeeded = getUnderlyingAdjustedCashCollateralNeeded(
                 _detail,
-                pricePois,
+                pois,
                 payouts,
                 cashCollateralNeeded,
                 underlyingNeeded
@@ -86,71 +88,107 @@ library FullMarginMathV2 {
         );
     }
 
-    function getPayouts(FullMarginDetailV2 memory _detail, uint256[] memory pricePois)
+    function createPois(
+        FullMarginDetailV2 memory _detail,
+        uint256[] memory strikes,
+        uint256 minStrike,
+        uint256 maxStrike
+    ) internal pure returns (uint256[] memory pois) {
+        uint256 epsilon = _detail.spotPrice / 10;
+
+        pois = new uint256[](0);
+
+        if (_detail.putStrikes.length > 0) pois = pois.append(minStrike - epsilon);
+
+        pois = pois.concat(strikes);
+
+        if (_detail.callStrikes.length > 0) pois = pois.append(maxStrike + epsilon);
+    }
+
+    function convertPutsToCalls(FullMarginDetailV2 memory _detail)
         internal
         pure
-        returns (int256[] memory payouts)
+        returns (
+            uint256[] memory strikes,
+            int256[] memory weights,
+            int256 underlyingWeight,
+            int256 intrinsicValue
+        )
     {
-        payouts = new int256[](pricePois.length);
+        strikes = _detail.putStrikes.concat(_detail.callStrikes);
+
+        int256[] memory synthCallWeights = new int256[](_detail.putWeights.length);
+
+        synthCallWeights.populate(_detail.putWeights, 0);
+
+        weights = synthCallWeights.concat(_detail.callWeights);
+
+        underlyingWeight = -_detail.putWeights.sum();
+
+        intrinsicValue =
+            _detail.putStrikes.subEachPosFrom(_detail.spotPrice).maximum(0).dot(_detail.putWeights) /
+            sUNIT;
+
+        intrinsicValue = -intrinsicValue;
+    }
+
+    function calculatePayouts(PayoutsParams memory params) internal pure returns (int256[] memory payouts) {
+        payouts = new int256[](params.pois.length);
         payouts.fill(0);
 
-        uint256 i;
-        for (i = 0; i < _detail.putStrikes.length; i++) {
+        for (uint256 i = 0; i < params.strikes.length; i++) {
             payouts = payouts.add(
-                pricePois
-                    .subEachPosFrom(_detail.putStrikes[i])
-                    .maximum(0)
-                    .mulEachPosBy(_detail.putWeights[i])
-                    .divEachPosBy(sUNIT)
+                params.pois.subEachPosBy(params.strikes[i]).maximum(0).mulEachPosBy(params.weights[i]).divEachPosBy(
+                    sUNIT
+                )
             );
         }
 
-        for (i = 0; i < _detail.callStrikes.length; i++) {
-            payouts = payouts.add(
-                pricePois
-                    .subEachPosBy(_detail.callStrikes[i])
-                    .maximum(0)
-                    .mulEachPosBy(_detail.callWeights[i])
-                    .divEachPosBy(sUNIT)
-            );
-        }
+        payouts = payouts
+            .add(params.pois.subEachPosBy(params.spotPrice).mulEachPosBy(params.underlyingWeight).divEachPosBy(sUNIT))
+            .addEachPosBy(params.intrinsicValue);
+    }
+
+    function calcSlope(int256[] memory leftPoint, int256[] memory rightPoint) internal pure returns (int256) {
+        // TODO add assertions
+        return (((rightPoint[1] - leftPoint[1]) * sUNIT) / ((rightPoint[0] - leftPoint[0]) * sUNIT)) * sUNIT;
     }
 
     // this computes the slope to the right of the right most strike, resulting in the delta hedge (underlying)
-    function getUnderlyingNeeded(
-        uint256[] memory pricePois,
-        int256[] memory payouts,
-        uint256 maxCallStrike,
-        uint256 epsilon
-    ) internal pure returns (int256 underlyingNeeded) {
-        int256 rightMostPayoutScenario = payouts.at(-1); // we placed it here
+    function getUnderlyingNeeded(uint256[] memory pois, int256[] memory payouts)
+        internal
+        pure
+        returns (int256 underlyingNeeded)
+    {
+        int256[] memory leftPoint = new int256[](2);
+        leftPoint[0] = pois.at(-2).toInt256();
+        leftPoint[1] = payouts.at(-2);
 
-        (, uint256 index) = pricePois.indexOf(maxCallStrike);
-        int256 rightMostPayoutActual = payouts[index];
+        int256[] memory rightPoint = new int256[](2);
+        rightPoint[0] = pois.at(-1).toInt256();
+        rightPoint[1] = payouts.at(-1);
 
-        underlyingNeeded = ((rightMostPayoutScenario - rightMostPayoutActual) * sUNIT) / epsilon.toInt256();
+        underlyingNeeded = calcSlope(leftPoint, rightPoint);
         underlyingNeeded = underlyingNeeded < sZERO ? -underlyingNeeded : sZERO;
     }
 
     // this computes the slope to the left of the left most strike
     function getCashCollateralNeeded(
-        uint256[] memory pricePois,
         int256[] memory payouts,
-        uint256 minPutStrike,
-        uint256 epsilon
+        int256 underlyingNeeded,
+        int256 underlyingWeight,
+        uint256 minStrike
     ) internal pure returns (int256 cashCollateralNeeded) {
-        int256 leftMostPayoutScenario = payouts[0]; // we placed it here
+        cashCollateralNeeded = underlyingNeeded + underlyingWeight;
 
-        (, uint256 index) = pricePois.indexOf(minPutStrike);
-        int256 leftMostPayoutActual = payouts[index];
+        cashCollateralNeeded = ((minStrike.toInt256() * cashCollateralNeeded) / sUNIT) - payouts[1];
 
-        cashCollateralNeeded = ((leftMostPayoutActual - leftMostPayoutScenario) * sUNIT) / epsilon.toInt256();
-        cashCollateralNeeded = (cashCollateralNeeded * minPutStrike.toInt256()) / sUNIT;
+        if (cashCollateralNeeded < 0) cashCollateralNeeded = 0;
     }
 
     function getUnderlyingAdjustedCashCollateralNeeded(
         FullMarginDetailV2 memory _detail,
-        uint256[] memory pricePois,
+        uint256[] memory pois,
         int256[] memory payouts,
         int256 cashCollateralNeeded,
         int256 underlyingNeeded
@@ -167,7 +205,7 @@ library FullMarginMathV2 {
 
         if (cashCollateralNeeded < minStrikePayout) {
             (, uint256 index) = payouts.indexOf(-minStrikePayout);
-            int256 underlyingPayoutAtMinStrike = (pricePois[index].toInt256() * underlyingNeeded) / sUNIT;
+            int256 underlyingPayoutAtMinStrike = (pois[index].toInt256() * underlyingNeeded) / sUNIT;
 
             if (underlyingPayoutAtMinStrike - minStrikePayout > 0) cashCollateralNeeded = 0;
             else cashCollateralNeeded = minStrikePayout - underlyingPayoutAtMinStrike;
