@@ -32,7 +32,7 @@ library FullMarginLibV2 {
     }
 
     ///@dev Increase the collateral in the account
-    ///@param account FullMarginAccountV2 memory that will be updated
+    ///@param account FullMarginAccountV2 storage that will be updated
     function addCollateral(
         FullMarginAccountV2 storage account,
         uint8 collateralId,
@@ -42,19 +42,19 @@ library FullMarginLibV2 {
         if (cacheId == 0) {
             account.collateralId = collateralId;
         } else {
-            if (cacheId != collateralId) revert FM_WrongCollateralId();
+            if (cacheId != collateralId) revert FM2_WrongCollateralId();
         }
         account.collateralAmount += amount;
     }
 
     ///@dev Reduce the collateral in the account
-    ///@param account FullMarginAccountV2 memory that will be updated
+    ///@param account FullMarginAccountV2 storage that will be updated
     function removeCollateral(
         FullMarginAccountV2 storage account,
         uint8 collateralId,
         uint80 amount
     ) internal {
-        if (account.collateralId != collateralId) revert FM_WrongCollateralId();
+        if (account.collateralId != collateralId) revert FM2_WrongCollateralId();
 
         uint80 newAmount = account.collateralAmount - amount;
         account.collateralAmount = newAmount;
@@ -64,7 +64,7 @@ library FullMarginLibV2 {
     }
 
     ///@dev Increase the amount of short call or put (debt) of the account
-    ///@param account FullMarginAccountV2 memory that will be updated
+    ///@param account FullMarginAccountV2 storage that will be updated
     function mintOption(
         FullMarginAccountV2 storage account,
         uint256 tokenId,
@@ -89,7 +89,7 @@ library FullMarginLibV2 {
     }
 
     ///@dev Remove the amount of short call or put (debt) of the account
-    ///@param account FullMarginAccountV2 memory that will be updated in-place
+    ///@param account FullMarginAccountV2 storage that will be updated in-place
     function burnOption(
         FullMarginAccountV2 storage account,
         uint256 tokenId,
@@ -98,6 +98,7 @@ library FullMarginLibV2 {
         (TokenType optionType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) = tokenId
             .parseTokenId();
 
+        // note: if the account shouldn't be empty, the updates after this line will revert
         _verifyAndSetAccountInfo(account, productId, expiry);
 
         if (optionType == TokenType.CALL) {
@@ -113,26 +114,64 @@ library FullMarginLibV2 {
         }
     }
 
-    ///@dev merge an OptionToken into the accunt, changing existing short to spread
-    ///@dev shortId and longId already have the same optionType, productId, expiry
-    function merge(
-        FullMarginAccountV2 storage, /*account*/
-        uint256, /*shortId*/
-        uint256, /*longId*/
-        uint64 /*amount*/
-    ) internal pure {
-        revert("not implemented");
+    ///@dev Increase the amount of short call or put (debt) of the account
+    ///@param account FullMarginAccountV2 storage that will be updated
+    function addLong(
+        FullMarginAccountV2 storage account,
+        uint256 tokenId,
+        uint64 amount
+    ) internal {
+        (TokenType optionType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) = tokenId
+            .parseTokenId();
+
+        _verifyAndSetAccountInfo(account, productId, expiry);
+
+        if (optionType == TokenType.CALL) {
+            _addIntoSortedListAndIncreaseAmount(account.longCalls, true, longStrike, amount);
+        } else if (optionType == TokenType.PUT) {
+            _addIntoSortedListAndIncreaseAmount(account.longPuts, false, longStrike, amount);
+        } else if (optionType == TokenType.CALL_SPREAD) {
+            // add a call spread: 
+            // long array: + long strike
+            // short array: + short strike
+            _addIntoSortedListAndIncreaseAmount(account.longCalls, true, longStrike, amount);
+            _addIntoSortedListAndIncreaseAmount(account.shortCalls, true, shortStrike, amount);
+        } else if (optionType == TokenType.PUT_SPREAD) {
+            // add a put spread: 
+            // long array: + long strike
+            // short array: + short strike
+            _addIntoSortedListAndIncreaseAmount(account.longPuts, false, longStrike, amount);
+            _addIntoSortedListAndIncreaseAmount(account.shortPuts, false, shortStrike, amount);
+        }
     }
 
-    ///@dev split an accunt's spread position into short + 1 token
-    function split(
-        FullMarginAccountV2 storage, /*account*/
-        uint256, /*spreadId*/
-        uint64 /*amount*/
-    ) internal pure {
-        revert("not implemented");
+    ///@dev Increase the amount of short call or put (debt) of the account
+    ///@param account FullMarginAccountV2 storage that will be updated
+    function removeLong(
+        FullMarginAccountV2 storage account,
+        uint256 tokenId,
+        uint64 amount
+    ) internal {
+        (TokenType optionType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) = tokenId
+            .parseTokenId();
+
+        // note: if the account shouldn't be empty, the updates after this line will revert
+        _verifyAndSetAccountInfo(account, productId, expiry);
+
+        if (optionType == TokenType.CALL) {
+            _decreaseAmountAndRemoveFromListIfEmpty(account.longCalls, longStrike, amount);
+        } else if (optionType == TokenType.PUT) {
+            _decreaseAmountAndRemoveFromListIfEmpty(account.longPuts, longStrike, amount);
+        } else if (optionType == TokenType.CALL_SPREAD) {
+            _decreaseAmountAndRemoveFromListIfEmpty(account.longCalls, longStrike, amount);
+            _decreaseAmountAndRemoveFromListIfEmpty(account.shortCalls, shortStrike, amount);
+        } else if (optionType == TokenType.PUT_SPREAD) {
+            _decreaseAmountAndRemoveFromListIfEmpty(account.longPuts, longStrike, amount);
+            _decreaseAmountAndRemoveFromListIfEmpty(account.shortPuts, shortStrike, amount);
+        }
     }
 
+    
     function settleAtExpiry(FullMarginAccountV2 storage account, uint80 _payout) internal {}
 
     function getMinCollateral(
@@ -175,14 +214,14 @@ library FullMarginLibV2 {
         if (cachedExpiry == 0) {
             account.expiry = expiry;
         } else {
-            if (cachedExpiry != expiry) revert("wrong expiry");
+            if (cachedExpiry != expiry) revert FM2_InvalidToken();
         }
 
         // check if productId is the same as stored
         if (cachedProductId == 0) {
             account.productId = productId;
         } else {
-            if (cachedProductId != productId) revert("wrong product");
+            if (cachedProductId != productId) revert FM2_InvalidToken();
         }
 
         // assign collateralId or check collateral id is the same
@@ -192,7 +231,7 @@ library FullMarginLibV2 {
         if (cacheCollatId == 0) {
             account.collateralId = collateralId;
         } else {
-            if (cacheCollatId != collateralId) revert FM_CollateraliMisMatch();
+            if (cacheCollatId != collateralId) revert FM2_CollateraliMisMatch();
         }
     }
 
@@ -232,7 +271,7 @@ library FullMarginLibV2 {
         uint64 amount
     ) internal {
         uint64 existingAmount = s.values[strike];
-        if (existingAmount < amount) revert("cannot burn");
+        // if (existingAmount < amount) revert("cannot burn");
         uint64 newAmount = existingAmount - amount;
         if (newAmount == 0) {
             // also remove value

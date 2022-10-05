@@ -77,6 +77,26 @@ error FM_SplitAmountMisMatch();
 /// @dev trying to collateralized the position with different collateral than specified in productId
 error FM_CollateraliMisMatch();
 
+// Full Margin V2 errors
+error FM2_UnsupportedAction();
+
+/// @dev invalid collateral:
+///         call can only be collateralized by underlying
+///         put can only be collateralized by strike
+error FM2_CannotMintOptionWithThisCollateral();
+
+/// @dev collateral id is wrong: the id doesn't match the existing collateral
+error FM2_WrongCollateralId();
+
+/// @dev invalid tokenId specify to mint / burn actions
+error FM2_InvalidToken();
+
+/// @dev trying to merge an long with a non-existant short position
+error FM2_ShortDoesnotExist();
+
+/// @dev trying to collateralized the position with different collateral than specified in productId
+error FM2_CollateraliMisMatch();
+
 // Advanced Margin and AdvancedMarginLib Errors
 
 /// @dev full margin doesn't support this action (add long and remove long)

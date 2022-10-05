@@ -241,7 +241,7 @@ abstract contract BaseEngine is ReentrancyGuard {
         _verifyLongTokenIdToAdd(tokenId);
 
         // update the state
-        _addOptionToAccount(_subAccount, tokenId, amount);
+        _increaseLongInAccount(_subAccount, tokenId, amount);
 
         emit OptionTokenAdded(_subAccount, tokenId, amount);
 
@@ -258,7 +258,7 @@ abstract contract BaseEngine is ReentrancyGuard {
         (uint256 tokenId, uint64 amount, address to) = abi.decode(_data, (uint256, uint64, address));
 
         // update the state
-        _removeOptionfromAccount(_subAccount, tokenId, amount);
+        _decreaseLongInAccount(_subAccount, tokenId, amount);
 
         emit OptionTokenRemoved(_subAccount, tokenId, amount);
 
@@ -319,13 +319,13 @@ abstract contract BaseEngine is ReentrancyGuard {
         uint64 amount
     ) internal virtual {}
 
-    function _addOptionToAccount(
+    function _increaseLongInAccount(
         address _subAccount,
         uint256 tokenId,
         uint64 amount
     ) internal virtual {}
 
-    function _removeOptionfromAccount(
+    function _decreaseLongInAccount(
         address _subAccount,
         uint256 tokenId,
         uint64 amount

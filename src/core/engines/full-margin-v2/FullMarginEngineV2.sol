@@ -60,8 +60,8 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
             else if (actions[i].action == ActionType.RemoveCollateral) _removeCollateral(_subAccount, actions[i].data);
             else if (actions[i].action == ActionType.MintShort) _mintOption(_subAccount, actions[i].data);
             else if (actions[i].action == ActionType.BurnShort) _burnOption(_subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.MergeOptionToken) _merge(_subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.SplitOptionToken) _split(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.AddLong) _addOption(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.RemoveLong) _removeOption(_subAccount, actions[i].data);
             else if (actions[i].action == ActionType.SettleAccount) _settle(_subAccount);
             else revert FM_UnsupportedAction();
 
@@ -167,21 +167,20 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
         marginAccounts[_subAccount].burnOption(tokenId, amount);
     }
 
-    function _mergeLongIntoSpread(
+    function _increaseLongInAccount(
         address _subAccount,
-        uint256 shortTokenId,
-        uint256 longTokenId,
+        uint256 tokenId,
         uint64 amount
     ) internal override {
-        marginAccounts[_subAccount].merge(shortTokenId, longTokenId, amount);
+        marginAccounts[_subAccount].addLong(tokenId, amount);
     }
 
-    function _splitSpreadInAccount(
+    function _decreaseLongInAccount(
         address _subAccount,
-        uint256 spreadId,
+        uint256 tokenId,
         uint64 amount
     ) internal override {
-        marginAccounts[_subAccount].split(spreadId, amount);
+        marginAccounts[_subAccount].removeLong(tokenId, amount);
     }
 
     function _settleAccount(address _subAccount, uint80 payout) internal override {
