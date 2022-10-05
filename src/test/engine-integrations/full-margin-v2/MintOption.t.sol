@@ -39,7 +39,13 @@ contract TestMint_FM2 is FullMarginV2Fixture {
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
         engine.execute(address(this), actions);
-        uint256 shortAmount = engine.getAccountShortAmount(address(this), pidEthCollat, uint64(expiry), uint64(strikePrice), true);
+        uint256 shortAmount = engine.getAccountShortAmount(
+            address(this),
+            pidEthCollat,
+            uint64(expiry),
+            uint64(strikePrice),
+            true
+        );
         assertEq(shortAmount, amount);
     }
 }

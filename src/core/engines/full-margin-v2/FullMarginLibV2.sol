@@ -69,7 +69,8 @@ library FullMarginLibV2 {
         uint256 tokenId,
         uint64 amount
     ) internal {
-        (TokenType optionType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) = tokenId.parseTokenId();
+        (TokenType optionType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) = tokenId
+            .parseTokenId();
         // assign collateralId or check collateral id is the same
         (, , , , uint8 collateralId) = productId.parseProductId();
 
@@ -185,10 +186,15 @@ library FullMarginLibV2 {
         seriesId = (((_tokenId << 24) >> 24) >> 128) << 128;
     }
 
-    /** 
+    /**
      * @param asc true if the list is sorted asc (low to high)
      */
-    function _addIntoSortedListAndIncreaseAmount(LinkedList.ListWithAmount storage s, bool asc, uint64 strike, uint64 amount) internal {
+    function _addIntoSortedListAndIncreaseAmount(
+        LinkedList.ListWithAmount storage s,
+        bool asc,
+        uint64 strike,
+        uint64 amount
+    ) internal {
         bool exists = s.nodeExists(strike);
         if (!exists) {
             uint64 found;
@@ -203,7 +209,6 @@ library FullMarginLibV2 {
             } else {
                 s.pushBack(strike);
             }
-            
         }
         s.values[strike] += amount;
     }
