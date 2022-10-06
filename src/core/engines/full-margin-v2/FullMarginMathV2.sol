@@ -35,6 +35,16 @@ library FullMarginMathV2 {
         int256 intrinsicValue;
     }
 
+    error FMMV2_InvalidPutLengths();
+
+    error FMMV2_InvalidCallLengths();
+
+    error FMMV2_BadPoints();
+
+    error FMMV2_InvalidLeftPointLength();
+
+    error FMMV2_InvalidRightPointLength();
+
     /**
      * @notice get minimum collateral denominated in strike asset
      * @param _detail margin details
@@ -46,11 +56,6 @@ library FullMarginMathV2 {
         pure
         returns (int256 cashCollateralNeeded, int256 underlyingNeeded)
     {
-        // TODO: requires weights and strikes are the same
-        // assert(len(putWeights) == len(putStrikes))
-        // assert(len(callWeights)==len(callStrikes))
-        // assert(strikes are in ascending order)
-
         (
             uint256[] memory strikes,
             int256[] memory weights,
@@ -118,6 +123,9 @@ library FullMarginMathV2 {
             int256 intrinsicValue
         )
     {
+        if (_detail.putWeights.length != _detail.putStrikes.length) revert FMMV2_InvalidPutLengths();
+        if (_detail.callWeights.length != _detail.callStrikes.length) revert FMMV2_InvalidCallLengths();
+
         strikes = _detail.putStrikes.concat(_detail.callStrikes);
 
         int256[] memory synthCallWeights = new int256[](_detail.putWeights.length);
@@ -126,11 +134,16 @@ library FullMarginMathV2 {
 
         weights = synthCallWeights.concat(_detail.callWeights);
 
+        // sorting strikes
+        (uint256[] memory sorted, uint256[] memory indexes) = strikes.argSort();
+        strikes = sorted;
+
+        // sorting weights based on strike sorted index
+        weights = weights.sortByIndexes(indexes);
+
         underlyingWeight = -_detail.putWeights.sum();
 
-        intrinsicValue =
-            _detail.putStrikes.subEachPosFrom(_detail.spotPrice).maximum(0).dot(_detail.putWeights) /
-            sUNIT;
+        intrinsicValue = _detail.putStrikes.subEachFrom(_detail.spotPrice).maximum(0).dot(_detail.putWeights) / sUNIT;
 
         intrinsicValue = -intrinsicValue;
     }
@@ -141,22 +154,20 @@ library FullMarginMathV2 {
 
         for (uint256 i = 0; i < params.strikes.length; i++) {
             payouts = payouts.add(
-                params.pois.subEachPosBy(params.strikes[i]).maximum(0).mulEachPosBy(params.weights[i]).divEachPosBy(
-                    sUNIT
-                )
+                params.pois.subEachBy(params.strikes[i]).maximum(0).mulEachBy(params.weights[i]).divEachBy(sUNIT)
             );
         }
 
         payouts = payouts
-            .add(params.pois.subEachPosBy(params.spotPrice).mulEachPosBy(params.underlyingWeight).divEachPosBy(sUNIT))
-            .addEachPosBy(params.intrinsicValue);
+            .add(params.pois.subEachBy(params.spotPrice).mulEachBy(params.underlyingWeight).divEachBy(sUNIT))
+            .addEachBy(params.intrinsicValue);
     }
 
     function calcSlope(int256[] memory leftPoint, int256[] memory rightPoint) internal pure returns (int256) {
-        // TODO add assertions
-        // assert(left_point[0] < right_point[0])
-        // assert(len(left_point)==2)
-        // assert(len(left_point)==len(right_point))
+        if (leftPoint[0] > rightPoint[0]) revert FMMV2_BadPoints();
+        if (leftPoint.length != 2) revert FMMV2_InvalidLeftPointLength();
+        if (leftPoint.length != rightPoint.length) revert FMMV2_InvalidRightPointLength();
+
         return (((rightPoint[1] - leftPoint[1]) * sUNIT) / ((rightPoint[0] - leftPoint[0]) * sUNIT)) * sUNIT;
     }
 

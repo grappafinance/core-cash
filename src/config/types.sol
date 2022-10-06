@@ -21,8 +21,8 @@ struct FullMarginDetail {
 }
 
 struct FullMarginAccountV2 {
-    Position[] shorts;
-    Position[] longs;
+    PositionOptim[] shorts;
+    PositionOptim[] longs;
     Balance[] collaterals;
 }
 
@@ -37,6 +37,11 @@ struct FullMarginDetailV2 {
     uint8 collateralDecimals;
     uint256 spotPrice;
     uint256 expiry;
+}
+
+struct PositionOptim {
+    uint192 tokenId;
+    uint64 amount;
 }
 
 struct Position {

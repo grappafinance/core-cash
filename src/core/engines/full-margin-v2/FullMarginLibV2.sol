@@ -20,6 +20,7 @@ import "../../../test/utils/Console.sol";
 library FullMarginLibV2 {
     using AccountUtil for Balance[];
     using AccountUtil for Position[];
+    using AccountUtil for PositionOptim[];
     using ProductIdUtil for uint40;
     using TokenIdUtil for uint256;
 
@@ -83,9 +84,9 @@ library FullMarginLibV2 {
         // put can only be collateralized by strike
         if ((optionType == TokenType.PUT) && strikeId != collateralId) revert FM_CannotMintOptionWithThisCollateral();
 
-        (bool found, uint256 index) = account.shorts.indexOf(tokenId);
+        (bool found, uint256 index) = account.shorts.getPositions().indexOf(tokenId);
         if (!found) {
-            account.shorts.push(Position(tokenId, amount));
+            account.shorts.pushPosition(Position(tokenId, amount));
         } else account.shorts[index].amount += amount;
     }
 
@@ -96,13 +97,13 @@ library FullMarginLibV2 {
         uint256 tokenId,
         uint64 amount
     ) internal {
-        (bool found, uint256 index) = account.shorts.indexOf(tokenId);
+        (bool found, uint256 index) = account.shorts.getPositions().indexOf(tokenId);
 
         if (!found) revert FM_InvalidToken();
 
         uint64 newShortAmount = account.shorts[index].amount - amount;
         if (newShortAmount == 0) {
-            account.shorts.remove(index);
+            account.shorts.removePositionAt(index);
         } else account.shorts[index].amount = newShortAmount;
     }
 

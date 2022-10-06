@@ -1,11 +1,15 @@
 pragma solidity ^0.8.0;
 
+import {TokenIdUtil} from "./TokenIdUtil.sol";
 import "./ArrayUtil.sol";
 import "../config/types.sol";
 
 import "../test/utils/Console.sol";
 
 library AccountUtil {
+    using TokenIdUtil for uint192;
+    using TokenIdUtil for uint256;
+
     function append(Balance[] memory x, Balance memory v) internal pure returns (Balance[] memory y) {
         y = new Balance[](x.length + 1);
         uint256 i;
@@ -186,7 +190,7 @@ library AccountUtil {
         }
     }
 
-    function sum(Position[] memory x) internal pure returns (uint64 s) {
+    function sum(PositionOptim[] memory x) internal pure returns (uint64 s) {
         for (uint256 i; i < x.length; ) {
             s += x[i].amount;
             unchecked {
@@ -203,5 +207,29 @@ library AccountUtil {
                 i++;
             }
         }
+    }
+
+    function getPositions(PositionOptim[] memory x) internal pure returns (Position[] memory y) {
+        y = new Position[](x.length);
+        for (uint256 i; i < x.length; ) {
+            y[i] = Position(x[i].tokenId.expand(), x[i].amount);
+            unchecked {
+                i++;
+            }
+        }
+    }
+
+    function pushPosition(PositionOptim[] storage x, Position memory y) internal {
+        x.push(getPositionOptim(y));
+    }
+
+    function removePositionAt(PositionOptim[] storage x, uint256 y) internal {
+        if (y >= x.length) return;
+        x[y] = x[x.length - 1];
+        x.pop();
+    }
+
+    function getPositionOptim(Position memory x) internal pure returns (PositionOptim memory) {
+        return PositionOptim(x.tokenId.shorten(), x.amount);
     }
 }

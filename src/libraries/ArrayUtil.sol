@@ -170,8 +170,13 @@ library ArrayUtil {
         return x;
     }
 
-    function argSort(uint256[] memory x) internal pure returns (uint256[] memory y) {
-        // TODO
+    function argSort(uint256[] memory x) internal pure returns (uint256[] memory y, uint256[] memory z) {
+        y = sort(x);
+        z = new uint256[](y.length);
+        for (uint256 i; i < y.length; i++) {
+            (, uint256 w) = indexOf(x, y[i]);
+            z[i] = w;
+        }
     }
 
     function sort(uint256[] memory x) internal pure returns (uint256[] memory y) {
@@ -179,6 +184,13 @@ library ArrayUtil {
         populate(y, x, 0);
         for (uint256 i = 0; i < x.length - 1; i++) {
             y = _sortItem(y, i);
+        }
+    }
+
+    function sortByIndexes(int256[] memory x, uint256[] memory z) internal pure returns (int256[] memory y) {
+        y = new int256[](x.length);
+        for (uint256 i; i < x.length; i++) {
+            y[i] = x[z[i]];
         }
     }
 
@@ -316,21 +328,81 @@ library ArrayUtil {
         return toUint256(slice(toInt256(x), y.toInt256(), z.toInt256()));
     }
 
-    function subEachPosFrom(uint256[] memory x, uint256 z) internal pure returns (int256[] memory y) {
+    function map(int256[] memory self, function(int256) pure returns (int256) f)
+        internal
+        pure
+        returns (int256[] memory r)
+    {
+        r = new int256[](self.length);
+        for (uint256 i = 0; i < self.length; i++) {
+            r[i] = f(self[i]);
+        }
+    }
+
+    function map2(
+        int256[] memory x,
+        function(int256, int256) pure returns (int256) f,
+        int256 y
+    ) internal pure returns (int256[] memory r) {
+        r = new int256[](x.length);
+        for (uint256 i = 0; i < x.length; i++) {
+            r[i] = f(x[i], y);
+        }
+    }
+
+    function reduce(uint256[] memory self, function(uint256, uint256) pure returns (uint256) f)
+        internal
+        pure
+        returns (uint256 r)
+    {
+        r = self[0];
+        for (uint256 i = 1; i < self.length; i++) {
+            r = f(r, self[i]);
+        }
+    }
+
+    function range(uint256 length) internal pure returns (uint256[] memory r) {
+        r = new uint256[](length);
+        for (uint256 i = 0; i < r.length; i++) {
+            r[i] = i;
+        }
+    }
+
+    function add(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a + b;
+    }
+
+    function sub(int256 a, int256 b) internal pure returns (int256) {
+        return a - b;
+    }
+
+    function subFrom(int256 a, int256 b) internal pure returns (int256) {
+        return b - a;
+    }
+
+    function mul(int256 a, int256 b) internal pure returns (int256) {
+        return a * b;
+    }
+
+    function div(int256 a, int256 b) internal pure returns (int256) {
+        return a / b;
+    }
+
+    function subEachFrom(uint256[] memory x, uint256 z) internal pure returns (int256[] memory y) {
         y = new int256[](x.length);
         for (uint256 i = 0; i < x.length; i++) {
             y[i] = z.toInt256() - x[i].toInt256();
         }
     }
 
-    function subEachPosBy(uint256[] memory x, uint256 z) internal pure returns (int256[] memory y) {
+    function subEachBy(uint256[] memory x, uint256 z) internal pure returns (int256[] memory y) {
         y = new int256[](x.length);
         for (uint256 i = 0; i < x.length; i++) {
             y[i] = x[i].toInt256() - z.toInt256();
         }
     }
 
-    function addEachPosBy(int256[] memory x, int256 z) internal pure returns (int256[] memory y) {
+    function addEachBy(int256[] memory x, int256 z) internal pure returns (int256[] memory y) {
         y = new int256[](x.length);
         for (uint256 i = 0; i < x.length; i++) {
             y[i] = x[i] + z;
@@ -344,14 +416,14 @@ library ArrayUtil {
         }
     }
 
-    function mulEachPosBy(int256[] memory x, int256 z) internal pure returns (int256[] memory y) {
+    function mulEachBy(int256[] memory x, int256 z) internal pure returns (int256[] memory y) {
         y = new int256[](x.length);
         for (uint256 i = 0; i < x.length; i++) {
             y[i] = x[i] * z;
         }
     }
 
-    function divEachPosBy(int256[] memory x, int256 z) internal pure returns (int256[] memory y) {
+    function divEachBy(int256[] memory x, int256 z) internal pure returns (int256[] memory y) {
         y = new int256[](x.length);
         for (uint256 i = 0; i < x.length; i++) {
             y[i] = x[i] / z;

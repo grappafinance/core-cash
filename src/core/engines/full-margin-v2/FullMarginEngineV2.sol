@@ -36,15 +36,13 @@ import "../../../test/utils/Console.sol";
  */
 contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
     using ArrayUtil for bytes32[];
-    // using ArrayUtil for uint8[];
-    // using ArrayUtil for uint64[];
-    // using ArrayUtil for uint80[];
     using ArrayUtil for int256[];
     using ArrayUtil for uint256[];
 
     using AccountUtil for Balance[];
     using AccountUtil for FullMarginDetailV2[];
     using AccountUtil for Position[];
+    using AccountUtil for PositionOptim[];
     using AccountUtil for SBalance[];
 
     using FullMarginLibV2 for FullMarginAccountV2;
@@ -140,7 +138,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
     {
         FullMarginAccountV2 memory account = accounts[_subAccount];
 
-        return (account.shorts, account.longs, account.collaterals);
+        return (account.shorts.getPositions(), account.longs.getPositions(), account.collaterals);
     }
 
     /** ========================================================= **
@@ -234,7 +232,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
     function _getAccountPayout2(address _subAccount) internal view returns (Balance[] memory payouts) {
         FullMarginAccountV2 memory account = accounts[_subAccount];
 
-        Position[] memory shorts = account.shorts;
+        Position[] memory shorts = account.shorts.getPositions();
 
         for (uint256 i; i < shorts.length; ) {
             uint256 tokenId = shorts[i].tokenId;
@@ -307,7 +305,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
 
         bytes32[] memory uceLookUp = new bytes32[](0);
 
-        Position[] memory positions = account.shorts.concat(account.longs);
+        Position[] memory positions = account.shorts.getPositions().concat(account.longs.getPositions());
         uint256 shortLength = account.shorts.length;
 
         for (uint256 i; i < positions.length; ) {

@@ -130,6 +130,41 @@ contract TestStructures_FMMV2 is Test {
         assertEq(collateralNeeded, 33000 * sUNIT);
         assertEq(underlyingNeeded, sZERO);
     }
+
+    function testMarginUnsortedStrikes() public {
+        putWeights[0] = 1 * sUNIT;
+        putWeights[1] = -1 * sUNIT;
+
+        putStrikes[0] = 18000 * UNIT;
+        putStrikes[1] = 17000 * UNIT;
+
+        callWeights[0] = -8 * sUNIT;
+        callWeights[1] = -6 * sUNIT;
+        callWeights[2] = -1 * sUNIT;
+        callWeights[3] = 16 * sUNIT;
+
+        callStrikes[0] = 22000 * UNIT;
+        callStrikes[1] = 26000 * UNIT;
+        callStrikes[2] = 21000 * UNIT;
+        callStrikes[3] = 25000 * UNIT;
+
+        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+            putWeights: putWeights,
+            putStrikes: putStrikes,
+            callWeights: callWeights,
+            callStrikes: callStrikes,
+            underlyingId: 0,
+            underlyingDecimals: UNIT_DECIMALS,
+            collateralId: 0,
+            collateralDecimals: UNIT_DECIMALS,
+            spotPrice: spotPrice,
+            expiry: 0
+        });
+
+        (int256 collateralNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(collateralNeeded, 28000 * sUNIT);
+        assertEq(underlyingNeeded, sZERO);
+    }
 }
 
 contract TestVanillaCall_FMMV2 is Test {

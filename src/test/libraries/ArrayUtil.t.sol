@@ -113,18 +113,68 @@ contract ArrayUtilTest is Test {
 
     function testSort() public {
         uint256[] memory array = new uint256[](5);
-        array[0] = 4;
-        array[1] = 2;
-        array[2] = 1;
-        array[3] = 5;
-        array[4] = 3;
+        array[0] = 400;
+        array[1] = 200;
+        array[2] = 100;
+        array[3] = 500;
+        array[4] = 300;
 
         uint256[] memory sorted = array.sort();
         assertEq(sorted.length, 5);
-        assertEq(sorted[0], 1);
-        assertEq(sorted[1], 2);
-        assertEq(sorted[2], 3);
-        assertEq(sorted[3], 4);
-        assertEq(sorted[4], 5);
+        assertEq(sorted[0], 100);
+        assertEq(sorted[1], 200);
+        assertEq(sorted[2], 300);
+        assertEq(sorted[3], 400);
+        assertEq(sorted[4], 500);
+    }
+
+    function testArgSort() public {
+        uint256[] memory array = new uint256[](5);
+        array[0] = 400;
+        array[1] = 200;
+        array[2] = 100;
+        array[3] = 500;
+        array[4] = 300;
+
+        (uint256[] memory sorted, uint256[] memory indexes) = array.argSort();
+        assertEq(sorted.length, 5);
+        assertEq(sorted[0], 100);
+        assertEq(sorted[1], 200);
+        assertEq(sorted[2], 300);
+        assertEq(sorted[3], 400);
+        assertEq(sorted[4], 500);
+
+        assertEq(indexes.length, 5);
+        assertEq(indexes[0], 2);
+        assertEq(indexes[1], 1);
+        assertEq(indexes[2], 4);
+        assertEq(indexes[3], 0);
+        assertEq(indexes[4], 3);
+    }
+
+    function testSortByIndexes() public {
+        uint256[] memory array = new uint256[](5);
+        array[0] = 400;
+        array[1] = 200;
+        array[2] = 100;
+        array[3] = 500;
+        array[4] = 300;
+
+        int256[] memory array2 = new int256[](5);
+        array2[0] = 400;
+        array2[1] = 200;
+        array2[2] = 100;
+        array2[3] = 500;
+        array2[4] = 300;
+
+        (, uint256[] memory indexes) = array.argSort();
+
+        int256[] memory sortedByIndex = array2.sortByIndexes(indexes);
+        assertEq(sortedByIndex.length, 5);
+        assertEq(sortedByIndex[0], 100);
+        assertEq(sortedByIndex[1], 200);
+        assertEq(sortedByIndex[2], 300);
+        assertEq(sortedByIndex[3], 400);
+        assertEq(sortedByIndex[4], 500);
     }
 }
