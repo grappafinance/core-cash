@@ -153,13 +153,15 @@ library FullMarginLibV2 {
         Balance[] memory collaterals = account.collaterals;
 
         for (uint256 i; i < payouts.length; ) {
-            (, uint256 index) = collaterals.indexOf(payouts[i].collateralId);
+            if (payouts[i].amount > 0) {
+                (, uint256 index) = collaterals.indexOf(payouts[i].collateralId);
 
-            uint80 newAmount = collaterals[index].amount - payouts[i].amount;
+                uint80 newAmount = collaterals[index].amount - payouts[i].amount;
 
-            if (newAmount == 0) {
-                account.collaterals.remove(index);
-            } else account.collaterals[index].amount = newAmount;
+                if (newAmount == 0) {
+                    account.collaterals.remove(index);
+                } else account.collaterals[index].amount = newAmount;
+            }
 
             unchecked {
                 i++;

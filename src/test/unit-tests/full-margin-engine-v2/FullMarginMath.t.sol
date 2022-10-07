@@ -165,6 +165,126 @@ contract TestStructures_FMMV2 is Test {
         assertEq(collateralNeeded, 28000 * sUNIT);
         assertEq(underlyingNeeded, sZERO);
     }
+
+    function testMarginPutSpread() public {
+        putWeights = new int256[](2);
+        putWeights[0] = 1 * sUNIT;
+        putWeights[1] = -1 * sUNIT;
+
+        putStrikes = new uint256[](2);
+        putStrikes[0] = 17999_999999;
+        putStrikes[1] = 18000 * UNIT;
+
+        callWeights = new int256[](0);
+        callStrikes = new uint256[](0);
+
+        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+            putWeights: putWeights,
+            putStrikes: putStrikes,
+            callWeights: callWeights,
+            callStrikes: callStrikes,
+            underlyingId: 0,
+            underlyingDecimals: UNIT_DECIMALS,
+            collateralId: 0,
+            collateralDecimals: UNIT_DECIMALS,
+            spotPrice: spotPrice,
+            expiry: 0
+        });
+
+        (int256 collateralNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(collateralNeeded, 1);
+        assertEq(underlyingNeeded, sZERO);
+    }
+
+    function testMarginBinaryPutOption() public {
+        putWeights = new int256[](2);
+        putWeights[0] = -1 * sUNIT;
+        putWeights[1] = 1 * sUNIT;
+
+        putStrikes = new uint256[](2);
+        putStrikes[0] = 17999_999999;
+        putStrikes[1] = 18000 * UNIT;
+
+        callWeights = new int256[](0);
+        callStrikes = new uint256[](0);
+
+        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+            putWeights: putWeights,
+            putStrikes: putStrikes,
+            callWeights: callWeights,
+            callStrikes: callStrikes,
+            underlyingId: 0,
+            underlyingDecimals: UNIT_DECIMALS,
+            collateralId: 0,
+            collateralDecimals: UNIT_DECIMALS,
+            spotPrice: spotPrice,
+            expiry: 0
+        });
+
+        (int256 collateralNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(collateralNeeded, sZERO);
+        assertEq(underlyingNeeded, sZERO);
+    }
+
+    function testMarginCallSpread() public {
+        callWeights = new int256[](2);
+        callWeights[0] = -1 * sUNIT;
+        callWeights[1] = 1 * sUNIT;
+
+        callStrikes = new uint256[](2);
+        callStrikes[0] = 21999_999999;
+        callStrikes[1] = 22000 * UNIT;
+
+        putWeights = new int256[](0);
+        putStrikes = new uint256[](0);
+
+        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+            putWeights: putWeights,
+            putStrikes: putStrikes,
+            callWeights: callWeights,
+            callStrikes: callStrikes,
+            underlyingId: 0,
+            underlyingDecimals: UNIT_DECIMALS,
+            collateralId: 0,
+            collateralDecimals: UNIT_DECIMALS,
+            spotPrice: spotPrice,
+            expiry: 0
+        });
+
+        (int256 collateralNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(collateralNeeded, 1);
+        assertEq(underlyingNeeded, sZERO);
+    }
+
+    function testMarginBinaryCallOption() public {
+        callWeights = new int256[](2);
+        callWeights[0] = 1 * sUNIT;
+        callWeights[1] = -1 * sUNIT;
+
+        callStrikes = new uint256[](2);
+        callStrikes[0] = 21999_999999;
+        callStrikes[1] = 22000 * UNIT;
+
+        putWeights = new int256[](0);
+        putStrikes = new uint256[](0);
+
+        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+            putWeights: putWeights,
+            putStrikes: putStrikes,
+            callWeights: callWeights,
+            callStrikes: callStrikes,
+            underlyingId: 0,
+            underlyingDecimals: UNIT_DECIMALS,
+            collateralId: 0,
+            collateralDecimals: UNIT_DECIMALS,
+            spotPrice: spotPrice,
+            expiry: 0
+        });
+
+        (int256 collateralNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(collateralNeeded, sZERO);
+        assertEq(underlyingNeeded, sZERO);
+    }
 }
 
 contract TestVanillaCall_FMMV2 is Test {

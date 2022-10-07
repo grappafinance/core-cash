@@ -74,26 +74,23 @@ library FullMarginMathV2 {
 
         if (_detail.callStrikes.length > 0) underlyingNeeded = getUnderlyingNeeded(pois, payouts);
 
-        if (_detail.putStrikes.length > 0) {
+        if (_detail.putStrikes.length > 0)
             cashCollateralNeeded = getCashCollateralNeeded(payouts, underlyingNeeded, underlyingWeight, minStrike);
 
-            cashCollateralNeeded = getUnderlyingAdjustedCashCollateralNeeded(
-                _detail,
-                pois,
-                payouts,
-                cashCollateralNeeded,
-                underlyingNeeded
-            );
-        }
-
-        return (
-            NumberUtil
-                .convertDecimals(cashCollateralNeeded.toUint256(), UNIT_DECIMALS, _detail.collateralDecimals)
-                .toInt256(),
-            NumberUtil
-                .convertDecimals(underlyingNeeded.toUint256(), UNIT_DECIMALS, _detail.underlyingDecimals)
-                .toInt256()
+        cashCollateralNeeded = getUnderlyingAdjustedCashCollateralNeeded(
+            _detail,
+            pois,
+            payouts,
+            cashCollateralNeeded,
+            underlyingNeeded
         );
+
+        cashCollateralNeeded = NumberUtil
+            .convertDecimals(cashCollateralNeeded.toUint256(), UNIT_DECIMALS, _detail.collateralDecimals)
+            .toInt256();
+        underlyingNeeded = NumberUtil
+            .convertDecimals(underlyingNeeded.toUint256(), UNIT_DECIMALS, _detail.underlyingDecimals)
+            .toInt256();
     }
 
     function createPois(

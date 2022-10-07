@@ -20,9 +20,27 @@ contract FullMarginEngineGenernalV2 is FullMarginFixtureV2 {
         weth.approve(address(engine), type(uint256).max);
     }
 
-    function testCannotCallAddLongWithNotAuthorizedEngine() public {
+    function testCannotCallAddLongWithExpiredOption() public {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createAddLongAction(0, 0, address(this));
+
+        vm.expectRevert(FM_Option_Expired.selector);
+        engine.execute(address(this), actions);
+    }
+
+    function testCannotCallAddLongWithNotAuthorizedEngine() public {
+        uint40 productId = grappa.getProductId(
+            address(oracle),
+            address(0),
+            address(weth),
+            address(usdc),
+            address(usdc)
+        );
+
+        uint256 tokenId = getTokenId(TokenType.CALL, productId, block.timestamp + 1 days, 0, 0);
+
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createAddLongAction(tokenId, 0, address(this));
 
         vm.expectRevert(FM_Not_Authorized_Engine.selector);
         engine.execute(address(this), actions);

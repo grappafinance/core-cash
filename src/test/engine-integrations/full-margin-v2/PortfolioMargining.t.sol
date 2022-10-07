@@ -26,6 +26,7 @@ contract TestPortfolioMargining_FMV2 is FullMarginFixtureV2 {
 
         vm.startPrank(alice);
         weth.approve(address(engine), type(uint256).max);
+        usdc.approve(address(engine), type(uint256).max);
         engine.setAccountAccess(address(this), true);
         vm.stopPrank();
 
@@ -78,5 +79,111 @@ contract TestPortfolioMargining_FMV2 is FullMarginFixtureV2 {
 
         uint256 balanceAfter = weth.balanceOf(address(this));
         assertEq(balanceAfter, balanceBefore + depositAmount);
+    }
+
+    function testEqualCallSpreadCollateralWithdraw() public {
+        uint256 depositAmount = 1 * 1e18;
+
+        uint256 strikePrice = 4000 * UNIT;
+        uint256 amount = 1 * UNIT;
+
+        uint256 strikeSpread = 1;
+
+        uint256 tokenId = getTokenId(TokenType.CALL, pidEthCollat, expiry, strikePrice - strikeSpread, 0);
+        uint256 tokenId2 = getTokenId(TokenType.CALL, pidEthCollat, expiry, strikePrice, 0);
+
+        // prepare: mint tokens
+        ActionArgs[] memory _actions = new ActionArgs[](2);
+        _actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
+        _actions[1] = createMintAction(tokenId, alice, amount);
+        engine.execute(address(this), _actions);
+
+        _actions[0] = createAddCollateralAction(wethId, alice, depositAmount);
+        _actions[1] = createMintAction(tokenId2, address(this), amount);
+        engine.execute(alice, _actions);
+
+        option.setApprovalForAll(address(engine), true);
+
+        assertEq(option.balanceOf(address(this), tokenId2), amount);
+        assertEq(option.balanceOf(address(alice), tokenId), amount);
+
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createAddLongAction(tokenId2, amount, address(this));
+        engine.execute(address(this), actions);
+
+        assertEq(option.balanceOf(address(this), tokenId2), 0);
+
+        uint256 expectedBalance = depositAmount - (strikeSpread * (10**(18 - 6)));
+
+        SBalance[] memory balances = engine.getMinCollateral(address(this));
+        assertEq(balances.length, 1);
+        assertEq(balances[0].collateralId, wethId);
+        assertEq(uint80(balances[0].amount), expectedBalance);
+
+        uint256 balanceBefore = weth.balanceOf(address(this));
+
+        actions[0] = createRemoveCollateralAction(uint256(uint80(balances[0].amount)), wethId, address(this));
+        engine.execute(address(this), actions);
+
+        balances = engine.getMinCollateral(address(this));
+        assertEq(balances.length, 1);
+        assertEq(balances[0].collateralId, wethId);
+        assertEq(uint80(balances[0].amount), 0);
+
+        uint256 balanceAfter = weth.balanceOf(address(this));
+        assertEq(balanceAfter, balanceBefore + expectedBalance);
+    }
+
+    function testEqualPutSpreadCollateralWithdraw() public {
+        uint256 depositAmount = 2000 * 1e6;
+
+        uint256 strikePrice = 2000 * UNIT;
+        uint256 amount = 1 * UNIT;
+
+        uint256 strikeSpread = 1;
+
+        uint256 tokenId = getTokenId(TokenType.PUT, pidUsdcCollat, expiry, strikePrice, 0);
+        uint256 tokenId2 = getTokenId(TokenType.PUT, pidUsdcCollat, expiry, strikePrice - strikeSpread, 0);
+
+        // prepare: mint tokens
+        ActionArgs[] memory _actions = new ActionArgs[](2);
+        _actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
+        _actions[1] = createMintAction(tokenId, alice, amount);
+        engine.execute(address(this), _actions);
+
+        _actions[0] = createAddCollateralAction(usdcId, alice, depositAmount);
+        _actions[1] = createMintAction(tokenId2, address(this), amount);
+        engine.execute(alice, _actions);
+
+        option.setApprovalForAll(address(engine), true);
+
+        assertEq(option.balanceOf(address(this), tokenId2), amount);
+        assertEq(option.balanceOf(address(alice), tokenId), amount);
+
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createAddLongAction(tokenId2, amount, address(this));
+        engine.execute(address(this), actions);
+
+        assertEq(option.balanceOf(address(this), tokenId2), 0);
+
+        uint256 expectedBalance = depositAmount - (strikeSpread * (10**(6 - 6)));
+
+        SBalance[] memory balances = engine.getMinCollateral(address(this));
+        assertEq(balances.length, 1);
+        assertEq(balances[0].collateralId, usdcId);
+        assertEq(uint80(balances[0].amount), expectedBalance);
+
+        uint256 balanceBefore = usdc.balanceOf(address(this));
+
+        actions[0] = createRemoveCollateralAction(uint256(uint80(balances[0].amount)), usdcId, address(this));
+        engine.execute(address(this), actions);
+
+        balances = engine.getMinCollateral(address(this));
+        assertEq(balances.length, 1);
+        assertEq(balances[0].collateralId, usdcId);
+        assertEq(uint80(balances[0].amount), 0);
+
+        uint256 balanceAfter = usdc.balanceOf(address(this));
+        assertEq(balanceAfter, balanceBefore + expectedBalance);
     }
 }

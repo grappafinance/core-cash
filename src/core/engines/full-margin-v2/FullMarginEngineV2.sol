@@ -257,16 +257,16 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
 
             (, uint40 productId, uint64 expiry, , ) = tokenId.parseTokenId();
 
-            if (block.timestamp < expiry) continue;
+            if (block.timestamp >= expiry) {
+                ProductDetails memory product = _getProductDetails(productId);
 
-            ProductDetails memory product = _getProductDetails(productId);
+                (, , uint256 payout) = grappa.getPayout(tokenId, shorts[i].amount);
 
-            (, , uint256 payout) = grappa.getPayout(tokenId, shorts[i].amount);
+                (bool found, uint256 index) = payouts.indexOf(product.collateralId);
 
-            (bool found, uint256 index) = payouts.indexOf(product.collateralId);
-
-            if (found) payouts[index].amount += payout.toUint80();
-            else payouts = payouts.append(Balance(product.collateralId, payout.toUint80()));
+                if (found) payouts[index].amount += payout.toUint80();
+                else payouts = payouts.append(Balance(product.collateralId, payout.toUint80()));
+            }
 
             unchecked {
                 i++;
@@ -279,10 +279,12 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
      * @param tokenId tokenId
      */
     function _verifyLongTokenIdToAdd(uint256 tokenId) internal view override {
-        (TokenType optionType, uint40 productId, , , ) = tokenId.parseTokenId();
+        (TokenType optionType, uint40 productId, uint64 expiry, , ) = tokenId.parseTokenId();
 
         // engine only supports calls and puts
         if (optionType != TokenType.CALL && optionType != TokenType.PUT) revert FM_UnsupportedTokenType();
+
+        if (block.timestamp > expiry) revert FM_Option_Expired();
 
         ProductDetails memory product = _getProductDetails(productId);
 
