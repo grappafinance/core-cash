@@ -39,6 +39,7 @@ contract TestMint_FMV2 is FullMarginFixtureV2 {
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
         engine.execute(address(this), actions);
+
         (Position[] memory shorts, , ) = engine.marginAccounts(address(this));
 
         assertEq(shorts.length, 1);
@@ -76,6 +77,7 @@ contract TestMint_FMV2 is FullMarginFixtureV2 {
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
         engine.execute(address(this), actions);
+
         (Position[] memory shorts, , ) = engine.marginAccounts(address(this));
 
         assertEq(shorts.length, 1);
@@ -108,6 +110,7 @@ contract TestMint_FMV2 is FullMarginFixtureV2 {
         actions[3] = createMintAction(putTokenId, address(this), putAmount);
 
         engine.execute(address(this), actions);
+
         (Position[] memory shorts, , Balance[] memory collaterals) = engine.marginAccounts(address(this));
 
         assertEq(shorts.length, 2);

@@ -24,9 +24,11 @@ import "../../config/enums.sol";
 import "../../config/constants.sol";
 import "../../config/errors.sol";
 
+import "../../test/utils/Console.sol";
+
 /**
  * @title   MarginBase
- * @author  @antoncoding
+ * @author  @antoncoding, @dsshap
  * @notice  util functions for MarginEngines
  */
 abstract contract BaseEngine is ReentrancyGuard {
@@ -186,6 +188,45 @@ abstract contract BaseEngine is ReentrancyGuard {
     }
 
     /**
+     * @dev Add long token into the account to reduce capital requirement.
+     * @param _subAccount subaccount that will be update in place
+     */
+    function _addOption(address _subAccount, bytes memory _data) internal virtual {
+        // decode parameters
+        (uint256 tokenId, uint64 amount, address from) = abi.decode(_data, (uint256, uint64, address));
+
+        // token being burn must come from caller or the primary account for this subAccount
+        if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert BM_InvalidFromAddress();
+
+        _verifyLongTokenIdToAdd(tokenId);
+
+        // update the state
+        _increaseLongInAccount(_subAccount, tokenId, amount);
+
+        emit OptionTokenAdded(_subAccount, tokenId, amount);
+
+        // transfer the option token in
+        IERC1155(address(optionToken)).safeTransferFrom(from, address(this), tokenId, amount, "");
+    }
+
+    /**
+     * @dev Remove long token from the account to increase capital requirement.
+     * @param _subAccount subaccount that will be update in place
+     */
+    function _removeOption(address _subAccount, bytes memory _data) internal virtual {
+        // decode parameters
+        (uint256 tokenId, uint64 amount, address to) = abi.decode(_data, (uint256, uint64, address));
+
+        // update the state
+        _decreaseLongInAccount(_subAccount, tokenId, amount);
+
+        emit OptionTokenRemoved(_subAccount, tokenId, amount);
+
+        // transfer the option token in
+        IERC1155(address(optionToken)).safeTransferFrom(address(this), to, tokenId, amount, "");
+    }
+
+    /**
      * @dev burn option token and change the short position to spread. This will reduce collateral requirement
             the option has to be provided by either caller, or the primary owner of subaccount
      * @param _data bytes data to decode
@@ -230,45 +271,6 @@ abstract contract BaseEngine is ReentrancyGuard {
     }
 
     /**
-     * @dev Add long token into the account to reduce capital requirement.
-     * @param _subAccount subaccount that will be update in place
-     */
-    function _addOption(address _subAccount, bytes memory _data) internal virtual {
-        // decode parameters
-        (uint256 tokenId, uint64 amount, address from) = abi.decode(_data, (uint256, uint64, address));
-
-        // token being burn must come from caller or the primary account for this subAccount
-        if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert BM_InvalidFromAddress();
-
-        _verifyLongTokenIdToAdd(tokenId);
-
-        // update the state
-        _addOptionToAccount(_subAccount, tokenId, amount);
-
-        emit OptionTokenAdded(_subAccount, tokenId, amount);
-
-        // transfer the option token in
-        IERC1155(address(optionToken)).safeTransferFrom(from, address(this), tokenId, amount, "");
-    }
-
-    /**
-     * @dev Remove long token from the account to increase capital requirement.
-     * @param _subAccount subaccount that will be update in place
-     */
-    function _removeOption(address _subAccount, bytes memory _data) internal virtual {
-        // decode parameters
-        (uint256 tokenId, uint64 amount, address to) = abi.decode(_data, (uint256, uint64, address));
-
-        // update the state
-        _removeOptionfromAccount(_subAccount, tokenId, amount);
-
-        emit OptionTokenRemoved(_subAccount, tokenId, amount);
-
-        // transfer the option token in
-        IERC1155(address(optionToken)).safeTransferFrom(address(this), to, tokenId, amount, "");
-    }
-
-    /**
      * @notice  settle the margin account at expiry
      * @dev     this update the account memory in-place
      */
@@ -308,6 +310,18 @@ abstract contract BaseEngine is ReentrancyGuard {
         uint64 amount
     ) internal virtual {}
 
+    function _increaseLongInAccount(
+        address _subAccount,
+        uint256 tokenId,
+        uint64 amount
+    ) internal virtual {}
+
+    function _decreaseLongInAccount(
+        address _subAccount,
+        uint256 tokenId,
+        uint64 amount
+    ) internal virtual {}
+
     function _mergeLongIntoSpread(
         address _subAccount,
         uint256 shortTokenId,
@@ -318,18 +332,6 @@ abstract contract BaseEngine is ReentrancyGuard {
     function _splitSpreadInAccount(
         address _subAccount,
         uint256 spreadId,
-        uint64 amount
-    ) internal virtual {}
-
-    function _addOptionToAccount(
-        address _subAccount,
-        uint256 tokenId,
-        uint64 amount
-    ) internal virtual {}
-
-    function _removeOptionfromAccount(
-        address _subAccount,
-        uint256 tokenId,
         uint64 amount
     ) internal virtual {}
 

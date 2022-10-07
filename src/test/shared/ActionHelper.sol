@@ -89,16 +89,16 @@ abstract contract ActionHelper {
 
     function createAddLongAction(
         uint256 tokenId,
-        address from,
-        uint256 amount
+        uint256 amount,
+        address from
     ) internal pure returns (ActionArgs memory action) {
         return ActionUtil.createAddLongAction(tokenId, amount, from);
     }
 
     function createRemoveLongAction(
         uint256 tokenId,
-        address recipient,
-        uint256 amount
+        uint256 amount,
+        address recipient
     ) internal pure returns (ActionArgs memory action) {
         return ActionUtil.createRemoveLongAction(tokenId, amount, recipient);
     }

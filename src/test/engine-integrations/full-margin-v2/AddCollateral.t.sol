@@ -9,8 +9,6 @@ import "../../../config/types.sol";
 import "../../../config/constants.sol";
 import "../../../config/errors.sol";
 
-import "../../utils/Console.sol";
-
 // solhint-disable-next-line contract-name-camelcase
 contract TestAddCollateral_FMV2 is FullMarginFixtureV2 {
     function setUp() public {

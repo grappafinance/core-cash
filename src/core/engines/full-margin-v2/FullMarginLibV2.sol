@@ -52,10 +52,12 @@ library FullMarginLibV2 {
         uint8 collateralId,
         uint80 amount
     ) internal {
-        (bool found, uint256 index) = account.collaterals.indexOf(collateralId);
+        Balance[] memory collaterals = account.collaterals;
+
+        (bool found, uint256 index) = collaterals.indexOf(collateralId);
         if (!found) revert FM_WrongCollateralId();
 
-        uint80 newAmount = account.collaterals[index].amount - amount;
+        uint80 newAmount = collaterals[index].amount - amount;
 
         if (newAmount == 0) {
             account.collaterals.remove(index);
@@ -74,8 +76,8 @@ library FullMarginLibV2 {
         // assign collateralId or check collateral id is the same
         (, , uint8 underlyingId, uint8 strikeId, uint8 collateralId) = productId.parseProductId();
 
-        // engine doesnt support spreads
-        if (optionType == TokenType.CALL_SPREAD || optionType == TokenType.PUT_SPREAD) revert FM_UnsupportedTokenType();
+        // engine only supports calls and puts
+        if (optionType != TokenType.CALL && optionType != TokenType.PUT) revert FM_UnsupportedTokenType();
 
         // call can only collateralized by underlying
         if ((optionType == TokenType.CALL) && underlyingId != collateralId)
@@ -97,16 +99,53 @@ library FullMarginLibV2 {
         uint256 tokenId,
         uint64 amount
     ) internal {
-        (bool found, uint256 index) = account.shorts.getPositions().indexOf(tokenId);
+        Position[] memory shorts = account.shorts.getPositions();
+
+        (bool found, uint256 index) = shorts.indexOf(tokenId);
 
         if (!found) revert FM_InvalidToken();
 
-        uint64 newShortAmount = account.shorts[index].amount - amount;
+        uint64 newShortAmount = shorts[index].amount - amount;
         if (newShortAmount == 0) {
             account.shorts.removePositionAt(index);
         } else account.shorts[index].amount = newShortAmount;
     }
 
+    ///@dev Increase the amount of long call or put (debt) of the account
+    ///@param account FullMarginAccountV2 memory that will be updated
+    function addOption(
+        FullMarginAccountV2 storage account,
+        uint256 tokenId,
+        uint64 amount
+    ) internal {
+        (bool found, uint256 index) = account.longs.getPositions().indexOf(tokenId);
+
+        if (!found) {
+            account.longs.pushPosition(Position(tokenId, amount));
+        } else account.longs[index].amount += amount;
+    }
+
+    ///@dev Remove the amount of long call or put held by the account
+    ///@param account FullMarginAccountV2 memory that will be updated in-place
+    function removeOption(
+        FullMarginAccountV2 storage account,
+        uint256 tokenId,
+        uint64 amount
+    ) internal {
+        Position[] memory longs = account.longs.getPositions();
+
+        (bool found, uint256 index) = longs.indexOf(tokenId);
+
+        if (!found) revert FM_InvalidToken();
+
+        uint64 newLongAmount = longs[index].amount - amount;
+        if (newLongAmount == 0) {
+            account.longs.removePositionAt(index);
+        } else account.longs[index].amount = newLongAmount;
+    }
+
+    ///@dev Settles the accounts short calls and puts, reserving collateral for ITM options
+    ///@param account FullMarginAccountV2 memory that will be updated in-place
     function settleAtExpiry(FullMarginAccountV2 storage account, Balance[] memory payouts) internal {
         // clear all debt
         delete account.shorts;
@@ -116,7 +155,11 @@ library FullMarginLibV2 {
         for (uint256 i; i < payouts.length; ) {
             (, uint256 index) = collaterals.indexOf(payouts[i].collateralId);
 
-            account.collaterals[index].amount -= payouts[i].amount;
+            uint80 newAmount = collaterals[index].amount - payouts[i].amount;
+
+            if (newAmount == 0) {
+                account.collaterals.remove(index);
+            } else account.collaterals[index].amount = newAmount;
 
             unchecked {
                 i++;

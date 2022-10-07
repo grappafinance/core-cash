@@ -211,9 +211,8 @@ contract BaseEngineFlow is BaseEngineSetup {
 
         option.setApprovalForAll(address(engine), true);
 
-        // execute merge
         ActionArgs[] memory actions = new ActionArgs[](1);
-        actions[0] = createAddLongAction(tokenId, address(this), amount);
+        actions[0] = createAddLongAction(tokenId, amount, address(this));
         engine.execute(address(this), actions);
 
         assertEq(option.balanceOf(address(this), tokenId), 0);
@@ -237,7 +236,7 @@ contract BaseEngineFlow is BaseEngineSetup {
 
         // execute merge
         ActionArgs[] memory actions = new ActionArgs[](1);
-        actions[0] = createRemoveLongAction(tokenId, address(this), amount);
+        actions[0] = createRemoveLongAction(tokenId, amount, address(this));
         engine.execute(address(this), actions);
 
         assertEq(option.balanceOf(address(this), tokenId), amount);

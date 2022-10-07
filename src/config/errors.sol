@@ -83,6 +83,9 @@ error FM_CollateraliMisMatch();
 /// @dev cannot override a non-empty subaccount id
 error FM_AccountIsNotEmpty();
 
+/// @dev can only add long tokens from authorized engines.
+error FM_Not_Authorized_Engine();
+
 // Advanced Margin and AdvancedMarginLib Errors
 
 /// @dev full margin doesn't support this action (add long and remove long)

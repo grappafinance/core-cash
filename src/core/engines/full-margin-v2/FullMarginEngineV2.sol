@@ -76,6 +76,8 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
             else if (actions[i].action == ActionType.RemoveCollateral) _removeCollateral(_subAccount, actions[i].data);
             else if (actions[i].action == ActionType.MintShort) _mintOption(_subAccount, actions[i].data);
             else if (actions[i].action == ActionType.BurnShort) _burnOption(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.AddLong) _addOption(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.RemoveLong) _removeOption(_subAccount, actions[i].data);
             else if (actions[i].action == ActionType.SettleAccount) _settle(_subAccount);
             else revert FM_UnsupportedAction();
 
@@ -192,6 +194,22 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
         accounts[_subAccount].burnOption(tokenId, amount);
     }
 
+    function _increaseLongInAccount(
+        address _subAccount,
+        uint256 tokenId,
+        uint64 amount
+    ) internal override {
+        accounts[_subAccount].addOption(tokenId, amount);
+    }
+
+    function _decreaseLongInAccount(
+        address _subAccount,
+        uint256 tokenId,
+        uint64 amount
+    ) internal override {
+        accounts[_subAccount].removeOption(tokenId, amount);
+    }
+
     function _settleAccount2(address _subAccount, Balance[] memory payouts) internal {
         accounts[_subAccount].settleAtExpiry(payouts);
     }
@@ -254,6 +272,22 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
                 i++;
             }
         }
+    }
+
+    /**
+     * @dev reverts if the account cannot add this token into the margin account.
+     * @param tokenId tokenId
+     */
+    function _verifyLongTokenIdToAdd(uint256 tokenId) internal view override {
+        (TokenType optionType, uint40 productId, , , ) = tokenId.parseTokenId();
+
+        // engine only supports calls and puts
+        if (optionType != TokenType.CALL && optionType != TokenType.PUT) revert FM_UnsupportedTokenType();
+
+        ProductDetails memory product = _getProductDetails(productId);
+
+        // in the future reference a whitelist of engines
+        if (product.engine != address(this)) revert FM_Not_Authorized_Engine();
     }
 
     /** ========================================================= **
@@ -373,26 +407,49 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
     }
 
     function _getProductDetails(uint40 productId) internal view returns (ProductDetails memory info) {
-        (, , uint8 underlyingId, , uint8 collateralId) = ProductIdUtil.parseProductId(productId);
+        (, , uint8 underlyingId, uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(productId);
 
         (
             address oracle,
-            ,
+            address engine,
             address underlying,
             uint8 underlyingDecimals,
             address strike,
-            ,
+            uint8 strikeDecimals,
             address collateral,
             uint8 collatDecimals
         ) = grappa.getDetailFromProductId(productId);
 
         info.oracle = oracle;
+        info.engine = engine;
         info.underlying = underlying;
+        info.underlyingId = underlyingId;
         info.underlyingDecimals = underlyingDecimals;
         info.strike = strike;
+        info.strikeId = strikeId;
+        info.strikeDecimals = strikeDecimals;
         info.collateral = collateral;
-        info.collateralDecimals = collatDecimals;
-        info.underlyingId = underlyingId;
         info.collateralId = collateralId;
+        info.collateralDecimals = collatDecimals;
+    }
+
+    function onERC1155Received(
+        address,
+        address,
+        uint256,
+        uint256,
+        bytes calldata
+    ) external virtual returns (bytes4) {
+        return this.onERC1155Received.selector;
+    }
+
+    function onERC1155BatchReceived(
+        address,
+        address,
+        uint256[] memory,
+        uint256[] memory,
+        bytes memory
+    ) public virtual returns (bytes4) {
+        return this.onERC1155BatchReceived.selector;
     }
 }

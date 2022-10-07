@@ -112,16 +112,18 @@ struct AdvancedMarginDetail {
  * @param collateralDecimals collateral asset decimals
  */
 struct ProductDetails {
-    uint8 oracleId;
     address oracle;
-    uint8 underlyingId;
+    uint8 oracleId;
+    address engine;
+    uint8 engineId;
     address underlying;
+    uint8 underlyingId;
     uint8 underlyingDecimals;
-    uint8 strikeId;
     address strike;
+    uint8 strikeId;
     uint8 strikeDecimals;
-    uint8 collateralId;
     address collateral;
+    uint8 collateralId;
     uint8 collateralDecimals;
 }
 
