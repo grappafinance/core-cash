@@ -42,7 +42,7 @@ abstract contract BaseEngine is ReentrancyGuard {
     mapping(uint160 => mapping(address => uint256)) public allowedExecutionLeft;
 
     /// Events
-    event AccountAuthorizationUpdate(uint160 maskId, address account, uint updatesAllowed);
+    event AccountAuthorizationUpdate(uint160 maskId, address account, uint256 updatesAllowed);
 
     event CollateralAdded(address subAccount, address collateral, uint256 amount);
 
@@ -80,8 +80,8 @@ abstract contract BaseEngine is ReentrancyGuard {
      * @dev     expected to be call by account owner
      *          usually user should only give access to helper contracts
      * @param   _account account to update authorization
-     * @param   _allowedExecutions how many times the account is authrized to update your accounts. 
-     *          set to max(uint256) to allow premanent access 
+     * @param   _allowedExecutions how many times the account is authrized to update your accounts.
+     *          set to max(uint256) to allow premanent access
      */
     function setAccountAccess(address _account, uint256 _allowedExecutions) external {
         uint160 maskedId = uint160(msg.sender) | 0xFF;
@@ -92,7 +92,7 @@ abstract contract BaseEngine is ReentrancyGuard {
 
     /**
      * @dev resolve access granted to yourself
-     * @param _granter address that granted you access 
+     * @param _granter address that granted you access
      */
     function revokeSelfAccess(address _granter) external {
         uint160 maskedId = uint160(_granter) | 0xFF;

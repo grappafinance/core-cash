@@ -38,7 +38,7 @@ contract AdvancedMarginEngineAccessTest is FullMarginFixture {
         vm.startPrank(alice);
         engine.setAccountAccess(address(this), 2);
         vm.stopPrank();
-        
+
         _assertCanAccessAccount(subAccountIdToModify, true);
         assertEq(engine.allowedExecutionLeft(uint160(alice) | 0xFF, address(this)), 1);
         _assertCanAccessAccount(subAccountIdToModify, true);
@@ -53,9 +53,9 @@ contract AdvancedMarginEngineAccessTest is FullMarginFixture {
         vm.startPrank(alice);
         engine.setAccountAccess(address(this), 2);
         vm.stopPrank();
-        
+
         // reset allowance to 0!
-        engine.revokeSelfAccess(alice);        
+        engine.revokeSelfAccess(alice);
 
         // no access left
         _assertCanAccessAccount(subAccountIdToModify, false);
