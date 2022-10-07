@@ -90,6 +90,23 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
         }
     }
 
+    function getAccountLongAmount(
+        address _subAccount,
+        uint64 _productId,
+        uint64 _expiry,
+        uint64 _strike,
+        bool _isCall
+    ) external view returns (uint256) {
+        FullMarginAccountV2 storage account = marginAccounts[_subAccount];
+        if (_productId != account.productId) return 0;
+        if (_expiry != account.expiry) return 0;
+        if (_isCall) {
+            return account.longCalls.values[_strike];
+        } else {
+            return account.longPuts.values[_strike];
+        }
+    }
+
     /**
      * @notice payout to user on settlement.
      * @dev this can only triggered by Grappa, would only be called on settlement.
@@ -118,17 +135,9 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
     /**
      * @notice  move an account to someone else
      * @dev     expected to be call by account owner
-     * @param _subAccount the id of subaccount to trnasfer
-     * @param _newSubAccount the id of receiving account
      */
-    function transferAccount(address _subAccount, address _newSubAccount) external {
-        revert("not-supported");
-        // if (!_isPrimaryAccountFor(msg.sender, _subAccount)) revert NoAccess();
-
-        // if (!marginAccounts[_newSubAccount].isEmpty()) revert AM_AccountIsNotEmpty();
-        // marginAccounts[_newSubAccount] = marginAccounts[_subAccount];
-
-        // delete marginAccounts[_subAccount];
+    function transferAccount(address /*_subAccount*/, address /*_newSubAccount*/) external pure {
+        revert FM_UnsupportedAction(); // disabled for now
     }
 
     /** ========================================================= **

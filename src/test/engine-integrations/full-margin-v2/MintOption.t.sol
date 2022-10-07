@@ -49,6 +49,37 @@ contract TestMint_FM2 is FullMarginV2Fixture {
         assertEq(shortAmount, amount);
     }
 
+    function testMintCallSpread() public {
+        uint256 depositAmount = 100 * 1e6;
+
+        uint256 strikePriceLower = 4000 * UNIT;
+        uint256 strikePriceHigher = 4100 * UNIT;
+        uint256 amount = 1 * UNIT;
+
+        uint256 tokenId = getTokenId(TokenType.CALL_SPREAD, pidUsdcCollat, expiry, strikePriceLower, strikePriceHigher);
+
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
+        actions[1] = createMintAction(tokenId, address(this), amount);
+        engine.execute(address(this), actions);
+        uint256 shortAmount = engine.getAccountShortAmount(
+            address(this),
+            pidUsdcCollat,
+            uint64(expiry),
+            uint64(strikePriceLower),
+            true
+        );
+        uint256 longAmount = engine.getAccountLongAmount(
+            address(this),
+            pidUsdcCollat,
+            uint64(expiry),
+            uint64(strikePriceHigher),
+            true
+        );
+        assertEq(shortAmount, amount);
+        assertEq(longAmount, amount);
+    }
+
     function testMintPut() public {
         uint256 depositAmount = 1000 * 1e6;
 
@@ -69,5 +100,36 @@ contract TestMint_FM2 is FullMarginV2Fixture {
             false
         );
         assertEq(shortAmount, amount);
+    }
+
+    function testMintPutSpread() public {
+        uint256 depositAmount = 100 * 1e6;
+
+        uint256 strikePriceLower = 2900 * UNIT;
+        uint256 strikePriceHigher = 3000 * UNIT;
+        uint256 amount = 1 * UNIT;
+
+        uint256 tokenId = getTokenId(TokenType.PUT_SPREAD, pidUsdcCollat, expiry, strikePriceHigher, strikePriceLower);
+
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
+        actions[1] = createMintAction(tokenId, address(this), amount);
+        engine.execute(address(this), actions);
+        uint256 shortAmount = engine.getAccountShortAmount(
+            address(this),
+            pidUsdcCollat,
+            uint64(expiry),
+            uint64(strikePriceHigher),
+            false
+        );
+        uint256 longAmount = engine.getAccountLongAmount(
+            address(this),
+            pidUsdcCollat,
+            uint64(expiry),
+            uint64(strikePriceLower),
+            false
+        );
+        assertEq(shortAmount, amount);
+        assertEq(longAmount, amount);
     }
 }

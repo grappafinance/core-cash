@@ -173,9 +173,16 @@ library FullMarginLibV2 {
 
     function settleAtExpiry(FullMarginAccountV2 storage account, uint80 _payout) internal {}
 
+    /**
+     * @dev get minimum collateral needed for 
+     * @dev iterate through short array, and find corre
+     **/
     function getMinCollateral(
-        FullMarginAccountV2 storage /*account*/
+        FullMarginAccountV2 storage account
     ) internal pure returns (uint256) {
+        
+
+
         return 0;
     }
 
