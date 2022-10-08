@@ -80,7 +80,7 @@ contract TestPMSettleLongs_FMV2 is FullMarginFixtureV2 {
         assertEq(afterCollaters[0].amount, depositAmount / 2);
     }
 
-    function testSettleLongOTMIncreasesCollateral() public {
+    function testSettleLongOTMNoIncreaseInCollateral() public {
         oracle.setExpiryPrice(address(weth), address(usdc), 3000 * UNIT);
 
         uint256 balanceBefore = weth.balanceOf(address(engine));

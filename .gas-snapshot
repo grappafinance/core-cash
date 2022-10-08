@@ -148,7 +148,7 @@ TestPMRemoveCollateral_FMV2:testEqualCallSpreadCollateralWithdraw() (gas: 922214
 TestPMRemoveCollateral_FMV2:testEqualPutSpreadCollateralWithdraw() (gas: 895065)
 TestPMRemoveCollateral_FMV2:testEqualShortLongAllowCollateralWithdraw() (gas: 771416)
 TestPMSettleLongs_FMV2:testSettleLongITMIncreasesCollateral() (gas: 166377)
-TestPMSettleLongs_FMV2:testSettleLongOTMIncreasesCollateral() (gas: 113521)
+TestPMSettleLongs_FMV2:testSettleLongOTMNoIncreaseInCollateral() (gas: 113543)
 TestRemoveCollateral_FMV2:testCannotRemoveDifferentCollateral() (gas: 25876)
 TestRemoveCollateral_FMV2:testCannotRemoveMoreThanOwn() (gas: 26568)
 TestRemoveCollateral_FMV2:testRemoveCollateralChangeStorage() (gas: 47577)
