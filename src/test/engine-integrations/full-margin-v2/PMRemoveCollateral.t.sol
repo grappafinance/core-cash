@@ -12,7 +12,7 @@ import "../../../config/errors.sol";
 import "../../utils/Console.sol";
 
 // solhint-disable-next-line contract-name-camelcase
-contract TestPortfolioMargining_FMV2 is FullMarginFixtureV2 {
+contract TestPMRemoveCollateral_FMV2 is FullMarginFixtureV2 {
     uint256 public expiry;
 
     function setUp() public {
@@ -79,6 +79,9 @@ contract TestPortfolioMargining_FMV2 is FullMarginFixtureV2 {
 
         uint256 balanceAfter = weth.balanceOf(address(this));
         assertEq(balanceAfter, balanceBefore + depositAmount);
+
+        (, , Balance[] memory _collaters) = engine.marginAccounts(address(this));
+        assertEq(_collaters.length, 0);
     }
 
     function testEqualCallSpreadCollateralWithdraw() public {
@@ -113,7 +116,9 @@ contract TestPortfolioMargining_FMV2 is FullMarginFixtureV2 {
 
         assertEq(option.balanceOf(address(this), tokenId2), 0);
 
-        uint256 expectedBalance = depositAmount - (strikeSpread * (10**(18 - 6)));
+        uint256 strikeSpreadScaled = strikeSpread * (10**(18 - 6));
+
+        uint256 expectedBalance = depositAmount - strikeSpreadScaled;
 
         SBalance[] memory balances = engine.getMinCollateral(address(this));
         assertEq(balances.length, 1);
@@ -132,6 +137,11 @@ contract TestPortfolioMargining_FMV2 is FullMarginFixtureV2 {
 
         uint256 balanceAfter = weth.balanceOf(address(this));
         assertEq(balanceAfter, balanceBefore + expectedBalance);
+
+        (, , Balance[] memory _collaters) = engine.marginAccounts(address(this));
+        assertEq(_collaters.length, 1);
+        assertEq(_collaters[0].collateralId, wethId);
+        assertEq(_collaters[0].amount, strikeSpreadScaled);
     }
 
     function testEqualPutSpreadCollateralWithdraw() public {
@@ -166,7 +176,9 @@ contract TestPortfolioMargining_FMV2 is FullMarginFixtureV2 {
 
         assertEq(option.balanceOf(address(this), tokenId2), 0);
 
-        uint256 expectedBalance = depositAmount - (strikeSpread * (10**(6 - 6)));
+        uint256 strikeSpreadScaled = strikeSpread * (10**(6 - 6));
+
+        uint256 expectedBalance = depositAmount - strikeSpreadScaled;
 
         SBalance[] memory balances = engine.getMinCollateral(address(this));
         assertEq(balances.length, 1);
@@ -185,5 +197,10 @@ contract TestPortfolioMargining_FMV2 is FullMarginFixtureV2 {
 
         uint256 balanceAfter = usdc.balanceOf(address(this));
         assertEq(balanceAfter, balanceBefore + expectedBalance);
+
+        (, , Balance[] memory _collaters) = engine.marginAccounts(address(this));
+        assertEq(_collaters.length, 1);
+        assertEq(_collaters[0].collateralId, usdcId);
+        assertEq(_collaters[0].amount, strikeSpreadScaled);
     }
 }

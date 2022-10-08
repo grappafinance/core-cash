@@ -4,8 +4,8 @@ pragma solidity ^0.8.0;
 // imported contracts and libraries
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import {Ownable} from "openzeppelin/access/Ownable.sol";
-// use SafeCastLib to  more efficiently cast to uint80
-import {SafeCastLib} from "solmate/utils/SafeCastLib.sol";
+import {ReentrancyGuard} from "solmate/utils/ReentrancyGuard.sol";
+import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
 
 // interfaces
 import {IERC20Metadata} from "openzeppelin/token/ERC20/extensions/IERC20Metadata.sol";
@@ -14,10 +14,11 @@ import {IOptionToken} from "../interfaces/IOptionToken.sol";
 import {IMarginEngine} from "../interfaces/IMarginEngine.sol";
 
 // librarise
-import {TokenIdUtil} from "../libraries/TokenIdUtil.sol";
-import {ProductIdUtil} from "../libraries/ProductIdUtil.sol";
-import {NumberUtil} from "../libraries/NumberUtil.sol";
+import {AccountUtil} from "../libraries/AccountUtil.sol";
 import {MoneynessLib} from "../libraries/MoneynessLib.sol";
+import {NumberUtil} from "../libraries/NumberUtil.sol";
+import {ProductIdUtil} from "../libraries/ProductIdUtil.sol";
+import {TokenIdUtil} from "../libraries/TokenIdUtil.sol";
 
 // constants and types
 import "../config/types.sol";
@@ -27,14 +28,15 @@ import "../config/errors.sol";
 
 /**
  * @title   Grappa
- * @author  @antoncoding
+ * @author  @antoncoding, @dsshap
  */
-contract Grappa is Ownable {
+contract Grappa is Ownable, ReentrancyGuard {
+    using AccountUtil for Balance[];
     using FixedPointMathLib for uint256;
-    using SafeCastLib for uint256;
     using NumberUtil for uint256;
-    using TokenIdUtil for uint256;
     using ProductIdUtil for uint40;
+    using SafeCast for uint256;
+    using TokenIdUtil for uint256;
 
     /// @dev optionToken address
     IOptionToken public immutable optionToken;
@@ -201,8 +203,8 @@ contract Grappa is Ownable {
         address _account,
         uint256 _tokenId,
         uint256 _amount
-    ) external {
-        (address engine, address collateral, uint256 payout) = getPayout(_tokenId, _amount.safeCastTo64());
+    ) external nonReentrant {
+        (address engine, address collateral, uint256 payout) = getPayout(_tokenId, _amount.toUint64());
 
         emit OptionSettled(_account, _tokenId, _amount, payout);
 
@@ -223,10 +225,10 @@ contract Grappa is Ownable {
         address _account,
         uint256[] memory _tokenIds,
         uint256[] memory _amounts
-    ) external {
+    ) external nonReentrant returns (Balance[] memory payouts) {
         if (_tokenIds.length != _amounts.length) revert GP_WrongArgumentLength();
 
-        if (_tokenIds.length == 0) return;
+        if (_tokenIds.length == 0) return payouts;
 
         optionToken.batchBurnGrappaOnly(_account, _tokenIds, _amounts);
 
@@ -236,7 +238,9 @@ contract Grappa is Ownable {
         uint256 lastTotalPayout;
 
         for (uint256 i; i < _tokenIds.length; ) {
-            (address engine, address collateral, uint256 payout) = getPayout(_tokenIds[i], _amounts[i].safeCastTo64());
+            (address engine, address collateral, uint256 payout) = getPayout(_tokenIds[i], _amounts[i].toUint64());
+
+            payouts = _addToPayouts(payouts, collateral, payout);
 
             // if engine or collateral changes, payout and clear temporary parameters
             if (lastEngine == address(0)) {
@@ -396,5 +400,22 @@ contract Grappa is Ownable {
         payoutPerOption = cashValue.convertDecimals(UNIT_DECIMALS, collateralDecimals);
 
         return (engine, collateral, payoutPerOption);
+    }
+
+    function _addToPayouts(
+        Balance[] memory payouts,
+        address collateral,
+        uint256 payout
+    ) internal view returns (Balance[] memory) {
+        if (payout == 0) return payouts;
+
+        uint8 collateralId = assetIds[collateral];
+
+        (bool found, uint256 index) = payouts.indexOf(collateralId);
+        if (!found) {
+            payouts = payouts.append(Balance(collateralId, payout.toUint80()));
+        } else payouts[index].amount += payout.toUint80();
+
+        return payouts;
     }
 }

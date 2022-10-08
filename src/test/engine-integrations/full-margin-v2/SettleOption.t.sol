@@ -10,6 +10,8 @@ import "../../../config/types.sol";
 import "../../../config/constants.sol";
 import "../../../config/errors.sol";
 
+import "../../utils/Console.sol";
+
 // solhint-disable-next-line contract-name-camelcase
 contract TestSettleCoveredCall_FMV2 is FullMarginFixtureV2 {
     uint256 public expiry;
@@ -17,6 +19,7 @@ contract TestSettleCoveredCall_FMV2 is FullMarginFixtureV2 {
     uint64 private amount = uint64(1 * UNIT);
     uint256 private tokenId;
     uint64 private strike;
+    uint256 private depositAmount = 1 ether;
 
     function setUp() public {
         weth.mint(address(this), 1000 * 1e18);
@@ -26,15 +29,12 @@ contract TestSettleCoveredCall_FMV2 is FullMarginFixtureV2 {
 
         expiry = block.timestamp + 14 days;
 
-        // mint option
-        uint256 depositAmount = 1 ether;
-
         strike = uint64(4000 * UNIT);
 
         tokenId = getTokenId(TokenType.CALL, pidEthCollat, expiry, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
-        // give optoin to alice
+        // give option to alice
         actions[1] = createMintAction(tokenId, alice, amount);
 
         // mint option
@@ -133,15 +133,50 @@ contract TestSettleCoveredCall_FMV2 is FullMarginFixtureV2 {
         assertEq(collateralsAfter[cIndex].collateralId, collateralsBefore[cIndex].collateralId);
         assertEq(collateralsBefore[cIndex].amount - collateralsAfter[cIndex].amount, expectedPayout);
     }
+
+    function testSellerCanClearOnlyExpiredOptions() public {
+        uint256 tokenId2 = getTokenId(TokenType.CALL, pidEthCollat, expiry + 1 days, strike, 0);
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
+        actions[1] = createMintAction(tokenId2, alice, amount);
+        engine.execute(address(this), actions);
+
+        // expires out the money
+        oracle.setExpiryPrice(address(weth), address(usdc), strike - 1);
+
+        (, , Balance[] memory collateralsBefore) = engine.marginAccounts(address(this));
+
+        // covered call, underlying and collateral are the same
+        // uint256 uIndex = 0;
+        uint256 cIndex = 0;
+
+        // settle marginaccount
+        ActionArgs[] memory _actions = new ActionArgs[](1);
+        _actions[0] = createSettleAction();
+        engine.execute(address(this), _actions);
+
+        //margin account should be reset
+        (Position[] memory shorts, , Balance[] memory collateralsAfter) = engine.marginAccounts(address(this));
+
+        assertEq(shorts.length, 1);
+        assertEq(shorts[0].tokenId, tokenId2);
+        assertEq(shorts[0].amount, amount);
+        assertEq(collateralsAfter.length, collateralsBefore.length);
+        // assertEq(collateralsAfter[uIndex].collateralId, collateralsBefore[uIndex].collateralId);
+        // assertEq(collateralsAfter[uIndex].amount, collateralsBefore[uIndex].amount);
+        assertEq(collateralsAfter[cIndex].collateralId, collateralsBefore[cIndex].collateralId);
+        assertEq(collateralsAfter[cIndex].amount, collateralsBefore[cIndex].amount);
+    }
 }
 
 // solhint-disable-next-line contract-name-camelcase
-contract TestSettlePut_FMV2 is FullMarginFixtureV2 {
+contract TestSettleCollateralizedPut_FMV2 is FullMarginFixtureV2 {
     uint256 public expiry;
 
     uint64 private amount = uint64(1 * UNIT);
     uint256 private tokenId;
     uint64 private strike;
+    uint256 private depositAmount = 2000 * 1e6;
 
     function setUp() public {
         usdc.mint(address(this), 1000_000 * 1e6);
@@ -154,8 +189,6 @@ contract TestSettlePut_FMV2 is FullMarginFixtureV2 {
         // mint option
 
         strike = uint64(2000 * UNIT);
-
-        uint256 depositAmount = 2000 * 1e6;
 
         tokenId = getTokenId(TokenType.PUT, pidUsdcCollat, expiry, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
@@ -205,7 +238,13 @@ contract TestSettlePut_FMV2 is FullMarginFixtureV2 {
 
     // settlement on sell side
 
-    function testSellerCanClearDebtIfExpiresOTM() public {
+    function testSellerCanClearOnlyExpiredOptions() public {
+        uint256 tokenId2 = getTokenId(TokenType.PUT, pidUsdcCollat, expiry + 1 days, strike, 0);
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
+        actions[1] = createMintAction(tokenId2, alice, amount);
+        engine.execute(address(this), actions);
+
         // expires out the money
         oracle.setExpiryPrice(address(weth), address(usdc), strike + 1);
 
@@ -214,14 +253,16 @@ contract TestSettlePut_FMV2 is FullMarginFixtureV2 {
         uint256 cIndex = 0;
 
         // settle marginaccount
-        ActionArgs[] memory actions = new ActionArgs[](1);
-        actions[0] = createSettleAction();
-        engine.execute(address(this), actions);
+        ActionArgs[] memory _actions = new ActionArgs[](1);
+        _actions[0] = createSettleAction();
+        engine.execute(address(this), _actions);
 
         //margin account should be reset
         (Position[] memory shorts, , Balance[] memory collateralsAfter) = engine.marginAccounts(address(this));
 
-        assertEq(shorts.length, 0);
+        assertEq(shorts.length, 1);
+        assertEq(shorts[0].tokenId, tokenId2);
+        assertEq(shorts[0].amount, amount);
         assertEq(collateralsAfter.length, collateralsBefore.length);
         // assertEq(collateralsAfter[uIndex].collateralId, collateralsBefore[uIndex].collateralId);
         // assertEq(collateralsAfter[uIndex].amount, collateralsBefore[uIndex].amount);

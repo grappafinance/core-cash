@@ -132,8 +132,8 @@ library FullMarginMathV2 {
         weights = synthCallWeights.concat(_detail.callWeights);
 
         // sorting strikes
-        (uint256[] memory sorted, uint256[] memory indexes) = strikes.argSort();
-        strikes = sorted;
+        uint256[] memory indexes;
+        (strikes, indexes) = strikes.argSort();
 
         // sorting weights based on strike sorted index
         weights = weights.sortByIndexes(indexes);

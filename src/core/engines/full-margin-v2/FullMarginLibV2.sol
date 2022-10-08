@@ -3,9 +3,12 @@ pragma solidity ^0.8.0;
 
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 
+import {IGrappa} from "../../../interfaces/IGrappa.sol";
+
 import "../../../libraries/TokenIdUtil.sol";
 import "../../../libraries/ProductIdUtil.sol";
 import "../../../libraries/AccountUtil.sol";
+import "../../../libraries/ArrayUtil.sol";
 
 import "../../../config/types.sol";
 import "../../../config/constants.sol";
@@ -21,6 +24,7 @@ library FullMarginLibV2 {
     using AccountUtil for Balance[];
     using AccountUtil for Position[];
     using AccountUtil for PositionOptim[];
+    using ArrayUtil for uint256[];
     using ProductIdUtil for uint40;
     using TokenIdUtil for uint256;
 
@@ -146,25 +150,76 @@ library FullMarginLibV2 {
 
     ///@dev Settles the accounts short calls and puts, reserving collateral for ITM options
     ///@param account FullMarginAccountV2 memory that will be updated in-place
-    function settleAtExpiry(FullMarginAccountV2 storage account, Balance[] memory payouts) internal {
-        // clear all debt
-        delete account.shorts;
+    function settleAtExpiry(
+        FullMarginAccountV2 storage account,
+        Balance[] memory payouts,
+        IGrappa grappa
+    ) internal {
+        _settleShorts(account);
+        _settleLongs(account, grappa);
 
         Balance[] memory collaterals = account.collaterals;
-
         for (uint256 i; i < payouts.length; ) {
-            if (payouts[i].amount > 0) {
-                (, uint256 index) = collaterals.indexOf(payouts[i].collateralId);
+            (, uint256 index) = collaterals.indexOf(payouts[i].collateralId);
 
-                uint80 newAmount = collaterals[index].amount - payouts[i].amount;
+            uint80 newAmount = collaterals[index].amount - payouts[i].amount;
 
-                if (newAmount == 0) {
-                    account.collaterals.remove(index);
-                } else account.collaterals[index].amount = newAmount;
+            if (newAmount == 0) {
+                account.collaterals.remove(index);
+            } else account.collaterals[index].amount = newAmount;
+
+            unchecked {
+                i++;
+            }
+        }
+    }
+
+    function _settleShorts(FullMarginAccountV2 storage account) internal {
+        Position[] memory shorts = account.shorts.getPositions();
+
+        for (uint256 i; i < shorts.length; ) {
+            uint256 tokenId = shorts[i].tokenId;
+
+            if (tokenId.isExpired()) {
+                account.shorts.removePositionAt(i);
             }
 
             unchecked {
                 i++;
+            }
+        }
+    }
+
+    function _settleLongs(FullMarginAccountV2 storage account, IGrappa grappa) internal {
+        Position[] memory longs = account.longs.getPositions();
+
+        uint256 i;
+        uint256[] memory tokenIds;
+        uint256[] memory amounts;
+
+        for (i; i < longs.length; ) {
+            uint256 tokenId = longs[i].tokenId;
+
+            if (tokenId.isExpired()) {
+                tokenIds = tokenIds.append(tokenId);
+                amounts = amounts.append(longs[i].amount);
+                account.longs.removePositionAt(i);
+            }
+
+            unchecked {
+                i++;
+            }
+        }
+
+        if (tokenIds.length > 0) {
+            Balance[] memory payouts = grappa.batchSettleOptions(address(this), tokenIds, amounts);
+
+            for (i = 0; i < payouts.length; ) {
+                addCollateral(account, payouts[i].collateralId, payouts[i].amount);
+
+                unchecked {
+                    i++;
+                }
             }
         }
     }

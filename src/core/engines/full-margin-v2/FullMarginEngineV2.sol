@@ -28,7 +28,7 @@ import "../../../test/utils/Console.sol";
 
 /**
  * @title   FullMarginEngine
- * @author  @dsshap & @antoncoding
+ * @author  @dsshap, @antoncoding
  * @notice  Fully collateralized margin engine
             Users can deposit collateral into FullMargin and mint optionTokens (debt) out of it.
             Interacts with OptionToken to mint / burn
@@ -211,7 +211,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
     }
 
     function _settleAccount2(address _subAccount, Balance[] memory payouts) internal {
-        accounts[_subAccount].settleAtExpiry(payouts);
+        accounts[_subAccount].settleAtExpiry(payouts, grappa);
     }
 
     /** ========================================================= **
@@ -255,17 +255,19 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
         for (uint256 i; i < shorts.length; ) {
             uint256 tokenId = shorts[i].tokenId;
 
-            (, uint40 productId, uint64 expiry, , ) = tokenId.parseTokenId();
-
-            if (block.timestamp >= expiry) {
-                ProductDetails memory product = _getProductDetails(productId);
-
+            if (tokenId.isExpired()) {
                 (, , uint256 payout) = grappa.getPayout(tokenId, shorts[i].amount);
 
-                (bool found, uint256 index) = payouts.indexOf(product.collateralId);
+                if (payout > 0) {
+                    (, uint40 productId, , , ) = tokenId.parseTokenId();
 
-                if (found) payouts[index].amount += payout.toUint80();
-                else payouts = payouts.append(Balance(product.collateralId, payout.toUint80()));
+                    ProductDetails memory product = _getProductDetails(productId);
+
+                    (bool found, uint256 index) = payouts.indexOf(product.collateralId);
+
+                    if (found) payouts[index].amount += payout.toUint80();
+                    else payouts = payouts.append(Balance(product.collateralId, payout.toUint80()));
+                }
             }
 
             unchecked {

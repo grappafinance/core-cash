@@ -153,6 +153,22 @@ library TokenIdUtil {
     }
 
     /**
+     * @notice derive if option is expired from ERC1155 token id
+     * @param tokenId token id
+     * @return expired bool
+     */
+    function isExpired(uint256 tokenId) internal view returns (bool expired) {
+        // solhint-disable-next-line no-inline-assembly
+        uint64 expiry;
+
+        assembly {
+            expiry := shr(128, tokenId)
+        }
+
+        expired = block.timestamp >= expiry;
+    }
+
+    /**
      * @notice convert an spread tokenId back to put or call.
      *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
      * @dev   oldId =   | spread type (24 b)  | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) | shortStrike (64 bits) |

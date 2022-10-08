@@ -32,4 +32,10 @@ interface IGrappa {
             address collateral,
             uint256 payout
         );
+
+    function batchSettleOptions(
+        address _account,
+        uint256[] memory _tokenIds,
+        uint256[] memory _amounts
+    ) external returns (Balance[] memory payouts);
 }
