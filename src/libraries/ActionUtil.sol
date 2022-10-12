@@ -126,4 +126,16 @@ library ActionUtil {
     function createSettleAction() internal pure returns (ActionArgs memory action) {
         action = ActionArgs({action: ActionType.SettleAccount, data: abi.encode(0)});
     }
+
+    function append(ActionArgs[] memory x, ActionArgs memory v) internal pure returns (ActionArgs[] memory y) {
+        y = new ActionArgs[](x.length + 1);
+        uint256 i;
+        for (i; i < x.length; ) {
+            y[i] = x[i];
+            unchecked {
+                i++;
+            }
+        }
+        y[i] = v;
+    }
 }

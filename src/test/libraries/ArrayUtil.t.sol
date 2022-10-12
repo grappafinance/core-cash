@@ -68,13 +68,13 @@ contract ArrayUtilTest is Test {
         array2[0] = 1;
         array2[1] = 2;
 
-        array1.populate(array2, 0);
+        array1 = array1.populate(array2, 0);
         assertEq(array1.length, 2);
         assertEq(array1[0], 1);
         assertEq(array1[1], 2);
 
         vm.expectRevert(stdError.indexOOBError);
-        array1.populate(array2, 1);
+        array1 = array1.populate(array2, 1);
     }
 
     function testSlice() public {

@@ -24,10 +24,10 @@ import "../../../config/enums.sol";
 import "../../../config/constants.sol";
 import "../../../config/errors.sol";
 
-import "../../../test/utils/Console.sol";
+// import "../../../test/utils/Console.sol";
 
 /**
- * @title   FullMarginEngine
+ * @title   FullMarginEngineV2
  * @author  @dsshap, @antoncoding
  * @notice  Fully collateralized margin engine
             Users can deposit collateral into FullMargin and mint optionTokens (debt) out of it.
@@ -141,6 +141,27 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
         FullMarginAccountV2 memory account = accounts[_subAccount];
 
         return (account.shorts.getPositions(), account.longs.getPositions(), account.collaterals);
+    }
+
+    /**
+     * @notice get minimum collateral needed for a margin account
+     * @param shorts positions.
+     * @param longs positions.
+     * @return balances array of collaterals and amount
+     */
+    function simCollateralReq(Position[] memory shorts, Position[] memory longs)
+        external
+        view
+        returns (Balance[] memory balances)
+    {
+        // assert length match
+
+        FullMarginAccountV2 memory account;
+
+        account.shorts = shorts.getPositionOptims();
+        account.longs = longs.getPositionOptims();
+
+        balances = _getMinCollateral(account).toBalances();
     }
 
     /** ========================================================= **
@@ -299,9 +320,10 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
      ** ========================================================= **/
 
     function _getMinCollateral(FullMarginAccountV2 memory account) internal view returns (SBalance[] memory balances) {
+        // balances = new SBalance[](0);
         FullMarginDetailV2[] memory details = _getAccountDetails(account);
 
-        balances = account.collaterals.toInt80();
+        balances = account.collaterals.toSBalances();
 
         if (details.length == 0) return balances;
 
@@ -313,13 +335,13 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
 
             (int256 cashCollateralNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
 
-            if (cashCollateralNeeded > 0) {
+            if (cashCollateralNeeded != 0) {
                 (found, index) = balances.indexOf(detail.collateralId);
                 if (found) balances[index].amount -= cashCollateralNeeded.toInt80();
                 else balances = balances.append(SBalance(detail.collateralId, -cashCollateralNeeded.toInt80()));
             }
 
-            if (underlyingNeeded > 0) {
+            if (underlyingNeeded != 0) {
                 (found, index) = balances.indexOf(detail.underlyingId);
                 if (found) balances[index].amount -= underlyingNeeded.toInt80();
                 else balances = balances.append(SBalance(detail.underlyingId, -underlyingNeeded.toInt80()));

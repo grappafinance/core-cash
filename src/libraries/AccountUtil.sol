@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 import {TokenIdUtil} from "./TokenIdUtil.sol";
@@ -28,6 +29,18 @@ library AccountUtil {
         returns (FullMarginDetailV2[] memory y)
     {
         y = new FullMarginDetailV2[](x.length + 1);
+        uint256 i;
+        for (i; i < x.length; ) {
+            y[i] = x[i];
+            unchecked {
+                i++;
+            }
+        }
+        y[i] = v;
+    }
+
+    function append(Position[] memory x, Position memory v) internal pure returns (Position[] memory y) {
+        y = new Position[](x.length + 1);
         uint256 i;
         for (i; i < x.length; ) {
             y[i] = x[i];
@@ -91,7 +104,7 @@ library AccountUtil {
         }
     }
 
-    function find(Position[] memory x, uint8 v)
+    function find(Position[] memory x, uint256 v)
         internal
         pure
         returns (
@@ -199,10 +212,22 @@ library AccountUtil {
         }
     }
 
-    function toInt80(Balance[] memory x) internal pure returns (SBalance[] memory y) {
+    function toSBalances(Balance[] memory x) internal pure returns (SBalance[] memory y) {
         y = new SBalance[](x.length);
         for (uint256 i; i < x.length; ) {
             y[i] = SBalance(x[i].collateralId, int80(x[i].amount));
+            unchecked {
+                i++;
+            }
+        }
+    }
+
+    function toBalances(SBalance[] memory x) internal pure returns (Balance[] memory y) {
+        y = new Balance[](x.length);
+        for (uint256 i; i < x.length; ) {
+            int80 a = x[i].amount;
+            a = a < 0 ? -a : a;
+            y[i] = Balance(x[i].collateralId, uint80(a));
             unchecked {
                 i++;
             }
@@ -213,6 +238,16 @@ library AccountUtil {
         y = new Position[](x.length);
         for (uint256 i; i < x.length; ) {
             y[i] = Position(x[i].tokenId.expand(), x[i].amount);
+            unchecked {
+                i++;
+            }
+        }
+    }
+
+    function getPositionOptims(Position[] memory x) internal pure returns (PositionOptim[] memory y) {
+        y = new PositionOptim[](x.length);
+        for (uint256 i; i < x.length; ) {
+            y[i] = getPositionOptim(x[i]);
             unchecked {
                 i++;
             }

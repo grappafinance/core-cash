@@ -90,35 +90,35 @@ contract TestPMRemoveCollateral_FMV2 is FullMarginFixtureV2 {
         uint256 strikePrice = 4000 * UNIT;
         uint256 amount = 1 * UNIT;
 
-        uint256 strikeSpread = 1;
+        uint256 strikeSpread = 1 * UNIT;
 
-        uint256 tokenId = getTokenId(TokenType.CALL, pidEthCollat, expiry, strikePrice - strikeSpread, 0);
-        uint256 tokenId2 = getTokenId(TokenType.CALL, pidEthCollat, expiry, strikePrice, 0);
+        uint256 shortId = getTokenId(TokenType.CALL, pidEthCollat, expiry, strikePrice - strikeSpread, 0);
+        uint256 longId = getTokenId(TokenType.CALL, pidEthCollat, expiry, strikePrice, 0);
 
         // prepare: mint tokens
         ActionArgs[] memory _actions = new ActionArgs[](2);
         _actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
-        _actions[1] = createMintAction(tokenId, alice, amount);
+        _actions[1] = createMintAction(shortId, alice, amount);
         engine.execute(address(this), _actions);
 
         _actions[0] = createAddCollateralAction(wethId, alice, depositAmount);
-        _actions[1] = createMintAction(tokenId2, address(this), amount);
+        _actions[1] = createMintAction(longId, address(this), amount);
         engine.execute(alice, _actions);
 
         option.setApprovalForAll(address(engine), true);
 
-        assertEq(option.balanceOf(address(this), tokenId2), amount);
-        assertEq(option.balanceOf(address(alice), tokenId), amount);
+        assertEq(option.balanceOf(address(this), longId), amount);
+        assertEq(option.balanceOf(address(alice), shortId), amount);
 
         ActionArgs[] memory actions = new ActionArgs[](1);
-        actions[0] = createAddLongAction(tokenId2, amount, address(this));
+        actions[0] = createAddLongAction(longId, amount, address(this));
         engine.execute(address(this), actions);
 
-        assertEq(option.balanceOf(address(this), tokenId2), 0);
+        assertEq(option.balanceOf(address(this), longId), 0);
 
-        uint256 strikeSpreadScaled = strikeSpread * (10**(18 - 6));
+        uint256 underlyingRequired = (((strikeSpread * UNIT) / strikePrice) * (10**(18 - 6)));
 
-        uint256 expectedBalance = depositAmount - strikeSpreadScaled;
+        uint256 expectedBalance = depositAmount - underlyingRequired;
 
         SBalance[] memory balances = engine.getMinCollateral(address(this));
         assertEq(balances.length, 1);
@@ -141,7 +141,7 @@ contract TestPMRemoveCollateral_FMV2 is FullMarginFixtureV2 {
         (, , Balance[] memory _collaters) = engine.marginAccounts(address(this));
         assertEq(_collaters.length, 1);
         assertEq(_collaters[0].collateralId, wethId);
-        assertEq(_collaters[0].amount, strikeSpreadScaled);
+        assertEq(_collaters[0].amount, underlyingRequired);
     }
 
     function testEqualPutSpreadCollateralWithdraw() public {

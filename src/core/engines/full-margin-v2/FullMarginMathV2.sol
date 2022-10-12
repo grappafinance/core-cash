@@ -3,8 +3,6 @@ pragma solidity ^0.8.0;
 
 import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
 
-import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
-import {MoneynessLib} from "../../../libraries/MoneynessLib.sol";
 import {NumberUtil} from "../../../libraries/NumberUtil.sol";
 import {ArrayUtil} from "../../../libraries/ArrayUtil.sol";
 
@@ -13,7 +11,7 @@ import "../../../config/enums.sol";
 import "../../../config/types.sol";
 import "../../../config/errors.sol";
 
-import "../../../test/utils/Console.sol";
+// import "../../../test/utils/Console.sol";
 
 /**
  * @title   FullMarginMathV2
@@ -22,7 +20,6 @@ import "../../../test/utils/Console.sol";
 library FullMarginMathV2 {
     using ArrayUtil for uint256[];
     using ArrayUtil for int256[];
-    using FixedPointMathLib for uint256;
     using SafeCast for int256;
     using SafeCast for uint256;
 
@@ -52,7 +49,7 @@ library FullMarginMathV2 {
      * @return underlyingNeeded with {BASE_UNIT} decimals
      */
     function getMinCollateral(FullMarginDetailV2 memory _detail)
-        internal
+        public
         pure
         returns (int256 cashCollateralNeeded, int256 underlyingNeeded)
     {
@@ -85,12 +82,29 @@ library FullMarginMathV2 {
             underlyingNeeded
         );
 
-        cashCollateralNeeded = NumberUtil
-            .convertDecimals(cashCollateralNeeded.toUint256(), UNIT_DECIMALS, _detail.collateralDecimals)
-            .toInt256();
+        // consoleG.log("cashCollateralNeeded pre conversion");
+        // consoleG.logInt(cashCollateralNeeded);
+
+        // consoleG.log("underlyingNeeded pre conversion");
+        // consoleG.logInt(underlyingNeeded);
+
+        if (cashCollateralNeeded > 0 && _detail.underlyingId == _detail.collateralId) {
+            cashCollateralNeeded = 0;
+            underlyingNeeded = convertCashCollateralToUnderlyingNeeded(_detail, pois, payouts, underlyingNeeded);
+        } else
+            cashCollateralNeeded = NumberUtil
+                .convertDecimals(cashCollateralNeeded.toUint256(), UNIT_DECIMALS, _detail.collateralDecimals)
+                .toInt256();
+
         underlyingNeeded = NumberUtil
             .convertDecimals(underlyingNeeded.toUint256(), UNIT_DECIMALS, _detail.underlyingDecimals)
             .toInt256();
+
+        // consoleG.log("cashCollateralNeeded post conversion");
+        // consoleG.logInt(cashCollateralNeeded);
+
+        // consoleG.log("underlyingNeeded post conversion");
+        // consoleG.logInt(underlyingNeeded);
     }
 
     function createPois(
@@ -127,7 +141,7 @@ library FullMarginMathV2 {
 
         int256[] memory synthCallWeights = new int256[](_detail.putWeights.length);
 
-        synthCallWeights.populate(_detail.putWeights, 0);
+        synthCallWeights = synthCallWeights.populate(_detail.putWeights, 0);
 
         weights = synthCallWeights.concat(_detail.callWeights);
 
@@ -208,15 +222,9 @@ library FullMarginMathV2 {
         int256 cashCollateralNeeded,
         int256 underlyingNeeded
     ) internal pure returns (int256) {
-        int256 putsStartPos = sZERO;
-        int256 callsEndPos = (_detail.putStrikes.length + _detail.callStrikes.length).toInt256();
+        (int256 startPos, int256 endPos) = getStrikesStartAndEndPos(_detail);
 
-        if (_detail.putStrikes.length > 0) {
-            putsStartPos = 1;
-            callsEndPos += 1;
-        }
-
-        int256 minStrikePayout = -payouts.slice(putsStartPos, callsEndPos).min();
+        int256 minStrikePayout = -payouts.slice(startPos, endPos).min();
 
         if (cashCollateralNeeded < minStrikePayout) {
             (, uint256 index) = payouts.indexOf(-minStrikePayout);
@@ -227,5 +235,50 @@ library FullMarginMathV2 {
         }
 
         return cashCollateralNeeded;
+    }
+
+    function getStrikesStartAndEndPos(FullMarginDetailV2 memory _detail)
+        internal
+        pure
+        returns (int256 startPos, int256 endPos)
+    {
+        endPos = (_detail.putStrikes.length + _detail.callStrikes.length).toInt256();
+
+        if (_detail.putStrikes.length > 0) {
+            startPos = 1;
+            endPos += 1;
+        }
+    }
+
+    function convertCashCollateralToUnderlyingNeeded(
+        FullMarginDetailV2 memory _detail,
+        uint256[] memory pois,
+        int256[] memory payouts,
+        int256 underlyingNeeded
+    ) internal pure returns (int256) {
+        (int256 startPos, int256 endPos) = getStrikesStartAndEndPos(_detail);
+        uint256 start = startPos.toUint256();
+        uint256 end = endPos.toUint256();
+
+        int256[] memory underlyingNeededAtStrikes = new int256[](end - start);
+
+        uint256 y;
+        for (uint256 i = start; i < end; ) {
+            int256 strike = pois[i].toInt256();
+            int256 payout = payouts[i];
+
+            payout = payout < 0 ? -payout : payout;
+
+            underlyingNeededAtStrikes[y] = (payout * sUNIT) / strike;
+
+            unchecked {
+                y++;
+                i++;
+            }
+        }
+
+        int256 max = underlyingNeededAtStrikes.max();
+
+        return max > underlyingNeeded ? max : underlyingNeeded;
     }
 }

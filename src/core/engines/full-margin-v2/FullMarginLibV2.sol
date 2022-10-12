@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
-
 import {IGrappa} from "../../../interfaces/IGrappa.sol";
 
 import "../../../libraries/TokenIdUtil.sol";

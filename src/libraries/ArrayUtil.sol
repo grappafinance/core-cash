@@ -1,8 +1,9 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
 
-import "../test/utils/Console.sol";
+// import "../test/utils/Console.sol";
 
 library ArrayUtil {
     using SafeCast for uint256;
@@ -27,31 +28,35 @@ library ArrayUtil {
         return min(toInt256(x)).toUint256();
     }
 
-    /**
-     * @dev Returns minimal element's index
-     * @return m
-     */
-    function imin(uint256[] memory x) internal pure returns (uint256 m) {
-        m = 0;
-        for (uint256 i; i < x.length; i++) {
-            if (x[i] < x[m]) {
-                m = i;
-            }
-        }
-        return m;
-    }
+    // /**
+    //  * @dev Returns minimal element's index
+    //  * @return m
+    //  */
+    // function imin(uint256[] memory x) internal pure returns (uint256 m) {
+    //     m = 0;
+    //     for (uint256 i; i < x.length; i++) {
+    //         if (x[i] < x[m]) {
+    //             m = i;
+    //         }
+    //     }
+    //     return m;
+    // }
 
     /**
      * @dev Returns maximal element in array
      * @return m
      */
-    function max(uint256[] memory x) internal pure returns (uint256 m) {
+    function max(int256[] memory x) internal pure returns (int256 m) {
         m = x[0];
         for (uint256 i; i < x.length; i++) {
             if (x[i] > m) {
                 m = x[i];
             }
         }
+    }
+
+    function max(uint256[] memory x) internal pure returns (uint256) {
+        return max(toInt256(x)).toUint256();
     }
 
     /**
@@ -66,17 +71,17 @@ library ArrayUtil {
         }
     }
 
-    /**
-     * @dev Returns maximal element's index
-     * @return m maximal
-     */
-    function imax(uint256[] memory x) internal pure returns (uint256 m) {
-        for (uint256 i; i < x.length; i++) {
-            if (x[i] > x[m]) {
-                m = i;
-            }
-        }
-    }
+    // /**
+    //  * @dev Returns maximal element's index
+    //  * @return m maximal
+    //  */
+    // function imax(uint256[] memory x) internal pure returns (uint256 m) {
+    //     for (uint256 i; i < x.length; i++) {
+    //         if (x[i] > x[m]) {
+    //             m = i;
+    //         }
+    //     }
+    // }
 
     /**
      * @dev Removes element at index
@@ -91,17 +96,17 @@ library ArrayUtil {
         }
     }
 
-    function remove(uint8[] memory x, uint256 i) internal pure returns (uint8[] memory) {
-        return toUint8(remove(toUint256(x), i));
-    }
+    // function remove(uint8[] memory x, uint256 i) internal pure returns (uint8[] memory) {
+    //     return toUint8(remove(toUint256(x), i));
+    // }
 
-    function remove(uint64[] memory x, uint256 i) internal pure returns (uint64[] memory) {
-        return toUint64(remove(toUint256(x), i));
-    }
+    // function remove(uint64[] memory x, uint256 i) internal pure returns (uint64[] memory) {
+    //     return toUint64(remove(toUint256(x), i));
+    // }
 
-    function remove(uint80[] memory x, uint256 i) internal pure returns (uint80[] memory) {
-        return toUint80(remove(toUint256(x), i));
-    }
+    // function remove(uint80[] memory x, uint256 i) internal pure returns (uint80[] memory) {
+    //     return toUint80(remove(toUint256(x), i));
+    // }
 
     /**
      * @dev Returns index of element
@@ -130,9 +135,9 @@ library ArrayUtil {
         return indexOf(toInt256(x), v.toInt256());
     }
 
-    function indexOf(uint8[] memory x, uint8 v) internal pure returns (bool, uint256) {
-        return indexOf(toUint256(x), v);
-    }
+    // function indexOf(uint8[] memory x, uint8 v) internal pure returns (bool, uint256) {
+    //     return indexOf(toUint256(x), v);
+    // }
 
     /**
      * @dev Compute sum of all elements
@@ -148,13 +153,13 @@ library ArrayUtil {
         return sum(toInt256(x)).toUint256();
     }
 
-    function sum(uint64[] memory x) internal pure returns (uint256) {
-        return sum(toUint256(x));
-    }
+    // function sum(uint64[] memory x) internal pure returns (uint256) {
+    //     return sum(toUint256(x));
+    // }
 
-    function sum(uint80[] memory x) internal pure returns (uint256) {
-        return sum(toUint256(x));
-    }
+    // function sum(uint80[] memory x) internal pure returns (uint256) {
+    //     return sum(toUint256(x));
+    // }
 
     function _sortItem(uint256[] memory x, uint256 p) internal pure returns (uint256[] memory) {
         uint256 w_min = p;
@@ -181,7 +186,7 @@ library ArrayUtil {
 
     function sort(uint256[] memory x) internal pure returns (uint256[] memory y) {
         y = new uint256[](x.length);
-        populate(y, x, 0);
+        y = populate(y, x, 0);
         for (uint256 i = 0; i < x.length - 1; i++) {
             y = _sortItem(y, i);
         }
@@ -216,13 +221,13 @@ library ArrayUtil {
         return toUint256(append(toInt256(x), v.toInt256()));
     }
 
-    function append(uint8[] memory x, uint8 v) internal pure returns (uint8[] memory) {
-        return toInt8(append(toInt256(x), int256(int8(v))));
-    }
+    // function append(uint8[] memory x, uint8 v) internal pure returns (uint8[] memory) {
+    //     return toInt8(append(toInt256(x), int256(int8(v))));
+    // }
 
-    function append(uint80[] memory x, uint80 v) internal pure returns (uint80[] memory) {
-        return toUint80(append(toInt256(x), int256(int80(v))));
-    }
+    // function append(uint80[] memory x, uint80 v) internal pure returns (uint80[] memory) {
+    //     return toUint80(append(toInt256(x), int256(int80(v))));
+    // }
 
     function concat(int256[] memory a, int256[] memory b) internal pure returns (int256[] memory y) {
         y = new int256[](a.length + b.length);
@@ -242,9 +247,9 @@ library ArrayUtil {
         return toUint256(concat(toInt256(a), toInt256(b)));
     }
 
-    function concat(uint64[] memory a, uint64[] memory b) internal pure returns (uint64[] memory array) {
-        return toUint64(concat(toInt256(a), toInt256(b)));
-    }
+    // function concat(uint64[] memory a, uint64[] memory b) internal pure returns (uint64[] memory array) {
+    //     return toUint64(concat(toInt256(a), toInt256(b)));
+    // }
 
     function fill(int256[] memory x, int256 v) internal pure returns (int256[] memory) {
         for (uint256 i = 0; i < x.length; i++) {
@@ -328,65 +333,45 @@ library ArrayUtil {
         return toUint256(slice(toInt256(x), y.toInt256(), z.toInt256()));
     }
 
-    function map(int256[] memory self, function(int256) pure returns (int256) f)
-        internal
-        pure
-        returns (int256[] memory r)
-    {
-        r = new int256[](self.length);
-        for (uint256 i = 0; i < self.length; i++) {
-            r[i] = f(self[i]);
-        }
-    }
+    // function map(int256[] memory self, function(int256) pure returns (int256) f)
+    //     internal
+    //     pure
+    //     returns (int256[] memory r)
+    // {
+    //     r = new int256[](self.length);
+    //     for (uint256 i = 0; i < self.length; i++) {
+    //         r[i] = f(self[i]);
+    //     }
+    // }
 
-    function map2(
-        int256[] memory x,
-        function(int256, int256) pure returns (int256) f,
-        int256 y
-    ) internal pure returns (int256[] memory r) {
-        r = new int256[](x.length);
-        for (uint256 i = 0; i < x.length; i++) {
-            r[i] = f(x[i], y);
-        }
-    }
+    // function map2(
+    //     int256[] memory x,
+    //     function(int256, int256) pure returns (int256) f,
+    //     int256 y
+    // ) internal pure returns (int256[] memory r) {
+    //     r = new int256[](x.length);
+    //     for (uint256 i = 0; i < x.length; i++) {
+    //         r[i] = f(x[i], y);
+    //     }
+    // }
 
-    function reduce(uint256[] memory self, function(uint256, uint256) pure returns (uint256) f)
-        internal
-        pure
-        returns (uint256 r)
-    {
-        r = self[0];
-        for (uint256 i = 1; i < self.length; i++) {
-            r = f(r, self[i]);
-        }
-    }
+    // function reduce(uint256[] memory self, function(uint256, uint256) pure returns (uint256) f)
+    //     internal
+    //     pure
+    //     returns (uint256 r)
+    // {
+    //     r = self[0];
+    //     for (uint256 i = 1; i < self.length; i++) {
+    //         r = f(r, self[i]);
+    //     }
+    // }
 
-    function range(uint256 length) internal pure returns (uint256[] memory r) {
-        r = new uint256[](length);
-        for (uint256 i = 0; i < r.length; i++) {
-            r[i] = i;
-        }
-    }
-
-    function add(uint256 a, uint256 b) internal pure returns (uint256) {
-        return a + b;
-    }
-
-    function sub(int256 a, int256 b) internal pure returns (int256) {
-        return a - b;
-    }
-
-    function subFrom(int256 a, int256 b) internal pure returns (int256) {
-        return b - a;
-    }
-
-    function mul(int256 a, int256 b) internal pure returns (int256) {
-        return a * b;
-    }
-
-    function div(int256 a, int256 b) internal pure returns (int256) {
-        return a / b;
-    }
+    // function range(uint256 length) internal pure returns (uint256[] memory r) {
+    //     r = new uint256[](length);
+    //     for (uint256 i = 0; i < r.length; i++) {
+    //         r[i] = i;
+    //     }
+    // }
 
     function subEachFrom(uint256[] memory x, uint256 z) internal pure returns (int256[] memory y) {
         y = new int256[](x.length);
@@ -440,82 +425,82 @@ library ArrayUtil {
      * @dev converting array of variable types
      */
 
-    function toInt8(int256[] memory x) internal pure returns (uint8[] memory y) {
-        y = new uint8[](x.length);
-        for (uint256 i = 0; i < x.length; i++) {
-            y[i] = x[i].toUint256().toUint8();
-        }
-    }
+    // function toInt8(int256[] memory x) internal pure returns (uint8[] memory y) {
+    //     y = new uint8[](x.length);
+    //     for (uint256 i = 0; i < x.length; i++) {
+    //         y[i] = x[i].toUint256().toUint8();
+    //     }
+    // }
 
-    function toUint8(uint256[] memory x) internal pure returns (uint8[] memory y) {
-        y = new uint8[](x.length);
-        for (uint256 i = 0; i < x.length; i++) {
-            y[i] = x[i].toUint8();
-        }
-    }
+    // function toUint8(uint256[] memory x) internal pure returns (uint8[] memory y) {
+    //     y = new uint8[](x.length);
+    //     for (uint256 i = 0; i < x.length; i++) {
+    //         y[i] = x[i].toUint8();
+    //     }
+    // }
 
-    function toUint64(uint256[] memory x) internal pure returns (uint64[] memory y) {
-        y = new uint64[](x.length);
-        for (uint256 i = 0; i < x.length; i++) {
-            y[i] = x[i].toUint64();
-        }
-    }
+    // function toUint64(uint256[] memory x) internal pure returns (uint64[] memory y) {
+    //     y = new uint64[](x.length);
+    //     for (uint256 i = 0; i < x.length; i++) {
+    //         y[i] = x[i].toUint64();
+    //     }
+    // }
 
-    function toUint64(int256[] memory x) internal pure returns (uint64[] memory y) {
-        y = new uint64[](x.length);
-        for (uint256 i = 0; i < x.length; i++) {
-            y[i] = x[i].toUint256().toUint64();
-        }
-    }
+    // function toUint64(int256[] memory x) internal pure returns (uint64[] memory y) {
+    //     y = new uint64[](x.length);
+    //     for (uint256 i = 0; i < x.length; i++) {
+    //         y[i] = x[i].toUint256().toUint64();
+    //     }
+    // }
 
-    function toInt80(uint80[] memory x) internal pure returns (int80[] memory y) {
-        y = new int80[](x.length);
-        for (uint256 i = 0; i < x.length; i++) {
-            y[i] = int80(x[i]);
-        }
-    }
+    // function toInt80(uint80[] memory x) internal pure returns (int80[] memory y) {
+    //     y = new int80[](x.length);
+    //     for (uint256 i = 0; i < x.length; i++) {
+    //         y[i] = int80(x[i]);
+    //     }
+    // }
 
-    function toUint80(int80[] memory x) internal pure returns (uint80[] memory y) {
-        y = new uint80[](x.length);
-        for (uint256 i = 0; i < x.length; i++) {
-            y[i] = uint80(x[i]);
-        }
-    }
+    // function toUint80(int80[] memory x) internal pure returns (uint80[] memory y) {
+    //     y = new uint80[](x.length);
+    //     for (uint256 i = 0; i < x.length; i++) {
+    //         y[i] = uint80(x[i]);
+    //     }
+    // }
 
-    function toUint80(uint256[] memory x) internal pure returns (uint80[] memory y) {
-        y = new uint80[](x.length);
-        for (uint256 i = 0; i < x.length; i++) {
-            y[i] = x[i].toUint80();
-        }
-    }
+    // function toUint80(uint256[] memory x) internal pure returns (uint80[] memory y) {
+    //     y = new uint80[](x.length);
+    //     for (uint256 i = 0; i < x.length; i++) {
+    //         y[i] = x[i].toUint80();
+    //     }
+    // }
 
-    function toUint80(int256[] memory x) internal pure returns (uint80[] memory y) {
-        y = new uint80[](x.length);
-        for (uint256 i = 0; i < x.length; i++) {
-            y[i] = x[i].toUint256().toUint80();
-        }
-    }
+    // function toUint80(int256[] memory x) internal pure returns (uint80[] memory y) {
+    //     y = new uint80[](x.length);
+    //     for (uint256 i = 0; i < x.length; i++) {
+    //         y[i] = x[i].toUint256().toUint80();
+    //     }
+    // }
 
-    function toInt256(uint8[] memory x) internal pure returns (int256[] memory y) {
-        y = new int256[](x.length);
-        for (uint256 i = 0; i < x.length; i++) {
-            y[i] = int256(int8(x[i]));
-        }
-    }
+    // function toInt256(uint8[] memory x) internal pure returns (int256[] memory y) {
+    //     y = new int256[](x.length);
+    //     for (uint256 i = 0; i < x.length; i++) {
+    //         y[i] = int256(int8(x[i]));
+    //     }
+    // }
 
-    function toInt256(uint64[] memory x) internal pure returns (int256[] memory y) {
-        y = new int256[](x.length);
-        for (uint256 i = 0; i < x.length; i++) {
-            y[i] = int256(int64(x[i]));
-        }
-    }
+    // function toInt256(uint64[] memory x) internal pure returns (int256[] memory y) {
+    //     y = new int256[](x.length);
+    //     for (uint256 i = 0; i < x.length; i++) {
+    //         y[i] = int256(int64(x[i]));
+    //     }
+    // }
 
-    function toInt256(uint80[] memory x) internal pure returns (int256[] memory y) {
-        y = new int256[](x.length);
-        for (uint256 i = 0; i < x.length; i++) {
-            y[i] = int256(int80(x[i]));
-        }
-    }
+    // function toInt256(uint80[] memory x) internal pure returns (int256[] memory y) {
+    //     y = new int256[](x.length);
+    //     for (uint256 i = 0; i < x.length; i++) {
+    //         y[i] = int256(int80(x[i]));
+    //     }
+    // }
 
     function toInt256(uint256[] memory x) internal pure returns (int256[] memory y) {
         y = new int256[](x.length);
@@ -524,26 +509,26 @@ library ArrayUtil {
         }
     }
 
-    function toUint256(uint8[] memory x) internal pure returns (uint256[] memory y) {
-        y = new uint256[](x.length);
-        for (uint256 i = 0; i < x.length; i++) {
-            y[i] = uint256(x[i]);
-        }
-    }
+    // function toUint256(uint8[] memory x) internal pure returns (uint256[] memory y) {
+    //     y = new uint256[](x.length);
+    //     for (uint256 i = 0; i < x.length; i++) {
+    //         y[i] = uint256(x[i]);
+    //     }
+    // }
 
-    function toUint256(uint64[] memory x) internal pure returns (uint256[] memory y) {
-        y = new uint256[](x.length);
-        for (uint256 i = 0; i < x.length; i++) {
-            y[i] = uint256(x[i]);
-        }
-    }
+    // function toUint256(uint64[] memory x) internal pure returns (uint256[] memory y) {
+    //     y = new uint256[](x.length);
+    //     for (uint256 i = 0; i < x.length; i++) {
+    //         y[i] = uint256(x[i]);
+    //     }
+    // }
 
-    function toUint256(uint80[] memory x) internal pure returns (uint256[] memory y) {
-        y = new uint256[](x.length);
-        for (uint256 i = 0; i < x.length; i++) {
-            y[i] = uint256(x[i]);
-        }
-    }
+    // function toUint256(uint80[] memory x) internal pure returns (uint256[] memory y) {
+    //     y = new uint256[](x.length);
+    //     for (uint256 i = 0; i < x.length; i++) {
+    //         y[i] = uint256(x[i]);
+    //     }
+    // }
 
     function toUint256(int256[] memory x) internal pure returns (uint256[] memory y) {
         y = new uint256[](x.length);
