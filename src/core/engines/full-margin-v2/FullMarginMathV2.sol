@@ -112,7 +112,7 @@ library FullMarginMathV2 {
         uint256[] memory strikes,
         uint256 minStrike,
         uint256 maxStrike
-    ) internal pure returns (uint256[] memory pois) {
+    ) public pure returns (uint256[] memory pois) {
         uint256 epsilon = _detail.spotPrice / 10;
 
         pois = new uint256[](0);
@@ -125,7 +125,7 @@ library FullMarginMathV2 {
     }
 
     function convertPutsToCalls(FullMarginDetailV2 memory _detail)
-        internal
+        public
         pure
         returns (
             uint256[] memory strikes,
@@ -159,7 +159,7 @@ library FullMarginMathV2 {
         intrinsicValue = -intrinsicValue;
     }
 
-    function calculatePayouts(PayoutsParams memory params) internal pure returns (int256[] memory payouts) {
+    function calculatePayouts(PayoutsParams memory params) public pure returns (int256[] memory payouts) {
         payouts = new int256[](params.pois.length);
         payouts.fill(0);
 
@@ -174,7 +174,7 @@ library FullMarginMathV2 {
             .addEachBy(params.intrinsicValue);
     }
 
-    function calcSlope(int256[] memory leftPoint, int256[] memory rightPoint) internal pure returns (int256) {
+    function calcSlope(int256[] memory leftPoint, int256[] memory rightPoint) public pure returns (int256) {
         if (leftPoint[0] > rightPoint[0]) revert FMMV2_BadPoints();
         if (leftPoint.length != 2) revert FMMV2_InvalidLeftPointLength();
         if (leftPoint.length != rightPoint.length) revert FMMV2_InvalidRightPointLength();
@@ -184,7 +184,7 @@ library FullMarginMathV2 {
 
     // this computes the slope to the right of the right most strike, resulting in the delta hedge (underlying)
     function getUnderlyingNeeded(uint256[] memory pois, int256[] memory payouts)
-        internal
+        public
         pure
         returns (int256 underlyingNeeded)
     {
@@ -207,7 +207,7 @@ library FullMarginMathV2 {
         int256 underlyingNeeded,
         int256 underlyingWeight,
         uint256 minStrike
-    ) internal pure returns (int256 cashCollateralNeeded) {
+    ) public pure returns (int256 cashCollateralNeeded) {
         cashCollateralNeeded = underlyingNeeded + underlyingWeight;
 
         cashCollateralNeeded = ((minStrike.toInt256() * cashCollateralNeeded) / sUNIT) - payouts[1];
@@ -221,7 +221,7 @@ library FullMarginMathV2 {
         int256[] memory payouts,
         int256 cashCollateralNeeded,
         int256 underlyingNeeded
-    ) internal pure returns (int256) {
+    ) public pure returns (int256) {
         (int256 startPos, int256 endPos) = getStrikesStartAndEndPos(_detail);
 
         int256 minStrikePayout = -payouts.slice(startPos, endPos).min();
@@ -238,7 +238,7 @@ library FullMarginMathV2 {
     }
 
     function getStrikesStartAndEndPos(FullMarginDetailV2 memory _detail)
-        internal
+        public
         pure
         returns (int256 startPos, int256 endPos)
     {
@@ -255,7 +255,7 @@ library FullMarginMathV2 {
         uint256[] memory pois,
         int256[] memory payouts,
         int256 underlyingNeeded
-    ) internal pure returns (int256) {
+    ) public pure returns (int256) {
         (int256 startPos, int256 endPos) = getStrikesStartAndEndPos(_detail);
         uint256 start = startPos.toUint256();
         uint256 end = endPos.toUint256();
