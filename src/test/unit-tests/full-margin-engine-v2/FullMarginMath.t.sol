@@ -371,7 +371,7 @@ contract TestVanillaCall_FMMV2 is Test {
         spotPrice = 19000 * UNIT;
     }
 
-    function testMarginRequirement1() public {
+    function testMarginRequirementVanillaCall1() public {
         FullMarginDetailV2 memory detail = FullMarginDetailV2({
             putWeights: putWeights,
             putStrikes: putStrikes,

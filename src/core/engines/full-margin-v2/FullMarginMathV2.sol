@@ -11,7 +11,7 @@ import "../../../config/enums.sol";
 import "../../../config/types.sol";
 import "../../../config/errors.sol";
 
-// import "../../../test/utils/Console.sol";
+import "../../../test/utils/Console.sol";
 
 /**
  * @title   FullMarginMathV2
@@ -50,7 +50,7 @@ library FullMarginMathV2 {
      */
     function getMinCollateral(FullMarginDetailV2 memory _detail)
         public
-        pure
+        view
         returns (int256 cashCollateralNeeded, int256 underlyingNeeded)
     {
         (
@@ -59,6 +59,12 @@ library FullMarginMathV2 {
             int256 underlyingWeight,
             int256 intrinsicValue
         ) = convertPutsToCalls(_detail);
+
+        // consoleG.log("strikes");
+        // consoleG.log(strikes);
+
+        // consoleG.log("weights");
+        // consoleG.log(weights);
 
         uint256 minStrike = strikes.min();
         uint256 maxStrike = strikes.max();
