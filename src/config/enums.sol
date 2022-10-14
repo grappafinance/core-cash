@@ -17,5 +17,9 @@ enum ActionType {
     SplitOptionToken,
     AddLong,
     RemoveLong,
-    SettleAccount
+    SettleAccount,
+    MintShortIntoAccount,
+    TransferCollateral,
+    TransferLong,
+    TransferShort
 }

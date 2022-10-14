@@ -48,6 +48,8 @@ abstract contract BaseEngine is ReentrancyGuard {
 
     event CollateralRemoved(address subAccount, address collateral, uint256 amount);
 
+    event CollateralTransfered(address from, address to, address collateral, uint256 amount);
+
     event OptionTokenMinted(address subAccount, uint256 tokenId, uint256 amount);
 
     event OptionTokenBurned(address subAccount, uint256 tokenId, uint256 amount);
@@ -59,6 +61,8 @@ abstract contract BaseEngine is ReentrancyGuard {
     event OptionTokenAdded(address subAccount, uint256 tokenId, uint64 amount);
 
     event OptionTokenRemoved(address subAccount, uint256 tokenId, uint64 amount);
+
+    event OptionTokenTransfered(address from, address to, uint256 tokenId, uint64 amount);
 
     event AccountSettled(address subAccount, uint256 payout);
 
@@ -167,6 +171,30 @@ abstract contract BaseEngine is ReentrancyGuard {
     }
 
     /**
+     * @dev mint option token into account, increase short position (debt) and increase long position in account memory
+     * @param _data bytes data to decode
+     */
+    function _mintOptionIntoAccount(address _subAccount, bytes memory _data) internal virtual {
+        // decode parameters
+        (uint256 tokenId, address recipient, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
+
+        // update the account in state
+        _increaseShortInAccount(_subAccount, tokenId, amount);
+
+        emit OptionTokenMinted(_subAccount, tokenId, amount);
+
+        _verifyLongTokenIdToAdd(tokenId);
+
+        // update the account in state
+        _increaseLongInAccount(recipient, tokenId, amount);
+
+        emit OptionTokenAdded(recipient, tokenId, amount);
+
+        // mint option token
+        optionToken.mint(address(this), tokenId, amount);
+    }
+
+    /**
      * @dev burn option token from user, decrease short position (debt) in account memory
             the option has to be provided by either caller, or the primary owner of subaccount
      * @param _data bytes data to decode
@@ -223,6 +251,57 @@ abstract contract BaseEngine is ReentrancyGuard {
 
         // transfer the option token in
         IERC1155(address(optionToken)).safeTransferFrom(address(this), to, tokenId, amount, "");
+    }
+
+    /**
+     * @dev Transfers collateral to another account.
+     * @param _subAccount subaccount that will be update in place
+     */
+    function _transferCollateral(address _subAccount, bytes memory _data) internal virtual {
+        // decode parameters
+        (uint80 amount, address to, uint8 collateralId) = abi.decode(_data, (uint80, address, uint8));
+
+        // update the account in state
+        _removeCollateralFromAccount(_subAccount, collateralId, amount);
+        _addCollateralToAccount(to, collateralId, amount);
+
+        address collateral = grappa.assets(collateralId).addr;
+
+        emit CollateralTransfered(_subAccount, to, collateral, amount);
+    }
+
+    /**
+     * @dev Transfers short tokens to another account.
+     * @param _subAccount subaccount that will be update in place
+     */
+    function _transferShort(address _subAccount, bytes memory _data) internal virtual {
+        // decode parameters
+        (uint256 tokenId, address to, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
+
+        _assertCallerHasAccess(to);
+
+        // update the account in state
+        _decreaseShortInAccount(_subAccount, tokenId, amount);
+        _increaseShortInAccount(to, tokenId, amount);
+
+        emit OptionTokenTransfered(_subAccount, to, tokenId, amount);
+
+        if (!_isAccountAboveWater(to)) revert BM_AccountUnderwater();
+    }
+
+    /**
+     * @dev Transfers long tokens to another account.
+     * @param _subAccount subaccount that will be update in place
+     */
+    function _transferLong(address _subAccount, bytes memory _data) internal virtual {
+        // decode parameters
+        (uint256 tokenId, address to, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
+
+        // update the account in state
+        _decreaseLongInAccount(_subAccount, tokenId, amount);
+        _increaseLongInAccount(to, tokenId, amount);
+
+        emit OptionTokenTransfered(_subAccount, to, tokenId, amount);
     }
 
     /**
@@ -371,7 +450,7 @@ abstract contract BaseEngine is ReentrancyGuard {
     function _assertCallerHasAccess(address _subAccount) internal view {
         if (_isPrimaryAccountFor(msg.sender, _subAccount)) return;
 
-        // the sender is not the direct owner. check if he's authorized
+        // the sender is not the direct owner. check if they're authorized
         uint160 maskedAccountId = (uint160(_subAccount) | 0xFF);
         if (!authorized[maskedAccountId][msg.sender]) revert NoAccess();
     }

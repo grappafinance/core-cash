@@ -49,6 +49,8 @@ contract MockEngine is BaseEngine {
             if (actions[i].action == ActionType.AddCollateral) _addCollateral(_subAccount, actions[i].data);
             else if (actions[i].action == ActionType.RemoveCollateral) _removeCollateral(_subAccount, actions[i].data);
             else if (actions[i].action == ActionType.MintShort) _mintOption(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.MintShortIntoAccount)
+                _mintOptionIntoAccount(_subAccount, actions[i].data);
             else if (actions[i].action == ActionType.BurnShort) _burnOption(_subAccount, actions[i].data);
             else if (actions[i].action == ActionType.MergeOptionToken) _merge(_subAccount, actions[i].data);
             else if (actions[i].action == ActionType.SplitOptionToken) _split(_subAccount, actions[i].data);

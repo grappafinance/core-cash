@@ -108,6 +108,22 @@ contract BaseEngineFlow is BaseEngineSetup {
         assertEq(option.balanceOf(address(this), tokenId), amount);
     }
 
+    function testMintIntoAccountActionShouldMintOptionIntoAccount() public {
+        uint256 expiry = block.timestamp + 1 days;
+
+        uint256 strikePrice = 4000 * UNIT;
+        uint256 amount = 1 * UNIT;
+
+        uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
+
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createMintIntoAccountAction(tokenId, address(this), amount);
+        engine.execute(address(this), actions);
+
+        assertEq(option.balanceOf(address(this), tokenId), 0);
+        assertEq(option.balanceOf(address(engine), tokenId), amount);
+    }
+
     function testBurnActionShouldBurnOption() public {
         uint256 expiry = block.timestamp + 1 days;
 

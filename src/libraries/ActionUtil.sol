@@ -38,6 +38,22 @@ library ActionUtil {
     }
 
     /**
+     * @param collateralId id of collateral
+     * @param amount amount of collateral to remove
+     * @param recipient address to receive removed collateral
+     */
+    function createTransferCollateralAction(
+        uint8 collateralId,
+        uint256 amount,
+        address recipient
+    ) internal pure returns (ActionArgs memory action) {
+        action = ActionArgs({
+            action: ActionType.TransferCollateral,
+            data: abi.encode(uint80(amount), recipient, collateralId)
+        });
+    }
+
+    /**
      * @param tokenId option token id to mint
      * @param amount amount of token to mint (6 decimals)
      * @param recipient address to receive minted option
@@ -48,6 +64,48 @@ library ActionUtil {
         address recipient
     ) internal pure returns (ActionArgs memory action) {
         action = ActionArgs({action: ActionType.MintShort, data: abi.encode(tokenId, recipient, uint64(amount))});
+    }
+
+    /**
+     * @param tokenId option token id to mint
+     * @param amount amount of token to mint (6 decimals)
+     * @param recipient account to receive minted option
+     */
+    function createMintIntoAccountAction(
+        uint256 tokenId,
+        uint256 amount,
+        address recipient
+    ) internal pure returns (ActionArgs memory action) {
+        action = ActionArgs({
+            action: ActionType.MintShortIntoAccount,
+            data: abi.encode(tokenId, recipient, uint64(amount))
+        });
+    }
+
+    /**
+     * @param tokenId option token id to mint
+     * @param amount amount of token to mint (6 decimals)
+     * @param recipient account to receive minted option
+     */
+    function createTranferLongAction(
+        uint256 tokenId,
+        uint256 amount,
+        address recipient
+    ) internal pure returns (ActionArgs memory action) {
+        action = ActionArgs({action: ActionType.TransferLong, data: abi.encode(tokenId, recipient, uint64(amount))});
+    }
+
+    /**
+     * @param tokenId option token id to mint
+     * @param amount amount of token to mint (6 decimals)
+     * @param recipient account to receive minted option
+     */
+    function createTranferShortAction(
+        uint256 tokenId,
+        uint256 amount,
+        address recipient
+    ) internal pure returns (ActionArgs memory action) {
+        action = ActionArgs({action: ActionType.TransferShort, data: abi.encode(tokenId, recipient, uint64(amount))});
     }
 
     /**

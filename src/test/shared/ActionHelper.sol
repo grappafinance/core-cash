@@ -54,6 +54,14 @@ abstract contract ActionHelper {
         return ActionUtil.createRemoveCollateralAction(collateralId, amount, recipient);
     }
 
+    function createTransferCollateralAction(
+        uint256 amount,
+        uint8 collateralId,
+        address recipient
+    ) internal pure returns (ActionArgs memory action) {
+        return ActionUtil.createTransferCollateralAction(collateralId, amount, recipient);
+    }
+
     function createMintAction(
         uint256 tokenId,
         address recipient,
@@ -62,12 +70,36 @@ abstract contract ActionHelper {
         return ActionUtil.createMintAction(tokenId, amount, recipient);
     }
 
+    function createMintIntoAccountAction(
+        uint256 tokenId,
+        address recipient,
+        uint256 amount
+    ) internal pure returns (ActionArgs memory action) {
+        return ActionUtil.createMintIntoAccountAction(tokenId, amount, recipient);
+    }
+
     function createBurnAction(
         uint256 tokenId,
         address from,
         uint256 amount
     ) internal pure returns (ActionArgs memory action) {
         return ActionUtil.createBurnAction(tokenId, amount, from);
+    }
+
+    function createTranferLongAction(
+        uint256 tokenId,
+        address recipient,
+        uint256 amount
+    ) internal pure returns (ActionArgs memory action) {
+        return ActionUtil.createTranferLongAction(tokenId, amount, recipient);
+    }
+
+    function createTranferShortAction(
+        uint256 tokenId,
+        address recipient,
+        uint256 amount
+    ) internal pure returns (ActionArgs memory action) {
+        return ActionUtil.createTranferShortAction(tokenId, amount, recipient);
     }
 
     function createMergeAction(
