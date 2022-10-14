@@ -29,7 +29,7 @@ library FullMarginLibV2 {
     /**
      * @dev return true if the account has no short,long positions nor collateral
      */
-    function isEmpty(FullMarginAccountV2 storage account) internal view returns (bool) {
+    function isEmpty(FullMarginAccountV2 storage account) public view returns (bool) {
         return account.shorts.sum() == 0 && account.longs.sum() == 0 && account.collaterals.sum() == 0;
     }
 
@@ -39,7 +39,7 @@ library FullMarginLibV2 {
         FullMarginAccountV2 storage account,
         uint8 collateralId,
         uint80 amount
-    ) internal {
+    ) public {
         (bool found, uint256 index) = account.collaterals.indexOf(collateralId);
 
         if (!found) {
@@ -53,7 +53,7 @@ library FullMarginLibV2 {
         FullMarginAccountV2 storage account,
         uint8 collateralId,
         uint80 amount
-    ) internal {
+    ) public {
         Balance[] memory collaterals = account.collaterals;
 
         (bool found, uint256 index) = collaterals.indexOf(collateralId);
@@ -72,7 +72,7 @@ library FullMarginLibV2 {
         FullMarginAccountV2 storage account,
         uint256 tokenId,
         uint64 amount
-    ) internal {
+    ) public {
         (TokenType optionType, uint40 productId, , , ) = tokenId.parseTokenId();
 
         // assign collateralId or check collateral id is the same
@@ -100,7 +100,7 @@ library FullMarginLibV2 {
         FullMarginAccountV2 storage account,
         uint256 tokenId,
         uint64 amount
-    ) internal {
+    ) public {
         Position[] memory shorts = account.shorts.getPositions();
 
         (bool found, uint256 index) = shorts.indexOf(tokenId);
@@ -119,7 +119,7 @@ library FullMarginLibV2 {
         FullMarginAccountV2 storage account,
         uint256 tokenId,
         uint64 amount
-    ) internal {
+    ) public {
         (bool found, uint256 index) = account.longs.getPositions().indexOf(tokenId);
 
         if (!found) {
@@ -133,7 +133,7 @@ library FullMarginLibV2 {
         FullMarginAccountV2 storage account,
         uint256 tokenId,
         uint64 amount
-    ) internal {
+    ) public {
         Position[] memory longs = account.longs.getPositions();
 
         (bool found, uint256 index) = longs.indexOf(tokenId);
@@ -152,7 +152,7 @@ library FullMarginLibV2 {
         FullMarginAccountV2 storage account,
         Balance[] memory payouts,
         IGrappa grappa
-    ) internal {
+    ) public {
         _settleShorts(account);
         _settleLongs(account, grappa);
 
@@ -172,7 +172,7 @@ library FullMarginLibV2 {
         }
     }
 
-    function _settleShorts(FullMarginAccountV2 storage account) internal {
+    function _settleShorts(FullMarginAccountV2 storage account) public {
         Position[] memory shorts = account.shorts.getPositions();
 
         for (uint256 i; i < shorts.length; ) {
@@ -188,7 +188,7 @@ library FullMarginLibV2 {
         }
     }
 
-    function _settleLongs(FullMarginAccountV2 storage account, IGrappa grappa) internal {
+    function _settleLongs(FullMarginAccountV2 storage account, IGrappa grappa) public {
         Position[] memory longs = account.longs.getPositions();
 
         uint256 i;
