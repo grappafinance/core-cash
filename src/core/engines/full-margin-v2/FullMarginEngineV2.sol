@@ -24,7 +24,7 @@ import "../../../config/enums.sol";
 import "../../../config/constants.sol";
 import "../../../config/errors.sol";
 
-// import "../../../test/utils/Console.sol";
+import "../../../test/utils/Console.sol";
 
 /**
  * @title   FullMarginEngineV2
@@ -67,25 +67,32 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
                         External Functions
     //////////////////////////////////////////////////////////////*/
 
-    function execute(address _subAccount, ActionArgs[] calldata actions) public override nonReentrant {
-        _assertCallerHasAccess(_subAccount);
+    function batchExecute(BatchExecute[] calldata batchActions) public nonReentrant {
+        uint256 i;
+        for (i; i < batchActions.length; ) {
+            address subAccount = batchActions[i].subAccount;
+            ActionArgs[] calldata actions = batchActions[i].actions;
 
-        // update the account memory and do external calls on the flight
-        for (uint256 i; i < actions.length; ) {
-            if (actions[i].action == ActionType.AddCollateral) _addCollateral(_subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.RemoveCollateral) _removeCollateral(_subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.MintShort) _mintOption(_subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.BurnShort) _burnOption(_subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.AddLong) _addOption(_subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.RemoveLong) _removeOption(_subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.SettleAccount) _settle(_subAccount);
-            else revert FM_UnsupportedAction();
+            _execute(subAccount, actions);
 
             // increase i without checking overflow
             unchecked {
                 i++;
             }
         }
+
+        for (i = 0; i < batchActions.length; ) {
+            if (!_isAccountAboveWater(batchActions[i].subAccount)) revert BM_AccountUnderwater();
+
+            unchecked {
+                i++;
+            }
+        }
+    }
+
+    function execute(address _subAccount, ActionArgs[] calldata actions) public override nonReentrant {
+        _execute(_subAccount, actions);
+
         if (!_isAccountAboveWater(_subAccount)) revert BM_AccountUnderwater();
     }
 
@@ -319,8 +326,34 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
                             Internal Functions
      ** ========================================================= **/
 
+    function _execute(address _subAccount, ActionArgs[] calldata actions) internal {
+        _assertCallerHasAccess(_subAccount);
+
+        // update the account memory and do external calls on the flight
+        for (uint256 i; i < actions.length; ) {
+            if (actions[i].action == ActionType.AddCollateral) _addCollateral(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.RemoveCollateral) _removeCollateral(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.MintShort) _mintOption(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.MintShortIntoAccount)
+                _mintOptionIntoAccount(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.BurnShort) _burnOption(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.TransferLong) _transferLong(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.TransferShort) _transferShort(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.TransferCollateral)
+                _transferCollateral(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.AddLong) _addOption(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.RemoveLong) _removeOption(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.SettleAccount) _settle(_subAccount);
+            else revert FM_UnsupportedAction();
+
+            // increase i without checking overflow
+            unchecked {
+                i++;
+            }
+        }
+    }
+
     function _getMinCollateral(FullMarginAccountV2 memory account) internal view returns (SBalance[] memory balances) {
-        // balances = new SBalance[](0);
         FullMarginDetailV2[] memory details = _getAccountDetails(account);
 
         balances = account.collaterals.toSBalances();

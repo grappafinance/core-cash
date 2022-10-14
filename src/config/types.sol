@@ -167,6 +167,11 @@ struct ActionArgs {
     bytes data;
 }
 
+struct BatchExecute {
+    address subAccount;
+    ActionArgs[] actions;
+}
+
 /**
  * @dev asset detail stored per asset id
  * @param addr address of the asset
