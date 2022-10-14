@@ -14,7 +14,7 @@ import "../../utils/Console.sol";
 /**
  * test full margin calculation for complicated structure
  */
-contract TestSimulateCollateralReq_FMMV2 is FullMarginFixtureV2 {
+contract TestPreviewCollateralReq_FMMV2 is FullMarginFixtureV2 {
     uint256 public expiry;
     uint256 public strikePrice;
     uint256 public amount;
@@ -41,7 +41,7 @@ contract TestSimulateCollateralReq_FMMV2 is FullMarginFixtureV2 {
 
         longs = new Position[](0);
 
-        Balance[] memory balances = engine.simCollateralReq(shorts, longs);
+        Balance[] memory balances = engine.previewCollateralReq(shorts, longs);
 
         assertEq(balances.length, 1);
         assertEq(balances[0].collateralId, wethId);
@@ -63,7 +63,7 @@ contract TestSimulateCollateralReq_FMMV2 is FullMarginFixtureV2 {
 
         longs = new Position[](0);
 
-        Balance[] memory balances = engine.simCollateralReq(shorts, longs);
+        Balance[] memory balances = engine.previewCollateralReq(shorts, longs);
 
         assertEq(balances.length, 1);
         assertEq(balances[0].collateralId, usdcId);
@@ -83,7 +83,7 @@ contract TestSimulateCollateralReq_FMMV2 is FullMarginFixtureV2 {
 
         longs = new Position[](0);
 
-        Balance[] memory balances = engine.simCollateralReq(shorts, longs);
+        Balance[] memory balances = engine.previewCollateralReq(shorts, longs);
 
         assertEq(balances.length, 2);
         assertEq(balances[0].collateralId, wethId);
@@ -110,7 +110,7 @@ contract TestSimulateCollateralReq_FMMV2 is FullMarginFixtureV2 {
         longs[0] = Position(c5000, uint64(amount));
         longs[1] = Position(p1000, uint64(amount));
 
-        Balance[] memory balances = engine.simCollateralReq(shorts, longs);
+        Balance[] memory balances = engine.previewCollateralReq(shorts, longs);
 
         assertEq(balances.length, 2);
         assertEq(balances[0].collateralId, wethId);
@@ -143,7 +143,7 @@ contract TestSimulateCollateralReq_FMMV2 is FullMarginFixtureV2 {
         longs[0] = Position(p18000, uint64(1 * UNIT));
         longs[1] = Position(c25000, uint64(16 * UNIT));
 
-        Balance[] memory balances = engine.simCollateralReq(shorts, longs);
+        Balance[] memory balances = engine.previewCollateralReq(shorts, longs);
 
         uint256 underlyingMaxLoss = (((((25000 - 21000) * 1) + ((25000 - 22000) * 8)) * UNIT) / 25000) * (10**(18 - 6));
 
@@ -178,7 +178,7 @@ contract TestSimulateCollateralReq_FMMV2 is FullMarginFixtureV2 {
         longs[0] = Position(p17000, uint64(1 * UNIT));
         longs[1] = Position(c25000, uint64(16 * UNIT));
 
-        Balance[] memory balances = engine.simCollateralReq(shorts, longs);
+        Balance[] memory balances = engine.previewCollateralReq(shorts, longs);
 
         assertEq(balances.length, 2);
         assertEq(balances[0].collateralId, usdcId);
