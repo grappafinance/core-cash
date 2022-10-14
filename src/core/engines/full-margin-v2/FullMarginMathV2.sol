@@ -273,7 +273,7 @@ library FullMarginMathV2 {
             int256 strike = pois[i].toInt256();
             int256 payout = payouts[i];
 
-            payout = payout < 0 ? -payout : payout;
+            payout = payout < 0 ? -payout : sZERO;
 
             underlyingNeededAtStrikes[y] = (payout * sUNIT) / strike;
 
