@@ -18,7 +18,7 @@ import "../../../config/errors.sol";
 /**
  * @dev test internal function _toPriceWithUnitDecimals
  */
-contract ChainlinkOracleTests is ChainlinkOracle, Test {
+contract ChainlinkOracleInternalTests is ChainlinkOracle, Test {
     function testDecimalConversion0Decimals() public {
         uint256 base = 1000;
         uint256 price = _toPriceWithUnitDecimals(base, 1, 0, 0);
@@ -148,8 +148,8 @@ contract ChainlinkOracleTest is Test {
     MockChainlinkAggregator private usdcAggregator;
 
     // abnormal aggregators
-    address private usd1;
-    address private usd2;
+    address private usd1 = address(0x11);
+    address private usd2 = address(0x22);
     MockChainlinkAggregator private usdAggregatorHighDecimals;
     MockChainlinkAggregator private usdAggregatorLowDecimals;
 
@@ -166,7 +166,7 @@ contract ChainlinkOracleTest is Test {
         usdcAggregator = new MockChainlinkAggregator(8);
 
         // aggregator with diff decimals
-        usdAggregatorHighDecimals = new MockChainlinkAggregator(18);
+        usdAggregatorHighDecimals = new MockChainlinkAggregator(24);
         usdAggregatorLowDecimals = new MockChainlinkAggregator(1);
 
         oracle.setAggregator(weth, address(wethAggregator), 3600, false);
@@ -178,7 +178,7 @@ contract ChainlinkOracleTest is Test {
         wethAggregator.setMockState(0, int256(4000 * aggregatorUint), block.timestamp);
         usdcAggregator.setMockState(0, int256(1 * aggregatorUint), block.timestamp);
 
-        usdAggregatorHighDecimals.setMockState(0, int256(1 * 10**18), block.timestamp);
+        usdAggregatorHighDecimals.setMockState(0, int256(1 * 10**24), block.timestamp);
         usdAggregatorLowDecimals.setMockState(0, int256(1 * 10), block.timestamp);
     }
 
