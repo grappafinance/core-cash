@@ -279,7 +279,7 @@ contract FullMarginMathTestPut is Test {
 /**
  * test full margin calculation for put spread
  */
-contract FullMarginMathTestPutpread is Test {
+contract FullMarginMathTestPutSpread is Test {
     using FullMarginMath for FullMarginDetail;
 
     function testMarginRequirePutCreditSpread() public {

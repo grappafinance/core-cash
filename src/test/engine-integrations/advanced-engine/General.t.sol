@@ -11,7 +11,7 @@ import "../../../config/errors.sol";
 
 import "../../../test/mocks/MockERC20.sol";
 
-contract AdvanceEngineGenernal is AdvancedFixture {
+contract AdvanceEngineGeneral is AdvancedFixture {
     function setUp() public {
         usdc.mint(address(this), 1000_000 * 1e6);
         usdc.approve(address(engine), type(uint256).max);
