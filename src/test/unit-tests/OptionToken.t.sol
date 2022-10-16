@@ -34,8 +34,8 @@ contract OptionTokenTest is Test {
         vm.expectRevert(NoAccess.selector);
         option.burnGrappaOnly(address(this), 0, 1000_000_000);
 
-        uint256[] memory ids = new uint[](0);
-        uint256[] memory amounts = new uint[](0);
+        uint256[] memory ids = new uint256[](0);
+        uint256[] memory amounts = new uint256[](0);
         vm.expectRevert(NoAccess.selector);
         option.batchBurnGrappaOnly(address(this), ids, amounts);
     }
@@ -45,8 +45,8 @@ contract OptionTokenTest is Test {
         uint256 expiry = block.timestamp + 1 days;
 
         vm.mockCall(
-            grappa, 
-            abi.encodeWithSelector(Grappa(grappa).engines.selector, engineId), 
+            grappa,
+            abi.encodeWithSelector(Grappa(grappa).engines.selector, engineId),
             abi.encode(address(this))
         );
 
@@ -54,7 +54,7 @@ contract OptionTokenTest is Test {
         uint256 tokenId = TokenIdUtil.getTokenId(TokenType.CALL_SPREAD, productId, expiry, 40, 20);
 
         vm.expectRevert(OT_BadStrikes.selector);
-        option.mint(address(this), tokenId, 1);   
+        option.mint(address(this), tokenId, 1);
     }
 
     function testCannotMintCreditPutSpread() public {
@@ -62,8 +62,8 @@ contract OptionTokenTest is Test {
         uint256 expiry = block.timestamp + 1 days;
 
         vm.mockCall(
-            grappa, 
-            abi.encodeWithSelector(Grappa(grappa).engines.selector, engineId), 
+            grappa,
+            abi.encodeWithSelector(Grappa(grappa).engines.selector, engineId),
             abi.encode(address(this))
         );
 
@@ -71,7 +71,7 @@ contract OptionTokenTest is Test {
         uint256 tokenId = TokenIdUtil.getTokenId(TokenType.PUT_SPREAD, productId, expiry, 20, 40);
 
         vm.expectRevert(OT_BadStrikes.selector);
-        option.mint(address(this), tokenId, 1);   
+        option.mint(address(this), tokenId, 1);
     }
 
     function testCannotMintCallWithShortStrike() public {
@@ -79,8 +79,8 @@ contract OptionTokenTest is Test {
         uint256 expiry = block.timestamp + 1 days;
 
         vm.mockCall(
-            grappa, 
-            abi.encodeWithSelector(Grappa(grappa).engines.selector, engineId), 
+            grappa,
+            abi.encodeWithSelector(Grappa(grappa).engines.selector, engineId),
             abi.encode(address(this))
         );
 
@@ -88,7 +88,7 @@ contract OptionTokenTest is Test {
         uint256 tokenId = TokenIdUtil.getTokenId(TokenType.CALL, productId, expiry, 20, 40);
 
         vm.expectRevert(OT_BadStrikes.selector);
-        option.mint(address(this), tokenId, 1);   
+        option.mint(address(this), tokenId, 1);
     }
 
     function testCannotMintPutWithShortStrike() public {
@@ -96,8 +96,8 @@ contract OptionTokenTest is Test {
         uint256 expiry = block.timestamp + 1 days;
 
         vm.mockCall(
-            grappa, 
-            abi.encodeWithSelector(Grappa(grappa).engines.selector, engineId), 
+            grappa,
+            abi.encodeWithSelector(Grappa(grappa).engines.selector, engineId),
             abi.encode(address(this))
         );
 
@@ -105,7 +105,7 @@ contract OptionTokenTest is Test {
         uint256 tokenId = TokenIdUtil.getTokenId(TokenType.PUT, productId, expiry, 20, 40);
 
         vm.expectRevert(OT_BadStrikes.selector);
-        option.mint(address(this), tokenId, 1);   
+        option.mint(address(this), tokenId, 1);
     }
 
     function testGetUrl() public {
