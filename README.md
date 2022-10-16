@@ -28,7 +28,7 @@ We believe that the core values of DeFi are composability and decentralization. 
 
 Grappa is here to be that base layer that meets different needs, and also provide an efficient exchange layer (aggregator) for people to easily exchange options across products.
 
-The project is 100% open sourced and publicaly funded on [Gitcoin](https://gitcoin.co/grants/7713/grappa-finance).
+The project is 100% open sourced and publicly funded on [Gitcoin](https://gitcoin.co/grants/7713/grappa-finance).
 
 ## System TLDR
 
