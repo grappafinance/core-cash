@@ -56,7 +56,7 @@ contract BaseEngineFlow is BaseEngineSetup {
         engine.execute(address(this), actions);
     }
 
-    function testremoveCollateralMoveBalance() public {
+    function testRemoveCollateralMoveBalance() public {
         // prepare
         uint256 depositAmount = 800 * 1e6;
         ActionArgs[] memory _actions = new ActionArgs[](1);
