@@ -13,6 +13,8 @@ import {IAggregatorV3} from "../../interfaces/IAggregatorV3.sol";
 import "../../config/errors.sol";
 import "../../config/constants.sol";
 
+import "forge-std/console2.sol";
+
 /**
  * @title ChainlinkOracle
  * @author @antoncoding
@@ -141,8 +143,11 @@ contract ChainlinkOracle is IOracle, Ownable {
         } else {
             // we will return basePrice * 10^(baseMulDecimals) / quotePrice;
             int8 baseMulDecimals = int8(UNIT_DECIMALS) + int8(_quoteDecimals) - int8(_baseDecimals);
-            if (baseMulDecimals > 0) return _basePrice.mulDivUp(10**uint8(baseMulDecimals), _quotePrice);
-            price = _basePrice / (10**uint8(-baseMulDecimals)) / _quotePrice;
+            if (baseMulDecimals > 0) {
+                price = _basePrice.mulDivUp(10**uint8(baseMulDecimals), _quotePrice);
+            } else {
+                price = _basePrice / (10**uint8(-baseMulDecimals)) / _quotePrice;
+            }
         }
     }
 
