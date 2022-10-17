@@ -11,6 +11,7 @@ import {SafeCastLib} from "solmate/utils/SafeCastLib.sol";
 import {IERC20Metadata} from "openzeppelin/token/ERC20/extensions/IERC20Metadata.sol";
 import {IOracle} from "../interfaces/IOracle.sol";
 import {IOptionToken} from "../interfaces/IOptionToken.sol";
+import {IGrappa} from "../interfaces/IGrappa.sol";
 import {IMarginEngine} from "../interfaces/IMarginEngine.sol";
 
 // librarise
@@ -29,7 +30,7 @@ import "../config/errors.sol";
  * @title   Grappa
  * @author  @antoncoding
  */
-contract Grappa is Ownable {
+contract Grappa is Ownable, IGrappa {
     using FixedPointMathLib for uint256;
     using SafeCastLib for uint256;
     using NumberUtil for uint256;
@@ -126,7 +127,7 @@ contract Grappa is Ownable {
      * @param _tokenId product id
      */
     function getDetailFromTokenId(uint256 _tokenId)
-        public
+        external
         pure
         returns (
             TokenType tokenType,
@@ -136,10 +137,7 @@ contract Grappa is Ownable {
             uint64 shortStrike
         )
     {
-        (TokenType _tokenType, uint40 _productId, uint64 _expiry, uint64 _longStrike, uint64 _shortStrike) = TokenIdUtil
-            .parseTokenId(_tokenId);
-
-        return (_tokenType, _productId, _expiry, _longStrike, _shortStrike);
+        return TokenIdUtil.parseTokenId(_tokenId);
     }
 
     /**
@@ -195,7 +193,7 @@ contract Grappa is Ownable {
         address _account,
         uint256 _tokenId,
         uint256 _amount
-    ) external {
+    ) external returns (uint256 payout_) {
         (address engine, address collateral, uint256 payout) = getPayout(_tokenId, _amount.safeCastTo64());
 
         emit OptionSettled(_account, _tokenId, _amount, payout);
@@ -203,15 +201,16 @@ contract Grappa is Ownable {
         optionToken.burnGrappaOnly(_account, _tokenId, _amount);
 
         IMarginEngine(engine).payCashValue(collateral, _account, payout);
+
+        return payout;
     }
 
     /**
-     * @notice burn option token and get out cash value at expiry
+     * @notice burn array of option tokens and get out cash value at expiry
      *
      * @param _account who to settle for
      * @param _tokenIds array of tokenIds to burn
      * @param _amounts   array of amounts to burn
-
      */
     function batchSettleOptions(
         address _account,
@@ -335,6 +334,7 @@ contract Grappa is Ownable {
      *
      * @param _tokenId  token id of option token
      *
+     * @return engine engine to settle
      * @return collateral asset to settle in
      * @return payoutPerOption amount paid
      **/
