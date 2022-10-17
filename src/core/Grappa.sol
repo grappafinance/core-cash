@@ -362,7 +362,7 @@ contract Grappa is Ownable, IGrappa {
         ) = getDetailFromProductId(productId);
 
         // expiry price of underlying, denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
-        uint256 expiryPrice = IOracle(oracle).getPriceAtExpiry(underlying, strike, expiry);
+        uint256 expiryPrice = _getSettlementPrice(oracle, underlying, strike, expiry);
 
         // cash value denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
         uint256 cashValue;
@@ -382,11 +382,29 @@ contract Grappa is Ownable, IGrappa {
             cashValue = cashValue.mulDivDown(UNIT, expiryPrice);
         } else if (collateral != strike) {
             // collateral is not underlying nor strike
-            uint256 collateralPrice = IOracle(oracle).getPriceAtExpiry(collateral, strike, expiry);
+            uint256 collateralPrice = _getSettlementPrice(oracle, collateral, strike, expiry);
             cashValue = cashValue.mulDivDown(UNIT, collateralPrice);
         }
         payoutPerOption = cashValue.convertDecimals(UNIT_DECIMALS, collateralDecimals);
 
         return (engine, collateral, payoutPerOption);
+    }
+
+    /**
+     * @dev check settlement price is finalized from oracle, and return price
+     * @param _oracle oracle contract address
+     * @param _base base asset (ETH is base asset while requesting ETH / USD)
+     * @param _quote quote asset (USD is base asset while requesting ETH / USD)
+     * @param _expiry expiry timestamp
+     */
+    function _getSettlementPrice(
+        address _oracle,
+        address _base,
+        address _quote,
+        uint256 _expiry
+    ) internal view returns (uint256) {
+        if (!IOracle(_oracle).isExpiryPriceFinalized(_base, _quote, _expiry)) revert GP_PriceNotFinalized();
+
+        return IOracle(_oracle).getPriceAtExpiry(_base, _quote, _expiry);
     }
 }

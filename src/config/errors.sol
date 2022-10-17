@@ -23,6 +23,9 @@ error GP_WrongArgumentLength();
 /// @dev cannot settle an unexpired option
 error GP_NotExpired();
 
+/// @dev settlement price is not finalized yet
+error GP_PriceNotFinalized();
+
 // Common error in BaseMargin
 
 /// @dev can only merge subaccount with put or call.
@@ -120,7 +123,7 @@ error OT_InvalidExpiry();
 /// @dev put and call should not contain "short stirkes"
 error OT_BadStrikes();
 
-// Chainlink Pricer Errors
+// Chainlink oracle
 
 error CL_AggregatorNotSet();
 
@@ -135,6 +138,10 @@ error OC_OnlyPricerCanWrite();
 error OC_CannotReportForFuture();
 
 error OC_PriceNotReported();
+
+error OC_DisputePeriodOver();
+
+error OC_InvalidDisputePeriod();
 
 // Vol Oracle
 

@@ -23,7 +23,7 @@ contract ChainlinkOracle is IOracle, Ownable {
     using SafeCastLib for uint256;
 
     struct ExpiryPrice {
-        bool reported;
+        uint128 reportAt;
         uint128 price;
     }
 
@@ -40,9 +40,19 @@ contract ChainlinkOracle is IOracle, Ownable {
     // asset => aggregator
     mapping(address => AggregatorData) public aggregators;
 
+    event ExpiryPriceUpdated(address base, address quote, uint256 expiry, uint256 price, bool isDispute);
+
     /*///////////////////////////////////////////////////////////////
                             External Functions
     //////////////////////////////////////////////////////////////*/
+
+    /**
+     * @dev this oracle has no dispute mechanism, so always return true.
+     *      Getting a "un-reported" expiry price will revert during getPriceAtExpiry
+     */
+    function isExpiryPriceFinalized(address, address, uint256) external view virtual returns (bool) {
+        return true;
+    }
 
     /**
      * @notice  get spot price of _base, denominated in _quote.
@@ -74,7 +84,7 @@ contract ChainlinkOracle is IOracle, Ownable {
         uint256 _expiry
     ) external view returns (uint256 price) {
         ExpiryPrice memory data = expiryPrices[_base][_quote][_expiry];
-        if (!data.reported) revert OC_PriceNotReported();
+        if (data.reportAt == 0) revert OC_PriceNotReported();
 
         return data.price;
     }
@@ -97,7 +107,9 @@ contract ChainlinkOracle is IOracle, Ownable {
         // revert when trying to set price for the future
         if (_expiry > block.timestamp) revert OC_CannotReportForFuture();
 
-        expiryPrices[_base][_quote][_expiry] = ExpiryPrice(true, price.safeCastTo128());
+        expiryPrices[_base][_quote][_expiry] = ExpiryPrice(uint128(block.timestamp), price.safeCastTo128());
+
+        emit ExpiryPriceUpdated(_base, _quote, _expiry, price, false);
     }
 
     /*///////////////////////////////////////////////////////////////
