@@ -143,43 +143,43 @@ contract Grappa is Ownable, IGrappa {
     /**
      * @notice    get product id from underlying, strike and collateral address
      * @dev       function will still return even if some of the assets are not registered
-     * @param underlying  underlying address
-     * @param strike      strike address
-     * @param collateral  collateral address
+     * @param _underlying  underlying address
+     * @param _strike      strike address
+     * @param _collateral  collateral address
      */
     function getProductId(
-        address oracle,
-        address engine,
-        address underlying,
-        address strike,
-        address collateral
+        address _oracle,
+        address _engine,
+        address _underlying,
+        address _strike,
+        address _collateral
     ) external view returns (uint40 id) {
         id = ProductIdUtil.getProductId(
-            oracleIds[oracle],
-            engineIds[engine],
-            assetIds[underlying],
-            assetIds[strike],
-            assetIds[collateral]
+            oracleIds[_oracle],
+            engineIds[_engine],
+            assetIds[_underlying],
+            assetIds[_strike],
+            assetIds[_collateral]
         );
     }
 
     /**
      * @notice    get token id from type, productId, expiry, strike
      * @dev       function will still return even if some of the assets are not registered
-     * @param tokenType TokenType enum
-     * @param productId if of the product
-     * @param expiry timestamp of option expiry
-     * @param longStrike strike price of the long option, with 6 decimals
-     * @param shortStrike strike price of the short (upper bond for call and lower bond for put) if this is a spread. 6 decimals
+     * @param _tokenType TokenType enum
+     * @param _productId if of the product
+     * @param _expiry timestamp of option expiry
+     * @param _longStrike strike price of the long option, with 6 decimals
+     * @param _shortStrike strike price of the short (upper bond for call and lower bond for put) if this is a spread. 6 decimals
      */
     function getTokenId(
-        TokenType tokenType,
-        uint40 productId,
-        uint256 expiry,
-        uint256 longStrike,
-        uint256 shortStrike
+        TokenType _tokenType,
+        uint40 _productId,
+        uint256 _expiry,
+        uint256 _longStrike,
+        uint256 _shortStrike
     ) external pure returns (uint256 id) {
-        id = TokenIdUtil.getTokenId(tokenType, productId, expiry, longStrike, shortStrike);
+        id = TokenIdUtil.getTokenId(_tokenType, _productId, _expiry, _longStrike, _shortStrike);
     }
 
     /**
