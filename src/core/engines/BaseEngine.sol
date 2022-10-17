@@ -121,7 +121,7 @@ abstract contract BaseEngine is ReentrancyGuard {
         // update the account in state
         _addCollateralToAccount(_subAccount, collateralId, amount);
 
-        address collateral = grappa.assets(collateralId).addr;
+        (address collateral, ) = grappa.assets(collateralId);
 
         emit CollateralAdded(_subAccount, collateral, amount);
 
@@ -139,7 +139,7 @@ abstract contract BaseEngine is ReentrancyGuard {
         // update the account in state
         _removeCollateralFromAccount(_subAccount, collateralId, amount);
 
-        address collateral = grappa.assets(collateralId).addr;
+        (address collateral, ) = grappa.assets(collateralId);
 
         emit CollateralRemoved(_subAccount, collateral, amount);
 

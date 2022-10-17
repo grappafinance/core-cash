@@ -184,7 +184,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
             collateralToPay = ((account.collateralAmount * portionBPS) / BPS).toUint80();
         }
 
-        collateral = grappa.assets(account.collateralId).addr;
+        (collateral, ) = grappa.assets(account.collateralId);
 
         // if liquidator is trying to remove more collateral than owned, this line will revert
         marginAccounts[_subAccount].removeCollateral(account.collateralId, collateralToPay);

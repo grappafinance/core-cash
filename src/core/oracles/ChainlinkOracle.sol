@@ -13,8 +13,6 @@ import {IAggregatorV3} from "../../interfaces/IAggregatorV3.sol";
 import "../../config/errors.sol";
 import "../../config/constants.sol";
 
-import "forge-std/console2.sol";
-
 /**
  * @title ChainlinkOracle
  * @author @antoncoding
