@@ -24,9 +24,14 @@ contract ChainlinkOracleDisputableTest is Test {
     address private weth;
     address private usdc;
 
+    uint256 private expiry;
+
     address private random;
 
-    address private aggregator;
+    uint80 private roundId = 1;
+
+    MockChainlinkAggregator private wethAggregator;
+    MockChainlinkAggregator private usdcAggregator;
 
     function setUp() public {
         random = address(0xaabbff);
@@ -35,7 +40,19 @@ contract ChainlinkOracleDisputableTest is Test {
         weth = address(new MockERC20("WETH", "WETH", 18));
 
         oracle = new ChainlinkOracleDisputable();
-        aggregator = address(new MockChainlinkAggregator(8));
+
+        wethAggregator = new MockChainlinkAggregator(8);
+        usdcAggregator = new MockChainlinkAggregator(8);
+
+        expiry = block.timestamp;
+
+        wethAggregator.setMockRound(roundId, 1500 * 1e8, expiry);
+        wethAggregator.setMockRound(roundId + 1, 1550 * 1e8, expiry + 10);
+
+        usdcAggregator.setMockRound(roundId, 1 * 1e8, expiry);
+
+        oracle.setAggregator(weth, address(wethAggregator), 1200, false);
+        oracle.setAggregator(usdc, address(usdcAggregator), 86400, true);        
     }
 
     function testOwnerCanSetDisputePeriod() public {
@@ -44,16 +61,57 @@ contract ChainlinkOracleDisputableTest is Test {
     }
 
     function testCannotSetDisputePeriodFromNonOwner() public {
-        vm.startPrank(random);
-
+        vm.prank(random);
         vm.expectRevert("Ownable: caller is not the owner");
         oracle.setDisputePeriod(weth, usdc, 3600);
-
-        vm.stopPrank();
     }
 
     function testCannotSetDisputePeriodThatIsTooHigh() public {
         vm.expectRevert(OC_InvalidDisputePeriod.selector);
         oracle.setDisputePeriod(weth, usdc, 12 hours + 1);
+    }
+
+    function testCannotDisputeUnReportedPrice() public {
+        vm.expectRevert(OC_PriceNotReported.selector);
+        oracle.disputePrice(weth, usdc, expiry + 1, 3000 * UNIT);
+    }
+
+    function testIsFinalizedIsFalseForUnreportedExpiry() public {
+        assertEq(oracle.isExpiryPriceFinalized(weth, usdc, expiry), false);
+    }
+
+    function testCannotDisputeAfterDisputePeriod() public {
+        uint256 period = 2 hours;
+        oracle.setDisputePeriod(weth, usdc, period);
+        oracle.reportExpiryPrice(weth, usdc, expiry, roundId, roundId);
+
+        vm.warp(expiry + period + 1);
+
+        vm.expectRevert(OC_DisputePeriodOver.selector);
+        oracle.disputePrice(weth, usdc, expiry, 3000 * UNIT);
+
+        // price is finalized
+        assertEq(oracle.isExpiryPriceFinalized(weth, usdc, expiry), true);
+    }
+
+    function testOwnerDisputePrice() public {
+        oracle.setDisputePeriod(weth, usdc, 2 hours);
+        oracle.reportExpiryPrice(weth, usdc, expiry, roundId, roundId);
+        // dispute
+        oracle.disputePrice(weth, usdc, expiry, 3000 * UNIT);
+        
+        assertEq(oracle.getPriceAtExpiry(weth, usdc, expiry), 3000 * UNIT);
+
+        assertTrue(oracle.isExpiryPriceFinalized(weth, usdc, expiry));
+    }
+
+    function testCannotDisputeSameExpiryTwice() public {
+        oracle.setDisputePeriod(weth, usdc, 2 hours);
+        
+        oracle.reportExpiryPrice(weth, usdc, expiry, roundId, roundId);
+        
+        oracle.disputePrice(weth, usdc, expiry, 3000 * UNIT);
+        vm.expectRevert(OC_PriceDisputed.selector);
+        oracle.disputePrice(weth, usdc, expiry, 3000 * UNIT);
     }
 }

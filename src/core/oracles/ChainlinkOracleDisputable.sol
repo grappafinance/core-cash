@@ -20,6 +20,10 @@ contract ChainlinkOracleDisputable is ChainlinkOracle {
     // base => quote => dispute period
     mapping(address => mapping(address => uint256)) public disputePeriod;
 
+    /*///////////////////////////////////////////////////////////////
+                                 Events
+    //////////////////////////////////////////////////////////////*/
+    
     event DisputePeriodUpdated(address base, address quote, uint256 period);
 
     /**
@@ -52,10 +56,12 @@ contract ChainlinkOracleDisputable is ChainlinkOracle {
         uint256 _expiry,
         uint256 _newPrice
     ) external onlyOwner {
-        uint128 reportedAt = expiryPrices[_base][_quote][_expiry].reportAt;
-        if (reportedAt == 0) revert OC_PriceNotReported();
+        ExpiryPrice memory entry = expiryPrices[_base][_quote][_expiry];
+        if (entry.reportAt == 0) revert OC_PriceNotReported();
 
-        if (reportedAt + disputePeriod[_base][_quote] < block.timestamp) revert OC_DisputePeriodOver();
+        if (entry.isDisputed) revert OC_PriceDisputed();
+
+        if (entry.reportAt + disputePeriod[_base][_quote] < block.timestamp) revert OC_DisputePeriodOver();
 
         expiryPrices[_base][_quote][_expiry] = ExpiryPrice(true, uint64(block.timestamp), _newPrice.safeCastTo128());
 

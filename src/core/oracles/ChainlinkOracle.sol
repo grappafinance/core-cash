@@ -41,6 +41,10 @@ contract ChainlinkOracle is IOracle, Ownable {
     // asset => aggregator
     mapping(address => AggregatorData) public aggregators;
 
+    /*///////////////////////////////////////////////////////////////
+                                 Events
+    //////////////////////////////////////////////////////////////*/
+
     event ExpiryPriceUpdated(address base, address quote, uint256 expiry, uint256 price, bool isDispute);
 
     /*///////////////////////////////////////////////////////////////
