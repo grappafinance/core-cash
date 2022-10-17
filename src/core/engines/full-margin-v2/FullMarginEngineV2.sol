@@ -366,7 +366,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
         for (uint256 i; i < details.length; ) {
             FullMarginDetailV2 memory detail = details[i];
 
-            (int256 cashCollateralNeeded, int256 underlyingNeeded, , ) = detail.getMinCollateral();
+            (int256 cashCollateralNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
 
             if (cashCollateralNeeded != 0) {
                 (found, index) = balances.indexOf(detail.collateralId);

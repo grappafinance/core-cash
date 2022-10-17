@@ -62,12 +62,9 @@ contract TestStructures_FMMV2 is Test {
             expiry: 0
         });
 
-        (int256 collateralNeeded, int256 underlyingNeeded, bool canUseRiskCol, int256 inRiskCol) = detail
-            .getMinCollateral();
-        assertEq(collateralNeeded, 28000 * sUNIT);
+        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, 28000 * sUNIT);
         assertEq(underlyingNeeded, sZERO);
-        assertEq(canUseRiskCol, true);
-        assertEq(inRiskCol, 1120000);
     }
 
     function testMarginRequirement2() public {
@@ -86,8 +83,8 @@ contract TestStructures_FMMV2 is Test {
             expiry: 0
         });
 
-        (int256 collateralNeeded, int256 underlyingNeeded, , ) = detail.getMinCollateral();
-        assertEq(collateralNeeded, 28000 * sUNIT);
+        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, 28000 * sUNIT);
         assertEq(underlyingNeeded, sZERO);
     }
 
@@ -107,8 +104,8 @@ contract TestStructures_FMMV2 is Test {
             expiry: 0
         });
 
-        (int256 collateralNeeded, int256 underlyingNeeded, , ) = detail.getMinCollateral();
-        assertEq(collateralNeeded, 3000 * sUNIT);
+        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, 3000 * sUNIT);
         assertEq(underlyingNeeded, 1 * sUNIT);
     }
 
@@ -129,8 +126,8 @@ contract TestStructures_FMMV2 is Test {
             expiry: 0
         });
 
-        (int256 collateralNeeded, int256 underlyingNeeded, , ) = detail.getMinCollateral();
-        assertEq(collateralNeeded, 33000 * sUNIT);
+        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, 33000 * sUNIT);
         assertEq(underlyingNeeded, sZERO);
     }
 
@@ -164,8 +161,8 @@ contract TestStructures_FMMV2 is Test {
             expiry: 0
         });
 
-        (int256 collateralNeeded, int256 underlyingNeeded, , ) = detail.getMinCollateral();
-        assertEq(collateralNeeded, 28000 * sUNIT);
+        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, 28000 * sUNIT);
         assertEq(underlyingNeeded, sZERO);
     }
 
@@ -194,12 +191,9 @@ contract TestStructures_FMMV2 is Test {
             expiry: 0
         });
 
-        (int256 collateralNeeded, int256 underlyingNeeded, bool canUseRiskCol, int256 inRiskCol) = detail
-            .getMinCollateral();
-        assertEq(collateralNeeded, 1);
+        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, 1);
         assertEq(underlyingNeeded, sZERO);
-        assertEq(canUseRiskCol, false);
-        assertEq(inRiskCol, 0);
     }
 
     function testMarginPutSpread2() public {
@@ -227,8 +221,8 @@ contract TestStructures_FMMV2 is Test {
             expiry: 0
         });
 
-        (int256 collateralNeeded, int256 underlyingNeeded, , ) = detail.getMinCollateral();
-        assertEq(collateralNeeded, sZERO);
+        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, sZERO);
         assertEq(underlyingNeeded, sZERO);
     }
 
@@ -257,8 +251,8 @@ contract TestStructures_FMMV2 is Test {
             expiry: 0
         });
 
-        (int256 collateralNeeded, int256 underlyingNeeded, , ) = detail.getMinCollateral();
-        assertEq(collateralNeeded, sZERO);
+        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, sZERO);
         assertEq(underlyingNeeded, sZERO);
     }
 
@@ -287,16 +281,12 @@ contract TestStructures_FMMV2 is Test {
             expiry: 0
         });
 
-        (int256 collateralNeeded, int256 underlyingNeeded, bool canUseRiskCol, int256 inRiskCol) = detail
-            .getMinCollateral();
-        assertEq(collateralNeeded, 0);
-        assertEq(underlyingNeeded, 45);
-        assertEq(canUseRiskCol, true);
-        assertEq(inRiskCol, (1 * sUNIT) / 22000);
-        consoleG.logInt(inRiskCol);
+        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, sZERO);
+        assertEq(underlyingNeeded, int256((1 * UNIT) / 22000));
     }
 
-    function testMarginCallSpreadBasicallyAnOption() public {
+    function testMarginCallsBasicallyLongAnOption() public {
         callWeights = new int256[](2);
         callWeights[0] = 1 * sUNIT;
         callWeights[1] = -1 * sUNIT;
@@ -321,8 +311,8 @@ contract TestStructures_FMMV2 is Test {
             expiry: 0
         });
 
-        (int256 collateralNeeded, int256 underlyingNeeded, , ) = detail.getMinCollateral();
-        assertEq(collateralNeeded, sZERO);
+        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, sZERO);
         assertEq(underlyingNeeded, sZERO);
     }
 
@@ -351,8 +341,8 @@ contract TestStructures_FMMV2 is Test {
             expiry: 0
         });
 
-        (int256 collateralNeeded, int256 underlyingNeeded, , ) = detail.getMinCollateral();
-        assertEq(collateralNeeded, sZERO);
+        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, sZERO);
         assertEq(underlyingNeeded, sZERO);
     }
 }
@@ -395,8 +385,8 @@ contract TestVanillaCall_FMMV2 is Test {
             expiry: 0
         });
 
-        (int256 collateralNeeded, int256 underlyingNeeded, , ) = detail.getMinCollateral();
-        assertEq(collateralNeeded, sZERO);
+        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, sZERO);
         assertEq(underlyingNeeded, 1 * sUNIT);
     }
 }
@@ -439,8 +429,8 @@ contract TestVanillaPut_FMMV2 is Test {
             expiry: 0
         });
 
-        (int256 collateralNeeded, int256 underlyingNeeded, , ) = detail.getMinCollateral();
-        assertEq(collateralNeeded, 18000 * sUNIT);
+        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, 18000 * sUNIT);
         assertEq(underlyingNeeded, sZERO);
     }
 }
