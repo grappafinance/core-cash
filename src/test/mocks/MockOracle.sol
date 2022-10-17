@@ -23,7 +23,11 @@ contract MockOracle is IOracle {
         return expiryPrice[base][quote];
     }
 
-    function isExpiryPriceFinalized(address _base, address _quote, uint256) external view returns (bool) {
+    function isExpiryPriceFinalized(
+        address _base,
+        address _quote,
+        uint256
+    ) external view returns (bool) {
         // default to yes, revert if set to true
         return (!isNotFinalized[_base][_quote]);
     }

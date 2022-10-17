@@ -50,7 +50,11 @@ contract ChainlinkOracle is IOracle, Ownable {
      * @dev this oracle has no dispute mechanism, so always return true.
      *      Getting a "un-reported" expiry price will revert during getPriceAtExpiry
      */
-    function isExpiryPriceFinalized(address, address, uint256) external view virtual returns (bool) {
+    function isExpiryPriceFinalized(
+        address,
+        address,
+        uint256
+    ) external view virtual returns (bool) {
         return true;
     }
 

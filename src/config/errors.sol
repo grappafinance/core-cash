@@ -131,16 +131,16 @@ error CL_StaleAnswer();
 
 error CL_RoundIdTooSmall();
 
-// Oracle Errors
-
-error OC_OnlyPricerCanWrite();
+// Oracle Errors (Common)
 
 error OC_CannotReportForFuture();
 
 error OC_PriceNotReported();
 
+///@dev cannot dispute the settlement price after dispute period is over
 error OC_DisputePeriodOver();
 
+///@dev owner trying to set a dispute period that is invalid
 error OC_InvalidDisputePeriod();
 
 // Vol Oracle

@@ -12,21 +12,25 @@ import "../../config/errors.sol";
 /**
  * @title ChainlinkOracleDisputable
  * @author antoncoding
- * @dev chainlink oracle that can be dispute by the owner 
+ * @dev chainlink oracle that can be dispute by the owner
  */
 contract ChainlinkOracleDisputable is ChainlinkOracle {
     using SafeCastLib for uint256;
 
     // base => quote => dispute period
-    mapping(address => mapping(address => uint)) public disputePeriod;
+    mapping(address => mapping(address => uint256)) public disputePeriod;
 
-    event DisputePeriodUpdated(address base, address quote, uint period);
+    event DisputePeriodUpdated(address base, address quote, uint256 period);
 
     /**
      * @dev return true of an expiry price should be consider finalized
      *      if a price is unreported, return false
      */
-    function isExpiryPriceFinalized(address _base, address _quote, uint256 _expiry) external view override returns (bool) {
+    function isExpiryPriceFinalized(
+        address _base,
+        address _quote,
+        uint256 _expiry
+    ) external view override returns (bool) {
         uint128 reportedAt = expiryPrices[_base][_quote][_expiry].reportAt;
         if (reportedAt == 0) return false;
 
@@ -40,7 +44,12 @@ contract ChainlinkOracleDisputable is ChainlinkOracle {
      * @param _expiry expiry timestamp
      * @param _newPrice new price to set
      */
-    function disputePrice(address _base, address _quote, uint256 _expiry, uint256 _newPrice) external onlyOwner {
+    function disputePrice(
+        address _base,
+        address _quote,
+        uint256 _expiry,
+        uint256 _newPrice
+    ) external onlyOwner {
         uint128 reportedAt = expiryPrices[_base][_quote][_expiry].reportAt;
         if (reportedAt == 0) revert OC_PriceNotReported();
 
@@ -57,7 +66,11 @@ contract ChainlinkOracleDisputable is ChainlinkOracle {
      * @param _quote quote asset
      * @param _period dispute period. Cannot be set to a vlue longer than 1/2 days
      */
-    function setDisputePeriod(address _base, address _quote, uint _period) external onlyOwner {
+    function setDisputePeriod(
+        address _base,
+        address _quote,
+        uint256 _period
+    ) external onlyOwner {
         if (_period > 0.5 days) revert OC_InvalidDisputePeriod();
 
         disputePeriod[_base][_quote] = _period;
