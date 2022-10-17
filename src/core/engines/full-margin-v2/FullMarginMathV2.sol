@@ -348,19 +348,6 @@ library FullMarginMathV2 {
         return cashNeeded;
     }
 
-    function getStrikesStartAndEndPos(uint256 putsLength, uint256 callsLength)
-        public
-        pure
-        returns (int256 startPos, int256 endPos)
-    {
-        endPos = (putsLength + callsLength).toInt256();
-
-        if (putsLength > 0) {
-            startPos = 1;
-            endPos += 1;
-        }
-    }
-
     function convertCashCollateralToUnderlyingNeeded(
         PoisAndPayouts memory poisAndPayouts,
         int256 underlyingNeeded,

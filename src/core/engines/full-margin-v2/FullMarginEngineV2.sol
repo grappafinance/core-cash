@@ -396,7 +396,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
     {
         details = new FullMarginDetailV2[](0);
 
-        bytes32[] memory uceLookUp = new bytes32[](0);
+        bytes32[] memory usceLookUp = new bytes32[](0);
 
         Position[] memory positions = account.shorts.getPositions().concat(account.longs.getPositions());
         uint256 shortLength = account.shorts.length;
@@ -406,15 +406,15 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
 
             ProductDetails memory product = _getProductDetails(productId);
 
-            bytes32 pos = keccak256(abi.encode(product.underlyingId, product.collateralId, expiry));
+            bytes32 pos = keccak256(abi.encode(product.underlyingId, product.strikeId, product.collateralId, expiry));
 
-            (bool found, uint256 index) = uceLookUp.indexOf(pos);
+            (bool found, uint256 index) = usceLookUp.indexOf(pos);
 
             FullMarginDetailV2 memory detail;
 
             if (found) detail = details[index];
             else {
-                uceLookUp = uceLookUp.append(pos);
+                usceLookUp = usceLookUp.append(pos);
                 details = details.append(detail);
 
                 detail.underlyingId = product.underlyingId;
