@@ -8,11 +8,5 @@ interface IOracle {
         address _base,
         address _quote,
         uint256 _expiry
-    ) external view returns (uint256);
-
-    function isExpiryPriceFinalized(
-        address _base,
-        address _quote,
-        uint256 expiry
-    ) external view returns (bool);
+    ) external view returns (uint256 price, bool isFinalized);
 }

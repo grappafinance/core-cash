@@ -403,8 +403,8 @@ contract Grappa is Ownable, IGrappa {
         address _quote,
         uint256 _expiry
     ) internal view returns (uint256) {
-        if (!IOracle(_oracle).isExpiryPriceFinalized(_base, _quote, _expiry)) revert GP_PriceNotFinalized();
-
-        return IOracle(_oracle).getPriceAtExpiry(_base, _quote, _expiry);
+        (uint256 price, bool isFinalized) = IOracle(_oracle).getPriceAtExpiry(_base, _quote, _expiry);
+        if (!isFinalized) revert GP_PriceNotFinalized();
+        return price;
     }
 }

@@ -4,9 +4,13 @@ pragma solidity ^0.8.0;
 import "../../interfaces/IOracle.sol";
 
 contract MockOracle is IOracle {
+    struct MockPrice {
+        uint128 price;
+        bool isFinalized;
+    }
+
     mapping(address => uint256) public spotPrice;
-    mapping(address => mapping(address => uint256)) public expiryPrice;
-    mapping(address => mapping(address => bool)) public isNotFinalized;
+    mapping(address => mapping(address => MockPrice)) public expiryPrice;
 
     function getSpotPrice(
         address _underlying,
@@ -19,17 +23,9 @@ contract MockOracle is IOracle {
         address base,
         address quote,
         uint256 /*_expiry*/
-    ) external view override returns (uint256) {
-        return expiryPrice[base][quote];
-    }
-
-    function isExpiryPriceFinalized(
-        address _base,
-        address _quote,
-        uint256
-    ) external view returns (bool) {
-        // default to yes, revert if set to true
-        return (!isNotFinalized[_base][_quote]);
+    ) external view override returns (uint256, bool) {
+        MockPrice memory p = expiryPrice[base][quote];
+        return (p.price, p.isFinalized);
     }
 
     function setSpotPrice(address _asset, uint256 _mockedSpotPrice) external {
@@ -41,6 +37,15 @@ contract MockOracle is IOracle {
         address quote,
         uint256 _mockedExpiryPrice
     ) external {
-        expiryPrice[base][quote] = _mockedExpiryPrice;
+        expiryPrice[base][quote] = MockPrice(uint128(_mockedExpiryPrice), true);
+    }
+
+    function setExpiryPrice(
+        address base,
+        address quote,
+        uint256 _mockedExpiryPrice,
+        bool _isFinalized
+    ) external {
+        expiryPrice[base][quote] = MockPrice(uint128(_mockedExpiryPrice), _isFinalized);
     }
 }

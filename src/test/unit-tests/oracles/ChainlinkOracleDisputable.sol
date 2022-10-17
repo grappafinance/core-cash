@@ -100,9 +100,10 @@ contract ChainlinkOracleDisputableTest is Test {
         // dispute
         oracle.disputePrice(weth, usdc, expiry, 3000 * UNIT);
 
-        assertEq(oracle.getPriceAtExpiry(weth, usdc, expiry), 3000 * UNIT);
+        (uint256 price, bool isFinalized) = oracle.getPriceAtExpiry(weth, usdc, expiry);
 
-        assertTrue(oracle.isExpiryPriceFinalized(weth, usdc, expiry));
+        assertEq(price, 3000 * UNIT);
+        assertEq(isFinalized, true);
     }
 
     function testCannotDisputeSameExpiryTwice() public {

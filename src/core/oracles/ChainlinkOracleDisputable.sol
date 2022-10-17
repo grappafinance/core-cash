@@ -27,20 +27,14 @@ contract ChainlinkOracleDisputable is ChainlinkOracle {
     event DisputePeriodUpdated(address base, address quote, uint256 period);
 
     /**
-     * @dev return true of an expiry price should be consider finalized
-     *      if a price is unreported, return false
+     * @dev view function to check if dispute period is over
      */
     function isExpiryPriceFinalized(
         address _base,
         address _quote,
         uint256 _expiry
-    ) external view override returns (bool) {
-        ExpiryPrice memory entry = expiryPrices[_base][_quote][_expiry];
-        if (entry.reportAt == 0) return false;
-
-        if (entry.isDisputed) return true;
-
-        return block.timestamp > entry.reportAt + disputePeriod[_base][_quote];
+    ) external view returns (bool) {
+        return _isExpiryPriceFinalized(_base, _quote, _expiry);
     }
 
     /**
@@ -84,5 +78,22 @@ contract ChainlinkOracleDisputable is ChainlinkOracle {
         disputePeriod[_base][_quote] = _period;
 
         emit DisputePeriodUpdated(_base, _quote, _period);
+    }
+
+    /**
+     * @dev overrides _isExpiryPriceFinalized() from ChainlinkOracle to check if dispute period is over
+     *      if true, getPriceAtExpiry will retrun (price, true)
+     */
+    function _isExpiryPriceFinalized(
+        address _base,
+        address _quote,
+        uint256 _expiry
+    ) internal view override returns (bool) {
+        ExpiryPrice memory entry = expiryPrices[_base][_quote][_expiry];
+        if (entry.reportAt == 0) return false;
+
+        if (entry.isDisputed) return true;
+
+        return block.timestamp > entry.reportAt + disputePeriod[_base][_quote];
     }
 }

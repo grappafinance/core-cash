@@ -52,18 +52,6 @@ contract ChainlinkOracle is IOracle, Ownable {
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @dev this oracle has no dispute mechanism, so always return true.
-     *      Getting a "un-reported" expiry price will revert during getPriceAtExpiry
-     */
-    function isExpiryPriceFinalized(
-        address,
-        address,
-        uint256
-    ) external view virtual returns (bool) {
-        return true;
-    }
-
-    /**
      * @notice  get spot price of _base, denominated in _quote.
      *
      * @param _base base asset. for ETH/USD price, ETH is the base asset
@@ -91,11 +79,11 @@ contract ChainlinkOracle is IOracle, Ownable {
         address _base,
         address _quote,
         uint256 _expiry
-    ) external view returns (uint256 price) {
+    ) external view returns (uint256 price, bool isFinalized) {
         ExpiryPrice memory data = expiryPrices[_base][_quote][_expiry];
         if (data.reportAt == 0) revert OC_PriceNotReported();
 
-        return data.price;
+        return (data.price, _isExpiryPriceFinalized(_base, _quote, _expiry));
     }
 
     /**
@@ -141,6 +129,18 @@ contract ChainlinkOracle is IOracle, Ownable {
     /*///////////////////////////////////////////////////////////////
                             Internal functions
     //////////////////////////////////////////////////////////////*/
+
+    /**
+     * @dev this oracle has no dispute mechanism, so always return true.
+     *      a un-reported price should have reverted at this point.
+     */
+    function _isExpiryPriceFinalized(
+        address,
+        address,
+        uint256
+    ) internal view virtual returns (bool) {
+        return true;
+    }
 
     /**
      * @notice  convert prices from aggregator of base & quote asset to base / quote, denominated in UNIT

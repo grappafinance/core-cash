@@ -271,7 +271,7 @@ contract ChainlinkOracleTestWriteOracle is Test {
     function testCanReportPrice() public {
         oracle.reportExpiryPrice(weth, usdc, expiry, wethRoundIdToReport, usdcRoundIdToReport);
 
-        uint256 price = oracle.getPriceAtExpiry(weth, usdc, expiry);
+        (uint256 price, ) = oracle.getPriceAtExpiry(weth, usdc, expiry);
         assertEq(price, 4000 * UNIT);
     }
 
