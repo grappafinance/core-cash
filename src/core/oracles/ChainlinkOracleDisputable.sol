@@ -23,7 +23,7 @@ contract ChainlinkOracleDisputable is ChainlinkOracle {
     /*///////////////////////////////////////////////////////////////
                                  Events
     //////////////////////////////////////////////////////////////*/
-    
+
     event DisputePeriodUpdated(address base, address quote, uint256 period);
 
     /**

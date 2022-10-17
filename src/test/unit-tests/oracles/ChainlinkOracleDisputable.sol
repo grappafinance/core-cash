@@ -52,7 +52,7 @@ contract ChainlinkOracleDisputableTest is Test {
         usdcAggregator.setMockRound(roundId, 1 * 1e8, expiry);
 
         oracle.setAggregator(weth, address(wethAggregator), 1200, false);
-        oracle.setAggregator(usdc, address(usdcAggregator), 86400, true);        
+        oracle.setAggregator(usdc, address(usdcAggregator), 86400, true);
     }
 
     function testOwnerCanSetDisputePeriod() public {
@@ -99,7 +99,7 @@ contract ChainlinkOracleDisputableTest is Test {
         oracle.reportExpiryPrice(weth, usdc, expiry, roundId, roundId);
         // dispute
         oracle.disputePrice(weth, usdc, expiry, 3000 * UNIT);
-        
+
         assertEq(oracle.getPriceAtExpiry(weth, usdc, expiry), 3000 * UNIT);
 
         assertTrue(oracle.isExpiryPriceFinalized(weth, usdc, expiry));
@@ -107,9 +107,9 @@ contract ChainlinkOracleDisputableTest is Test {
 
     function testCannotDisputeSameExpiryTwice() public {
         oracle.setDisputePeriod(weth, usdc, 2 hours);
-        
+
         oracle.reportExpiryPrice(weth, usdc, expiry, roundId, roundId);
-        
+
         oracle.disputePrice(weth, usdc, expiry, 3000 * UNIT);
         vm.expectRevert(OC_PriceDisputed.selector);
         oracle.disputePrice(weth, usdc, expiry, 3000 * UNIT);
