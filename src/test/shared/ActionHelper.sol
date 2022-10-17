@@ -104,6 +104,6 @@ abstract contract ActionHelper {
     }
 
     function createSettleAction() internal pure returns (ActionArgs memory action) {
-        action = ActionArgs({action: ActionType.SettleAccount, data: abi.encode(0)});
+        return ActionUtil.createSettleAction();
     }
 }
