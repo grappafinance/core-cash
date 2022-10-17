@@ -23,7 +23,8 @@ contract ChainlinkOracle is IOracle, Ownable {
     using SafeCastLib for uint256;
 
     struct ExpiryPrice {
-        uint128 reportAt;
+        bool isDisputed;
+        uint64 reportAt;
         uint128 price;
     }
 
@@ -111,7 +112,7 @@ contract ChainlinkOracle is IOracle, Ownable {
         // revert when trying to set price for the future
         if (_expiry > block.timestamp) revert OC_CannotReportForFuture();
 
-        expiryPrices[_base][_quote][_expiry] = ExpiryPrice(uint128(block.timestamp), price.safeCastTo128());
+        expiryPrices[_base][_quote][_expiry] = ExpiryPrice(false, uint64(block.timestamp), price.safeCastTo128());
 
         emit ExpiryPriceUpdated(_base, _quote, _expiry, price, false);
     }

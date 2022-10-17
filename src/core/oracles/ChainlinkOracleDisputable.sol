@@ -31,10 +31,12 @@ contract ChainlinkOracleDisputable is ChainlinkOracle {
         address _quote,
         uint256 _expiry
     ) external view override returns (bool) {
-        uint128 reportedAt = expiryPrices[_base][_quote][_expiry].reportAt;
-        if (reportedAt == 0) return false;
+        ExpiryPrice memory entry = expiryPrices[_base][_quote][_expiry];
+        if (entry.reportAt == 0) return false;
 
-        return block.timestamp > reportedAt + disputePeriod[_base][_quote];
+        if (entry.isDisputed) return true;
+
+        return block.timestamp > entry.reportAt + disputePeriod[_base][_quote];
     }
 
     /**
@@ -55,7 +57,7 @@ contract ChainlinkOracleDisputable is ChainlinkOracle {
 
         if (reportedAt + disputePeriod[_base][_quote] < block.timestamp) revert OC_DisputePeriodOver();
 
-        expiryPrices[_base][_quote][_expiry] = ExpiryPrice(uint128(block.timestamp), _newPrice.safeCastTo128());
+        expiryPrices[_base][_quote][_expiry] = ExpiryPrice(true, uint64(block.timestamp), _newPrice.safeCastTo128());
 
         emit ExpiryPriceUpdated(_base, _quote, _expiry, _newPrice, true);
     }
@@ -64,14 +66,14 @@ contract ChainlinkOracleDisputable is ChainlinkOracle {
      * @dev set the dispute period for a specific base / quote asset
      * @param _base base asset
      * @param _quote quote asset
-     * @param _period dispute period. Cannot be set to a vlue longer than 1/2 days
+     * @param _period dispute period. Cannot be set to a vlue longer than 12 hours
      */
     function setDisputePeriod(
         address _base,
         address _quote,
         uint256 _period
     ) external onlyOwner {
-        if (_period > 0.5 days) revert OC_InvalidDisputePeriod();
+        if (_period > 12 hours) revert OC_InvalidDisputePeriod();
 
         disputePeriod[_base][_quote] = _period;
 
