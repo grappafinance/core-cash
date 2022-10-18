@@ -275,6 +275,13 @@ contract ChainlinkOracleTestWriteOracle is Test {
         assertEq(price, 4000 * UNIT);
     }
 
+    function testCannotReportPriceTwice() public {
+        oracle.reportExpiryPrice(weth, usdc, expiry, wethRoundIdToReport, usdcRoundIdToReport);
+
+        vm.expectRevert(OC_PriceReported.selector);
+        oracle.reportExpiryPrice(weth, usdc, expiry, wethRoundIdToReport, usdcRoundIdToReport);
+    }
+
     function testCannotGetUnreportedExpiry() public {
         vm.expectRevert(OC_PriceNotReported.selector);
         oracle.getPriceAtExpiry(weth, usdc, expiry);

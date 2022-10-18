@@ -137,10 +137,15 @@ error OC_CannotReportForFuture();
 
 error OC_PriceNotReported();
 
+error OC_PriceReported();
+
 // errors for disputable oracle
 
 ///@dev cannot dispute the settlement price after dispute period is over
 error OC_DisputePeriodOver();
+
+///@dev cannot force-set an settlement price until grace period is passed and no one has set the price.
+error OC_GracePeriodNotOver();
 
 ///@dev already disputed
 error OC_PriceDisputed();

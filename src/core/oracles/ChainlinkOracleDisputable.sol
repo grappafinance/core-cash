@@ -38,7 +38,7 @@ contract ChainlinkOracleDisputable is ChainlinkOracle {
     }
 
     /**
-     * @dev dispute the expiry price from the owner. Cannot dispute an un-reported price
+     * @dev dispute an reported expiry price from the owner. Cannot dispute an un-reported price
      * @param _base base asset
      * @param _quote quote asset
      * @param _expiry expiry timestamp
@@ -59,7 +59,30 @@ contract ChainlinkOracleDisputable is ChainlinkOracle {
 
         expiryPrices[_base][_quote][_expiry] = ExpiryPrice(true, uint64(block.timestamp), _newPrice.safeCastTo128());
 
-        emit ExpiryPriceUpdated(_base, _quote, _expiry, _newPrice, true);
+        emit ExpiryPriceSet(_base, _quote, _expiry, _newPrice, true);
+    }
+
+    /**
+     * @dev owner can set a price if the the price has not been pushed for at least 1 day
+     * @param _base base asset
+     * @param _quote quote asset
+     * @param _expiry expiry timestamp
+     * @param _price price to set
+     */
+    function setExpiryPriceBackup(
+        address _base,
+        address _quote,
+        uint256 _expiry,
+        uint256 _price
+    ) external onlyOwner {
+        ExpiryPrice memory entry = expiryPrices[_base][_quote][_expiry];
+        if (entry.reportAt != 0) revert OC_PriceReported();
+
+        if (_expiry + 36 hours > block.timestamp) revert OC_GracePeriodNotOver();
+
+        expiryPrices[_base][_quote][_expiry] = ExpiryPrice(true, uint64(block.timestamp), _price.safeCastTo128());
+
+        emit ExpiryPriceSet(_base, _quote, _expiry, _price, true);
     }
 
     /**

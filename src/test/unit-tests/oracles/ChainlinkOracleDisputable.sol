@@ -115,4 +115,37 @@ contract ChainlinkOracleDisputableTest is Test {
         vm.expectRevert(OC_PriceDisputed.selector);
         oracle.disputePrice(weth, usdc, expiry, 3000 * UNIT);
     }
+
+    // setExpiryPriceBackup tests
+
+    function testCannotForceSetPriceIfPriceIsReported() public {
+        oracle.reportExpiryPrice(weth, usdc, expiry, roundId, roundId);
+        // setExpiryPriceBackup
+        vm.expectRevert(OC_PriceReported.selector);
+        oracle.setExpiryPriceBackup(weth, usdc, expiry, 3500 * UNIT);
+    }
+
+    function testCannotForceSetPriceRightAfterExpiry() public {
+        vm.warp(expiry + 2 hours); // only 12 hours after expiry
+
+        vm.expectRevert(OC_GracePeriodNotOver.selector);
+        oracle.setExpiryPriceBackup(weth, usdc, expiry, 4000 * UNIT);
+    }
+
+    function testCannotForceSetPriceTwice() public {
+        vm.warp(expiry + 36 hours);
+        oracle.setExpiryPriceBackup(weth, usdc, expiry, 3500 * UNIT);
+
+        vm.expectRevert(OC_PriceReported.selector);
+        oracle.setExpiryPriceBackup(weth, usdc, expiry, 4000 * UNIT);
+    }
+
+    function testCanforceSetPriceIfPriceAfterGracePeriod() public {
+        vm.warp(expiry + 36 hours);
+        // setExpiryPriceBackup
+        oracle.setExpiryPriceBackup(weth, usdc, expiry, 3500 * UNIT);
+        (uint256 price, bool isFinalized) = oracle.getPriceAtExpiry(weth, usdc, expiry);
+        assertEq(price, 3500 * UNIT);
+        assertEq(isFinalized, true);
+    }
 }

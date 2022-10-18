@@ -45,7 +45,7 @@ contract ChainlinkOracle is IOracle, Ownable {
                                  Events
     //////////////////////////////////////////////////////////////*/
 
-    event ExpiryPriceUpdated(address base, address quote, uint256 expiry, uint256 price, bool isDispute);
+    event ExpiryPriceSet(address base, address quote, uint256 expiry, uint256 price, bool isDispute);
 
     /*///////////////////////////////////////////////////////////////
                             External Functions
@@ -97,16 +97,16 @@ contract ChainlinkOracle is IOracle, Ownable {
         uint80 _baseRoundId,
         uint80 _quoteRoundId
     ) external {
+        if (_expiry > block.timestamp) revert OC_CannotReportForFuture();
+        if (expiryPrices[_base][_quote][_expiry].reportAt != 0) revert OC_PriceReported();
+
         (uint256 basePrice, uint8 baseDecimals) = _getLastPriceBeforeExpiry(_base, _baseRoundId, _expiry);
         (uint256 quotePrice, uint8 quoteDecimals) = _getLastPriceBeforeExpiry(_quote, _quoteRoundId, _expiry);
         uint256 price = _toPriceWithUnitDecimals(basePrice, quotePrice, baseDecimals, quoteDecimals);
 
-        // revert when trying to set price for the future
-        if (_expiry > block.timestamp) revert OC_CannotReportForFuture();
-
         expiryPrices[_base][_quote][_expiry] = ExpiryPrice(false, uint64(block.timestamp), price.safeCastTo128());
 
-        emit ExpiryPriceUpdated(_base, _quote, _expiry, price, false);
+        emit ExpiryPriceSet(_base, _quote, _expiry, price, false);
     }
 
     /*///////////////////////////////////////////////////////////////
