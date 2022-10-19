@@ -26,17 +26,45 @@ contract AdvancedMarginEngineAccessTest is FullMarginFixture {
     function testAliceCanGrantAccess() public {
         // alice grant access to this contract
         vm.startPrank(alice);
-        engine.setAccountAccess(address(this), true);
+        engine.setAccountAccess(address(this), 1);
         vm.stopPrank();
 
         // we can update the account now
         _assertCanAccessAccount(subAccountIdToModify, true);
     }
 
+    function testAllowanceDecrease() public {
+        // alice grant access to this contract
+        vm.startPrank(alice);
+        engine.setAccountAccess(address(this), 2);
+        vm.stopPrank();
+
+        _assertCanAccessAccount(subAccountIdToModify, true);
+        assertEq(engine.allowedExecutionLeft(uint160(alice) | 0xFF, address(this)), 1);
+        _assertCanAccessAccount(subAccountIdToModify, true);
+        assertEq(engine.allowedExecutionLeft(uint160(alice) | 0xFF, address(this)), 0);
+
+        // no access left
+        _assertCanAccessAccount(subAccountIdToModify, false);
+    }
+
+    function testGranteeCanRevokeAccess() public {
+        // alice grant access to this contract
+        vm.startPrank(alice);
+        engine.setAccountAccess(address(this), 2);
+        vm.stopPrank();
+
+        // reset allowance to 0!
+        engine.revokeSelfAccess(alice);
+
+        // no access left
+        _assertCanAccessAccount(subAccountIdToModify, false);
+    }
+
     function testAliceCanRevokeAccess() public {
         // alice grant access to this contract
         vm.startPrank(alice);
-        engine.setAccountAccess(address(this), true);
+        engine.setAccountAccess(address(this), type(uint256).max);
         vm.stopPrank();
 
         // can access subaccount!
@@ -44,7 +72,7 @@ contract AdvancedMarginEngineAccessTest is FullMarginFixture {
 
         // alice revoke access to this contract
         vm.startPrank(alice);
-        engine.setAccountAccess(address(this), false);
+        engine.setAccountAccess(address(this), 0);
         vm.stopPrank();
 
         // no longer has access to subaccount!
