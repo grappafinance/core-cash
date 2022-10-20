@@ -156,7 +156,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
      * @param longs positions.
      * @return balances array of collaterals and amount
      */
-    function previewCollateralReq(Position[] memory shorts, Position[] memory longs)
+    function previewMinCollateral(Position[] memory shorts, Position[] memory longs)
         external
         view
         returns (Balance[] memory balances)
