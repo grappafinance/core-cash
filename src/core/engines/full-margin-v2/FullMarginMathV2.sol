@@ -156,7 +156,7 @@ library FullMarginMathV2 {
                     int256(poisAndPayouts.pois[i]);
 
                 unchecked {
-                    i++;
+                    ++i;
                 }
             }
             negPayoutsOverPois[negPayoutsOverPois.length - 1] = underlyingNeeded;
@@ -215,7 +215,7 @@ library FullMarginMathV2 {
             pois[i + offset] = strikes[i];
 
             unchecked {
-                i++;
+                ++i;
             }
         }
 
@@ -266,7 +266,7 @@ library FullMarginMathV2 {
             );
 
             unchecked {
-                i++;
+                ++i;
             }
         }
 
@@ -286,7 +286,7 @@ library FullMarginMathV2 {
             putPayouts = putPayouts.add(strikes.subEachFrom(strikes[i]).maximum(0).mulEachBy(weights[i]));
 
             unchecked {
-                i++;
+                ++i;
             }
         }
     }
@@ -370,7 +370,7 @@ library FullMarginMathV2 {
 
             unchecked {
                 y++;
-                i++;
+                ++i;
             }
         }
 

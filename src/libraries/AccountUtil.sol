@@ -17,7 +17,7 @@ library AccountUtil {
         for (i; i < x.length; ) {
             y[i] = x[i];
             unchecked {
-                i++;
+                ++i;
             }
         }
         y[i] = v;
@@ -33,7 +33,7 @@ library AccountUtil {
         for (i; i < x.length; ) {
             y[i] = x[i];
             unchecked {
-                i++;
+                ++i;
             }
         }
         y[i] = v;
@@ -45,7 +45,7 @@ library AccountUtil {
         for (i; i < x.length; ) {
             y[i] = x[i];
             unchecked {
-                i++;
+                ++i;
             }
         }
         y[i] = v;
@@ -57,7 +57,7 @@ library AccountUtil {
         for (i; i < x.length; ) {
             y[i] = x[i];
             unchecked {
-                i++;
+                ++i;
             }
         }
         y[i] = v;
@@ -70,14 +70,14 @@ library AccountUtil {
         for (i; i < a.length; ) {
             y[v] = a[i];
             unchecked {
-                i++;
+                ++i;
                 v++;
             }
         }
         for (i = 0; i < b.length; ) {
             y[v] = b[i];
             unchecked {
-                i++;
+                ++i;
                 v++;
             }
         }
@@ -99,7 +99,7 @@ library AccountUtil {
                 break;
             }
             unchecked {
-                i++;
+                ++i;
             }
         }
     }
@@ -120,7 +120,7 @@ library AccountUtil {
                 break;
             }
             unchecked {
-                i++;
+                ++i;
             }
         }
     }
@@ -141,7 +141,7 @@ library AccountUtil {
                 break;
             }
             unchecked {
-                i++;
+                ++i;
             }
         }
     }
@@ -162,7 +162,7 @@ library AccountUtil {
                 break;
             }
             unchecked {
-                i++;
+                ++i;
             }
         }
     }
@@ -174,7 +174,7 @@ library AccountUtil {
                 break;
             }
             unchecked {
-                i++;
+                ++i;
             }
         }
     }
@@ -186,7 +186,7 @@ library AccountUtil {
                 break;
             }
             unchecked {
-                i++;
+                ++i;
             }
         }
     }
@@ -198,7 +198,7 @@ library AccountUtil {
                 break;
             }
             unchecked {
-                i++;
+                ++i;
             }
         }
     }
@@ -210,7 +210,7 @@ library AccountUtil {
                 break;
             }
             unchecked {
-                i++;
+                ++i;
             }
         }
     }
@@ -231,7 +231,7 @@ library AccountUtil {
         for (uint256 i; i < x.length; ) {
             s += x[i].amount;
             unchecked {
-                i++;
+                ++i;
             }
         }
     }
@@ -240,7 +240,7 @@ library AccountUtil {
         for (uint256 i; i < x.length; ) {
             s += x[i].amount;
             unchecked {
-                i++;
+                ++i;
             }
         }
     }
@@ -250,7 +250,7 @@ library AccountUtil {
         for (uint256 i; i < x.length; ) {
             y[i] = SBalance(x[i].collateralId, int80(x[i].amount));
             unchecked {
-                i++;
+                ++i;
             }
         }
     }
@@ -262,7 +262,7 @@ library AccountUtil {
             a = a < 0 ? -a : a;
             y[i] = Balance(x[i].collateralId, uint80(a));
             unchecked {
-                i++;
+                ++i;
             }
         }
     }
@@ -272,7 +272,7 @@ library AccountUtil {
         for (uint256 i; i < x.length; ) {
             y[i] = Position(x[i].tokenId.expand(), x[i].amount);
             unchecked {
-                i++;
+                ++i;
             }
         }
     }
@@ -282,7 +282,7 @@ library AccountUtil {
         for (uint256 i; i < x.length; ) {
             y[i] = getPositionOptim(x[i]);
             unchecked {
-                i++;
+                ++i;
             }
         }
     }

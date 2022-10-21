@@ -77,7 +77,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
 
             // increase i without checking overflow
             unchecked {
-                i++;
+                ++i;
             }
         }
 
@@ -85,7 +85,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
             if (!_isAccountAboveWater(batchActions[i].subAccount)) revert BM_AccountUnderwater();
 
             unchecked {
-                i++;
+                ++i;
             }
         }
     }
@@ -259,7 +259,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
             if (balances[i].amount < 0) return false;
 
             unchecked {
-                i++;
+                ++i;
             }
         }
 
@@ -299,7 +299,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
             }
 
             unchecked {
-                i++;
+                ++i;
             }
         }
     }
@@ -348,7 +348,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
 
             // increase i without checking overflow
             unchecked {
-                i++;
+                ++i;
             }
         }
     }
@@ -381,7 +381,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
             }
 
             unchecked {
-                i++;
+                ++i;
             }
         }
     }
@@ -431,7 +431,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
             _processDetailWithToken(detail, positions[i].tokenId, amount);
 
             unchecked {
-                i++;
+                ++i;
             }
         }
     }

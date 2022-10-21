@@ -256,7 +256,7 @@ contract Grappa is Ownable, ReentrancyGuard {
 
             unchecked {
                 lastTotalPayout = lastTotalPayout + payout;
-                i++;
+                ++i;
             }
         }
 

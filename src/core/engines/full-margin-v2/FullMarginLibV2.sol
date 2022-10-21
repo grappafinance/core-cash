@@ -164,7 +164,7 @@ library FullMarginLibV2 {
             } else account.collaterals[index].amount = newAmount;
 
             unchecked {
-                i++;
+                ++i;
             }
         }
     }
@@ -178,7 +178,7 @@ library FullMarginLibV2 {
                 account.shorts.removePositionAt(i);
             } else {
                 unchecked {
-                    i++;
+                    ++i;
                 }
             }
         }
@@ -198,7 +198,7 @@ library FullMarginLibV2 {
                 account.longs.removePositionAt(i);
             } else {
                 unchecked {
-                    i++;
+                    ++i;
                 }
             }
         }
@@ -210,7 +210,7 @@ library FullMarginLibV2 {
                 addCollateral(account, payouts[i].collateralId, payouts[i].amount);
 
                 unchecked {
-                    i++;
+                    ++i;
                 }
             }
         }

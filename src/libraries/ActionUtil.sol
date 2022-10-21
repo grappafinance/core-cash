@@ -191,7 +191,7 @@ library ActionUtil {
         for (i; i < x.length; ) {
             y[i] = x[i];
             unchecked {
-                i++;
+                ++i;
             }
         }
         y[i] = v;

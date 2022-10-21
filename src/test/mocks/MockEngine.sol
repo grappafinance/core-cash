@@ -60,7 +60,7 @@ contract MockEngine is BaseEngine {
 
             // increase i without checking overflow
             unchecked {
-                i++;
+                ++i;
             }
         }
         if (!_isAccountAboveWater(_subAccount)) revert BM_AccountUnderwater();

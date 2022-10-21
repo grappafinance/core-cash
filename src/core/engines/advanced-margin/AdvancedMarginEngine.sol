@@ -101,7 +101,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
 
             // increase i without checking overflow
             unchecked {
-                i++;
+                ++i;
             }
         }
         if (!_isAccountAboveWater(_subAccount)) revert BM_AccountUnderwater();
