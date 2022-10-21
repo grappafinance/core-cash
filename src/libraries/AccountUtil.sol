@@ -125,6 +125,27 @@ library AccountUtil {
         }
     }
 
+    function find(PositionOptim[] memory x, uint192 v)
+        internal
+        pure
+        returns (
+            bool f,
+            PositionOptim memory p,
+            uint256 i
+        )
+    {
+        for (i; i < x.length; ) {
+            if (x[i].tokenId == v) {
+                p = x[i];
+                f = true;
+                break;
+            }
+            unchecked {
+                i++;
+            }
+        }
+    }
+
     function find(SBalance[] memory x, uint8 v)
         internal
         pure
@@ -159,6 +180,18 @@ library AccountUtil {
     }
 
     function indexOf(Position[] memory x, uint256 v) internal pure returns (bool f, uint256 i) {
+        for (i; i < x.length; ) {
+            if (x[i].tokenId == v) {
+                f = true;
+                break;
+            }
+            unchecked {
+                i++;
+            }
+        }
+    }
+
+    function indexOf(PositionOptim[] memory x, uint192 v) internal pure returns (bool f, uint256 i) {
         for (i; i < x.length; ) {
             if (x[i].tokenId == v) {
                 f = true;

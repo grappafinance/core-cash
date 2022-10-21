@@ -25,6 +25,7 @@ library FullMarginLibV2 {
     using ArrayUtil for uint256[];
     using ProductIdUtil for uint40;
     using TokenIdUtil for uint256;
+    using TokenIdUtil for uint192;
 
     /**
      * @dev return true if the account has no short,long positions nor collateral
@@ -101,13 +102,11 @@ library FullMarginLibV2 {
         uint256 tokenId,
         uint64 amount
     ) public {
-        Position[] memory shorts = account.shorts.getPositions();
-
-        (bool found, uint256 index) = shorts.indexOf(tokenId);
+        (bool found, PositionOptim memory position, uint256 index) = account.shorts.find(tokenId.shorten());
 
         if (!found) revert FM_InvalidToken();
 
-        uint64 newShortAmount = shorts[index].amount - amount;
+        uint64 newShortAmount = position.amount - amount;
         if (newShortAmount == 0) {
             account.shorts.removePositionAt(index);
         } else account.shorts[index].amount = newShortAmount;
@@ -120,7 +119,7 @@ library FullMarginLibV2 {
         uint256 tokenId,
         uint64 amount
     ) public {
-        (bool found, uint256 index) = account.longs.getPositions().indexOf(tokenId);
+        (bool found, uint256 index) = account.longs.indexOf(tokenId.shorten());
 
         if (!found) {
             account.longs.pushPosition(Position(tokenId, amount));
@@ -134,13 +133,11 @@ library FullMarginLibV2 {
         uint256 tokenId,
         uint64 amount
     ) public {
-        Position[] memory longs = account.longs.getPositions();
-
-        (bool found, uint256 index) = longs.indexOf(tokenId);
+        (bool found, PositionOptim memory position, uint256 index) = account.longs.find(tokenId.shorten());
 
         if (!found) revert FM_InvalidToken();
 
-        uint64 newLongAmount = longs[index].amount - amount;
+        uint64 newLongAmount = position.amount - amount;
         if (newLongAmount == 0) {
             account.longs.removePositionAt(index);
         } else account.longs[index].amount = newLongAmount;
@@ -173,39 +170,36 @@ library FullMarginLibV2 {
     }
 
     function _settleShorts(FullMarginAccountV2 storage account) public {
-        Position[] memory shorts = account.shorts.getPositions();
-
-        for (uint256 i; i < shorts.length; ) {
-            uint256 tokenId = shorts[i].tokenId;
+        uint256 i;
+        while (i < account.shorts.length) {
+            uint256 tokenId = account.shorts[i].tokenId.expand();
 
             if (tokenId.isExpired()) {
                 account.shorts.removePositionAt(i);
-            }
-
-            unchecked {
-                i++;
+            } else {
+                unchecked {
+                    i++;
+                }
             }
         }
     }
 
     function _settleLongs(FullMarginAccountV2 storage account, IGrappa grappa) public {
-        Position[] memory longs = account.longs.getPositions();
-
         uint256 i;
         uint256[] memory tokenIds;
         uint256[] memory amounts;
 
-        for (i; i < longs.length; ) {
-            uint256 tokenId = longs[i].tokenId;
+        while (i < account.longs.length) {
+            uint256 tokenId = account.longs[i].tokenId.expand();
 
             if (tokenId.isExpired()) {
                 tokenIds = tokenIds.append(tokenId);
-                amounts = amounts.append(longs[i].amount);
+                amounts = amounts.append(account.longs[i].amount);
                 account.longs.removePositionAt(i);
-            }
-
-            unchecked {
-                i++;
+            } else {
+                unchecked {
+                    i++;
+                }
             }
         }
 

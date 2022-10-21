@@ -80,6 +80,44 @@ contract TestPMSettleLongCalls_FMV2 is FullMarginFixtureV2 {
         assertEq(afterCollaters[0].amount, depositAmount / 2);
     }
 
+    function testSettleMultipleLongCallsITMIncreasesCollateral() public {
+        vm.warp(expiry - 1 days);
+
+        uint256 tokenId2 = getTokenId(TokenType.CALL, pidEthCollat, expiry - 1 hours, strikePrice, 0);
+
+        // prepare: mint tokens
+        ActionArgs[] memory _actions = new ActionArgs[](2);
+        _actions[0] = createAddCollateralAction(wethId, alice, depositAmount);
+        _actions[1] = createMintIntoAccountAction(tokenId2, address(this), amount);
+        engine.execute(alice, _actions);
+
+        vm.warp(expiry);
+
+        oracle.setExpiryPrice(address(weth), address(usdc), 8000 * UNIT);
+
+        uint256 balanceBefore = weth.balanceOf(address(engine));
+
+        (, Position[] memory beforeLongs, Balance[] memory beforeCollaters) = engine.marginAccounts(address(this));
+
+        assertEq(beforeLongs.length, 2);
+        assertEq(beforeCollaters.length, 0);
+
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createSettleAction();
+        engine.execute(address(this), actions);
+
+        uint256 balanceAfter = weth.balanceOf(address(engine));
+
+        assertEq(balanceAfter, balanceBefore);
+
+        (, Position[] memory afterLongs, Balance[] memory afterCollaters) = engine.marginAccounts(address(this));
+
+        assertEq(afterLongs.length, 0);
+        assertEq(afterCollaters.length, 1);
+        assertEq(afterCollaters[0].collateralId, wethId);
+        assertEq(afterCollaters[0].amount, depositAmount);
+    }
+
     function testSettleLongCallOTMNoIncreaseInCollateral() public {
         oracle.setExpiryPrice(address(weth), address(usdc), 3000 * UNIT);
 
@@ -101,6 +139,80 @@ contract TestPMSettleLongCalls_FMV2 is FullMarginFixtureV2 {
         (, Position[] memory afterLongs, Balance[] memory afterCollaters) = engine.marginAccounts(address(this));
 
         assertEq(afterLongs.length, 0);
+        assertEq(afterCollaters.length, 0);
+    }
+
+    function testSettleMultipleLongCallsOTMNoIncreaseInCollateral() public {
+        vm.warp(expiry - 1 days);
+
+        uint256 tokenId2 = getTokenId(TokenType.CALL, pidEthCollat, expiry, strikePrice + (1 * UNIT), 0);
+
+        // prepare: mint tokens
+        ActionArgs[] memory _actions = new ActionArgs[](2);
+        _actions[0] = createAddCollateralAction(wethId, alice, depositAmount);
+        _actions[1] = createMintIntoAccountAction(tokenId2, address(this), amount);
+        engine.execute(alice, _actions);
+
+        vm.warp(expiry);
+
+        oracle.setExpiryPrice(address(weth), address(usdc), 3000 * UNIT);
+
+        uint256 balanceBefore = weth.balanceOf(address(engine));
+
+        (, Position[] memory beforeLongs, Balance[] memory beforeCollaters) = engine.marginAccounts(address(this));
+
+        assertEq(beforeLongs.length, 2);
+        assertEq(beforeCollaters.length, 0);
+
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createSettleAction();
+        engine.execute(address(this), actions);
+
+        uint256 balanceAfter = weth.balanceOf(address(engine));
+
+        assertEq(balanceAfter, balanceBefore);
+
+        (, Position[] memory afterLongs, Balance[] memory afterCollaters) = engine.marginAccounts(address(this));
+
+        assertEq(afterLongs.length, 0);
+        assertEq(afterCollaters.length, 0);
+    }
+
+    function testSettleOnlyExpiredLongCallOTMNoIncreaseInCollateral() public {
+        vm.warp(expiry - 1 days);
+
+        uint256 tokenId2 = getTokenId(TokenType.CALL, pidEthCollat, expiry + 1 weeks, strikePrice, 0);
+
+        // prepare: mint tokens
+        ActionArgs[] memory _actions = new ActionArgs[](2);
+        _actions[0] = createAddCollateralAction(wethId, alice, depositAmount);
+        _actions[1] = createMintIntoAccountAction(tokenId2, address(this), amount);
+        engine.execute(alice, _actions);
+
+        vm.warp(expiry);
+
+        oracle.setExpiryPrice(address(weth), address(usdc), 3000 * UNIT);
+
+        uint256 balanceBefore = weth.balanceOf(address(engine));
+
+        (, Position[] memory beforeLongs, Balance[] memory beforeCollaters) = engine.marginAccounts(address(this));
+
+        assertEq(beforeLongs.length, 2);
+        assertEq(beforeCollaters.length, 0);
+
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createSettleAction();
+        engine.execute(address(this), actions);
+
+        uint256 balanceAfter = weth.balanceOf(address(engine));
+
+        assertEq(balanceAfter, balanceBefore);
+
+        (, Position[] memory afterLongs, Balance[] memory afterCollaters) = engine.marginAccounts(address(this));
+
+        assertEq(afterLongs.length, 1);
+        assertEq(afterLongs[0].tokenId, tokenId2);
+        assertEq(afterLongs[0].amount, amount);
         assertEq(afterCollaters.length, 0);
     }
 }

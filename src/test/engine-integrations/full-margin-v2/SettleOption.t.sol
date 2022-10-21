@@ -135,11 +135,15 @@ contract TestSettleCoveredCall_FMV2 is FullMarginFixtureV2 {
     }
 
     function testSellerCanClearOnlyExpiredOptions() public {
+        vm.warp(expiry - 10 days);
+
         uint256 tokenId2 = getTokenId(TokenType.CALL, pidEthCollat, expiry + 1 days, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId2, alice, amount);
         engine.execute(address(this), actions);
+
+        vm.warp(expiry);
 
         // expires out the money
         oracle.setExpiryPrice(address(weth), address(usdc), strike - 1);
@@ -161,6 +165,49 @@ contract TestSettleCoveredCall_FMV2 is FullMarginFixtureV2 {
         assertEq(shorts.length, 1);
         assertEq(shorts[0].tokenId, tokenId2);
         assertEq(shorts[0].amount, amount);
+        assertEq(collateralsAfter.length, collateralsBefore.length);
+        // assertEq(collateralsAfter[uIndex].collateralId, collateralsBefore[uIndex].collateralId);
+        // assertEq(collateralsAfter[uIndex].amount, collateralsBefore[uIndex].amount);
+        assertEq(collateralsAfter[cIndex].collateralId, collateralsBefore[cIndex].collateralId);
+        assertEq(collateralsAfter[cIndex].amount, collateralsBefore[cIndex].amount);
+    }
+
+    function testSellerCanClearMultipleExpiredOptions() public {
+        vm.warp(expiry - 10 days);
+        uint256 tokenId2 = getTokenId(TokenType.CALL, pidEthCollat, expiry, strike + (1 * UNIT), 0);
+
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
+        actions[1] = createMintAction(tokenId2, alice, amount);
+        engine.execute(address(this), actions);
+
+        vm.warp(expiry);
+
+        // expires out the money
+        oracle.setExpiryPrice(address(weth), address(usdc), strike - 1);
+
+        (Position[] memory shortsBefore, , Balance[] memory collateralsBefore) = engine.marginAccounts(address(this));
+
+        assertEq(shortsBefore.length, 2);
+        assertEq(shortsBefore[0].tokenId, tokenId);
+        assertEq(shortsBefore[0].amount, amount);
+        assertEq(shortsBefore[1].tokenId, tokenId2);
+        assertEq(shortsBefore[1].amount, amount);
+
+        // covered call, underlying and collateral are the same
+        // uint256 uIndex = 0;
+        uint256 cIndex = 0;
+
+        // settle marginaccount
+        ActionArgs[] memory _actions = new ActionArgs[](1);
+        _actions[0] = createSettleAction();
+        engine.execute(address(this), _actions);
+
+        //margin account should be reset
+        (Position[] memory shortsAfter, , Balance[] memory collateralsAfter) = engine.marginAccounts(address(this));
+
+        assertEq(shortsAfter.length, 0);
+
         assertEq(collateralsAfter.length, collateralsBefore.length);
         // assertEq(collateralsAfter[uIndex].collateralId, collateralsBefore[uIndex].collateralId);
         // assertEq(collateralsAfter[uIndex].amount, collateralsBefore[uIndex].amount);
