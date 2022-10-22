@@ -107,7 +107,7 @@ contract ChainlinkOracleConfigurationTest is Test {
     }
 
     function testDisputePeriodIs0() public {
-        uint period = oracle.maxDisputePeriod();
+        uint256 period = oracle.maxDisputePeriod();
         assertEq(period, 0);
     }
 
