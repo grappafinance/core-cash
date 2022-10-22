@@ -13,7 +13,7 @@ import {MockChainlinkAggregator} from "../../mocks/MockChainlinkAggregator.sol";
 import "../../../config/enums.sol";
 import "../../../config/types.sol";
 import "../../../config/constants.sol";
-import "../../../config/errors.sol";
+import "../../../core/oracles/errors.sol";
 
 /**
  * @dev test internal function _toPriceWithUnitDecimals

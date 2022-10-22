@@ -7,7 +7,7 @@ import {SafeCastLib} from "solmate/utils/SafeCastLib.sol";
 import {ChainlinkOracle} from "./ChainlinkOracle.sol";
 
 // constants and types
-import "../../config/errors.sol";
+import "./errors.sol";
 
 /**
  * @title ChainlinkOracleDisputable

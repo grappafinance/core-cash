@@ -10,7 +10,7 @@ import {IOracle} from "../../interfaces/IOracle.sol";
 import {IAggregatorV3} from "../../interfaces/IAggregatorV3.sol";
 
 // constants and types
-import "../../config/errors.sol";
+import "./errors.sol";
 import "../../config/constants.sol";
 
 /**
