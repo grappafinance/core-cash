@@ -55,6 +55,10 @@ contract ChainlinkOracleDisputableTest is Test {
         oracle.setAggregator(usdc, address(usdcAggregator), 86400, true);
     }
 
+    function testDisputePeriodIsMax() public {
+        assertEq(oracle.maxDisputePeriod(), MAX_DISPUTE_PERIOD);
+    }
+
     function testOwnerCanSetDisputePeriod() public {
         oracle.setDisputePeriod(weth, usdc, 3600);
         assertEq(oracle.disputePeriod(weth, usdc), 3600);
@@ -68,7 +72,7 @@ contract ChainlinkOracleDisputableTest is Test {
 
     function testCannotSetDisputePeriodThatIsTooHigh() public {
         vm.expectRevert(OC_InvalidDisputePeriod.selector);
-        oracle.setDisputePeriod(weth, usdc, 12 hours + 1);
+        oracle.setDisputePeriod(weth, usdc, 6 hours + 1);
     }
 
     function testCannotDisputeUnReportedPrice() public {

@@ -106,6 +106,11 @@ contract ChainlinkOracleConfigurationTest is Test {
         aggregator = address(new MockChainlinkAggregator(8));
     }
 
+    function testDisputePeriodIs0() public {
+        uint period = oracle.maxDisputePeriod();
+        assertEq(period, 0);
+    }
+
     function testOwnerCanSetAggregator() public {
         oracle.setAggregator(weth, aggregator, 3600, false);
         (address addr, uint8 decimals, uint32 maxDelay, bool _isStable) = oracle.aggregators(weth);

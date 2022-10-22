@@ -17,8 +17,11 @@ error GP_AssetAlreadyRegistered();
 /// @dev margin engine already registered
 error GP_EngineAlreadyRegistered();
 
-/// @dev margin engine already registered
+/// @dev oracle already registered
 error GP_OracleAlreadyRegistered();
+
+/// @dev registring oracle doesn't comply with the max dispute period constraint.
+error GP_BadOracle();
 
 /// @dev amounts length speicified to batch settle doesn't match with tokenIds
 error GP_WrongArgumentLength();

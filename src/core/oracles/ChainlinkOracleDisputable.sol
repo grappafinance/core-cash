@@ -8,6 +8,7 @@ import {ChainlinkOracle} from "./ChainlinkOracle.sol";
 
 // constants and types
 import "./errors.sol";
+import "../../config/constants.sol";
 
 /**
  * @title ChainlinkOracleDisputable
@@ -25,6 +26,13 @@ contract ChainlinkOracleDisputable is ChainlinkOracle {
     //////////////////////////////////////////////////////////////*/
 
     event DisputePeriodUpdated(address base, address quote, uint256 period);
+
+    /**
+     * @dev return the maximum dispute period for the oracle
+     */
+    function maxDisputePeriod() external pure override returns (uint256) {
+        return MAX_DISPUTE_PERIOD;
+    }
 
     /**
      * @dev view function to check if dispute period is over
@@ -89,14 +97,14 @@ contract ChainlinkOracleDisputable is ChainlinkOracle {
      * @dev set the dispute period for a specific base / quote asset
      * @param _base base asset
      * @param _quote quote asset
-     * @param _period dispute period. Cannot be set to a vlue longer than 12 hours
+     * @param _period dispute period. Cannot be set to a vlue longer than 6 hours
      */
     function setDisputePeriod(
         address _base,
         address _quote,
         uint256 _period
     ) external onlyOwner {
-        if (_period > 12 hours) revert OC_InvalidDisputePeriod();
+        if (_period > MAX_DISPUTE_PERIOD) revert OC_InvalidDisputePeriod();
 
         disputePeriod[_base][_quote] = _period;
 

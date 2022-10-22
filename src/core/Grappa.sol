@@ -321,6 +321,9 @@ contract Grappa is Ownable, IGrappa {
     function registerOracle(address _oracle) external onlyOwner returns (uint8 id) {
         if (oracleIds[_oracle] != 0) revert GP_OracleAlreadyRegistered();
 
+        // this is a soft check on whether an oracle is suitable to be used.
+        if (IOracle(_oracle).maxDisputePeriod() > MAX_DISPUTE_PERIOD) revert GP_BadOracle();
+
         id = ++nextOracleId;
         oracles[id] = _oracle;
 

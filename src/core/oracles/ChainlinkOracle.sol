@@ -53,10 +53,8 @@ contract ChainlinkOracle is IOracle, Ownable {
 
     /**
      * @notice  get spot price of _base, denominated in _quote.
-     *
      * @param _base base asset. for ETH/USD price, ETH is the base asset
      * @param _quote quote asset. for ETH/USD price, USD is the quote asset
-     *
      * @return price with 6 decimals
      */
     function getSpotPrice(address _base, address _quote) external view returns (uint256) {
@@ -68,11 +66,9 @@ contract ChainlinkOracle is IOracle, Ownable {
     /**
      * @dev get expiry price of underlying, denominated in strike asset.
             can revert if expiry is in the future, or the price has not been reported by authorized party
-     *
      * @param _base base asset. for ETH/USD price, ETH is the base asset
      * @param _quote quote asset. for ETH/USD price, USD is the quote asset
      * @param _expiry expiry timestamp
-     *
      * @return price with 6 decimals
      */
     function getPriceAtExpiry(
@@ -84,6 +80,14 @@ contract ChainlinkOracle is IOracle, Ownable {
         if (data.reportAt == 0) revert OC_PriceNotReported();
 
         return (data.price, _isExpiryPriceFinalized(_base, _quote, _expiry));
+    }
+
+    /**
+     * @dev return the maximum dispute period for the oracle
+     * @dev this oracle has no dispute mechanism, as long as a price is reported, it can be used to settle.
+     */
+    function maxDisputePeriod() external view virtual returns (uint256) {
+        return 0;
     }
 
     /**

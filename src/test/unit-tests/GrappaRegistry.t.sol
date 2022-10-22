@@ -6,6 +6,7 @@ import "forge-std/Test.sol";
 
 import {Grappa} from "../../core/Grappa.sol";
 import {MockERC20} from "../mocks/MockERC20.sol";
+import {MockOracle} from "../mocks/MockOracle.sol";
 
 import "../../config/errors.sol";
 import "../../config/enums.sol";
@@ -137,39 +138,45 @@ contract RegisterEngineTest is Test {
  */
 contract RegisterOracleTest is Test {
     Grappa public grappa;
-    address private oracle1;
+    address private oracle;
 
     constructor() {
-        oracle1 = address(1);
+        oracle = address(new MockOracle());
         grappa = new Grappa(address(0));
     }
 
     function testCannotRegisterFromNonOwner() public {
         vm.expectRevert("Ownable: caller is not the owner");
         vm.prank(address(0xaacc));
-        grappa.registerOracle(oracle1);
+        grappa.registerOracle(oracle);
     }
 
     function testRegisterOracleFromId1() public {
-        uint8 id = grappa.registerOracle(oracle1);
+        uint8 id = grappa.registerOracle(oracle);
         assertEq(id, 1);
 
-        assertEq(grappa.oracleIds(oracle1), id);
+        assertEq(grappa.oracleIds(oracle), id);
     }
 
     function testCannotRegistrySameOracleTwice() public {
-        grappa.registerOracle(oracle1);
+        grappa.registerOracle(oracle);
         vm.expectRevert(GP_OracleAlreadyRegistered.selector);
-        grappa.registerOracle(oracle1);
+        grappa.registerOracle(oracle);
+    }
+
+    function testCannotRegistryOralceWithDisputePeriodTooLong() public {
+        MockOracle(oracle).setViewDisputePeriod(1 days);
+        vm.expectRevert(GP_BadOracle.selector);
+        grappa.registerOracle(oracle);
     }
 
     function testReturnEngineFromProductId() public {
-        grappa.registerOracle(oracle1);
+        grappa.registerOracle(oracle);
 
-        uint40 product = grappa.getProductId(address(oracle1), address(0), address(0), address(0), address(0));
+        uint40 product = grappa.getProductId(address(oracle), address(0), address(0), address(0), address(0));
 
-        (address oracle, , , , , ) = grappa.getDetailFromProductId(product);
+        (address oracle_, , , , , ) = grappa.getDetailFromProductId(product);
 
-        assertEq(oracle1, oracle);
+        assertEq(oracle_, oracle);
     }
 }

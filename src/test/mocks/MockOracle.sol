@@ -12,6 +12,12 @@ contract MockOracle is IOracle {
     mapping(address => uint256) public spotPrice;
     mapping(address => mapping(address => MockPrice)) public expiryPrice;
 
+    uint256 private disputePeriod;
+
+    function maxDisputePeriod() external view virtual returns (uint256) {
+        return disputePeriod;
+    }
+
     function getSpotPrice(
         address _underlying,
         address /*_strike*/
@@ -26,6 +32,10 @@ contract MockOracle is IOracle {
     ) external view override returns (uint256, bool) {
         MockPrice memory p = expiryPrice[base][quote];
         return (p.price, p.isFinalized);
+    }
+
+    function setViewDisputePeriod(uint256 _period) external {
+        disputePeriod = _period;
     }
 
     function setSpotPrice(address _asset, uint256 _mockedSpotPrice) external {
