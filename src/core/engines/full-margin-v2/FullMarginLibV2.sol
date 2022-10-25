@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {IGrappa} from "../../../interfaces/IGrappa.sol";
+import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 
 import "../../../libraries/TokenIdUtil.sol";
 import "../../../libraries/ProductIdUtil.sol";
@@ -150,8 +151,24 @@ library FullMarginLibV2 {
         Balance[] memory payouts,
         IGrappa grappa
     ) public {
+        // consoleG.log("settleAtExpiry engine balance before");
+        // consoleG.log(IERC20(0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599).balanceOf(address(this)));
+        // consoleG.log("settleAtExpiry account balance before");
+        // consoleG.log(account.collaterals[0].amount);
+
         _settleShorts(account);
+
+        // consoleG.log("settleAtExpiry engine balance after shorts settled");
+        // consoleG.log(IERC20(0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599).balanceOf(address(this)));
+        // consoleG.log("settleAtExpiry account balance after shorts settled");
+        // consoleG.log(account.collaterals[0].amount);
+
         _settleLongs(account, grappa);
+
+        // consoleG.log("settleAtExpiry engine balance after longs settled");
+        // consoleG.log(IERC20(0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599).balanceOf(address(this)));
+        // consoleG.log("settleAtExpiry account balance after longs settled");
+        // consoleG.log(account.collaterals[0].amount);
 
         Balance[] memory collaterals = account.collaterals;
         for (uint256 i; i < payouts.length; ) {
@@ -167,6 +184,9 @@ library FullMarginLibV2 {
                 ++i;
             }
         }
+
+        // consoleG.log("settleAtExpiry account balance final");
+        // consoleG.log(account.collaterals[0].amount);
     }
 
     function _settleShorts(FullMarginAccountV2 storage account) public {
@@ -203,8 +223,15 @@ library FullMarginLibV2 {
             }
         }
 
+        // consoleG.log("_settleLongs tokenIds");
+        // consoleG.log(tokenIds);
+        // consoleG.log("_settleLongs amounts");
+        // consoleG.log(amounts);
+
         if (tokenIds.length > 0) {
             Balance[] memory payouts = grappa.batchSettleOptions(address(this), tokenIds, amounts);
+            // consoleG.log("_settleLongs payouts[0].amount");
+            // consoleG.log(payouts[0].amount);
 
             for (i = 0; i < payouts.length; ) {
                 addCollateral(account, payouts[i].collateralId, payouts[i].amount);

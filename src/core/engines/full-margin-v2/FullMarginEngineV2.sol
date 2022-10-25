@@ -252,10 +252,14 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
      * @return isHealthy true if account is in good condition, false if it's underwater (liquidatable)
      */
     function _isAccountAboveWater(address _subAccount) internal view override returns (bool isHealthy) {
+        // consoleG.log("_isAccountAboveWater _subAccount", _subAccount);
         FullMarginAccountV2 memory account = accounts[_subAccount];
         SBalance[] memory balances = _getMinCollateral(account);
 
         for (uint256 i; i < balances.length; ) {
+            // consoleG.log("_isAccountAboveWater balances[i].collateralId", balances[i].collateralId);
+            // consoleG.log("_isAccountAboveWater balances[i].amount");
+            // consoleG.logInt(balances[i].amount);
             if (balances[i].amount < 0) return false;
 
             unchecked {
@@ -367,6 +371,9 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
             FullMarginDetailV2 memory detail = details[i];
 
             (int256 cashCollateralNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+
+            // consoleG.log("_getMinCollateral underlyingNeeded");
+            // consoleG.logInt(underlyingNeeded);
 
             if (cashCollateralNeeded != 0) {
                 (found, index) = balances.indexOf(detail.collateralId);

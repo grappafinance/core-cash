@@ -286,6 +286,36 @@ contract TestStructures_FMMV2 is Test {
         assertEq(underlyingNeeded, int256((1 * UNIT) / 22000));
     }
 
+    function testMarginCallSpreadSameUnderlyingCollateralBiggerNumbers() public {
+        callWeights = new int256[](2);
+        callWeights[0] = -100000 * sUNIT;
+        callWeights[1] = 100000 * sUNIT;
+
+        callStrikes = new uint256[](2);
+        callStrikes[0] = 21000 * UNIT;
+        callStrikes[1] = 22000 * UNIT;
+
+        putWeights = new int256[](0);
+        putStrikes = new uint256[](0);
+
+        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+            putWeights: putWeights,
+            putStrikes: putStrikes,
+            callWeights: callWeights,
+            callStrikes: callStrikes,
+            underlyingId: 0,
+            underlyingDecimals: UNIT_DECIMALS,
+            collateralId: 0,
+            collateralDecimals: UNIT_DECIMALS,
+            spotPrice: spotPrice,
+            expiry: 0
+        });
+
+        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, sZERO);
+        assertEq(underlyingNeeded, int256((1000 * UNIT) / 22000));
+    }
+
     function testMarginCallsBasicallyLongAnOption() public {
         callWeights = new int256[](2);
         callWeights[0] = 1 * sUNIT;

@@ -196,4 +196,16 @@ library ActionUtil {
         }
         y[i] = v;
     }
+
+    function append(BatchExecute[] memory x, BatchExecute memory v) internal pure returns (BatchExecute[] memory y) {
+        y = new BatchExecute[](x.length + 1);
+        uint256 i;
+        for (i; i < x.length; ) {
+            y[i] = x[i];
+            unchecked {
+                ++i;
+            }
+        }
+        y[i] = v;
+    }
 }

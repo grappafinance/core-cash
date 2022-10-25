@@ -401,14 +401,36 @@ library ArrayUtil {
         }
     }
 
-    function mulEachBy(int256[] memory x, int256 z) internal pure returns (int256[] memory y) {
+    function eachMulDivDown(
+        int256[] memory x,
+        int256 z,
+        int256 d
+    ) internal pure returns (int256[] memory y) {
+        y = new int256[](x.length);
+        for (uint256 i = 0; i < x.length; i++) {
+            y[i] = (x[i] * z) / d;
+        }
+    }
+
+    function eachMulDivUp(
+        int256[] memory x,
+        int256 z,
+        int256 d
+    ) internal pure returns (int256[] memory y) {
+        y = new int256[](x.length);
+        for (uint256 i = 0; i < x.length; i++) {
+            y[i] = ((x[i] * z) / d) + 1;
+        }
+    }
+
+    function eachMul(int256[] memory x, int256 z) internal pure returns (int256[] memory y) {
         y = new int256[](x.length);
         for (uint256 i = 0; i < x.length; i++) {
             y[i] = x[i] * z;
         }
     }
 
-    function divEachBy(int256[] memory x, int256 z) internal pure returns (int256[] memory y) {
+    function eachDiv(int256[] memory x, int256 z) internal pure returns (int256[] memory y) {
         y = new int256[](x.length);
         for (uint256 i = 0; i < x.length; i++) {
             y[i] = x[i] / z;

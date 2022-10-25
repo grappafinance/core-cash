@@ -26,6 +26,8 @@ import "../config/enums.sol";
 import "../config/constants.sol";
 import "../config/errors.sol";
 
+import "../test/utils/Console.sol";
+
 /**
  * @title   Grappa
  * @author  @antoncoding, @dsshap

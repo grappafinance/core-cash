@@ -74,10 +74,24 @@ library FullMarginMathV2 {
             strikes
         );
 
+        // consoleG.log("MarginMath cashNeeded pre conversion");
+        // consoleG.logInt(cashNeeded);
+
+        // consoleG.log("MarginMath underlyingNeeded pre conversion");
+        // consoleG.logInt(underlyingNeeded);
+
         if (cashNeeded > 0 && _detail.underlyingId == _detail.collateralId) {
             cashNeeded = 0;
-            underlyingNeeded = convertCashCollateralToUnderlyingNeeded(
+            // underlyingNeeded = convertCashCollateralToUnderlyingNeeded(
+            //     poisAndPayouts,
+            //     underlyingNeeded,
+            //     _detail.putStrikes.length > 0
+            // );
+            (, underlyingNeeded) = checkHedgableTailRisk(
+                _detail,
                 poisAndPayouts,
+                strikes,
+                syntheticUnderlyingWeight,
                 underlyingNeeded,
                 _detail.putStrikes.length > 0
             );
@@ -90,10 +104,10 @@ library FullMarginMathV2 {
             .convertDecimals(underlyingNeeded.toUint256(), UNIT_DECIMALS, _detail.underlyingDecimals)
             .toInt256();
 
-        // consoleG.log("cashNeeded post conversion");
+        // consoleG.log("MarginMath cashNeeded post conversion");
         // consoleG.logInt(cashNeeded);
 
-        // consoleG.log("underlyingNeeded post conversion");
+        // consoleG.log("MarginMath underlyingNeeded post conversion");
         // consoleG.logInt(underlyingNeeded);
     }
 
@@ -102,7 +116,7 @@ library FullMarginMathV2 {
         PoisAndPayouts memory poisAndPayouts,
         int256 syntheticUnderlyingWeight,
         uint256[] memory strikes
-    ) public view returns (int256 cashNeeded, int256 underlyingNeeded) {
+    ) private view returns (int256 cashNeeded, int256 underlyingNeeded) {
         int256 leftDelta;
         bool hasCalls = _detail.callStrikes.length > 0;
         bool hasPuts = _detail.putStrikes.length > 0;
@@ -126,6 +140,235 @@ library FullMarginMathV2 {
         // );
     }
 
+    function baseSetup(FullMarginDetailV2 memory _detail)
+        private
+        view
+        returns (
+            uint256[] memory strikes,
+            int256 syntheticUnderlyingWeight,
+            uint256[] memory pois,
+            int256[] memory payouts
+        )
+    {
+        int256[] memory weights;
+        int256 intrinsicValue;
+
+        (strikes, weights, syntheticUnderlyingWeight, intrinsicValue) = convertPutsToCalls(_detail);
+
+        // consoleG.log("MarginMath strikes");
+        // consoleG.log(strikes);
+
+        // consoleG.log("MarginMath weights");
+        // consoleG.log(weights);
+
+        pois = createPois(_detail.putStrikes, strikes, _detail.spotPrice);
+
+        // consoleG.log("MarginMath pois");
+        // consoleG.log(pois);
+
+        payouts = calcPayouts(
+            PayoutsParams(pois, strikes, weights, syntheticUnderlyingWeight, _detail.spotPrice, intrinsicValue)
+        );
+    }
+
+    function createPois(
+        uint256[] memory putStrikes,
+        uint256[] memory strikes,
+        uint256 spotPrice
+    ) private view returns (uint256[] memory pois) {
+        uint256 epsilon = spotPrice / 10;
+
+        bool hasPuts = putStrikes.length > 0;
+
+        // left of left-most + strikes + right of right-most
+        uint256 poiCount = (hasPuts ? 1 : 0) + strikes.length + 1;
+
+        pois = new uint256[](poiCount);
+
+        if (putStrikes.length > 0) pois[0] = strikes.min() - epsilon;
+
+        for (uint256 i; i < strikes.length; ) {
+            uint256 offset = hasPuts ? 1 : 0;
+
+            pois[i + offset] = strikes[i];
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        pois[pois.length - 1] = strikes.max() + epsilon;
+    }
+
+    function convertPutsToCalls(FullMarginDetailV2 memory _detail)
+        private
+        pure
+        returns (
+            uint256[] memory strikes,
+            int256[] memory weights,
+            int256 syntheticUnderlyingWeight,
+            int256 intrinsicValue
+        )
+    {
+        if (_detail.putWeights.length != _detail.putStrikes.length) revert FMMV2_InvalidPutLengths();
+        if (_detail.callWeights.length != _detail.callStrikes.length) revert FMMV2_InvalidCallLengths();
+
+        strikes = _detail.putStrikes.concat(_detail.callStrikes);
+
+        int256[] memory synthCallWeights = new int256[](_detail.putWeights.length);
+
+        synthCallWeights = synthCallWeights.populate(_detail.putWeights, 0);
+
+        weights = synthCallWeights.concat(_detail.callWeights);
+
+        // sorting strikes
+        uint256[] memory indexes;
+        (strikes, indexes) = strikes.argSort();
+
+        // sorting weights based on strike sorted index
+        weights = weights.sortByIndexes(indexes);
+
+        syntheticUnderlyingWeight = -_detail.putWeights.sum();
+
+        intrinsicValue = _detail.putStrikes.subEachFrom(_detail.spotPrice).maximum(0).dot(_detail.putWeights) / sUNIT;
+
+        intrinsicValue = -intrinsicValue;
+    }
+
+    function calcPayouts(PayoutsParams memory params) private view returns (int256[] memory payouts) {
+        payouts = new int256[](params.pois.length);
+
+        for (uint256 i; i < params.strikes.length; ) {
+            payouts = payouts.add(
+                params.pois.subEachBy(params.strikes[i]).maximum(0).eachMulDivDown(params.weights[i], sUNIT)
+            );
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        payouts = payouts
+            .add(params.pois.subEachBy(params.spotPrice).eachMulDivDown(params.syntheticUnderlyingWeight, sUNIT))
+            .addEachBy(params.intrinsicValue);
+
+        // consoleG.log("calcPayouts payouts");
+        // consoleG.log(payouts);
+    }
+
+    function calcPutPayouts(uint256[] memory strikes, int256[] memory weights)
+        private
+        view
+        returns (int256[] memory putPayouts)
+    {
+        putPayouts = new int256[](strikes.length);
+
+        for (uint256 i; i < strikes.length; ) {
+            putPayouts = putPayouts.add(strikes.subEachFrom(strikes[i]).maximum(0).eachMul(weights[i]));
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    function calcSlope(int256[] memory leftPoint, int256[] memory rightPoint) private pure returns (int256) {
+        if (leftPoint[0] > rightPoint[0]) revert FMMV2_BadPoints();
+        if (leftPoint.length != 2) revert FMMV2_InvalidLeftPointLength();
+        if (leftPoint.length != rightPoint.length) revert FMMV2_InvalidRightPointLength();
+
+        return (((rightPoint[1] - leftPoint[1]) * sUNIT) / (rightPoint[0] - leftPoint[0]));
+    }
+
+    // this computes the slope to the right of the right most strike, resulting in the delta hedge (underlying)
+    function getUnderlyingNeeded(PoisAndPayouts memory poisAndPayouts)
+        private
+        pure
+        returns (int256 underlyingNeeded, int256 rightDelta)
+    {
+        int256[] memory leftPoint = new int256[](2);
+        leftPoint[0] = poisAndPayouts.pois.at(-2).toInt256();
+        leftPoint[1] = poisAndPayouts.payouts.at(-2);
+
+        int256[] memory rightPoint = new int256[](2);
+        rightPoint[0] = poisAndPayouts.pois.at(-1).toInt256();
+        rightPoint[1] = poisAndPayouts.payouts.at(-1);
+
+        // slope
+        rightDelta = calcSlope(leftPoint, rightPoint);
+        underlyingNeeded = rightDelta < sZERO ? -rightDelta : sZERO;
+    }
+
+    // this computes the slope to the left of the left most strike
+    function getCashNeeded(
+        int256[] memory payouts,
+        int256 leftDelta,
+        uint256 minStrike
+    ) private pure returns (int256 cashNeeded) {
+        cashNeeded = ((minStrike.toInt256() * leftDelta) / sUNIT) - payouts[1];
+
+        if (cashNeeded < sZERO) cashNeeded = sZERO;
+    }
+
+    function getUnderlyingAdjustedCashNeeded(
+        PoisAndPayouts memory poisAndPayouts,
+        int256 cashNeeded,
+        int256 underlyingNeeded,
+        bool hasPuts
+    ) private pure returns (int256) {
+        int256 minStrikePayout = -poisAndPayouts.payouts.slice(hasPuts ? int256(1) : sZERO, -1).min();
+
+        if (cashNeeded < minStrikePayout) {
+            (, uint256 index) = poisAndPayouts.payouts.indexOf(-minStrikePayout);
+            int256 underlyingPayoutAtMinStrike = (poisAndPayouts.pois[index].toInt256() * underlyingNeeded) / sUNIT;
+
+            if (underlyingPayoutAtMinStrike - minStrikePayout > 0) cashNeeded = 0;
+            else cashNeeded = minStrikePayout - underlyingPayoutAtMinStrike;
+        }
+
+        return cashNeeded;
+    }
+
+    function convertCashCollateralToUnderlyingNeeded(
+        PoisAndPayouts memory poisAndPayouts,
+        int256 underlyingNeeded,
+        bool hasPuts
+    ) private view returns (int256) {
+        uint256 start = hasPuts ? 1 : 0;
+        // could have used payouts as well
+        uint256 end = poisAndPayouts.pois.length - 1;
+
+        int256[] memory underlyingNeededAtStrikes = new int256[](end - start);
+
+        uint256 y;
+        for (uint256 i = start; i < end; ) {
+            int256 strike = poisAndPayouts.pois[i].toInt256();
+            int256 payout = poisAndPayouts.payouts[i];
+
+            // consoleG.log("convertCashCollateralToUnderlyingNeeded strike");
+            // consoleG.logInt(strike);
+            // consoleG.log("convertCashCollateralToUnderlyingNeeded payout");
+            // consoleG.logInt(payout);
+
+            payout = payout < 0 ? -payout : sZERO;
+
+            underlyingNeededAtStrikes[y] = (payout * sUNIT) / strike;
+
+            // consoleG.log("convertCashCollateralToUnderlyingNeeded underlyingNeededAtStrike");
+            consoleG.logInt(underlyingNeededAtStrikes[y]);
+
+            unchecked {
+                ++y;
+                ++i;
+            }
+        }
+
+        int256 max = underlyingNeededAtStrikes.max();
+
+        return max > underlyingNeeded ? max : underlyingNeeded;
+    }
+
+    // Not Currently Used
     function checkHedgableTailRisk(
         FullMarginDetailV2 memory _detail,
         PoisAndPayouts memory poisAndPayouts,
@@ -163,219 +406,5 @@ library FullMarginMathV2 {
 
             underlyingOnlyNeeded = negPayoutsOverPois.max();
         }
-    }
-
-    function baseSetup(FullMarginDetailV2 memory _detail)
-        public
-        view
-        returns (
-            uint256[] memory strikes,
-            int256 syntheticUnderlyingWeight,
-            uint256[] memory pois,
-            int256[] memory payouts
-        )
-    {
-        int256[] memory weights;
-        int256 intrinsicValue;
-
-        (strikes, weights, syntheticUnderlyingWeight, intrinsicValue) = convertPutsToCalls(_detail);
-
-        // consoleG.log("strikes");
-        // consoleG.log(strikes);
-
-        // consoleG.log("weights");
-        // consoleG.log(weights);
-
-        pois = createPois(_detail.putStrikes, strikes, _detail.spotPrice);
-
-        payouts = calcPayouts(
-            PayoutsParams(pois, strikes, weights, syntheticUnderlyingWeight, _detail.spotPrice, intrinsicValue)
-        );
-    }
-
-    function createPois(
-        uint256[] memory putStrikes,
-        uint256[] memory strikes,
-        uint256 spotPrice
-    ) public view returns (uint256[] memory pois) {
-        uint256 epsilon = spotPrice / 10;
-
-        bool hasPuts = putStrikes.length > 0;
-
-        // left of left-most + strikes + right of right-most
-        uint256 poiCount = (hasPuts ? 1 : 0) + strikes.length + 1;
-
-        pois = new uint256[](poiCount);
-
-        if (putStrikes.length > 0) pois[0] = strikes.min() - epsilon;
-
-        for (uint256 i; i < strikes.length; ) {
-            uint256 offset = hasPuts ? 1 : 0;
-
-            pois[i + offset] = strikes[i];
-
-            unchecked {
-                ++i;
-            }
-        }
-
-        pois[pois.length - 1] = strikes.max() + epsilon;
-    }
-
-    function convertPutsToCalls(FullMarginDetailV2 memory _detail)
-        public
-        pure
-        returns (
-            uint256[] memory strikes,
-            int256[] memory weights,
-            int256 syntheticUnderlyingWeight,
-            int256 intrinsicValue
-        )
-    {
-        if (_detail.putWeights.length != _detail.putStrikes.length) revert FMMV2_InvalidPutLengths();
-        if (_detail.callWeights.length != _detail.callStrikes.length) revert FMMV2_InvalidCallLengths();
-
-        strikes = _detail.putStrikes.concat(_detail.callStrikes);
-
-        int256[] memory synthCallWeights = new int256[](_detail.putWeights.length);
-
-        synthCallWeights = synthCallWeights.populate(_detail.putWeights, 0);
-
-        weights = synthCallWeights.concat(_detail.callWeights);
-
-        // sorting strikes
-        uint256[] memory indexes;
-        (strikes, indexes) = strikes.argSort();
-
-        // sorting weights based on strike sorted index
-        weights = weights.sortByIndexes(indexes);
-
-        syntheticUnderlyingWeight = -_detail.putWeights.sum();
-
-        intrinsicValue = _detail.putStrikes.subEachFrom(_detail.spotPrice).maximum(0).dot(_detail.putWeights) / sUNIT;
-
-        intrinsicValue = -intrinsicValue;
-    }
-
-    function calcPayouts(PayoutsParams memory params) public pure returns (int256[] memory payouts) {
-        payouts = new int256[](params.pois.length);
-
-        for (uint256 i; i < params.strikes.length; ) {
-            payouts = payouts.add(
-                params.pois.subEachBy(params.strikes[i]).maximum(0).mulEachBy(params.weights[i]).divEachBy(sUNIT)
-            );
-
-            unchecked {
-                ++i;
-            }
-        }
-
-        payouts = payouts
-            .add(params.pois.subEachBy(params.spotPrice).mulEachBy(params.syntheticUnderlyingWeight).divEachBy(sUNIT))
-            .addEachBy(params.intrinsicValue);
-    }
-
-    function calcPutPayouts(uint256[] memory strikes, int256[] memory weights)
-        public
-        view
-        returns (int256[] memory putPayouts)
-    {
-        putPayouts = new int256[](strikes.length);
-
-        for (uint256 i; i < strikes.length; ) {
-            putPayouts = putPayouts.add(strikes.subEachFrom(strikes[i]).maximum(0).mulEachBy(weights[i]));
-
-            unchecked {
-                ++i;
-            }
-        }
-    }
-
-    function calcSlope(int256[] memory leftPoint, int256[] memory rightPoint) public pure returns (int256) {
-        if (leftPoint[0] > rightPoint[0]) revert FMMV2_BadPoints();
-        if (leftPoint.length != 2) revert FMMV2_InvalidLeftPointLength();
-        if (leftPoint.length != rightPoint.length) revert FMMV2_InvalidRightPointLength();
-
-        return (((rightPoint[1] - leftPoint[1]) * sUNIT) / (rightPoint[0] - leftPoint[0]));
-    }
-
-    // this computes the slope to the right of the right most strike, resulting in the delta hedge (underlying)
-    function getUnderlyingNeeded(PoisAndPayouts memory poisAndPayouts)
-        public
-        pure
-        returns (int256 underlyingNeeded, int256 rightDelta)
-    {
-        int256[] memory leftPoint = new int256[](2);
-        leftPoint[0] = poisAndPayouts.pois.at(-2).toInt256();
-        leftPoint[1] = poisAndPayouts.payouts.at(-2);
-
-        int256[] memory rightPoint = new int256[](2);
-        rightPoint[0] = poisAndPayouts.pois.at(-1).toInt256();
-        rightPoint[1] = poisAndPayouts.payouts.at(-1);
-
-        // slope
-        rightDelta = calcSlope(leftPoint, rightPoint);
-        underlyingNeeded = rightDelta < sZERO ? -rightDelta : sZERO;
-    }
-
-    // this computes the slope to the left of the left most strike
-    function getCashNeeded(
-        int256[] memory payouts,
-        int256 leftDelta,
-        uint256 minStrike
-    ) public pure returns (int256 cashNeeded) {
-        cashNeeded = ((minStrike.toInt256() * leftDelta) / sUNIT) - payouts[1];
-
-        if (cashNeeded < sZERO) cashNeeded = sZERO;
-    }
-
-    function getUnderlyingAdjustedCashNeeded(
-        PoisAndPayouts memory poisAndPayouts,
-        int256 cashNeeded,
-        int256 underlyingNeeded,
-        bool hasPuts
-    ) public pure returns (int256) {
-        int256 minStrikePayout = -poisAndPayouts.payouts.slice(hasPuts ? int256(1) : sZERO, -1).min();
-
-        if (cashNeeded < minStrikePayout) {
-            (, uint256 index) = poisAndPayouts.payouts.indexOf(-minStrikePayout);
-            int256 underlyingPayoutAtMinStrike = (poisAndPayouts.pois[index].toInt256() * underlyingNeeded) / sUNIT;
-
-            if (underlyingPayoutAtMinStrike - minStrikePayout > 0) cashNeeded = 0;
-            else cashNeeded = minStrikePayout - underlyingPayoutAtMinStrike;
-        }
-
-        return cashNeeded;
-    }
-
-    function convertCashCollateralToUnderlyingNeeded(
-        PoisAndPayouts memory poisAndPayouts,
-        int256 underlyingNeeded,
-        bool hasPuts
-    ) public pure returns (int256) {
-        uint256 start = hasPuts ? 1 : 0;
-        // could have used payouts as well
-        uint256 end = poisAndPayouts.pois.length - 1;
-
-        int256[] memory underlyingNeededAtStrikes = new int256[](end - start);
-
-        uint256 y;
-        for (uint256 i = start; i < end; ) {
-            int256 strike = poisAndPayouts.pois[i].toInt256();
-            int256 payout = poisAndPayouts.payouts[i];
-
-            payout = payout < 0 ? -payout : sZERO;
-
-            underlyingNeededAtStrikes[y] = (payout * sUNIT) / strike;
-
-            unchecked {
-                y++;
-                ++i;
-            }
-        }
-
-        int256 max = underlyingNeededAtStrikes.max();
-
-        return max > underlyingNeeded ? max : underlyingNeeded;
     }
 }
