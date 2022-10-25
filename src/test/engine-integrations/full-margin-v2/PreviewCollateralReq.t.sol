@@ -186,4 +186,28 @@ contract TestpreviewMinCollateral_FMMV2 is FullMarginFixtureV2 {
         assertEq(balances[1].collateralId, wethId);
         assertEq(balances[1].amount, 2 * 1e18);
     }
+
+    function testSimulateCollateralReq_ShortStrangle() public {
+        Position[] memory shorts;
+        Position[] memory longs;
+
+        oracle.setSpotPrice(address(weth), 1800 * UNIT);
+
+        uint256 p1600 = getTokenId(TokenType.PUT, pidUsdcCollat, expiry, 1600 * UNIT, 0);
+        uint256 c1900 = getTokenId(TokenType.CALL, pidEthCollat, expiry, 1900 * UNIT, 0);
+
+        shorts = new Position[](2);
+        shorts[0] = Position(p1600, uint64(1 * UNIT));
+        shorts[1] = Position(c1900, uint64(1 * UNIT));
+
+        longs = new Position[](0);
+
+        Balance[] memory balances = engine.previewMinCollateral(shorts, longs);
+
+        assertEq(balances.length, 2);
+        assertEq(balances[0].collateralId, usdcId);
+        assertEq(balances[0].amount, 1600 * 1e6);
+        assertEq(balances[1].collateralId, wethId);
+        assertEq(balances[1].amount, 1 * 1e18);
+    }
 }
