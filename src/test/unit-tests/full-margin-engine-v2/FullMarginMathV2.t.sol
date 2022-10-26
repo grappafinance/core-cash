@@ -313,7 +313,7 @@ contract TestStructures_FMMV2 is Test {
 
         (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
         assertEq(cashNeeded, sZERO);
-        assertEq(underlyingNeeded, int256((1000 * UNIT) / 22000));
+        assertEq(underlyingNeeded, int256((1000_00000 * UNIT) / 22000));
     }
 
     function testMarginCallsBasicallyLongAnOption() public {

@@ -71,14 +71,14 @@ library AccountUtil {
             y[v] = a[i];
             unchecked {
                 ++i;
-                v++;
+                ++v;
             }
         }
         for (i = 0; i < b.length; ) {
             y[v] = b[i];
             unchecked {
                 ++i;
-                v++;
+                ++v;
             }
         }
     }

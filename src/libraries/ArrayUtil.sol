@@ -231,15 +231,21 @@ library ArrayUtil {
 
     function concat(int256[] memory a, int256[] memory b) internal pure returns (int256[] memory y) {
         y = new int256[](a.length + b.length);
-        uint256 v = 0;
+        uint256 v;
         uint256 i;
-        for (i = 0; i < a.length; i++) {
+        for (i; i < a.length; ) {
             y[v] = a[i];
-            v++;
+            unchecked {
+                ++i;
+                ++v;
+            }
         }
-        for (i = 0; i < b.length; i++) {
+        for (i = 0; i < b.length; ) {
             y[v] = b[i];
-            v++;
+            unchecked {
+                ++i;
+                ++v;
+            }
         }
     }
 
@@ -313,7 +319,7 @@ library ArrayUtil {
         uint256 y = 0;
         for (uint256 i = start; i < end; i++) {
             a[y] = x[i];
-            y++;
+            ++y;
         }
     }
 
