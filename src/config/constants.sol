@@ -9,3 +9,6 @@ uint256 constant UNIT = 10**6;
 
 ///@dev basic point for 100%.
 uint256 constant BPS = 10000;
+
+///@dev maximum dispute period for oracle
+uint256 constant MAX_DISPUTE_PERIOD = 6 hours;

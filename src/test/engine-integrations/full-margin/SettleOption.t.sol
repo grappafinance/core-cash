@@ -42,6 +42,12 @@ contract TestSettleCoveredCall_FM is FullMarginFixture {
         vm.warp(expiry);
     }
 
+    function testShouldRevertIfPriceIsNotFinalized() public {
+        oracle.setExpiryPrice(address(weth), address(usdc), strike, false);
+        vm.expectRevert(GP_PriceNotFinalized.selector);
+        grappa.settleOption(alice, tokenId, amount);
+    }
+
     function testShouldGetNothingIfExpiresOTM() public {
         // expires out the money
         oracle.setExpiryPrice(address(weth), address(usdc), strike - 1);

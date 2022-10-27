@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+// for easier import
+import "../core/oracles/errors.sol";
+
 // Errors
 
 // Univeral Errors
@@ -14,14 +17,20 @@ error GP_AssetAlreadyRegistered();
 /// @dev margin engine already registered
 error GP_EngineAlreadyRegistered();
 
-/// @dev margin engine already registered
+/// @dev oracle already registered
 error GP_OracleAlreadyRegistered();
+
+/// @dev registring oracle doesn't comply with the max dispute period constraint.
+error GP_BadOracle();
 
 /// @dev amounts length speicified to batch settle doesn't match with tokenIds
 error GP_WrongArgumentLength();
 
 /// @dev cannot settle an unexpired option
 error GP_NotExpired();
+
+/// @dev settlement price is not finalized yet
+error GP_PriceNotFinalized();
 
 // Common error in BaseMargin
 
@@ -119,22 +128,6 @@ error OT_InvalidExpiry();
 
 /// @dev put and call should not contain "short stirkes"
 error OT_BadStrikes();
-
-// Chainlink Pricer Errors
-
-error CL_AggregatorNotSet();
-
-error CL_StaleAnswer();
-
-error CL_RoundIdTooSmall();
-
-// Oracle Errors
-
-error OC_OnlyPricerCanWrite();
-
-error OC_CannotReportForFuture();
-
-error OC_PriceNotReported();
 
 // Vol Oracle
 

@@ -321,6 +321,9 @@ contract Grappa is Ownable, IGrappa {
     function registerOracle(address _oracle) external onlyOwner returns (uint8 id) {
         if (oracleIds[_oracle] != 0) revert GP_OracleAlreadyRegistered();
 
+        // this is a soft check on whether an oracle is suitable to be used.
+        if (IOracle(_oracle).maxDisputePeriod() > MAX_DISPUTE_PERIOD) revert GP_BadOracle();
+
         id = ++nextOracleId;
         oracles[id] = _oracle;
 
@@ -362,7 +365,7 @@ contract Grappa is Ownable, IGrappa {
         ) = getDetailFromProductId(productId);
 
         // expiry price of underlying, denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
-        uint256 expiryPrice = IOracle(oracle).getPriceAtExpiry(underlying, strike, expiry);
+        uint256 expiryPrice = _getSettlementPrice(oracle, underlying, strike, expiry);
 
         // cash value denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
         uint256 cashValue;
@@ -382,11 +385,29 @@ contract Grappa is Ownable, IGrappa {
             cashValue = cashValue.mulDivDown(UNIT, expiryPrice);
         } else if (collateral != strike) {
             // collateral is not underlying nor strike
-            uint256 collateralPrice = IOracle(oracle).getPriceAtExpiry(collateral, strike, expiry);
+            uint256 collateralPrice = _getSettlementPrice(oracle, collateral, strike, expiry);
             cashValue = cashValue.mulDivDown(UNIT, collateralPrice);
         }
         payoutPerOption = cashValue.convertDecimals(UNIT_DECIMALS, collateralDecimals);
 
         return (engine, collateral, payoutPerOption);
+    }
+
+    /**
+     * @dev check settlement price is finalized from oracle, and return price
+     * @param _oracle oracle contract address
+     * @param _base base asset (ETH is base asset while requesting ETH / USD)
+     * @param _quote quote asset (USD is base asset while requesting ETH / USD)
+     * @param _expiry expiry timestamp
+     */
+    function _getSettlementPrice(
+        address _oracle,
+        address _base,
+        address _quote,
+        uint256 _expiry
+    ) internal view returns (uint256) {
+        (uint256 price, bool isFinalized) = IOracle(_oracle).getPriceAtExpiry(_base, _quote, _expiry);
+        if (!isFinalized) revert GP_PriceNotFinalized();
+        return price;
     }
 }

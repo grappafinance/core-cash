@@ -13,7 +13,7 @@ import {MockChainlinkAggregator} from "../../mocks/MockChainlinkAggregator.sol";
 import "../../../config/enums.sol";
 import "../../../config/types.sol";
 import "../../../config/constants.sol";
-import "../../../config/errors.sol";
+import "../../../core/oracles/errors.sol";
 
 /**
  * @dev test internal function _toPriceWithUnitDecimals
@@ -104,6 +104,11 @@ contract ChainlinkOracleConfigurationTest is Test {
 
         oracle = new ChainlinkOracle();
         aggregator = address(new MockChainlinkAggregator(8));
+    }
+
+    function testDisputePeriodIs0() public {
+        uint256 period = oracle.maxDisputePeriod();
+        assertEq(period, 0);
     }
 
     function testOwnerCanSetAggregator() public {
@@ -271,8 +276,15 @@ contract ChainlinkOracleTestWriteOracle is Test {
     function testCanReportPrice() public {
         oracle.reportExpiryPrice(weth, usdc, expiry, wethRoundIdToReport, usdcRoundIdToReport);
 
-        uint256 price = oracle.getPriceAtExpiry(weth, usdc, expiry);
+        (uint256 price, ) = oracle.getPriceAtExpiry(weth, usdc, expiry);
         assertEq(price, 4000 * UNIT);
+    }
+
+    function testCannotReportPriceTwice() public {
+        oracle.reportExpiryPrice(weth, usdc, expiry, wethRoundIdToReport, usdcRoundIdToReport);
+
+        vm.expectRevert(OC_PriceReported.selector);
+        oracle.reportExpiryPrice(weth, usdc, expiry, wethRoundIdToReport, usdcRoundIdToReport);
     }
 
     function testCannotGetUnreportedExpiry() public {

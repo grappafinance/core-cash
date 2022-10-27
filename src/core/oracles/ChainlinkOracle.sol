@@ -10,7 +10,7 @@ import {IOracle} from "../../interfaces/IOracle.sol";
 import {IAggregatorV3} from "../../interfaces/IAggregatorV3.sol";
 
 // constants and types
-import "../../config/errors.sol";
+import "./errors.sol";
 import "../../config/constants.sol";
 
 /**
@@ -23,7 +23,8 @@ contract ChainlinkOracle is IOracle, Ownable {
     using SafeCastLib for uint256;
 
     struct ExpiryPrice {
-        bool reported;
+        bool isDisputed;
+        uint64 reportAt;
         uint128 price;
     }
 
@@ -41,15 +42,19 @@ contract ChainlinkOracle is IOracle, Ownable {
     mapping(address => AggregatorData) public aggregators;
 
     /*///////////////////////////////////////////////////////////////
+                                 Events
+    //////////////////////////////////////////////////////////////*/
+
+    event ExpiryPriceSet(address base, address quote, uint256 expiry, uint256 price, bool isDispute);
+
+    /*///////////////////////////////////////////////////////////////
                             External Functions
     //////////////////////////////////////////////////////////////*/
 
     /**
      * @notice  get spot price of _base, denominated in _quote.
-     *
      * @param _base base asset. for ETH/USD price, ETH is the base asset
      * @param _quote quote asset. for ETH/USD price, USD is the quote asset
-     *
      * @return price with 6 decimals
      */
     function getSpotPrice(address _base, address _quote) external view returns (uint256) {
@@ -61,22 +66,28 @@ contract ChainlinkOracle is IOracle, Ownable {
     /**
      * @dev get expiry price of underlying, denominated in strike asset.
             can revert if expiry is in the future, or the price has not been reported by authorized party
-     *
      * @param _base base asset. for ETH/USD price, ETH is the base asset
      * @param _quote quote asset. for ETH/USD price, USD is the quote asset
      * @param _expiry expiry timestamp
-     *
      * @return price with 6 decimals
      */
     function getPriceAtExpiry(
         address _base,
         address _quote,
         uint256 _expiry
-    ) external view returns (uint256 price) {
+    ) external view returns (uint256 price, bool isFinalized) {
         ExpiryPrice memory data = expiryPrices[_base][_quote][_expiry];
-        if (!data.reported) revert OC_PriceNotReported();
+        if (data.reportAt == 0) revert OC_PriceNotReported();
 
-        return data.price;
+        return (data.price, _isExpiryPriceFinalized(_base, _quote, _expiry));
+    }
+
+    /**
+     * @dev return the maximum dispute period for the oracle
+     * @dev this oracle has no dispute mechanism, as long as a price is reported, it can be used to settle.
+     */
+    function maxDisputePeriod() external view virtual returns (uint256) {
+        return 0;
     }
 
     /**
@@ -90,14 +101,16 @@ contract ChainlinkOracle is IOracle, Ownable {
         uint80 _baseRoundId,
         uint80 _quoteRoundId
     ) external {
+        if (_expiry > block.timestamp) revert OC_CannotReportForFuture();
+        if (expiryPrices[_base][_quote][_expiry].reportAt != 0) revert OC_PriceReported();
+
         (uint256 basePrice, uint8 baseDecimals) = _getLastPriceBeforeExpiry(_base, _baseRoundId, _expiry);
         (uint256 quotePrice, uint8 quoteDecimals) = _getLastPriceBeforeExpiry(_quote, _quoteRoundId, _expiry);
         uint256 price = _toPriceWithUnitDecimals(basePrice, quotePrice, baseDecimals, quoteDecimals);
 
-        // revert when trying to set price for the future
-        if (_expiry > block.timestamp) revert OC_CannotReportForFuture();
+        expiryPrices[_base][_quote][_expiry] = ExpiryPrice(false, uint64(block.timestamp), price.safeCastTo128());
 
-        expiryPrices[_base][_quote][_expiry] = ExpiryPrice(true, price.safeCastTo128());
+        emit ExpiryPriceSet(_base, _quote, _expiry, price, false);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -120,6 +133,18 @@ contract ChainlinkOracle is IOracle, Ownable {
     /*///////////////////////////////////////////////////////////////
                             Internal functions
     //////////////////////////////////////////////////////////////*/
+
+    /**
+     * @dev this oracle has no dispute mechanism, so always return true.
+     *      a un-reported price should have reverted at this point.
+     */
+    function _isExpiryPriceFinalized(
+        address,
+        address,
+        uint256
+    ) internal view virtual returns (bool) {
+        return true;
+    }
 
     /**
      * @notice  convert prices from aggregator of base & quote asset to base / quote, denominated in UNIT
