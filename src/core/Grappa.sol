@@ -26,8 +26,6 @@ import "../config/enums.sol";
 import "../config/constants.sol";
 import "../config/errors.sol";
 
-import "../test/utils/Console.sol";
-
 /**
  * @title   Grappa
  * @author  @antoncoding, @dsshap
@@ -265,6 +263,22 @@ contract Grappa is Ownable, ReentrancyGuard {
         IMarginEngine(lastEngine).payCashValue(lastCollateral, _account, lastTotalPayout);
     }
 
+    function batchGetPayouts(uint256[] memory _tokenIds, uint256[] memory _amounts)
+        external
+        view
+        returns (Balance[] memory payouts)
+    {
+        for (uint256 i; i < _tokenIds.length; ) {
+            (, address collateral, uint256 payout) = getPayout(_tokenIds[i], _amounts[i].toUint64());
+
+            payouts = _addToPayouts(payouts, collateral, payout);
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
     /**
      * @dev calculate the payout for one option token
      *
@@ -408,7 +422,7 @@ contract Grappa is Ownable, ReentrancyGuard {
         Balance[] memory payouts,
         address collateral,
         uint256 payout
-    ) internal view returns (Balance[] memory) {
+    ) private view returns (Balance[] memory) {
         if (payout == 0) return payouts;
 
         uint8 collateralId = assetIds[collateral];

@@ -24,8 +24,6 @@ import "../../../config/enums.sol";
 import "../../../config/constants.sol";
 import "../../../config/errors.sol";
 
-import "../../../test/utils/Console.sol";
-
 /**
  * @title   FullMarginEngineV2
  * @author  @dsshap, @antoncoding
@@ -180,10 +178,9 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
      * @dev     this update the account memory in-place
      */
     function _settle(address _subAccount) internal override {
-        Balance[] memory payouts = _getAccountPayout2(_subAccount);
         // update the account in state
-        _settleAccount2(_subAccount, payouts);
-        emit AccountSettled2(_subAccount, payouts);
+        (, Balance[] memory shortPayouts) = _settleAccount2(_subAccount);
+        emit AccountSettled2(_subAccount, shortPayouts);
     }
 
     /** ========================================================= **
@@ -238,8 +235,11 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
         accounts[_subAccount].removeOption(tokenId, amount);
     }
 
-    function _settleAccount2(address _subAccount, Balance[] memory payouts) internal {
-        accounts[_subAccount].settleAtExpiry(payouts, grappa);
+    function _settleAccount2(address _subAccount)
+        internal
+        returns (Balance[] memory longPayouts, Balance[] memory shortPayouts)
+    {
+        (longPayouts, shortPayouts) = accounts[_subAccount].settleAtExpiry(grappa);
     }
 
     /** ========================================================= **
@@ -252,14 +252,10 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
      * @return isHealthy true if account is in good condition, false if it's underwater (liquidatable)
      */
     function _isAccountAboveWater(address _subAccount) internal view override returns (bool isHealthy) {
-        // consoleG.log("_isAccountAboveWater _subAccount", _subAccount);
         FullMarginAccountV2 memory account = accounts[_subAccount];
         SBalance[] memory balances = _getMinCollateral(account);
 
         for (uint256 i; i < balances.length; ) {
-            // consoleG.log("_isAccountAboveWater balances[i].collateralId", balances[i].collateralId);
-            // consoleG.log("_isAccountAboveWater balances[i].amount");
-            // consoleG.logInt(balances[i].amount);
             if (balances[i].amount < 0) return false;
 
             unchecked {
@@ -270,43 +266,8 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
         return true;
     }
 
-    // figure out how to handle not implementing this version of _getAccountPayout
+    // handling this in MarginLib
     function _getAccountPayout(address _subAccount) internal view override returns (uint80) {}
-
-    /**
-     * @notice  return amount of collateral that should be reserved to payout long positions
-     * @dev     this function will revert when called before expiry
-     * @param _subAccount account id
-     * @return payouts list of collaterals affected and the amounts paying out (unsigned)
-     */
-    function _getAccountPayout2(address _subAccount) internal view returns (Balance[] memory payouts) {
-        FullMarginAccountV2 memory account = accounts[_subAccount];
-
-        Position[] memory shorts = account.shorts.getPositions();
-
-        for (uint256 i; i < shorts.length; ) {
-            uint256 tokenId = shorts[i].tokenId;
-
-            if (tokenId.isExpired()) {
-                (, , uint256 payout) = grappa.getPayout(tokenId, shorts[i].amount);
-
-                if (payout > 0) {
-                    (, uint40 productId, , , ) = tokenId.parseTokenId();
-
-                    ProductDetails memory product = _getProductDetails(productId);
-
-                    (bool found, uint256 index) = payouts.indexOf(product.collateralId);
-
-                    if (found) payouts[index].amount += payout.toUint80();
-                    else payouts = payouts.append(Balance(product.collateralId, payout.toUint80()));
-                }
-            }
-
-            unchecked {
-                ++i;
-            }
-        }
-    }
 
     /**
      * @dev reverts if the account cannot add this token into the margin account.
@@ -371,9 +332,6 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
             FullMarginDetailV2 memory detail = details[i];
 
             (int256 cashCollateralNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-
-            // consoleG.log("_getMinCollateral underlyingNeeded");
-            // consoleG.logInt(underlyingNeeded);
 
             if (cashCollateralNeeded != 0) {
                 (found, index) = balances.indexOf(detail.collateralId);

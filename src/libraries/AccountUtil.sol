@@ -5,8 +5,6 @@ import {TokenIdUtil} from "./TokenIdUtil.sol";
 import "./ArrayUtil.sol";
 import "../config/types.sol";
 
-import "../test/utils/Console.sol";
-
 library AccountUtil {
     using TokenIdUtil for uint192;
     using TokenIdUtil for uint256;

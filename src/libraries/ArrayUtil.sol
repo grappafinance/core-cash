@@ -3,8 +3,6 @@ pragma solidity ^0.8.0;
 
 import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
 
-// import "../test/utils/Console.sol";
-
 library ArrayUtil {
     using SafeCast for uint256;
     using SafeCast for int256;

@@ -108,10 +108,6 @@ abstract contract BaseEngine is ReentrancyGuard {
         uint256 _amount
     ) public virtual {
         if (msg.sender != address(grappa)) revert NoAccess();
-        // consoleG.log("_asset", _asset);
-        // consoleG.log("_recipient", _recipient);
-        // consoleG.log("_amount", _amount);
-        // consoleG.log("balance", IERC20(_asset).balanceOf(address(this)));
         if (_recipient != address(this)) IERC20(_asset).safeTransfer(_recipient, _amount);
     }
 

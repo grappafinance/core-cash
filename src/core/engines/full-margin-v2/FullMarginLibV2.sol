@@ -13,10 +13,8 @@ import "../../../config/types.sol";
 import "../../../config/constants.sol";
 import "../../../config/errors.sol";
 
-import "../../../test/utils/Console.sol";
-
 /**
- * @title FullMarginLib
+ * @title FullMarginLibV2
  * @dev   This library is in charge of updating the simple account memory struct and do validations
  */
 library FullMarginLibV2 {
@@ -31,7 +29,7 @@ library FullMarginLibV2 {
     /**
      * @dev return true if the account has no short,long positions nor collateral
      */
-    function isEmpty(FullMarginAccountV2 storage account) public view returns (bool) {
+    function isEmpty(FullMarginAccountV2 storage account) external view returns (bool) {
         return account.shorts.sum() == 0 && account.longs.sum() == 0 && account.collaterals.sum() == 0;
     }
 
@@ -74,7 +72,7 @@ library FullMarginLibV2 {
         FullMarginAccountV2 storage account,
         uint256 tokenId,
         uint64 amount
-    ) public {
+    ) external {
         (TokenType optionType, uint40 productId, , , ) = tokenId.parseTokenId();
 
         // assign collateralId or check collateral id is the same
@@ -102,7 +100,7 @@ library FullMarginLibV2 {
         FullMarginAccountV2 storage account,
         uint256 tokenId,
         uint64 amount
-    ) public {
+    ) external {
         (bool found, PositionOptim memory position, uint256 index) = account.shorts.find(tokenId.shorten());
 
         if (!found) revert FM_InvalidToken();
@@ -119,7 +117,7 @@ library FullMarginLibV2 {
         FullMarginAccountV2 storage account,
         uint256 tokenId,
         uint64 amount
-    ) public {
+    ) external {
         (bool found, uint256 index) = account.longs.indexOf(tokenId.shorten());
 
         if (!found) {
@@ -133,7 +131,7 @@ library FullMarginLibV2 {
         FullMarginAccountV2 storage account,
         uint256 tokenId,
         uint64 amount
-    ) public {
+    ) external {
         (bool found, PositionOptim memory position, uint256 index) = account.longs.find(tokenId.shorten());
 
         if (!found) revert FM_InvalidToken();
@@ -148,63 +146,19 @@ library FullMarginLibV2 {
     ///@param account FullMarginAccountV2 memory that will be updated in-place
     function settleAtExpiry(
         FullMarginAccountV2 storage account,
-        Balance[] memory payouts,
+        // Balance[] memory payouts,
         IGrappa grappa
-    ) public {
-        // consoleG.log("settleAtExpiry engine balance before");
-        // consoleG.log(IERC20(0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599).balanceOf(address(this)));
-        // consoleG.log("settleAtExpiry account balance before");
-        // consoleG.log(account.collaterals[0].amount);
-
-        _settleShorts(account);
-
-        // consoleG.log("settleAtExpiry engine balance after shorts settled");
-        // consoleG.log(IERC20(0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599).balanceOf(address(this)));
-        // consoleG.log("settleAtExpiry account balance after shorts settled");
-        // consoleG.log(account.collaterals[0].amount);
-
-        _settleLongs(account, grappa);
-
-        // consoleG.log("settleAtExpiry engine balance after longs settled");
-        // consoleG.log(IERC20(0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599).balanceOf(address(this)));
-        // consoleG.log("settleAtExpiry account balance after longs settled");
-        // consoleG.log(account.collaterals[0].amount);
-
-        Balance[] memory collaterals = account.collaterals;
-        for (uint256 i; i < payouts.length; ) {
-            (, uint256 index) = collaterals.indexOf(payouts[i].collateralId);
-
-            uint80 newAmount = collaterals[index].amount - payouts[i].amount;
-
-            if (newAmount == 0) {
-                account.collaterals.remove(index);
-            } else account.collaterals[index].amount = newAmount;
-
-            unchecked {
-                ++i;
-            }
-        }
-
-        // consoleG.log("settleAtExpiry account balance final");
-        // consoleG.log(account.collaterals[0].amount);
+    ) external returns (Balance[] memory longPayouts, Balance[] memory shortPayouts) {
+        // settling longs first as they can only increase collateral
+        longPayouts = _settleLongs(grappa, account);
+        // settling shorts last as they can only reduce collateral
+        shortPayouts = _settleShorts(grappa, account);
     }
 
-    function _settleShorts(FullMarginAccountV2 storage account) public {
-        uint256 i;
-        while (i < account.shorts.length) {
-            uint256 tokenId = account.shorts[i].tokenId.expand();
-
-            if (tokenId.isExpired()) {
-                account.shorts.removePositionAt(i);
-            } else {
-                unchecked {
-                    ++i;
-                }
-            }
-        }
-    }
-
-    function _settleLongs(FullMarginAccountV2 storage account, IGrappa grappa) public {
+    function _settleLongs(IGrappa grappa, FullMarginAccountV2 storage account)
+        public
+        returns (Balance[] memory payouts)
+    {
         uint256 i;
         uint256[] memory tokenIds;
         uint256[] memory amounts;
@@ -215,6 +169,7 @@ library FullMarginLibV2 {
             if (tokenId.isExpired()) {
                 tokenIds = tokenIds.append(tokenId);
                 amounts = amounts.append(account.longs[i].amount);
+
                 account.longs.removePositionAt(i);
             } else {
                 unchecked {
@@ -223,18 +178,47 @@ library FullMarginLibV2 {
             }
         }
 
-        // consoleG.log("_settleLongs tokenIds");
-        // consoleG.log(tokenIds);
-        // consoleG.log("_settleLongs amounts");
-        // consoleG.log(amounts);
-
         if (tokenIds.length > 0) {
-            Balance[] memory payouts = grappa.batchSettleOptions(address(this), tokenIds, amounts);
-            // consoleG.log("_settleLongs payouts[0].amount");
-            // consoleG.log(payouts[0].amount);
+            payouts = grappa.batchSettleOptions(address(this), tokenIds, amounts);
 
             for (i = 0; i < payouts.length; ) {
                 addCollateral(account, payouts[i].collateralId, payouts[i].amount);
+
+                unchecked {
+                    ++i;
+                }
+            }
+        }
+    }
+
+    function _settleShorts(IGrappa grappa, FullMarginAccountV2 storage account)
+        public
+        returns (Balance[] memory payouts)
+    {
+        uint256 i;
+        uint256[] memory tokenIds;
+        uint256[] memory amounts;
+
+        while (i < account.shorts.length) {
+            uint256 tokenId = account.shorts[i].tokenId.expand();
+
+            if (tokenId.isExpired()) {
+                tokenIds = tokenIds.append(tokenId);
+                amounts = amounts.append(account.shorts[i].amount);
+
+                account.shorts.removePositionAt(i);
+            } else {
+                unchecked {
+                    ++i;
+                }
+            }
+        }
+
+        if (tokenIds.length > 0) {
+            payouts = grappa.batchGetPayouts(tokenIds, amounts);
+
+            for (i = 0; i < payouts.length; ) {
+                removeCollateral(account, payouts[i].collateralId, payouts[i].amount);
 
                 unchecked {
                     ++i;
