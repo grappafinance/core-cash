@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
 // inheriting contracts
@@ -159,7 +159,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
         view
         returns (Balance[] memory balances)
     {
-        // assert length match
+        // TODO assert length match
 
         FullMarginAccountV2 memory account;
 
@@ -473,7 +473,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
         uint256[] memory,
         uint256[] memory,
         bytes memory
-    ) public virtual returns (bytes4) {
+    ) external virtual returns (bytes4) {
         return this.onERC1155BatchReceived.selector;
     }
 }
