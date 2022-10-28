@@ -3,6 +3,7 @@
   <img height=60 src="https://i.imgur.com/vSIO8xJ.png"> </image>
   <br/>
   <br/>
+  <a href="https://github.com/foundry-rs/foundry"><img src="https://img.shields.io/static/v1?label=foundry-rs&message=foundry&color=blue&logo=github"/></a>
   <a href=https://github.com/antoncoding/grappa/actions/workflows/Slither.yml""><img src="https://github.com/antoncoding/grappa/actions/workflows/Slither.yml/badge.svg?branch=master" > </a>
   <a href=https://github.com/antoncoding/grappa/actions/workflows/CI.yml""><img src="https://github.com/antoncoding/grappa/actions/workflows/CI.yml/badge.svg?branch=master"> </a>
 
@@ -10,16 +11,14 @@
   <!-- <a href="https://codecov.io/gh/antoncoding/grappa" >
 <img src="https://codecov.io/gh/antoncoding/grappa/branch/master/graph/badge.svg?token=G52EOD1X5B"/>
 </a> -->
-  <h4 align="center"> Don't waste your capital.</h4>
+  <h5 align="center"> Don't waste your capital.</h5>
   <p align="center">
     <!-- badge goes here -->
   </p>
 
 <p align='center'>
     <img src='https://i.imgur.com/A04IOW6.jpg' alt='grappa' width="500" />
-</p>
-<h6 align="center"> Built with Foundry</h6>
-
+</p> 
 </div>
 
 # Introduction
@@ -28,7 +27,7 @@ We believe that the core values of DeFi are composability and decentralization. 
 
 Grappa is here to be that base layer that meets different needs, and also provide an efficient exchange layer (aggregator) for people to easily exchange options across products.
 
-The project is 100% open sourced and publicaly funded on [Gitcoin](https://gitcoin.co/grants/7713/grappa-finance).
+The project is 100% open sourced and publicly funded on [Gitcoin](https://gitcoin.co/grants/7713/grappa-finance).
 
 ## System TLDR
 

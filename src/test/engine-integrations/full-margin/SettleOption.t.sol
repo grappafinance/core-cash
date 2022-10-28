@@ -10,8 +10,6 @@ import "../../../config/types.sol";
 import "../../../config/constants.sol";
 import "../../../config/errors.sol";
 
-import "forge-std/console2.sol";
-
 // solhint-disable-next-line contract-name-camelcase
 contract TestSettleCoveredCall_FM is FullMarginFixture {
     uint256 public expiry;
@@ -42,6 +40,12 @@ contract TestSettleCoveredCall_FM is FullMarginFixture {
 
         // expire option
         vm.warp(expiry);
+    }
+
+    function testShouldRevertIfPriceIsNotFinalized() public {
+        oracle.setExpiryPrice(address(weth), address(usdc), strike, false);
+        vm.expectRevert(GP_PriceNotFinalized.selector);
+        grappa.settleOption(alice, tokenId, amount);
     }
 
     function testShouldGetNothingIfExpiresOTM() public {

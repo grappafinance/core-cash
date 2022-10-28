@@ -11,6 +11,7 @@ import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
 import {IERC20Metadata} from "openzeppelin/token/ERC20/extensions/IERC20Metadata.sol";
 import {IOracle} from "../interfaces/IOracle.sol";
 import {IOptionToken} from "../interfaces/IOptionToken.sol";
+import {IGrappa} from "../interfaces/IGrappa.sol";
 import {IMarginEngine} from "../interfaces/IMarginEngine.sol";
 
 // librarise
@@ -134,7 +135,7 @@ contract Grappa is Ownable, ReentrancyGuard {
      * @param _tokenId product id
      */
     function getDetailFromTokenId(uint256 _tokenId)
-        public
+        external
         pure
         returns (
             TokenType tokenType,
@@ -144,52 +145,49 @@ contract Grappa is Ownable, ReentrancyGuard {
             uint64 shortStrike
         )
     {
-        (TokenType _tokenType, uint40 _productId, uint64 _expiry, uint64 _longStrike, uint64 _shortStrike) = TokenIdUtil
-            .parseTokenId(_tokenId);
-
-        return (_tokenType, _productId, _expiry, _longStrike, _shortStrike);
+        return TokenIdUtil.parseTokenId(_tokenId);
     }
 
     /**
      * @notice    get product id from underlying, strike and collateral address
      * @dev       function will still return even if some of the assets are not registered
-     * @param underlying  underlying address
-     * @param strike      strike address
-     * @param collateral  collateral address
+     * @param _underlying  underlying address
+     * @param _strike      strike address
+     * @param _collateral  collateral address
      */
     function getProductId(
-        address oracle,
-        address engine,
-        address underlying,
-        address strike,
-        address collateral
+        address _oracle,
+        address _engine,
+        address _underlying,
+        address _strike,
+        address _collateral
     ) external view returns (uint40 id) {
         id = ProductIdUtil.getProductId(
-            oracleIds[oracle],
-            engineIds[engine],
-            assetIds[underlying],
-            assetIds[strike],
-            assetIds[collateral]
+            oracleIds[_oracle],
+            engineIds[_engine],
+            assetIds[_underlying],
+            assetIds[_strike],
+            assetIds[_collateral]
         );
     }
 
     /**
      * @notice    get token id from type, productId, expiry, strike
      * @dev       function will still return even if some of the assets are not registered
-     * @param tokenType TokenType enum
-     * @param productId if of the product
-     * @param expiry timestamp of option expiry
-     * @param longStrike strike price of the long option, with 6 decimals
-     * @param shortStrike strike price of the short (upper bond for call and lower bond for put) if this is a spread. 6 decimals
+     * @param _tokenType TokenType enum
+     * @param _productId if of the product
+     * @param _expiry timestamp of option expiry
+     * @param _longStrike strike price of the long option, with 6 decimals
+     * @param _shortStrike strike price of the short (upper bond for call and lower bond for put) if this is a spread. 6 decimals
      */
     function getTokenId(
-        TokenType tokenType,
-        uint40 productId,
-        uint256 expiry,
-        uint256 longStrike,
-        uint256 shortStrike
+        TokenType _tokenType,
+        uint40 _productId,
+        uint256 _expiry,
+        uint256 _longStrike,
+        uint256 _shortStrike
     ) external pure returns (uint256 id) {
-        id = TokenIdUtil.getTokenId(tokenType, productId, expiry, longStrike, shortStrike);
+        id = TokenIdUtil.getTokenId(_tokenType, _productId, _expiry, _longStrike, _shortStrike);
     }
 
     /**
@@ -203,23 +201,25 @@ contract Grappa is Ownable, ReentrancyGuard {
         address _account,
         uint256 _tokenId,
         uint256 _amount
-    ) external nonReentrant {
-        (address engine, address collateral, uint256 payout) = getPayout(_tokenId, _amount.toUint64());
+    ) external nonReentrant returns (uint256) {
+        (address engine, address collateral, uint256 payout) = getPayout(_tokenId, _amount.safeCastTo64());
+
 
         emit OptionSettled(_account, _tokenId, _amount, payout);
 
         optionToken.burnGrappaOnly(_account, _tokenId, _amount);
 
         IMarginEngine(engine).payCashValue(collateral, _account, payout);
+
+        return payout;
     }
 
     /**
-     * @notice burn option token and get out cash value at expiry
+     * @notice burn array of option tokens and get out cash value at expiry
      *
      * @param _account who to settle for
      * @param _tokenIds array of tokenIds to burn
      * @param _amounts   array of amounts to burn
-
      */
     function batchSettleOptions(
         address _account,
@@ -348,6 +348,9 @@ contract Grappa is Ownable, ReentrancyGuard {
     function registerOracle(address _oracle) external onlyOwner returns (uint8 id) {
         if (oracleIds[_oracle] != 0) revert GP_OracleAlreadyRegistered();
 
+        // this is a soft check on whether an oracle is suitable to be used.
+        if (IOracle(_oracle).maxDisputePeriod() > MAX_DISPUTE_PERIOD) revert GP_BadOracle();
+
         id = ++nextOracleId;
         oracles[id] = _oracle;
 
@@ -361,6 +364,7 @@ contract Grappa is Ownable, ReentrancyGuard {
      *
      * @param _tokenId  token id of option token
      *
+     * @return engine engine to settle
      * @return collateral asset to settle in
      * @return payoutPerOption amount paid
      **/
@@ -390,7 +394,7 @@ contract Grappa is Ownable, ReentrancyGuard {
         ) = getDetailFromProductId(productId);
 
         // expiry price of underlying, denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
-        uint256 expiryPrice = IOracle(oracle).getPriceAtExpiry(underlying, strike, expiry);
+        uint256 expiryPrice = _getSettlementPrice(oracle, underlying, strike, expiry);
 
         // cash value denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
         uint256 cashValue;
@@ -410,7 +414,7 @@ contract Grappa is Ownable, ReentrancyGuard {
             cashValue = cashValue.mulDivDown(UNIT, expiryPrice);
         } else if (collateral != strike) {
             // collateral is not underlying nor strike
-            uint256 collateralPrice = IOracle(oracle).getPriceAtExpiry(collateral, strike, expiry);
+            uint256 collateralPrice = _getSettlementPrice(oracle, collateral, strike, expiry);
             cashValue = cashValue.mulDivDown(UNIT, collateralPrice);
         }
         payoutPerOption = cashValue.convertDecimals(UNIT_DECIMALS, collateralDecimals);
@@ -433,5 +437,23 @@ contract Grappa is Ownable, ReentrancyGuard {
         } else payouts[index].amount += payout.toUint80();
 
         return payouts;
+    }
+     
+    /**
+     * @dev check settlement price is finalized from oracle, and return price
+     * @param _oracle oracle contract address
+     * @param _base base asset (ETH is base asset while requesting ETH / USD)
+     * @param _quote quote asset (USD is base asset while requesting ETH / USD)
+     * @param _expiry expiry timestamp
+     */
+    function _getSettlementPrice(
+        address _oracle,
+        address _base,
+        address _quote,
+        uint256 _expiry
+    ) internal view returns (uint256) {
+        (uint256 price, bool isFinalized) = IOracle(_oracle).getPriceAtExpiry(_base, _quote, _expiry);
+        if (!isFinalized) revert GP_PriceNotFinalized();
+        return price;
     }
 }

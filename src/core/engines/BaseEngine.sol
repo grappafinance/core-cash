@@ -37,12 +37,13 @@ abstract contract BaseEngine is ReentrancyGuard {
     IGrappa public immutable grappa;
     IOptionToken public immutable optionToken;
 
-    ///@dev maskedAccount => operator => authorized
+    ///@dev maskedAccount => operator => allowedExecutionLeft
     ///     every account can authorize any amount of addresses to modify all sub-accounts he controls.
-    mapping(uint160 => mapping(address => bool)) public authorized;
+    ///     allowedExecutionLeft referres to the time left the grantee can update the sub-accounts.
+    mapping(uint160 => mapping(address => uint256)) public allowedExecutionLeft;
 
     /// Events
-    event AccountAuthorizationUpdate(uint160 maskId, address account, bool isAuth);
+    event AccountAuthorizationUpdate(uint160 maskId, address account, uint256 updatesAllowed);
 
     event CollateralAdded(address subAccount, address collateral, uint256 amount);
 
@@ -86,13 +87,25 @@ abstract contract BaseEngine is ReentrancyGuard {
      * @dev     expected to be call by account owner
      *          usually user should only give access to helper contracts
      * @param   _account account to update authorization
-     * @param   _isAuthorized to grant or revoke access
+     * @param   _allowedExecutions how many times the account is authrized to update your accounts.
+     *          set to max(uint256) to allow premanent access
      */
-    function setAccountAccess(address _account, bool _isAuthorized) external {
+    function setAccountAccess(address _account, uint256 _allowedExecutions) external {
         uint160 maskedId = uint160(msg.sender) | 0xFF;
-        authorized[maskedId][_account] = _isAuthorized;
+        allowedExecutionLeft[maskedId][_account] = _allowedExecutions;
 
-        emit AccountAuthorizationUpdate(maskedId, _account, _isAuthorized);
+        emit AccountAuthorizationUpdate(maskedId, _account, _allowedExecutions);
+    }
+
+    /**
+     * @dev resolve access granted to yourself
+     * @param _granter address that granted you access
+     */
+    function revokeSelfAccess(address _granter) external {
+        uint160 maskedId = uint160(_granter) | 0xFF;
+        allowedExecutionLeft[maskedId][msg.sender] = 0;
+
+        emit AccountAuthorizationUpdate(maskedId, msg.sender, 0);
     }
 
     /**
@@ -128,7 +141,7 @@ abstract contract BaseEngine is ReentrancyGuard {
         // update the account in state
         _addCollateralToAccount(_subAccount, collateralId, amount);
 
-        address collateral = grappa.assets(collateralId).addr;
+        (address collateral, ) = grappa.assets(collateralId);
 
         emit CollateralAdded(_subAccount, collateral, amount);
 
@@ -146,7 +159,7 @@ abstract contract BaseEngine is ReentrancyGuard {
         // update the account in state
         _removeCollateralFromAccount(_subAccount, collateralId, amount);
 
-        address collateral = grappa.assets(collateralId).addr;
+        (address collateral, ) = grappa.assets(collateralId);
 
         emit CollateralRemoved(_subAccount, collateral, amount);
 
@@ -447,12 +460,17 @@ abstract contract BaseEngine is ReentrancyGuard {
      * @notice revert if the msg.sender is not authorized to access an subAccount id
      * @param _subAccount subaccount id
      */
-    function _assertCallerHasAccess(address _subAccount) internal view {
+    function _assertCallerHasAccess(address _subAccount) internal {
         if (_isPrimaryAccountFor(msg.sender, _subAccount)) return;
 
         // the sender is not the direct owner. check if they're authorized
         uint160 maskedAccountId = (uint160(_subAccount) | 0xFF);
-        if (!authorized[maskedAccountId][msg.sender]) revert NoAccess();
+
+        uint256 allowance = allowedExecutionLeft[maskedAccountId][msg.sender];
+        if (allowance == 0) revert NoAccess();
+
+        // if allowance is not set to max uint256, reduce the number
+        if (allowance != type(uint256).max) allowedExecutionLeft[maskedAccountId][msg.sender] = allowance - 1;
     }
 
     /**

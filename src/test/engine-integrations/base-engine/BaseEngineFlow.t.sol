@@ -56,7 +56,7 @@ contract BaseEngineFlow is BaseEngineSetup {
         engine.execute(address(this), actions);
     }
 
-    function testremoveCollateralMoveBalance() public {
+    function testRemoveCollateralMoveBalance() public {
         // prepare
         uint256 depositAmount = 800 * 1e6;
         ActionArgs[] memory _actions = new ActionArgs[](1);
@@ -213,6 +213,21 @@ contract BaseEngineFlow is BaseEngineSetup {
         engine.execute(address(this), actions);
     }
 
+    function testCannotAddLongFromOthers() public {
+        uint256 expiry = block.timestamp + 1 days;
+
+        uint256 strikePrice = 4000 * UNIT;
+        uint256 amount = 1 * UNIT;
+        uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
+
+        // execute add long
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createAddLongAction(tokenId, address(0), amount);
+
+        vm.expectRevert(BM_InvalidFromAddress.selector);
+        engine.execute(address(this), actions);
+    }
+
     function testAddLongShouldMoveToken() public {
         uint256 expiry = block.timestamp + 1 days;
 
@@ -227,6 +242,7 @@ contract BaseEngineFlow is BaseEngineSetup {
 
         option.setApprovalForAll(address(engine), true);
 
+        // add long
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createAddLongAction(tokenId, amount, address(this));
         engine.execute(address(this), actions);
@@ -250,7 +266,7 @@ contract BaseEngineFlow is BaseEngineSetup {
         assertEq(option.balanceOf(address(this), tokenId), 0);
         assertEq(option.balanceOf(address(engine), tokenId), amount);
 
-        // execute merge
+        // add long
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createRemoveLongAction(tokenId, amount, address(this));
         engine.execute(address(this), actions);

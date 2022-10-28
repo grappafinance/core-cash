@@ -1,11 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../config/types.sol";
-
 interface IGrappa {
-    function authorized(uint160 maskedAccountId, address caller) external view returns (bool);
-
     function getDetailFromProductId(uint40 _productId)
         external
         view
@@ -20,9 +16,11 @@ interface IGrappa {
             uint8 collateralDecimals
         );
 
-    function assets(uint8 _id) external view returns (AssetDetail memory asset);
+    function assets(uint8 _id) external view returns (address addr, uint8 decimals);
 
     function engines(uint8 _id) external view returns (address engine);
+
+    function oracles(uint8 _id) external view returns (address oracle);
 
     function getPayout(uint256 tokenId, uint64 amount)
         external
@@ -33,6 +31,26 @@ interface IGrappa {
             uint256 payout
         );
 
+    /**
+     * @notice burn option token and get out cash value at expiry
+     * @param _account who to settle for
+     * @param _tokenId  tokenId of option token to burn
+     * @param _amount   amount to settle
+     * @return payout amount paid out
+     */
+    function settleOption(
+        address _account,
+        uint256 _tokenId,
+        uint256 _amount
+    ) external returns (uint256 payout);
+
+    /**
+     * @notice burn array of option tokens and get out cash value at expiry
+     * @param _account who to settle for
+     * @param _tokenIds array of tokenIds to burn
+     * @param _amounts   array of amounts to burn
+
+     */
     function batchSettleOptions(
         address _account,
         uint256[] memory _tokenIds,

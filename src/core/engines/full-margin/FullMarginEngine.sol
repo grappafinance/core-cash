@@ -224,7 +224,7 @@ contract FullMarginEngine is BaseEngine, IMarginEngine {
 
         bool collateralizedWithStrike = collateralId == strikeId;
 
-        uint8 collateralDecimals = grappa.assets(collateralId).decimals;
+        (, uint8 collateralDecimals) = grappa.assets(collateralId);
 
         detail = FullMarginDetail({
             shortAmount: account.shortAmount,

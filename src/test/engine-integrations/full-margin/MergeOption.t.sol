@@ -57,6 +57,16 @@ contract TestMergeOption_FM is FullMarginFixture {
         assertEq(shortStrike, higherStrike);
     }
 
+    function testCannotMergeByAddingSpread() public {
+        uint256 spreadToAdd = getTokenId(TokenType.CALL_SPREAD, pidEthCollat, expiry, strikePrice, strikePrice + 1);
+
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createMergeAction(spreadToAdd, existingTokenId, address(this), amount);
+
+        vm.expectRevert(BM_CannotMergeSpread.selector);
+        engine.execute(address(this), actions);
+    }
+
     function testCannotMergeWithWrongAmount() public {
         uint256 higherStrike = 5000 * UNIT;
         uint256 newTokenId = getTokenId(TokenType.CALL, pidEthCollat, expiry, higherStrike, 0);

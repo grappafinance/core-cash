@@ -10,8 +10,6 @@ import "../../../config/types.sol";
 import "../../../config/constants.sol";
 import "../../../config/errors.sol";
 
-import "forge-std/console2.sol";
-
 contract TestSettleCall is AdvancedFixture {
     uint256 public expiry;
 

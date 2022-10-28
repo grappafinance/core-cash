@@ -92,7 +92,7 @@ contract TestMergeOption is AdvancedFixture {
         mintOptionFor(address(this), newTokenId, productId, amount);
 
         // authorize alice to change subaccount
-        engine.setAccountAccess(alice, true);
+        engine.setAccountAccess(alice, 1);
 
         // merge by alice
         ActionArgs[] memory actions = new ActionArgs[](1);
