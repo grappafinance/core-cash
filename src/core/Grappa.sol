@@ -202,8 +202,7 @@ contract Grappa is Ownable, ReentrancyGuard {
         uint256 _tokenId,
         uint256 _amount
     ) external nonReentrant returns (uint256) {
-        (address engine, address collateral, uint256 payout) = getPayout(_tokenId, _amount.safeCastTo64());
-
+        (address engine, address collateral, uint256 payout) = getPayout(_tokenId, _amount.toUint64());
 
         emit OptionSettled(_account, _tokenId, _amount, payout);
 
@@ -438,7 +437,7 @@ contract Grappa is Ownable, ReentrancyGuard {
 
         return payouts;
     }
-     
+
     /**
      * @dev check settlement price is finalized from oracle, and return price
      * @param _oracle oracle contract address

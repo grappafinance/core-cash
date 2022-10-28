@@ -278,7 +278,7 @@ abstract contract BaseEngine is ReentrancyGuard {
         _removeCollateralFromAccount(_subAccount, collateralId, amount);
         _addCollateralToAccount(to, collateralId, amount);
 
-        address collateral = grappa.assets(collateralId).addr;
+        (address collateral, ) = grappa.assets(collateralId);
 
         emit CollateralTransfered(_subAccount, to, collateral, amount);
     }

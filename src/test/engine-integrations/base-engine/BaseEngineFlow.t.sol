@@ -222,7 +222,7 @@ contract BaseEngineFlow is BaseEngineSetup {
 
         // execute add long
         ActionArgs[] memory actions = new ActionArgs[](1);
-        actions[0] = createAddLongAction(tokenId, address(0), amount);
+        actions[0] = createAddLongAction(tokenId, amount, address(0));
 
         vm.expectRevert(BM_InvalidFromAddress.selector);
         engine.execute(address(this), actions);

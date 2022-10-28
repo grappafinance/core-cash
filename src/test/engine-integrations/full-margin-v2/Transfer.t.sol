@@ -30,7 +30,7 @@ contract TestTransfer_FMV2 is FullMarginFixtureV2 {
 
         vm.startPrank(alice);
         weth.approve(address(engine), type(uint256).max);
-        engine.setAccountAccess(address(this), true);
+        engine.setAccountAccess(address(this), type(uint256).max);
         vm.stopPrank();
 
         expiry = block.timestamp + 1 days;

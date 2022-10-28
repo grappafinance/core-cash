@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "../config/types.sol";
+
 interface IGrappa {
     function getDetailFromProductId(uint40 _productId)
         external
