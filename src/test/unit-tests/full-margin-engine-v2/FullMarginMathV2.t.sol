@@ -196,7 +196,7 @@ contract TestStructures_FMMV2 is Test {
         assertEq(underlyingNeeded, sZERO);
     }
 
-    function testMarginPutSpread2() public {
+    function testMarginLongBinaryPut() public {
         putWeights = new int256[](2);
         putWeights[0] = -1 * sUNIT;
         putWeights[1] = 1 * sUNIT;
@@ -226,10 +226,10 @@ contract TestStructures_FMMV2 is Test {
         assertEq(underlyingNeeded, sZERO);
     }
 
-    function testMarginBinaryPutOption() public {
+    function testMarginShortBinaryPut() public {
         putWeights = new int256[](2);
-        putWeights[0] = -1 * sUNIT;
-        putWeights[1] = 1 * sUNIT;
+        putWeights[0] = 1 * sUNIT;
+        putWeights[1] = -1 * sUNIT;
 
         putStrikes = new uint256[](2);
         putStrikes[0] = 17999_999999;
@@ -252,7 +252,7 @@ contract TestStructures_FMMV2 is Test {
         });
 
         (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, sZERO);
+        assertEq(cashNeeded, int(1));
         assertEq(underlyingNeeded, sZERO);
     }
 
@@ -372,8 +372,38 @@ contract TestStructures_FMMV2 is Test {
         });
 
         (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, sZERO);
+        assertEq(cashNeeded, sZERO); //TODO: is this not same as above?
         assertEq(underlyingNeeded, sZERO);
+    }
+
+    function testMarginCallSpreadWithCash() public {
+        callWeights = new int256[](2);
+        callWeights[0] = -1 * sUNIT;
+        callWeights[1] = 1 * sUNIT;
+
+        callStrikes = new uint256[](2);
+        callStrikes[0] = 21000 * UNIT;
+        callStrikes[1] = 22000 * UNIT;
+
+        putWeights = new int256[](0);
+        putStrikes = new uint256[](0);
+
+        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+            putWeights: putWeights,
+            putStrikes: putStrikes,
+            callWeights: callWeights,
+            callStrikes: callStrikes,
+            underlyingId: 0,
+            underlyingDecimals: UNIT_DECIMALS,
+            collateralId: 0,
+            collateralDecimals: UNIT_DECIMALS,
+            spotPrice: spotPrice,
+            expiry: 0
+        });
+
+        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, 1000 * sUNIT); //TODO: something like this should work
+        // assertEq(underlyingNeeded, (callStrikes[1]-callStrikes[0])/callStrikes[1]);
     }
 }
 
@@ -462,5 +492,285 @@ contract TestVanillaPut_FMMV2 is Test {
         (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
         assertEq(cashNeeded, 18000 * sUNIT);
         assertEq(underlyingNeeded, sZERO);
+    }
+
+}
+
+contract TestStrangles is Test {
+    using FullMarginMathV2 for FullMarginDetailV2;
+
+    uint256 private spotPrice;
+
+    int256[] private putWeights;
+    uint256[] private putStrikes;
+
+    int256[] private callWeights;
+    uint256[] private callStrikes;
+
+    function setUp() public {
+        putWeights = new int256[](1);
+        putWeights[0] = -1 * sUNIT;
+
+        putStrikes = new uint256[](1);
+        putStrikes[0] = 18000 * UNIT;
+
+        callWeights = new int256[](1);
+        callWeights[0] = -1 * sUNIT;
+
+        callStrikes = new uint256[](1);
+        callStrikes[0] = 20000 * UNIT;
+
+        spotPrice = 19000 * UNIT;
+    }
+
+    function testShortStrangles() public {
+        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+            putWeights: putWeights,
+            putStrikes: putStrikes,
+            callWeights: callWeights,
+            callStrikes: callStrikes,
+            underlyingId: 0,
+            underlyingDecimals: UNIT_DECIMALS,
+            collateralId: 1,
+            collateralDecimals: UNIT_DECIMALS,
+            spotPrice: spotPrice,
+            expiry: 0
+        });
+
+        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        consoleG.logInt(cashNeeded);
+        consoleG.logInt(underlyingNeeded);
+        assertEq(cashNeeded, int(putStrikes[0]));
+        assertEq(underlyingNeeded, -callWeights[0]);
+    }
+
+    function testLongStrangle() public {
+        putWeights[0] = 1 * sUNIT;
+        callWeights[0] = 1 * sUNIT;
+        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+            putWeights: putWeights,
+            putStrikes: putStrikes,
+            callWeights: callWeights,
+            callStrikes: callStrikes,
+            underlyingId: 0,
+            underlyingDecimals: UNIT_DECIMALS,
+            collateralId: 1,
+            collateralDecimals: UNIT_DECIMALS,
+            spotPrice: spotPrice,
+            expiry: 0
+        });
+
+        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, sZERO);
+        assertEq(underlyingNeeded, sZERO);
+    }
+
+}
+
+contract TestCornerCases is Test {
+    using FullMarginMathV2 for FullMarginDetailV2;
+
+    uint256 private spotPrice;
+
+    int256[] private putWeights;
+    uint256[] private putStrikes;
+
+    int256[] private callWeights;
+    uint256[] private callStrikes;
+
+    function setUp() public {
+        putWeights = new int256[](2);
+        putWeights[0] = 1 * sUNIT;
+        putWeights[1] = -2 * sUNIT;
+
+        putStrikes = new uint256[](2);
+        putStrikes[0] = 18000 * UNIT;
+        putStrikes[1] = 17000 * UNIT;
+
+        callWeights = new int256[](2);
+        callWeights[0] = 1 * sUNIT;
+        callWeights[1] = -2 * sUNIT;
+
+        callStrikes = new uint256[](2);
+        callStrikes[0] = 20000 * UNIT;
+        callStrikes[1] = 21000 * UNIT;
+
+        spotPrice = 19000 * UNIT;
+    }
+
+    function testOneByTwoCall() public {
+        putWeights[0] = 0;
+        putWeights[1] = 0;
+        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+            putWeights: putWeights,
+            putStrikes: putStrikes,
+            callWeights: callWeights,
+            callStrikes: callStrikes,
+            underlyingId: 0,
+            underlyingDecimals: UNIT_DECIMALS,
+            collateralId: 0,
+            collateralDecimals: UNIT_DECIMALS,
+            spotPrice: spotPrice,
+            expiry: 0
+        });
+
+        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, sZERO);
+        assertEq(underlyingNeeded, 1 * sUNIT);
+    }
+
+    function testOneByTwoCall2() public {
+        putStrikes = new uint256[](0);
+        putWeights = new int256[](0);
+        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+            putWeights: putWeights,
+            putStrikes: putStrikes,
+            callWeights: callWeights,
+            callStrikes: callStrikes,
+            underlyingId: 0,
+            underlyingDecimals: UNIT_DECIMALS,
+            collateralId: 1,
+            collateralDecimals: UNIT_DECIMALS,
+            spotPrice: spotPrice,
+            expiry: 0
+        });
+
+        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(underlyingNeeded, 1 * sUNIT);
+        assertEq(cashNeeded, 17000 * sUNIT);
+        assertEq(cashNeeded, sZERO);
+    }
+
+    function testOneByTwoPut() public {
+        callWeights[0] = 0;
+        callWeights[1] = 0;
+        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+            putWeights: putWeights,
+            putStrikes: putStrikes,
+            callWeights: callWeights,
+            callStrikes: callStrikes,
+            underlyingId: 0,
+            underlyingDecimals: UNIT_DECIMALS,
+            collateralId: 1,
+            collateralDecimals: UNIT_DECIMALS,
+            spotPrice: spotPrice,
+            expiry: 0
+        });
+
+        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, int(putStrikes[1])-1000*sUNIT);
+        assertEq(underlyingNeeded, sZERO);
+    }
+
+    function testIronCondor() public {
+        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+            putWeights: putWeights,
+            putStrikes: putStrikes,
+            callWeights: callWeights,
+            callStrikes: callStrikes,
+            underlyingId: 0,
+            underlyingDecimals: UNIT_DECIMALS,
+            collateralId: 1,
+            collateralDecimals: UNIT_DECIMALS,
+            spotPrice: spotPrice,
+            expiry: 0
+        });
+
+        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, int(putStrikes[1])-1000*sUNIT);
+        assertEq(underlyingNeeded, 1 * sUNIT);
+    }
+
+    function testUpAndDown1() public {
+        putWeights[0] = 17 * sUNIT;
+        putWeights[1] = -18 * sUNIT;
+        callWeights[0] = 0;
+        callWeights[1] = 0;
+        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+            putWeights: putWeights,
+            putStrikes: putStrikes,
+            callWeights: callWeights,
+            callStrikes: callStrikes,
+            underlyingId: 0,
+            underlyingDecimals: UNIT_DECIMALS,
+            collateralId: 1,
+            collateralDecimals: UNIT_DECIMALS,
+            spotPrice: spotPrice,
+            expiry: 0
+        });
+
+        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        int256 cashRequired = -putWeights[0] * int(putStrikes[0]) - putWeights[1] * int(putStrikes[1]);
+        assertEq(cashNeeded, cashRequired);
+        assertEq(underlyingNeeded, sZERO);
+    }
+
+    function testUpAndDown2() public {
+        putWeights[0] = 16 * sUNIT;
+        putWeights[1] = -18 * sUNIT;
+        callWeights[0] = 0;
+        callWeights[1] = 0;
+        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+            putWeights: putWeights,
+            putStrikes: putStrikes,
+            callWeights: callWeights,
+            callStrikes: callStrikes,
+            underlyingId: 0,
+            underlyingDecimals: UNIT_DECIMALS,
+            collateralId: 1,
+            collateralDecimals: UNIT_DECIMALS,
+            spotPrice: spotPrice,
+            expiry: 0
+        });
+
+        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        int256 cashRequired = -putWeights[0] * int(putStrikes[0]) - putWeights[1] * int(putStrikes[1]);
+        assertEq(cashNeeded, cashRequired);
+        assertEq(underlyingNeeded, sZERO);
+    }
+
+    function testUpAndDown3() public {
+        putWeights[0] = 17 * sUNIT;
+        putWeights[1] = -18 * sUNIT;
+        callWeights[1] = 0;
+        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+            putWeights: putWeights,
+            putStrikes: putStrikes,
+            callWeights: callWeights,
+            callStrikes: callStrikes,
+            underlyingId: 0,
+            underlyingDecimals: UNIT_DECIMALS,
+            collateralId: 1,
+            collateralDecimals: UNIT_DECIMALS,
+            spotPrice: spotPrice,
+            expiry: 0
+        });
+
+        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        int256 cashRequired = -putWeights[0] * int(putStrikes[0]) - putWeights[1] * int(putStrikes[1]);
+        assertEq(cashNeeded, cashRequired);
+        assertEq(underlyingNeeded, sZERO);
+    }
+
+    function testUpAndDown4() public {
+        putWeights[0] = 17 * sUNIT;
+        putWeights[1] = -18 * sUNIT;
+        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+            putWeights: putWeights,
+            putStrikes: putStrikes,
+            callWeights: callWeights,
+            callStrikes: callStrikes,
+            underlyingId: 0,
+            underlyingDecimals: UNIT_DECIMALS,
+            collateralId: 1,
+            collateralDecimals: UNIT_DECIMALS,
+            spotPrice: spotPrice,
+            expiry: 0
+        });
+
+        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        int256 cashRequired = -putWeights[0] * int(putStrikes[0]) - putWeights[1] * int(putStrikes[1]);
+        assertEq(cashNeeded, cashRequired);
+        assertEq(underlyingNeeded, -int(callWeights[0]+callWeights[1]));
     }
 }

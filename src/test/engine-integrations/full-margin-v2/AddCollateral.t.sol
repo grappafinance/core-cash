@@ -15,9 +15,12 @@ contract TestAddCollateral_FMV2 is FullMarginFixtureV2 {
         // approve engine
         usdc.mint(address(this), 1000_000_000 * 1e6);
         usdc.approve(address(engine), type(uint256).max);
+        usdc.mint(address(alice), 100 * 1e18);
 
         weth.mint(address(this), 100 * 1e18);
         weth.approve(address(engine), type(uint256).max);
+        weth.mint(address(alice), 100 * 1e18);
+        
     }
 
     function testAddCollateralChangeStorage() public {
@@ -63,6 +66,36 @@ contract TestAddCollateral_FMV2 is FullMarginFixtureV2 {
 
         assertEq(myBalanceBefore - myBalanceAfter, depositAmount * 2);
         assertEq(engineBalanceAfter - engineBalanceBefore, depositAmount * 2);
+    }
+
+    function testAddMultipleCollateralHasNoSideEffects() public {
+        uint256 engineUsdcBalanceBefore = usdc.balanceOf(address(engine));
+        uint256 myUsdcBalanceBefore = usdc.balanceOf(address(this));
+        uint256 aliceUsdcBalanceBefore = usdc.balanceOf(address(alice));
+        uint256 usdcDepositAmount = 500 * 1e6;
+        uint256 engineEthBalanceBefore = weth.balanceOf(address(engine));
+        uint256 myEthBalanceBefore = weth.balanceOf(address(this));
+        uint256 aliceEthBalanceBefore = weth.balanceOf(address(alice));
+        uint256 ethDepositAmount = 10 * 1e18;
+
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        actions[0] = createAddCollateralAction(usdcId, address(this), usdcDepositAmount);
+        actions[1] = createAddCollateralAction(wethId, address(this), ethDepositAmount);
+        engine.execute(address(this), actions);
+
+        uint256 engineUsdcBalanceAfter = usdc.balanceOf(address(engine));
+        uint256 myUsdcBalanceAfter = usdc.balanceOf(address(this));
+        uint256 aliceUsdcBalanceAfter = usdc.balanceOf(address(alice));
+        uint256 engineEthBalanceAfter = weth.balanceOf(address(engine));
+        uint256 myEthBalanceAfter = weth.balanceOf(address(this));
+        uint256 aliceEthBalanceAfter = weth.balanceOf(address(alice));
+
+        assertEq(myEthBalanceBefore - myEthBalanceAfter, ethDepositAmount);
+        assertEq(engineEthBalanceAfter - engineEthBalanceBefore, ethDepositAmount);
+        assertEq(myUsdcBalanceBefore - myUsdcBalanceAfter, usdcDepositAmount);
+        assertEq(engineUsdcBalanceAfter - engineUsdcBalanceBefore, usdcDepositAmount);
+        assertEq(aliceUsdcBalanceBefore, aliceUsdcBalanceAfter);
+        assertEq(aliceEthBalanceBefore, aliceEthBalanceAfter);
     }
 
     function testCanAddDifferentCollateralToSameAccount() public {

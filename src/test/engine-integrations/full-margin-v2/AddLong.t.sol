@@ -34,11 +34,14 @@ contract TestAddLong_FMV2 is FullMarginFixtureV2 {
         uint256 amount = 1 * UNIT;
 
         uint256 tokenId = getTokenId(TokenType.CALL, pidEthCollat, expiry, strikePrice, 0);
+        uint256 tokenId2 = getTokenId(TokenType.CALL, pidEthCollat, expiry, 2*strikePrice, 0);
 
         // prepare: mint tokens
-        ActionArgs[] memory _actions = new ActionArgs[](2);
+        ActionArgs[] memory _actions = new ActionArgs[](4);
         _actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         _actions[1] = createMintAction(tokenId, address(this), amount);
+        _actions[2] = createAddCollateralAction(wethId, address(this), depositAmount);
+        _actions[3] = createMintAction(tokenId2, address(this), amount);
         engine.execute(address(this), _actions);
 
         option.setApprovalForAll(address(engine), true);
@@ -49,5 +52,7 @@ contract TestAddLong_FMV2 is FullMarginFixtureV2 {
 
         assertEq(option.balanceOf(address(this), tokenId), 0);
         assertEq(option.balanceOf(address(engine), tokenId), amount);
+        assertEq(option.balanceOf(address(this), tokenId2), amount);
+        assertEq(option.balanceOf(address(engine), tokenId2), 0);
     }
 }
