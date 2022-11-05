@@ -11,8 +11,6 @@ import "../../../config/enums.sol";
 import "../../../config/types.sol";
 import "../../../config/errors.sol";
 
-import "forge-std/console2.sol";
-
 /**
  * @title   FullMarginMathV2
  * @notice  this library is in charge of calculating the min collateral for a given simple margin account
