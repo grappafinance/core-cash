@@ -355,30 +355,6 @@ library ArrayUtil {
         }
     }
 
-    function slice(
-        uint256[] memory x,
-        int256 _start,
-        int256 _end
-    ) internal pure returns (uint256[] memory a) {
-        int256 len = x.length.toInt256();
-        if (_start < 0) _start = len + _start;
-        if (_end <= 0) _end = len + _end;
-        if (_end < _start) return new uint256[](0);
-
-        uint256 start = _start.toUint256();
-        uint256 end = _end.toUint256();
-
-        a = new uint256[](end - start);
-        uint256 y = 0;
-        for (uint256 i = start; i < end; ) {
-            a[y] = x[i];
-            unchecked {
-                ++i;
-                ++y;
-            }
-        }
-    }
-
     function subEachFrom(uint256[] memory x, uint256 z) internal pure returns (int256[] memory y) {
         y = new int256[](x.length);
         for (uint256 i = 0; i < x.length; i++) {
