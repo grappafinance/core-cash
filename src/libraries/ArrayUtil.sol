@@ -146,10 +146,6 @@ library ArrayUtil {
         return (false, 0);
     }
 
-    // function indexOf(uint8[] memory x, uint8 v) internal pure returns (bool, uint256) {
-    //     return indexOf(toUint256(x), v);
-    // }
-
     /**
      * @dev Compute sum of all elements
      * @return s sum
@@ -266,8 +262,24 @@ library ArrayUtil {
         }
     }
 
-    function concat(uint256[] memory a, uint256[] memory b) internal pure returns (uint256[] memory array) {
-        return toUint256(concat(toInt256(a), toInt256(b)));
+    function concat(uint256[] memory a, uint256[] memory b) internal pure returns (uint256[] memory y) {
+        y = new uint256[](a.length + b.length);
+        uint256 v;
+        uint256 i;
+        for (i; i < a.length; ) {
+            y[v] = a[i];
+            unchecked {
+                ++i;
+                ++v;
+            }
+        }
+        for (i = 0; i < b.length; ) {
+            y[v] = b[i];
+            unchecked {
+                ++i;
+                ++v;
+            }
+        }
     }
 
     function fill(int256[] memory x, int256 v) internal pure returns (int256[] memory) {
@@ -293,9 +305,8 @@ library ArrayUtil {
         uint256[] memory b,
         uint256 z
     ) internal pure returns (uint256[] memory) {
-        uint256[] memory x = toUint256(populate(toInt256(a), toInt256(b), z));
         for (uint256 i = 0; i < a.length; i++) {
-            a[i] = x[i];
+            a[z + i] = b[i];
         }
         return a;
     }
