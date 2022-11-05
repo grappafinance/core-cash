@@ -64,8 +64,13 @@ library ArrayUtil {
         }
     }
 
-    function max(uint256[] memory x) internal pure returns (uint256) {
-        return max(toInt256(x)).toUint256();
+    function max(uint256[] memory x) internal pure returns (uint256 m) {
+        m = x[0];
+        for (uint256 i; i < x.length; i++) {
+            if (x[i] > m) {
+                m = x[i];
+            }
+        }
     }
 
     /**
@@ -315,7 +320,7 @@ library ArrayUtil {
         int256 l = x.length.toInt256();
         if (i > 0) {
             if (i > l) revert IndexOutOfBounds();
-            return x[i.toUint256()];
+            return x[uint256(i)];
         } else {
             if (i < -l) revert IndexOutOfBounds();
             return x[(l + i).toUint256()];
@@ -323,7 +328,14 @@ library ArrayUtil {
     }
 
     function at(uint256[] memory x, int256 i) internal pure returns (uint256) {
-        return at(toInt256(x), i).toUint256();
+        int256 l = x.length.toInt256();
+        if (i > 0) {
+            if (i > l) revert IndexOutOfBounds();
+            return x[uint256(i)];
+        } else {
+            if (i < -l) revert IndexOutOfBounds();
+            return x[(l + i).toUint256()];
+        }
     }
 
     function slice(
@@ -341,26 +353,37 @@ library ArrayUtil {
 
         a = new int256[](end - start);
         uint256 y = 0;
-        for (uint256 i = start; i < end; i++) {
+        for (uint256 i = start; i < end; ) {
             a[y] = x[i];
-            ++y;
+            unchecked {
+                ++i;
+                ++y;
+            }
         }
     }
 
     function slice(
         uint256[] memory x,
-        int256 y,
-        int256 z
-    ) internal pure returns (uint256[] memory) {
-        return toUint256(slice(toInt256(x), y, z));
-    }
+        int256 _start,
+        int256 _end
+    ) internal pure returns (uint256[] memory a) {
+        int256 len = x.length.toInt256();
+        if (_start < 0) _start = len + _start;
+        if (_end <= 0) _end = len + _end;
+        if (_end < _start) return new uint256[](0);
 
-    function slice(
-        uint256[] memory x,
-        uint256 y,
-        uint256 z
-    ) internal pure returns (uint256[] memory) {
-        return toUint256(slice(toInt256(x), y.toInt256(), z.toInt256()));
+        uint256 start = _start.toUint256();
+        uint256 end = _end.toUint256();
+
+        a = new uint256[](end - start);
+        uint256 y = 0;
+        for (uint256 i = start; i < end; ) {
+            a[y] = x[i];
+            unchecked {
+                ++i;
+                ++y;
+            }
+        }
     }
 
     function subEachFrom(uint256[] memory x, uint256 z) internal pure returns (int256[] memory y) {
