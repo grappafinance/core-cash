@@ -176,9 +176,12 @@ library ArrayUtil {
     function argSort(uint256[] memory x) internal pure returns (uint256[] memory y, uint256[] memory z) {
         y = sort(x);
         z = new uint256[](y.length);
-        for (uint256 i; i < y.length; i++) {
+        for (uint256 i; i < y.length;) {
             (, uint256 w) = indexOf(x, y[i]);
             z[i] = w;
+            unchecked {
+                ++i;
+            }
         }
     }
 
