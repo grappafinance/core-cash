@@ -173,18 +173,21 @@ library ArrayUtil {
         }
     }
 
-    function _sortItem(uint256[] memory x, uint256 p) internal pure returns (uint256[] memory) {
-        uint256 w_min = p;
-        for (uint256 i = p; i < x.length; i++) {
-            if (x[i] < x[w_min]) {
-                w_min = i;
+    /**
+     * @dev put the min of last p elements in array at position p.
+     */
+    function _sortItem(uint256[] memory x, uint256 p) internal pure {
+        uint256 _min = p;
+        for (uint256 i = p; i < x.length; ) {
+            if (x[i] < x[_min]) {
+                _min = i;
+            }
+            unchecked {
+                i++;
             }
         }
-        if (w_min == p) return x;
-        uint256 tmp = x[p];
-        x[p] = x[w_min];
-        x[w_min] = tmp;
-        return x;
+        if (_min == p) return;
+        (x[p], x[_min]) = (x[_min], x[p]);
     }
 
     function argSort(uint256[] memory x) internal pure returns (uint256[] memory y, uint256[] memory z) {
@@ -203,7 +206,8 @@ library ArrayUtil {
         y = new uint256[](x.length);
         y = populate(y, x, 0);
         for (uint256 i = 0; i < x.length - 1; i++) {
-            y = _sortItem(y, i);
+            // find the min of [i, last] and put in position i;
+            _sortItem(y, i);
         }
     }
 
@@ -292,17 +296,6 @@ library ArrayUtil {
             x[i] = v;
         }
         return x;
-    }
-
-    function populate(
-        int256[] memory a,
-        int256[] memory b,
-        uint256 z
-    ) internal pure returns (int256[] memory) {
-        for (uint256 i = 0; i < a.length; i++) {
-            a[z + i] = b[i];
-        }
-        return a;
     }
 
     function populate(
