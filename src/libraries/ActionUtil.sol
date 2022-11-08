@@ -69,16 +69,16 @@ library ActionUtil {
     /**
      * @param tokenId option token id to mint
      * @param amount amount of token to mint (6 decimals)
-     * @param recipient account to receive minted option
+     * @param subAccount sub account to receive minted option
      */
     function createMintIntoAccountAction(
         uint256 tokenId,
         uint256 amount,
-        address recipient
+        address subAccount
     ) internal pure returns (ActionArgs memory action) {
         action = ActionArgs({
             action: ActionType.MintShortIntoAccount,
-            data: abi.encode(tokenId, recipient, uint64(amount))
+            data: abi.encode(tokenId, subAccount, uint64(amount))
         });
     }
 

@@ -23,8 +23,6 @@ import "../../config/enums.sol";
 import "../../config/constants.sol";
 import "../../config/errors.sol";
 
-import "../../test/utils/Console.sol";
-
 /**
  * @title   MarginBase
  * @author  @antoncoding, @dsshap
@@ -189,7 +187,7 @@ abstract contract BaseEngine is ReentrancyGuard {
      */
     function _mintOptionIntoAccount(address _subAccount, bytes memory _data) internal virtual {
         // decode parameters
-        (uint256 tokenId, address recipient, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
+        (uint256 tokenId, address recipientSubAccount, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
 
         // update the account in state
         _increaseShortInAccount(_subAccount, tokenId, amount);
@@ -199,9 +197,9 @@ abstract contract BaseEngine is ReentrancyGuard {
         _verifyLongTokenIdToAdd(tokenId);
 
         // update the account in state
-        _increaseLongInAccount(recipient, tokenId, amount);
+        _increaseLongInAccount(recipientSubAccount, tokenId, amount);
 
-        emit OptionTokenAdded(recipient, tokenId, amount);
+        emit OptionTokenAdded(recipientSubAccount, tokenId, amount);
 
         // mint option token
         optionToken.mint(address(this), tokenId, amount);

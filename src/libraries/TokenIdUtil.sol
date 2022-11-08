@@ -15,7 +15,7 @@ import "../config/errors.sol";
  */
 
 /**
- * Short Token ID =
+ * Compressed Token ID =
  *
  *  * ------------------- | ------------------- | ---------------- | -------------------- *
  *  | tokenType (24 bits) | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) |
@@ -211,7 +211,7 @@ library TokenIdUtil {
     }
 
     /**
-     * @notice shortens tokenId by removing shortStrike.
+     * @notice Compresses tokenId by removing shortStrike.
      *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
      * @dev   oldId =   | call or put type    | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) | 0           (64 bits) |
      *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
@@ -221,7 +221,7 @@ library TokenIdUtil {
      *
      * @param _tokenId token id to change
      */
-    function shorten(uint256 _tokenId) internal pure returns (uint192 newId) {
+    function compress(uint256 _tokenId) internal pure returns (uint192 newId) {
         assembly {
             newId := shr(64, _tokenId) // >> 64 to wipe out shortStrike
         }

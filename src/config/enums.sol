@@ -18,6 +18,7 @@ enum ActionType {
     AddLong,
     RemoveLong,
     SettleAccount,
+    // increase short (debt) position in one account, increase long token directly to another account
     MintShortIntoAccount,
     TransferCollateral,
     TransferLong,

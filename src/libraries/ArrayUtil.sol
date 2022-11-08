@@ -98,7 +98,7 @@ library ArrayUtil {
     // }
 
     /**
-     * @dev Removes element at index
+     * @dev Removes element at index in a new array, does not change x memory in place
      * @return y new array
      */
     function remove(uint256[] memory x, uint256 z) internal pure returns (uint256[] memory y) {
@@ -176,7 +176,7 @@ library ArrayUtil {
     /**
      * @dev put the min of last p elements in array at position p.
      */
-    function _sortItem(uint256[] memory x, uint256 p) internal pure {
+    function _sortItem(uint256[] memory x, uint256 p) private pure {
         uint256 _min = p;
         for (uint256 i = p; i < x.length; ) {
             if (x[i] < x[_min]) {
