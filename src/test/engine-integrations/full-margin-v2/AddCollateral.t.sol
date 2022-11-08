@@ -20,7 +20,6 @@ contract TestAddCollateral_FMV2 is FullMarginFixtureV2 {
         weth.mint(address(this), 100 * 1e18);
         weth.approve(address(engine), type(uint256).max);
         weth.mint(address(alice), 100 * 1e18);
-        
     }
 
     function testAddCollateralChangeStorage() public {

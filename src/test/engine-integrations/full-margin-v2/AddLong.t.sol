@@ -34,7 +34,7 @@ contract TestAddLong_FMV2 is FullMarginFixtureV2 {
         uint256 amount = 1 * UNIT;
 
         uint256 tokenId = getTokenId(TokenType.CALL, pidEthCollat, expiry, strikePrice, 0);
-        uint256 tokenId2 = getTokenId(TokenType.CALL, pidEthCollat, expiry, 2*strikePrice, 0);
+        uint256 tokenId2 = getTokenId(TokenType.CALL, pidEthCollat, expiry, 2 * strikePrice, 0);
 
         // prepare: mint tokens
         ActionArgs[] memory _actions = new ActionArgs[](4);

@@ -101,7 +101,7 @@ contract TestBatchExecute_FMV2 is FullMarginFixtureV2 {
         aliceActions[1] = createMintIntoAccountAction(tokenId1, address(this), amount);
 
         ActionArgs[] memory selfActions = new ActionArgs[](2);
-        uint256 requiredCollateral = (k2-k1) * 1e18 / k2; // should this be using sUNIT? we use 1e18 above
+        uint256 requiredCollateral = ((k2 - k1) * 1e18) / k2; // should this be using sUNIT? we use 1e18 above
         // TODO: probably need to add this to the math library tests and also do a usdc one
         selfActions[0] = createAddCollateralAction(wethId, address(this), requiredCollateral);
         // self is minting and giving the short to alice of the higher k2 strike
@@ -112,6 +112,5 @@ contract TestBatchExecute_FMV2 is FullMarginFixtureV2 {
         batch[1] = BatchExecute(address(this), selfActions);
 
         engine.batchExecute(batch);
-
     }
 }

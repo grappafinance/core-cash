@@ -252,7 +252,7 @@ contract TestStructures_FMMV2 is Test {
         });
 
         (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, int(1));
+        assertEq(cashNeeded, int256(1));
         assertEq(underlyingNeeded, sZERO);
     }
 
@@ -493,7 +493,6 @@ contract TestVanillaPut_FMMV2 is Test {
         assertEq(cashNeeded, 18000 * sUNIT);
         assertEq(underlyingNeeded, sZERO);
     }
-
 }
 
 contract TestStrangles is Test {
@@ -540,7 +539,7 @@ contract TestStrangles is Test {
         (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
         consoleG.logInt(cashNeeded);
         consoleG.logInt(underlyingNeeded);
-        assertEq(cashNeeded, int(putStrikes[0]));
+        assertEq(cashNeeded, int256(putStrikes[0]));
         assertEq(underlyingNeeded, -callWeights[0]);
     }
 
@@ -564,7 +563,6 @@ contract TestStrangles is Test {
         assertEq(cashNeeded, sZERO);
         assertEq(underlyingNeeded, sZERO);
     }
-
 }
 
 contract TestCornerCases is Test {
@@ -678,7 +676,7 @@ contract TestCornerCases is Test {
         });
 
         (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, int(putStrikes[1])-1000*sUNIT);
+        assertEq(cashNeeded, int256(putStrikes[1]) - 1000 * sUNIT);
         assertEq(underlyingNeeded, sZERO);
     }
 
@@ -697,7 +695,7 @@ contract TestCornerCases is Test {
         });
 
         (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, int(putStrikes[1])-1000*sUNIT);
+        assertEq(cashNeeded, int256(putStrikes[1]) - 1000 * sUNIT);
         assertEq(underlyingNeeded, 1 * sUNIT);
     }
 
@@ -721,7 +719,7 @@ contract TestCornerCases is Test {
         });
 
         (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        int256 cashRequired = -putWeights[0] * int(putStrikes[0]) - putWeights[1] * int(putStrikes[1]);
+        int256 cashRequired = -putWeights[0] * int256(putStrikes[0]) - putWeights[1] * int256(putStrikes[1]);
         assertEq(cashNeeded, cashRequired);
         assertEq(underlyingNeeded, sZERO);
     }
@@ -745,7 +743,7 @@ contract TestCornerCases is Test {
         });
 
         (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        int256 cashRequired = -putWeights[0] * int(putStrikes[0]) - putWeights[1] * int(putStrikes[1]);
+        int256 cashRequired = -putWeights[0] * int256(putStrikes[0]) - putWeights[1] * int256(putStrikes[1]);
         assertEq(cashNeeded, cashRequired / sUNIT);
         assertEq(underlyingNeeded, sZERO);
     }
@@ -768,7 +766,7 @@ contract TestCornerCases is Test {
         });
 
         (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        int256 cashRequired = -putWeights[0] * int(putStrikes[0]) - putWeights[1] * int(putStrikes[1]);
+        int256 cashRequired = -putWeights[0] * int256(putStrikes[0]) - putWeights[1] * int256(putStrikes[1]);
         assertEq(cashNeeded, cashRequired / sUNIT);
         assertEq(underlyingNeeded, sZERO);
     }
@@ -790,9 +788,9 @@ contract TestCornerCases is Test {
         });
 
         (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        int256 cashRequired = -putWeights[0] * int(putStrikes[0]) - putWeights[1] * int(putStrikes[1]);
+        int256 cashRequired = -putWeights[0] * int256(putStrikes[0]) - putWeights[1] * int256(putStrikes[1]);
         assertEq(cashNeeded, cashRequired / sUNIT);
-        assertEq(underlyingNeeded, -int(callWeights[0]+callWeights[1]));
+        assertEq(underlyingNeeded, -int256(callWeights[0] + callWeights[1]));
     }
 
     function testPutGreaterThanCalls() public {
@@ -821,8 +819,8 @@ contract TestCornerCases is Test {
         });
 
         (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        int256 cashRequired = -putWeights[0] * int(putStrikes[0]) - putWeights[1] * int(putStrikes[1]);
+        int256 cashRequired = -putWeights[0] * int256(putStrikes[0]) - putWeights[1] * int256(putStrikes[1]);
         assertEq(cashNeeded, cashRequired / sUNIT);
-        assertEq(underlyingNeeded, -int(callWeights[0]+callWeights[1]));
+        assertEq(underlyingNeeded, -int256(callWeights[0] + callWeights[1]));
     }
 }
