@@ -89,23 +89,24 @@ contract TestBatchExecute_FMV2 is FullMarginFixtureV2 {
     function testMintSpreadChecksCollateralAfterBatch() public {
         uint256 k1 = 2100 * UNIT;
         uint256 k2 = 2101 * UNIT;
-        uint256 tokenId1 = getTokenId(TokenType.CALL, pidEthCollat, expiry, k1, 0);
-        uint256 tokenId2 = getTokenId(TokenType.CALL, pidEthCollat, expiry, k2, 0);
+        uint256 c2100 = getTokenId(TokenType.CALL, pidEthCollat, expiry, k1, 0);
+        uint256 c2101 = getTokenId(TokenType.CALL, pidEthCollat, expiry, k2, 0);
         // we are making a $1 wide call spread, so you should only need $1 of collateral for this
 
+        uint256 requiredCollateral = ((k2 - k1) * 1e18) / k2;
+
         ActionArgs[] memory aliceActions = new ActionArgs[](2);
-        // alice will be long the call spread, so needs no collateral
-        // we'll deposit 0 just for fun, see if it breaks anything
-        aliceActions[0] = createAddCollateralAction(wethId, alice, 0);
-        // alice is minting, and thus long, the lower k1 strike and givnig the short to address(this)
-        aliceActions[1] = createMintIntoAccountAction(tokenId1, address(this), amount);
+        // alice will be short the call spread, so needs collateral
+        aliceActions[0] = createAddCollateralAction(wethId, alice, requiredCollateral);
+        // alice is minting, and thus short, the lower k1 strike and giving the long to address(this)
+        aliceActions[1] = createMintIntoAccountAction(c2100, address(this), amount);
 
         ActionArgs[] memory selfActions = new ActionArgs[](2);
-        uint256 requiredCollateral = ((k2 - k1) * 1e18) / k2; // should this be using sUNIT? we use 1e18 above
-        // TODO: probably need to add this to the math library tests and also do a usdc one
-        selfActions[0] = createAddCollateralAction(wethId, address(this), requiredCollateral);
-        // self is minting and giving the short to alice of the higher k2 strike
-        selfActions[1] = createMintIntoAccountAction(tokenId2, alice, amount);
+        // address(this) will be long the call spread, so no collateral needed
+        // we'll deposit 0 just for fun, see if it breaks anything
+        selfActions[0] = createAddCollateralAction(wethId, address(this), 0);
+        // address(this) is minting, and thus short, the higher k2 strike and giving the long to alice
+        selfActions[1] = createMintIntoAccountAction(c2101, alice, amount);
 
         BatchExecute[] memory batch = new BatchExecute[](2);
         batch[0] = BatchExecute(alice, aliceActions);

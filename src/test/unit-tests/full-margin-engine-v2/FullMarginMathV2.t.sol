@@ -252,7 +252,7 @@ contract TestStructures_FMMV2 is Test {
         });
 
         (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, int256(1));
+        assertEq(cashNeeded, 1);
         assertEq(underlyingNeeded, sZERO);
     }
 
@@ -283,7 +283,7 @@ contract TestStructures_FMMV2 is Test {
 
         (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
         assertEq(cashNeeded, sZERO);
-        assertEq(underlyingNeeded, int256((1 * UNIT) / 22000));
+        assertEq(underlyingNeeded, (1 * sUNIT) / 22000);
     }
 
     function testMarginCallSpreadSameUnderlyingCollateralBiggerNumbers() public {
@@ -313,37 +313,7 @@ contract TestStructures_FMMV2 is Test {
 
         (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
         assertEq(cashNeeded, sZERO);
-        assertEq(underlyingNeeded, int256((1000_00000 * UNIT) / 22000));
-    }
-
-    function testMarginCallsBasicallyLongAnOption() public {
-        callWeights = new int256[](2);
-        callWeights[0] = 1 * sUNIT;
-        callWeights[1] = -1 * sUNIT;
-
-        callStrikes = new uint256[](2);
-        callStrikes[0] = 21999_999999;
-        callStrikes[1] = 22000 * UNIT;
-
-        putWeights = new int256[](0);
-        putStrikes = new uint256[](0);
-
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
-            putWeights: putWeights,
-            putStrikes: putStrikes,
-            callWeights: callWeights,
-            callStrikes: callStrikes,
-            underlyingId: 0,
-            underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 0,
-            collateralDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
-            expiry: 0
-        });
-
-        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, sZERO);
-        assertEq(underlyingNeeded, sZERO);
+        assertEq(underlyingNeeded, (1000_00000 * sUNIT) / 22000);
     }
 
     function testMarginBinaryCallOption() public {
@@ -372,7 +342,7 @@ contract TestStructures_FMMV2 is Test {
         });
 
         (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, sZERO); //TODO: is this not same as above?
+        assertEq(cashNeeded, sZERO);
         assertEq(underlyingNeeded, sZERO);
     }
 
