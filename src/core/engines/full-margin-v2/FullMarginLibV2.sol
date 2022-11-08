@@ -101,7 +101,7 @@ library FullMarginLibV2 {
         uint256 tokenId,
         uint64 amount
     ) external {
-        (bool found, PositionOptim memory position, uint256 index) = account.shorts.find(tokenId.shorten());
+        (bool found, PositionOptim memory position, uint256 index) = account.shorts.find(tokenId.compress());
 
         if (!found) revert FM_InvalidToken();
 
@@ -118,7 +118,7 @@ library FullMarginLibV2 {
         uint256 tokenId,
         uint64 amount
     ) external {
-        (bool found, uint256 index) = account.longs.indexOf(tokenId.shorten());
+        (bool found, uint256 index) = account.longs.indexOf(tokenId.compress());
 
         if (!found) {
             account.longs.pushPosition(Position(tokenId, amount));
@@ -132,7 +132,7 @@ library FullMarginLibV2 {
         uint256 tokenId,
         uint64 amount
     ) external {
-        (bool found, PositionOptim memory position, uint256 index) = account.longs.find(tokenId.shorten());
+        (bool found, PositionOptim memory position, uint256 index) = account.longs.find(tokenId.compress());
 
         if (!found) revert FM_InvalidToken();
 

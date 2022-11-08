@@ -271,6 +271,6 @@ library AccountUtil {
     }
 
     function getPositionOptim(Position memory x) internal pure returns (PositionOptim memory) {
-        return PositionOptim(x.tokenId.shorten(), x.amount);
+        return PositionOptim(x.tokenId.compress(), x.amount);
     }
 }
