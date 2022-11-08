@@ -267,6 +267,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
     }
 
     // handling this in MarginLib
+    // solhint-disable-next-line no-empty-blocks
     function _getAccountPayout(address _subAccount) internal view override returns (uint80) {}
 
     /**

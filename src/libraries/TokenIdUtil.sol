@@ -222,6 +222,7 @@ library TokenIdUtil {
      * @param _tokenId token id to change
      */
     function compress(uint256 _tokenId) internal pure returns (uint192 newId) {
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             newId := shr(64, _tokenId) // >> 64 to wipe out shortStrike
         }

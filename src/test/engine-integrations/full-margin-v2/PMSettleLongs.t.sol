@@ -12,7 +12,7 @@ import "../../../config/errors.sol";
 import "../../utils/Console.sol";
 
 // solhint-disable-next-line contract-name-camelcase
-contract TestPMSettleLongCalls_FMV2 is FullMarginFixtureV2 {
+contract TestPMSettleLongCallsFMV2 is FullMarginFixtureV2 {
     uint256 public expiry;
     uint256 public tokenId;
     uint256 public depositAmount = 1 * 1e18;
@@ -217,7 +217,7 @@ contract TestPMSettleLongCalls_FMV2 is FullMarginFixtureV2 {
     }
 }
 
-contract TestPMSettleLongPuts_FMV2 is FullMarginFixtureV2 {
+contract TestPMSettleLongPutsFMV2 is FullMarginFixtureV2 {
     uint256 public expiry;
     uint256 public tokenId;
     uint256 public depositAmount = 2000 * 1e6;

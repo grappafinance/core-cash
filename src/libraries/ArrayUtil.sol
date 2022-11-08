@@ -310,24 +310,24 @@ library ArrayUtil {
     }
 
     function at(int256[] memory x, int256 i) internal pure returns (int256) {
-        int256 l = x.length.toInt256();
+        int256 len = x.length.toInt256();
         if (i > 0) {
-            if (i > l) revert IndexOutOfBounds();
+            if (i > len) revert IndexOutOfBounds();
             return x[uint256(i)];
         } else {
-            if (i < -l) revert IndexOutOfBounds();
-            return x[(l + i).toUint256()];
+            if (i < -len) revert IndexOutOfBounds();
+            return x[(len + i).toUint256()];
         }
     }
 
     function at(uint256[] memory x, int256 i) internal pure returns (uint256) {
-        int256 l = x.length.toInt256();
+        int256 len = x.length.toInt256();
         if (i > 0) {
-            if (i > l) revert IndexOutOfBounds();
+            if (i > len) revert IndexOutOfBounds();
             return x[uint256(i)];
         } else {
-            if (i < -l) revert IndexOutOfBounds();
-            return x[(l + i).toUint256()];
+            if (i < -len) revert IndexOutOfBounds();
+            return x[(len + i).toUint256()];
         }
     }
 
@@ -336,9 +336,9 @@ library ArrayUtil {
         int256 _start,
         int256 _end
     ) internal pure returns (int256[] memory a) {
-        int256 l = x.length.toInt256();
-        if (_start < 0) _start = l + _start;
-        if (_end <= 0) _end = l + _end;
+        int256 len = x.length.toInt256();
+        if (_start < 0) _start = len + _start;
+        if (_end <= 0) _end = len + _end;
         if (_end < _start) return new int256[](0);
 
         uint256 start = _start.toUint256();

@@ -14,7 +14,7 @@ import "../../utils/Console.sol";
 /**
  * test full margin calculation for complicated structure
  */
-contract TestpreviewMinCollateral_FMMV2 is FullMarginFixtureV2 {
+contract TestpreviewMinCollateralFMMV2 is FullMarginFixtureV2 {
     uint256 public expiry;
     uint256 public strikePrice;
     uint256 public amount;
@@ -28,7 +28,7 @@ contract TestpreviewMinCollateral_FMMV2 is FullMarginFixtureV2 {
         oracle.setSpotPrice(address(weth), 3000 * UNIT);
     }
 
-    function testSimulateCollateralReq_VanillaCall() public {
+    function testSimulateCollateralReqVanillaCall() public {
         Position[] memory shorts;
         Position[] memory longs;
 
@@ -48,7 +48,7 @@ contract TestpreviewMinCollateral_FMMV2 is FullMarginFixtureV2 {
         assertEq(balances[0].amount, depositAmount);
     }
 
-    function testSimulateCollateralReq_VanillaPut() public {
+    function testSimulateCollateralReqVanillaPut() public {
         Position[] memory shorts;
         Position[] memory longs;
 
@@ -70,7 +70,7 @@ contract TestpreviewMinCollateral_FMMV2 is FullMarginFixtureV2 {
         assertEq(balances[0].amount, depositAmount);
     }
 
-    function testSimulateCollateralReq_CallsPut1() public {
+    function testSimulateCollateralReqCallsPut1() public {
         Position[] memory shorts;
         Position[] memory longs;
 
@@ -92,7 +92,7 @@ contract TestpreviewMinCollateral_FMMV2 is FullMarginFixtureV2 {
         assertEq(balances[1].amount, 2000 * 1e6);
     }
 
-    function testSimulateCollateralReq_CallsPut2() public {
+    function testSimulateCollateralReqCallsPut2() public {
         Position[] memory shorts;
         Position[] memory longs;
 
@@ -119,7 +119,7 @@ contract TestpreviewMinCollateral_FMMV2 is FullMarginFixtureV2 {
         assertEq(balances[1].amount, 1000 * 1e6);
     }
 
-    function testSimulateCollateralReq_CallsPut3() public {
+    function testSimulateCollateralReqCallsPut3() public {
         Position[] memory shorts;
         Position[] memory longs;
 
@@ -152,7 +152,7 @@ contract TestpreviewMinCollateral_FMMV2 is FullMarginFixtureV2 {
         assertEq(balances[0].amount, underlyingMaxLoss);
     }
 
-    function testSimulateCollateralReq_CallsPut4() public {
+    function testSimulateCollateralReqCallsPut4() public {
         Position[] memory shorts;
         Position[] memory longs;
 
@@ -187,7 +187,7 @@ contract TestpreviewMinCollateral_FMMV2 is FullMarginFixtureV2 {
         assertEq(balances[1].amount, 2 * 1e18);
     }
 
-    function testSimulateCollateralReq_ShortStrangle() public {
+    function testSimulateCollateralReqShortStrangle() public {
         Position[] memory shorts;
         Position[] memory longs;
 

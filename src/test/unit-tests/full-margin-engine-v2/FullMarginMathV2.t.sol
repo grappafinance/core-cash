@@ -13,7 +13,7 @@ import "../../utils/Console.sol";
 /**
  * test full margin calculation for complicated structure
  */
-contract TestStructures_FMMV2 is Test {
+contract TestStructuresFMMV2 is Test {
     using FullMarginMathV2 for FullMarginDetailV2;
 
     uint256 private spotPrice;
@@ -377,7 +377,7 @@ contract TestStructures_FMMV2 is Test {
     }
 }
 
-contract TestVanillaCall_FMMV2 is Test {
+contract TestVanillaCallFMMV2 is Test {
     using FullMarginMathV2 for FullMarginDetailV2;
 
     uint256 private spotPrice;
@@ -421,7 +421,7 @@ contract TestVanillaCall_FMMV2 is Test {
     }
 }
 
-contract TestVanillaPut_FMMV2 is Test {
+contract TestVanillaPutFMMV2 is Test {
     using FullMarginMathV2 for FullMarginDetailV2;
 
     uint256 private spotPrice;
