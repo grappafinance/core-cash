@@ -102,6 +102,50 @@ library AccountUtil {
         }
     }
 
+    /// @dev currently unused
+    function find(Balance[] memory x, uint8 v)
+        internal
+        pure
+        returns (
+            bool f,
+            Balance memory b,
+            uint256 i
+        )
+    {
+        for (i; i < x.length; ) {
+            if (x[i].collateralId == v) {
+                b = x[i];
+                f = true;
+                break;
+            }
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    /// @dev currently unused
+    function find(Position[] memory x, uint256 v)
+        internal
+        pure
+        returns (
+            bool f,
+            Position memory p,
+            uint256 i
+        )
+    {
+        for (i; i < x.length; ) {
+            if (x[i].tokenId == v) {
+                p = x[i];
+                f = true;
+                break;
+            }
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
     function indexOf(Balance[] memory x, uint8 v) internal pure returns (bool f, uint256 i) {
         for (i; i < x.length; ) {
             if (x[i].collateralId == v) {
