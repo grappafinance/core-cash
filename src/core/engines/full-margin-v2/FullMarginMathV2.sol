@@ -141,7 +141,7 @@ library FullMarginMathV2 {
 
         (strikes, weights, syntheticUnderlyingWeight, intrinsicValue) = convertPutsToCalls(_detail);
 
-        pois = createPois(strikes, _detail.putStrikes.length, _detail.spotPrice);
+        pois = createPois(strikes, _detail.putStrikes.length);
 
         payouts = calcPayouts(
             PayoutsParams(pois, strikes, weights, syntheticUnderlyingWeight, _detail.spotPrice, intrinsicValue)
@@ -150,10 +150,9 @@ library FullMarginMathV2 {
 
     function createPois(
         uint256[] memory strikes,
-        uint256 numOfPuts,
-        uint256 spotPrice
+        uint256 numOfPuts
     ) private pure returns (uint256[] memory pois) {
-        uint256 epsilon = spotPrice / 10;
+        uint256 epsilon = strikes.min() / 10;
 
         bool hasPuts = numOfPuts > 0;
 
@@ -162,7 +161,6 @@ library FullMarginMathV2 {
 
         pois = new uint256[](poiCount);
 
-        // this line will revert if strike is lower than 10% of spot
         if (hasPuts) pois[0] = strikes.min() - epsilon;
 
         for (uint256 i; i < strikes.length; ) {
