@@ -148,10 +148,7 @@ library FullMarginMathV2 {
         );
     }
 
-    function createPois(
-        uint256[] memory strikes,
-        uint256 numOfPuts
-    ) private pure returns (uint256[] memory pois) {
+    function createPois(uint256[] memory strikes, uint256 numOfPuts) private pure returns (uint256[] memory pois) {
         uint256 epsilon = strikes.min() / 10;
 
         bool hasPuts = numOfPuts > 0;
