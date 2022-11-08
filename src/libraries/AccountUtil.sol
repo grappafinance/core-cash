@@ -81,27 +81,6 @@ library AccountUtil {
         }
     }
 
-    function find(PositionOptim[] memory x, uint192 v)
-        internal
-        pure
-        returns (
-            bool f,
-            PositionOptim memory p,
-            uint256 i
-        )
-    {
-        for (i; i < x.length; ) {
-            if (x[i].tokenId == v) {
-                p = x[i];
-                f = true;
-                break;
-            }
-            unchecked {
-                ++i;
-            }
-        }
-    }
-
     /// @dev currently unused
     function find(Balance[] memory x, uint8 v)
         internal
@@ -131,6 +110,27 @@ library AccountUtil {
         returns (
             bool f,
             Position memory p,
+            uint256 i
+        )
+    {
+        for (i; i < x.length; ) {
+            if (x[i].tokenId == v) {
+                p = x[i];
+                f = true;
+                break;
+            }
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    function find(PositionOptim[] memory x, uint192 v)
+        internal
+        pure
+        returns (
+            bool f,
+            PositionOptim memory p,
             uint256 i
         )
     {
