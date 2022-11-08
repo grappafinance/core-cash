@@ -110,7 +110,7 @@ contract FullMarginEngine is BaseEngine, IMarginEngine {
     function transferAccount(address _subAccount, address _newSubAccount) external {
         if (!_isPrimaryAccountFor(msg.sender, _subAccount)) revert NoAccess();
 
-        if (!marginAccounts[_newSubAccount].isEmpty()) revert AM_AccountIsNotEmpty();
+        if (!marginAccounts[_newSubAccount].isEmpty()) revert FM_AccountIsNotEmpty();
         marginAccounts[_newSubAccount] = marginAccounts[_subAccount];
 
         delete marginAccounts[_subAccount];
