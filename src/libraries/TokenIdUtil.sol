@@ -158,9 +158,9 @@ library TokenIdUtil {
      * @return expired bool
      */
     function isExpired(uint256 tokenId) internal view returns (bool expired) {
+        // solhint-disable-next-line no-inline-assembly
         uint64 expiry;
 
-        // solhint-disable-next-line no-inline-assembly
         assembly {
             expiry := shr(128, tokenId)
         }
