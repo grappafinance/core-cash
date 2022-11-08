@@ -11,8 +11,6 @@ import "../../../config/enums.sol";
 import "../../../config/types.sol";
 import "../../../config/errors.sol";
 
-import "../../../test/utils/Console.sol";
-
 /**
  * @title   FullMarginMathV2
  * @notice  this library is in charge of calculating the min collateral for a given simple margin account
@@ -55,7 +53,7 @@ library FullMarginMathV2 {
      */
     function getMinCollateral(FullMarginDetailV2 memory _detail)
         external
-        view
+        pure
         returns (int256 cashNeeded, int256 underlyingNeeded)
     {
         (
@@ -97,12 +95,6 @@ library FullMarginMathV2 {
         underlyingNeeded = NumberUtil
             .convertDecimals(underlyingNeeded.toUint256(), UNIT_DECIMALS, _detail.underlyingDecimals)
             .toInt256();
-
-        // consoleG.log("MarginMath cashNeeded post conversion");
-        // consoleG.logInt(cashNeeded);
-
-        // consoleG.log("MarginMath underlyingNeeded post conversion");
-        // consoleG.logInt(underlyingNeeded);
     }
 
     function calcCollateralNeeds(
@@ -110,7 +102,7 @@ library FullMarginMathV2 {
         PoisAndPayouts memory poisAndPayouts,
         int256 leftDelta,
         uint256[] memory strikes
-    ) private view returns (int256 cashNeeded, int256 underlyingNeeded) {
+    ) private pure returns (int256 cashNeeded, int256 underlyingNeeded) {
         bool hasCalls = _detail.callStrikes.length > 0;
         bool hasPuts = _detail.putStrikes.length > 0;
 
@@ -133,7 +125,7 @@ library FullMarginMathV2 {
 
     function baseSetup(FullMarginDetailV2 memory _detail)
         private
-        view
+        pure
         returns (
             uint256[] memory strikes,
             int256 syntheticUnderlyingWeight,
@@ -147,15 +139,6 @@ library FullMarginMathV2 {
         (strikes, weights, syntheticUnderlyingWeight, intrinsicValue) = convertPutsToCalls(_detail);
 
         pois = createPois(strikes, _detail.putStrikes.length);
-
-        // consoleG.log("MarginMath strikes");
-        // consoleG.log(strikes);
-
-        // consoleG.log("MarginMath weights");
-        // consoleG.log(weights);
-
-        // consoleG.log("MarginMath pois");
-        // consoleG.log(pois);
 
         payouts = calcPayouts(
             PayoutsParams(pois, strikes, weights, syntheticUnderlyingWeight, _detail.spotPrice, intrinsicValue)
@@ -217,7 +200,7 @@ library FullMarginMathV2 {
         intrinsicValue = -intrinsicValue;
     }
 
-    function calcPayouts(PayoutsParams memory params) private view returns (int256[] memory payouts) {
+    function calcPayouts(PayoutsParams memory params) private pure returns (int256[] memory payouts) {
         payouts = new int256[](params.pois.length);
 
         for (uint256 i; i < params.strikes.length; ) {
@@ -233,9 +216,6 @@ library FullMarginMathV2 {
         payouts = payouts
             .add(params.pois.subEachBy(params.spotPrice).eachMulDivDown(params.syntheticUnderlyingWeight, sUNIT))
             .addEachBy(params.intrinsicValue);
-
-        // consoleG.log("calcPayouts payouts");
-        // consoleG.log(payouts);
     }
 
     function calcPutPayouts(uint256[] memory strikes, int256[] memory weights)
