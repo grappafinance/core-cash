@@ -20,7 +20,7 @@ library ArrayUtil {
                 m = x[i];
             }
             unchecked {
-                i++;
+                ++i;
             }
         }
     }
@@ -32,7 +32,7 @@ library ArrayUtil {
                 m = x[i];
             }
             unchecked {
-                i++;
+                ++i;
             }
         }
     }
@@ -121,7 +121,7 @@ library ArrayUtil {
                 return (true, i);
             }
             unchecked {
-                i++;
+                ++i;
             }
         }
         return (false, 0);
@@ -133,7 +133,7 @@ library ArrayUtil {
                 return (true, i);
             }
             unchecked {
-                i++;
+                ++i;
             }
         }
         return (false, 0);
@@ -145,7 +145,7 @@ library ArrayUtil {
                 return (true, i);
             }
             unchecked {
-                i++;
+                ++i;
             }
         }
         return (false, 0);
@@ -159,7 +159,7 @@ library ArrayUtil {
         for (uint256 i; i < x.length; ) {
             s += x[i];
             unchecked {
-                i++;
+                ++i;
             }
         }
     }
@@ -168,7 +168,7 @@ library ArrayUtil {
         for (uint256 i; i < x.length; ) {
             s += x[i];
             unchecked {
-                i++;
+                ++i;
             }
         }
     }
@@ -183,7 +183,7 @@ library ArrayUtil {
                 _min = i;
             }
             unchecked {
-                i++;
+                ++i;
             }
         }
         if (_min == p) return;
@@ -233,7 +233,7 @@ library ArrayUtil {
         for (i = 0; i < x.length; ) {
             y[i] = x[i];
             unchecked {
-                i++;
+                ++i;
             }
         }
         y[i] = v;
@@ -245,7 +245,7 @@ library ArrayUtil {
         for (i = 0; i < x.length; ) {
             y[i] = x[i];
             unchecked {
-                i++;
+                ++i;
             }
         }
         y[i] = v;
