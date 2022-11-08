@@ -15,9 +15,9 @@ import "../../utils/Console.sol";
 contract TestBatchExecute_FMV2 is FullMarginFixtureV2 {
     uint256 public expiry;
     uint256 public tokenId;
-    uint256 public depositAmount = 1 * 1e18;
+    uint256 public depositAmount = 2 * 1e18;
     uint256 public strikePrice = 4000 * UNIT;
-    uint256 public amount = 1 * UNIT;
+    uint256 public amount = 2 * UNIT;
 
     function setUp() public {
         usdc.mint(address(this), 1000_000 * 1e6);
@@ -93,7 +93,7 @@ contract TestBatchExecute_FMV2 is FullMarginFixtureV2 {
         uint256 c2101 = getTokenId(TokenType.CALL, pidEthCollat, expiry, k2, 0);
         // we are making a $1 wide call spread, so you should only need $1 of collateral for this
 
-        uint256 requiredCollateral = ((k2 - k1) * 1e18) / k2;
+        uint256 requiredCollateral = ((k2 - k1) * depositAmount) / k2;
 
         ActionArgs[] memory aliceActions = new ActionArgs[](2);
         // alice will be short the call spread, so needs collateral
