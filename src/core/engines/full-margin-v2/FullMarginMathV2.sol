@@ -100,16 +100,13 @@ library FullMarginMathV2 {
     function calcCollateralNeeds(
         FullMarginDetailV2 memory _detail,
         PoisAndPayouts memory poisAndPayouts,
-        int256 syntheticUnderlyingWeight,
+        int256 leftDelta,
         uint256[] memory strikes
     ) private pure returns (int256 cashNeeded, int256 underlyingNeeded) {
-        int256 leftDelta;
         bool hasCalls = _detail.callStrikes.length > 0;
         bool hasPuts = _detail.putStrikes.length > 0;
 
         if (hasCalls) (underlyingNeeded, ) = getUnderlyingNeeded(poisAndPayouts);
-
-        leftDelta = underlyingNeeded + syntheticUnderlyingWeight;
 
         if (hasPuts) cashNeeded = getCashNeeded(poisAndPayouts.payouts, leftDelta, strikes.min());
 
