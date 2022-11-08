@@ -138,28 +138,24 @@ library FullMarginMathV2 {
 
         (strikes, weights, syntheticUnderlyingWeight, intrinsicValue) = convertPutsToCalls(_detail);
 
-        pois = createPois(_detail.putStrikes, strikes);
+        pois = createPois(strikes, _detail.putStrikes.length);
 
         payouts = calcPayouts(
             PayoutsParams(pois, strikes, weights, syntheticUnderlyingWeight, _detail.spotPrice, intrinsicValue)
         );
     }
 
-    function createPois(uint256[] memory putStrikes, uint256[] memory strikes)
-        private
-        pure
-        returns (uint256[] memory pois)
-    {
+    function createPois(uint256[] memory strikes, uint256 numOfPuts) private pure returns (uint256[] memory pois) {
         uint256 epsilon = strikes.min() / 10;
 
-        bool hasPuts = putStrikes.length > 0;
+        bool hasPuts = numOfPuts > 0;
 
         // left of left-most + strikes + right of right-most
         uint256 poiCount = (hasPuts ? 1 : 0) + strikes.length + 1;
 
         pois = new uint256[](poiCount);
 
-        if (putStrikes.length > 0) pois[0] = strikes.min() - epsilon;
+        if (hasPuts) pois[0] = strikes.min() - epsilon;
 
         for (uint256 i; i < strikes.length; ) {
             uint256 offset = hasPuts ? 1 : 0;
@@ -188,12 +184,7 @@ library FullMarginMathV2 {
         if (_detail.callWeights.length != _detail.callStrikes.length) revert FMMV2_InvalidCallLengths();
 
         strikes = _detail.putStrikes.concat(_detail.callStrikes);
-
-        int256[] memory synthCallWeights = new int256[](_detail.putWeights.length);
-
-        synthCallWeights = synthCallWeights.populate(_detail.putWeights, 0);
-
-        weights = synthCallWeights.concat(_detail.callWeights);
+        weights = _detail.putWeights.concat(_detail.callWeights);
 
         // sorting strikes
         uint256[] memory indexes;
