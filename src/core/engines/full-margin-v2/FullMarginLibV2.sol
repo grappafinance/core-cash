@@ -40,6 +40,8 @@ library FullMarginLibV2 {
         uint8 collateralId,
         uint80 amount
     ) public {
+        if (amount == 0) return;
+
         (bool found, uint256 index) = account.collaterals.indexOf(collateralId);
 
         if (!found) {
@@ -57,6 +59,7 @@ library FullMarginLibV2 {
         Balance[] memory collaterals = account.collaterals;
 
         (bool found, uint256 index) = collaterals.indexOf(collateralId);
+
         if (!found) revert FM_WrongCollateralId();
 
         uint80 newAmount = collaterals[index].amount - amount;
@@ -73,6 +76,8 @@ library FullMarginLibV2 {
         uint256 tokenId,
         uint64 amount
     ) external {
+        if (amount == 0) return;
+
         (TokenType optionType, uint40 productId, , , ) = tokenId.parseTokenId();
 
         // assign collateralId or check collateral id is the same
@@ -118,6 +123,8 @@ library FullMarginLibV2 {
         uint256 tokenId,
         uint64 amount
     ) external {
+        if (amount == 0) return;
+
         (bool found, uint256 index) = account.longs.indexOf(tokenId.compress());
 
         if (!found) {

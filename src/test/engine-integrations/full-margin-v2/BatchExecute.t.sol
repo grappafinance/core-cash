@@ -113,5 +113,33 @@ contract TestBatchExecute_FMV2 is FullMarginFixtureV2 {
         batch[1] = BatchExecute(address(this), selfActions);
 
         engine.batchExecute(batch);
+
+        (Position[] memory aliceShorts, Position[] memory aliceLongs, Balance[] memory aliceCollaters) = engine
+            .marginAccounts(alice);
+
+        assertEq(aliceShorts.length, 1);
+        assertEq(aliceShorts[0].tokenId, c2100);
+        assertEq(aliceShorts[0].amount, amount);
+
+        assertEq(aliceLongs.length, 1);
+        assertEq(aliceLongs[0].tokenId, c2101);
+        assertEq(aliceLongs[0].amount, amount);
+
+        assertEq(aliceCollaters.length, 1);
+        assertEq(aliceCollaters[0].collateralId, wethId);
+        assertEq(aliceCollaters[0].amount, requiredCollateral);
+
+        (Position[] memory selfShorts, Position[] memory selfLongs, Balance[] memory selfCollaters) = engine
+            .marginAccounts(address(this));
+
+        assertEq(selfShorts.length, 1);
+        assertEq(selfShorts[0].tokenId, c2101);
+        assertEq(selfShorts[0].amount, amount);
+
+        assertEq(selfLongs.length, 1);
+        assertEq(selfLongs[0].tokenId, c2100);
+        assertEq(selfLongs[0].amount, amount);
+
+        assertEq(selfCollaters.length, 0);
     }
 }
