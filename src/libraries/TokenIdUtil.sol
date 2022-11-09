@@ -114,6 +114,7 @@ library TokenIdUtil {
 
     /**
      * @notice parse collateral id from tokenId
+     * @dev more efficient than parsing tokenId and than parse productId
      * @param tokenId token id
      * @return collatearlId
      */
@@ -122,6 +123,20 @@ library TokenIdUtil {
         assembly {
             // collateralId is the last bits of productId
             collatearlId := shr(192, tokenId)
+        }
+    }
+
+    /**
+     * @notice parse engine id from tokenId
+     * @dev more efficient than parsing tokenId and than parse productId
+     * @param tokenId token id
+     * @return engineId
+     */
+    function parseEnginelId(uint256 tokenId) internal pure returns (uint8 engineId) {
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            // collateralId is the last bits of productId
+            engineId := shr(216, tokenId) // 192 to get product id, another 24 to get engineId
         }
     }
 

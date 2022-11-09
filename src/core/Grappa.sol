@@ -348,6 +348,26 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         }
     }
 
+    /**
+     * @notice check whether a tokenId is valid or not, revert on bad Ids with custom errors
+     * @dev this logic is abstract away from OptionToken so we can add more option type in the near future.
+     * @param _tokenId tokenId
+     */
+    function checkTokenId(uint256 _tokenId) external view {
+        (TokenType optionType, , uint64 expiry, uint64 longStrike, uint64 shortStrike) = _tokenId.parseTokenId();
+
+        // check option type and strikes
+        // check that vanilla options doesnt have a shortStrike argument
+        if ((optionType == TokenType.CALL || optionType == TokenType.PUT) && (shortStrike != 0)) revert OT_BadStrikes();
+
+        // check that you cannot mint a "credit spread" token
+        if (optionType == TokenType.CALL_SPREAD && (shortStrike < longStrike)) revert OT_BadStrikes();
+        if (optionType == TokenType.PUT_SPREAD && (shortStrike > longStrike)) revert OT_BadStrikes();
+
+        // check expiry
+        if (expiry <= block.timestamp) revert OT_InvalidExpiry();
+    }
+
     /*///////////////////////////////////////////////////////////////
                             Admin Functions
     //////////////////////////////////////////////////////////////*/
