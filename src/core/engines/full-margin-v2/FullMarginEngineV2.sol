@@ -373,7 +373,6 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
             ProductDetails memory product = _getProductDetails(productId);
 
             bytes32 pos = keccak256(abi.encode(product.underlyingId, product.strikeId, product.collateralId, expiry));
-
             (bool found, uint256 index) = usceLookUp.indexOf(pos);
 
             FullMarginDetailV2 memory detail;
@@ -393,7 +392,6 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
 
             int256 amount = int256(int64(positions[i].amount));
             if (i < shortLength) amount = -amount;
-
             _processDetailWithToken(detail, positions[i].tokenId, amount);
 
             unchecked {
@@ -406,7 +404,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
         FullMarginDetailV2 memory detail,
         uint256 tokenId,
         int256 amount
-    ) internal pure {
+    ) internal view {
         (TokenType tokenType, , , uint64 longStrike, ) = tokenId.parseTokenId();
 
         bool found;
@@ -414,7 +412,13 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
 
         if (tokenType == TokenType.CALL) {
             (found, index) = detail.callStrikes.indexOf(longStrike);
-            if (found) detail.callWeights[index] += amount;
+            if (found) {
+                detail.callWeights[index] += amount;
+                if(detail.callWeights[index] == 0) {
+                    detail.callWeights = detail.callWeights.remove(index);
+                    detail.callStrikes = detail.callStrikes.remove(index);
+                }
+            }
             else {
                 detail.callStrikes = detail.callStrikes.append(longStrike);
                 detail.callWeights = detail.callWeights.append(amount);
@@ -423,7 +427,13 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
 
         if (tokenType == TokenType.PUT) {
             (found, index) = detail.putStrikes.indexOf(longStrike);
-            if (found) detail.putWeights[index] += amount;
+            if (found) {
+                detail.putWeights[index] += amount;
+                if(detail.putWeights[index] == 0) {
+                    detail.putWeights = detail.putWeights.remove(index);
+                    detail.putStrikes = detail.putStrikes.remove(index);
+                }
+            }
             else {
                 detail.putStrikes = detail.putStrikes.append(longStrike);
                 detail.putWeights = detail.putWeights.append(amount);
