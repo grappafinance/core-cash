@@ -5,6 +5,7 @@ import "forge-std/Test.sol";
 
 import "../../mocks/MockERC20.sol";
 import "../../mocks/MockOracle.sol";
+import "../../mocks/MockWhitelist.sol";
 import "../../mocks/MockChainlinkAggregator.sol";
 
 import "../../../core/engines/full-margin-v2/FullMarginEngineV2.sol";
@@ -32,6 +33,8 @@ abstract contract FullMarginFixtureV2 is Test, ActionHelper, Utilities {
     MockERC20 internal weth;
 
     MockOracle internal oracle;
+
+    MockWhitelist internal whitelist;
 
     address internal alice;
     address internal charlie;
@@ -64,6 +67,8 @@ abstract contract FullMarginFixtureV2 is Test, ActionHelper, Utilities {
         grappa = new Grappa(address(option)); // nonce: 5
 
         engine = new FullMarginEngineV2(address(grappa), address(option)); // nonce 6
+
+        whitelist = new MockWhitelist();
 
         // register products
         usdcId = grappa.registerAsset(address(usdc));

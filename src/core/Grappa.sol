@@ -193,7 +193,7 @@ contract Grappa is Ownable, ReentrancyGuard {
     /**
      * @notice burn option token and get out cash value at expiry
      *
-     * @param _account who to settle for
+     * @param _account  who to settle for
      * @param _tokenId  tokenId of option token to burn
      * @param _amount   amount to settle
      */

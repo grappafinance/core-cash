@@ -8,6 +8,7 @@ import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
 // interfaces
 import {IOracle} from "../../../interfaces/IOracle.sol";
 import {IMarginEngine} from "../../../interfaces/IMarginEngine.sol";
+import {IWhitelist} from "../../../interfaces/IWhitelist.sol";
 
 // librarise
 import {TokenIdUtil} from "../../../libraries/TokenIdUtil.sol";
@@ -58,12 +59,24 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
     ///     this give every account access to 256 sub-accounts
     mapping(address => FullMarginAccountV2) internal accounts;
 
+    address public whitelist;
+
     // solhint-disable-next-line no-empty-blocks
     constructor(address _grappa, address _optionToken) BaseEngine(_grappa, _optionToken) {}
 
     /*///////////////////////////////////////////////////////////////
                         External Functions
     //////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice Sets the whitelist contract
+     * @param _whitelist is the address of the new whitelist
+     */
+    function setWhitelist(address _whitelist) external {
+        _onlyOwner();
+
+        whitelist = _whitelist;
+    }
 
     function batchExecute(BatchExecute[] calldata batchActions) public nonReentrant {
         uint256 i;
@@ -98,7 +111,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
      * @notice payout to user on settlement.
      * @dev this can only triggered by Grappa, would only be called on settlement.
      * @param _asset asset to transfer
-     * @param _recipient receiber
+     * @param _recipient receiver
      * @param _amount amount
      */
     function payCashValue(
@@ -106,6 +119,8 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
         address _recipient,
         uint256 _amount
     ) public override(BaseEngine, IMarginEngine) {
+        _checkPermissioned(_recipient);
+
         BaseEngine.payCashValue(_asset, _recipient, _amount);
     }
 
@@ -181,7 +196,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
      */
     function _settle(address _subAccount) internal override {
         // update the account in state
-        (,Balance[] memory shortPayouts) = accounts[_subAccount].settleAtExpiry(grappa);
+        (, Balance[] memory shortPayouts) = accounts[_subAccount].settleAtExpiry(grappa);
         emit AccountSettled(_subAccount, shortPayouts);
     }
 
@@ -244,8 +259,10 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
     /**
      * @dev because we override _settle(), this function is not used
      */
-     // solhint-disable-next-line no-empty-blocks
-    function _getAccountPayout(address /* */) internal view override returns (uint8, uint80) {}
+    // solhint-disable-next-line no-empty-blocks
+    function _getAccountPayout(
+        address /* */
+    ) internal view override returns (uint8, uint80) {}
 
     /**
      * @dev return whether if an account is healthy.
@@ -289,7 +306,22 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
                             Internal Functions
      ** ========================================================= **/
 
+    function _onlyOwner() internal view {
+        // TODO uncomment when Ownable gets added
+        // if (msg.sender != owner()) revert HV_Unauthorized();
+    }
+
+    /**
+     * @notice gets access status of an address
+     * @dev if whitelist address is not sent, it ignores this
+     * @param _address address
+     */
+    function _checkPermissioned(address _address) internal view {
+        if (whitelist != address(0) && !IWhitelist(whitelist).grappaAccess(_address)) revert NoAccess();
+    }
+
     function _execute(address _subAccount, ActionArgs[] calldata actions) internal {
+        _checkPermissioned(msg.sender);
         _assertCallerHasAccess(_subAccount);
 
         // update the account storage and do external calls on the flight
