@@ -4,6 +4,8 @@ pragma solidity ^0.8.0;
 // import test base and helpers.
 import "forge-std/Test.sol";
 
+import {ERC1967Proxy} from "openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
+
 import {Grappa} from "../../core/Grappa.sol";
 import {MockERC20} from "../mocks/MockERC20.sol";
 import {MockOracle} from "../mocks/MockOracle.sol";
@@ -21,7 +23,13 @@ contract GrappaRegistry is Test {
 
     constructor() {
         weth = new MockERC20("WETH", "WETH", 18);
-        grappa = new Grappa(address(0));
+
+        // set option to 0        
+        address grappaImplementation = address(new Grappa(address(0))); // nonce: 5
+
+        bytes memory data = abi.encode(Grappa.initialize.selector);
+
+        grappa = Grappa(address(new ERC1967Proxy(grappaImplementation, data))); // 6
     }
 
     function testCannotRegisterFromNonOwner() public {
@@ -100,7 +108,11 @@ contract RegisterEngineTest is Test {
 
     constructor() {
         engine1 = address(1);
-        grappa = new Grappa(address(0));
+        address grappaImplementation = address(new Grappa(address(0))); // nonce: 5
+
+        bytes memory data = abi.encode(Grappa.initialize.selector);
+
+        grappa = Grappa(address(new ERC1967Proxy(grappaImplementation, data))); // 6
     }
 
     function testCannotRegisterFromNonOwner() public {
@@ -142,7 +154,9 @@ contract RegisterOracleTest is Test {
 
     constructor() {
         oracle = address(new MockOracle());
-        grappa = new Grappa(address(0));
+        address grappaImplementation = address(new Grappa(address(0))); // nonce: 5
+        bytes memory data = abi.encode(Grappa.initialize.selector);
+        grappa = Grappa(address(new ERC1967Proxy(grappaImplementation, data))); // 6
     }
 
     function testCannotRegisterFromNonOwner() public {

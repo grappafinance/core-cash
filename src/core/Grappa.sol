@@ -3,9 +3,11 @@ pragma solidity ^0.8.0;
 
 // imported contracts and libraries
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
-import {Ownable} from "openzeppelin/access/Ownable.sol";
-import {ReentrancyGuard} from "solmate/utils/ReentrancyGuard.sol";
+
 import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
+import {UUPSUpgradeable} from "openzeppelin/proxy/utils/UUPSUpgradeable.sol";
+import {OwnableUpgradeable} from "openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
+import {ReentrancyGuardUpgradeable} from "openzeppelin-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 // interfaces
 import {IERC20Metadata} from "openzeppelin/token/ERC20/extensions/IERC20Metadata.sol";
@@ -30,8 +32,10 @@ import "../config/errors.sol";
 /**
  * @title   Grappa
  * @author  @antoncoding, @dsshap
+ * @dev     This contract serves as the registry of the system.
+ * @dev     Upgradable by the owner, can only be upgraded within 365 days after deployment
  */
-contract Grappa is Ownable, ReentrancyGuard {
+contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
     using AccountUtil for Balance[];
     using FixedPointMathLib for uint256;
     using NumberUtil for uint256;
@@ -41,11 +45,9 @@ contract Grappa is Ownable, ReentrancyGuard {
 
     /// @dev optionToken address
     IOptionToken public immutable optionToken;
-    // IMarginEngine public immutable engine;
-    // IOracle public immutable oracle;
 
     /*///////////////////////////////////////////////////////////////
-                            State Variables
+                         State Variables V1 
     //////////////////////////////////////////////////////////////*/
 
     /// @dev next id used to represent an address
@@ -87,9 +89,29 @@ contract Grappa is Ownable, ReentrancyGuard {
     event MarginEngineRegistered(address engine, uint8 id);
     event OracleRegistered(address oracle, uint8 id);
 
-    constructor(address _optionToken) {
+    /*///////////////////////////////////////////////////////////////
+                Constructor for implementation Contract
+    //////////////////////////////////////////////////////////////*/
+
+    /// @dev set immutables in constructor
+    /// @dev also set the implemention contract to initialized = true
+    constructor(address _optionToken) initializer {
         optionToken = IOptionToken(_optionToken);
     }
+
+    /*///////////////////////////////////////////////////////////////
+                            Initializer
+    //////////////////////////////////////////////////////////////*/
+
+    function initialize() external initializer {
+        __Ownable_init();
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                    Override Upgrade Permission
+    //////////////////////////////////////////////////////////////*/
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     /*///////////////////////////////////////////////////////////////
                             External Functions
@@ -357,6 +379,10 @@ contract Grappa is Ownable, ReentrancyGuard {
 
         emit OracleRegistered(_oracle, id);
     }
+
+    /* =====================================
+     *          Internal Functions
+     * ====================================**/
 
     /**
      * @dev calculate the payout for one option token
