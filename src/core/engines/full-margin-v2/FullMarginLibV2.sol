@@ -189,6 +189,7 @@ library FullMarginLibV2 {
             payouts = grappa.batchSettleOptions(address(this), tokenIds, amounts);
 
             for (i = 0; i < payouts.length; ) {
+                // add the collateral in the account storage.
                 addCollateral(account, payouts[i].collateralId, payouts[i].amount);
 
                 unchecked {
@@ -225,7 +226,6 @@ library FullMarginLibV2 {
             payouts = grappa.batchGetPayouts(tokenIds, amounts);
 
             for (i = 0; i < payouts.length; ) {
-
                 // remove the collateral in the account storage.
                 removeCollateral(account, payouts[i].collateralId, payouts[i].amount);
 
