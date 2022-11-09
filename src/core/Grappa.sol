@@ -271,7 +271,9 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         for (uint256 i; i < _tokenIds.length; ) {
             (address engine, address collateral, uint256 payout) = getPayout(_tokenIds[i], _amounts[i].toUint64());
 
-            payouts = _addToPayouts(payouts, collateral, payout);
+            uint8 collateralId = _tokenIds[i].parseCollateralId();
+
+            payouts = _addToPayouts(payouts, collateralId, payout);
 
             // if engine or collateral changes, payout and clear temporary parameters
             if (lastEngine == address(0)) {
@@ -292,22 +294,6 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         }
 
         IMarginEngine(lastEngine).payCashValue(lastCollateral, _account, lastTotalPayout);
-    }
-
-    function batchGetPayouts(uint256[] memory _tokenIds, uint256[] memory _amounts)
-        external
-        view
-        returns (Balance[] memory payouts)
-    {
-        for (uint256 i; i < _tokenIds.length; ) {
-            (, address collateral, uint256 payout) = getPayout(_tokenIds[i], _amounts[i].toUint64());
-
-            payouts = _addToPayouts(payouts, collateral, payout);
-
-            unchecked {
-                ++i;
-            }
-        }
     }
 
     /**
@@ -334,6 +320,31 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         payout = payoutPerOption * _amount;
         unchecked {
             payout = payout / UNIT;
+        }
+    }
+
+    /**
+     * @dev calculate the payout for array of options
+     *
+     * @param _tokenIds array of token id
+     * @param _amounts  array of amount
+     *
+     * @return payouts amounts paid
+     **/
+    function batchGetPayouts(uint256[] memory _tokenIds, uint256[] memory _amounts)
+        external
+        view
+        returns (Balance[] memory payouts)
+    {
+        for (uint256 i; i < _tokenIds.length; ) {
+            (, , uint256 payout) = getPayout(_tokenIds[i], _amounts[i].toUint64());
+
+            uint8 collateralId = _tokenIds[i].parseCollateralId();
+            payouts = _addToPayouts(payouts, collateralId, payout);
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -457,14 +468,18 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         return (engine, collateral, payoutPerOption);
     }
 
+    /**
+     * @dev add an entry to array of Balance
+     * @param payouts existing payout array
+     * @param collateralId new collateralId
+     * @param payout new payout
+     */
     function _addToPayouts(
         Balance[] memory payouts,
-        address collateral,
+        uint8 collateralId,
         uint256 payout
-    ) private view returns (Balance[] memory) {
+    ) internal pure returns (Balance[] memory) {
         if (payout == 0) return payouts;
-
-        uint8 collateralId = assetIds[collateral];
 
         (bool found, uint256 index) = payouts.indexOf(collateralId);
         if (!found) {

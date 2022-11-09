@@ -113,6 +113,19 @@ library TokenIdUtil {
     }
 
     /**
+     * @notice parse collateral id from tokenId
+     * @param tokenId token id
+     * @return collatearlId
+     */
+    function parseCollateralId(uint256 tokenId) internal pure returns (uint8 collatearlId) {
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            // collateralId is the last bits of productId
+            collatearlId := shr(192, tokenId)
+        }
+    }
+
+    /**
      * @notice derive option, product, expiry and strike price from short token id (no shortStrike)
      * @dev    See table above for tokenId composition
      * @param tokenId token id
