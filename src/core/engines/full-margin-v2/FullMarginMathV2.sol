@@ -45,26 +45,23 @@ library FullMarginMathV2 {
 
     error FMMV2_InvalidRightPointLength();
     
-    error FMMV2_InvalidZeroWeights();
+    error FMMV2_InvalidZeroWeight();
 
     /**
      * @notice checks inputs for calculating margin, reverts if bad inputs
      * @param _detail margin details
-     * @return goodInputs boolean
      */
-    function verifyInputs(FullMarginDetailV2 memory _detail)
-        external pure returns (bool goodInputs)
+    function verifyInputs(FullMarginDetailV2 memory _detail, int256[] memory weights)
+        internal pure
     {
         if(_detail.callStrikes.length != _detail.callWeights.length) revert FMMV2_InvalidCallLengths();
         if(_detail.putStrikes.length != _detail.putWeights.length) revert FMMV2_InvalidPutLengths();
-        int256[] memory weights = _detail.putWeights.concat(_detail.callWeights);
         for (uint256 i; i < weights.length; ) {
-            if (weights[i] == sZERO) revert FMMV2_InvalidZeroWeights();
+            if (weights[i] == sZERO) revert FMMV2_InvalidZeroWeight();
             unchecked {
                 ++i;
             }
         }
-        return true;
     }
 
     /**
@@ -82,10 +79,11 @@ library FullMarginMathV2 {
             uint256[] memory strikes,
             int256 syntheticUnderlyingWeight,
             uint256[] memory pois,
-            int256[] memory payouts
+            int256[] memory payouts,
+            int256[] memory weights
         ) = baseSetup(_detail);
 
-        // verifyInputs();
+        verifyInputs(_detail, weights);
 
         PoisAndPayouts memory poisAndPayouts = PoisAndPayouts(pois, payouts);
 
@@ -154,10 +152,10 @@ library FullMarginMathV2 {
             uint256[] memory strikes,
             int256 syntheticUnderlyingWeight,
             uint256[] memory pois,
-            int256[] memory payouts
+            int256[] memory payouts,
+            int256[] memory weights
         )
     {
-        int256[] memory weights;
         int256 intrinsicValue;
 
         (strikes, weights, syntheticUnderlyingWeight, intrinsicValue) = convertPutsToCalls(_detail);
@@ -204,9 +202,6 @@ library FullMarginMathV2 {
             int256 intrinsicValue
         )
     {
-        if (_detail.putWeights.length != _detail.putStrikes.length) revert FMMV2_InvalidPutLengths();
-        if (_detail.callWeights.length != _detail.callStrikes.length) revert FMMV2_InvalidCallLengths();
-
         strikes = _detail.putStrikes.concat(_detail.callStrikes);
         weights = _detail.putWeights.concat(_detail.callWeights);
 

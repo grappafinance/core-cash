@@ -48,7 +48,9 @@ contract TestStructuresFMMV2 is Test {
         spotPrice = 19000 * UNIT;
     }
 
-    function testVerifyInputs1() public {
+    function testVerifyInputs2() public {
+        callWeights[2] = 0;
+
         FullMarginDetailV2 memory detail = FullMarginDetailV2({
             putWeights: putWeights,
             putStrikes: putStrikes,
@@ -61,8 +63,52 @@ contract TestStructuresFMMV2 is Test {
             spotPrice: spotPrice,
             expiry: 0
         });
-        bool output = FullMarginMathV2.verifyInputs(detail);
-        assert(output);
+        vm.expectRevert();
+        detail.getMinCollateral();
+    }
+
+    function testVerifyInputs3() public {
+        putWeights = new int256[](3);
+        putWeights[0] = -1 * sUNIT;
+        putWeights[1] = 1 * sUNIT;
+        putWeights[2] = 1 * sUNIT;
+
+        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+            putWeights: putWeights,
+            putStrikes: putStrikes,
+            callWeights: callWeights,
+            callStrikes: callStrikes,
+            underlyingId: 0,
+            underlyingDecimals: UNIT_DECIMALS,
+            collateralId: 1,
+            collateralDecimals: UNIT_DECIMALS,
+            spotPrice: spotPrice,
+            expiry: 0
+        });
+        vm.expectRevert();
+        detail.getMinCollateral();
+    }
+
+    function testVerifyInputs4() public {
+        callWeights = new int256[](3);
+        callWeights[0] = -1 * sUNIT;
+        callWeights[1] = 1 * sUNIT;
+        callWeights[2] = 1 * sUNIT;
+
+        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+            putWeights: putWeights,
+            putStrikes: putStrikes,
+            callWeights: callWeights,
+            callStrikes: callStrikes,
+            underlyingId: 0,
+            underlyingDecimals: UNIT_DECIMALS,
+            collateralId: 1,
+            collateralDecimals: UNIT_DECIMALS,
+            spotPrice: spotPrice,
+            expiry: 0
+        });
+        vm.expectRevert();
+        detail.getMinCollateral();
     }
 
     function testMarginRequirement1() public {
