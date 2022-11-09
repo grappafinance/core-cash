@@ -7,7 +7,7 @@ import {FullMarginFixture} from "../engine-integrations/full-margin/FullMarginFi
 import "../../config/types.sol";
 import "../../config/errors.sol";
 
-contract AdvancedMarginEngineAccessTest is FullMarginFixture {
+contract GrappaAccessTest is FullMarginFixture {
     uint256 private depositAmount = 100 * 1e6;
 
     address private subAccountIdToModify;

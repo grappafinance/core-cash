@@ -32,8 +32,7 @@ import "../config/errors.sol";
 /**
  * @title   Grappa
  * @author  @antoncoding, @dsshap
- * @dev     This contract serves as the registry of the system.
- * @dev     Upgradable by the owner, can only be upgraded within 365 days after deployment
+ * @dev     This contract serves as the registry of the system who system.
  */
 contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
     using AccountUtil for Balance[];
@@ -45,6 +44,9 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
 
     /// @dev optionToken address
     IOptionToken public immutable optionToken;
+
+    /// @dev only upgradable within this timeframe since deployment
+    uint256 public immutable deployTimestamp;
 
     /*///////////////////////////////////////////////////////////////
                          State Variables V1 
@@ -97,6 +99,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     /// @dev also set the implemention contract to initialized = true
     constructor(address _optionToken) initializer {
         optionToken = IOptionToken(_optionToken);
+        deployTimestamp = block.timestamp;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -111,7 +114,14 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
                     Override Upgrade Permission
     //////////////////////////////////////////////////////////////*/
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+    /**
+     * @dev Upgradable by the owner, can only be upgraded within 365 days after deployment
+     **/
+    function _authorizeUpgrade(
+        address /*newImplementation*/
+    ) internal view override onlyOwner {
+        if (block.timestamp > deployTimestamp + 365 days) revert GP_NotUpgradable();
+    }
 
     /*///////////////////////////////////////////////////////////////
                             External Functions

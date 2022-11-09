@@ -11,6 +11,9 @@ error NoAccess();
 
 // Erros in Grappa Contracts
 
+/// @dev Grappa contract is no longer upgradable
+error GP_NotUpgradable();
+
 /// @dev asset already registered
 error GP_AssetAlreadyRegistered();
 
