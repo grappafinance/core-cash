@@ -14,15 +14,16 @@ import "../../config/errors.sol";
  * @notice  Mock contract to test upgradability
  */
 contract MockGrappaV2 is UUPSUpgradeable {
-
     function version() external pure returns (uint256) {
-      return 2;
+        return 2;
     }
 
     /**
      * @dev future version that cannot be upgraded in the future
-     **/ 
-    function _authorizeUpgrade(address /*newImplementation*/) internal pure override {
+     **/
+    function _authorizeUpgrade(
+        address /*newImplementation*/
+    ) internal pure override {
         revert("not upgrdable anymore");
     }
 }
