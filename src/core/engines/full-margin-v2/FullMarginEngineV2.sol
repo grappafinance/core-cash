@@ -159,7 +159,6 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
         view
         returns (Balance[] memory balances)
     {
-        // TODO assert length match
 
         FullMarginAccountV2 memory account;
 
@@ -331,19 +330,20 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
 
         for (uint256 i; i < details.length; ) {
             FullMarginDetailV2 memory detail = details[i];
+            if(detail.callWeights.length != 0 || detail.putWeights.length != 0) {
+                (int256 cashCollateralNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
 
-            (int256 cashCollateralNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+                if (cashCollateralNeeded != 0) {
+                    (found, index) = balances.indexOf(detail.collateralId);
+                    if (found) balances[index].amount -= cashCollateralNeeded.toInt80();
+                    else balances = balances.append(SBalance(detail.collateralId, -cashCollateralNeeded.toInt80()));
+                }
 
-            if (cashCollateralNeeded != 0) {
-                (found, index) = balances.indexOf(detail.collateralId);
-                if (found) balances[index].amount -= cashCollateralNeeded.toInt80();
-                else balances = balances.append(SBalance(detail.collateralId, -cashCollateralNeeded.toInt80()));
-            }
-
-            if (underlyingNeeded != 0) {
-                (found, index) = balances.indexOf(detail.underlyingId);
-                if (found) balances[index].amount -= underlyingNeeded.toInt80();
-                else balances = balances.append(SBalance(detail.underlyingId, -underlyingNeeded.toInt80()));
+                if (underlyingNeeded != 0) {
+                    (found, index) = balances.indexOf(detail.underlyingId);
+                    if (found) balances[index].amount -= underlyingNeeded.toInt80();
+                    else balances = balances.append(SBalance(detail.underlyingId, -underlyingNeeded.toInt80()));
+                }
             }
 
             unchecked {
@@ -404,7 +404,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
         FullMarginDetailV2 memory detail,
         uint256 tokenId,
         int256 amount
-    ) internal view {
+    ) internal pure {
         (TokenType tokenType, , , uint64 longStrike, ) = tokenId.parseTokenId();
 
         bool found;

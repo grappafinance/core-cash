@@ -664,8 +664,8 @@ contract TestCornerCases is Test {
     }
 
     function testOneByTwoCall() public {
-        putWeights[0] = 0;
-        putWeights[1] = 0;
+        putWeights = new int256[](0);
+        putStrikes = new uint256[](0);
         FullMarginDetailV2 memory detail = FullMarginDetailV2({
             putWeights: putWeights,
             putStrikes: putStrikes,
@@ -721,14 +721,13 @@ contract TestCornerCases is Test {
             expiry: 0
         });
 
-        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, sZERO);
-        assertEq(underlyingNeeded, 1 * sUNIT);
+        vm.expectRevert();
+        detail.getMinCollateral();
     }
 
     function testOneByTwoPut() public {
-        callWeights[0] = 0;
-        callWeights[1] = 0;
+        callStrikes = new uint256[](0);
+        callWeights = new int256[](0);
         FullMarginDetailV2 memory detail = FullMarginDetailV2({
             putWeights: putWeights,
             putStrikes: putStrikes,
@@ -818,7 +817,11 @@ contract TestCornerCases is Test {
     function testUpAndDown3() public {
         putWeights[0] = 17 * sUNIT;
         putWeights[1] = -18 * sUNIT;
-        callWeights[1] = 0;
+        callWeights = new int256[](1);
+        callWeights[0] = 1 * sUNIT;
+        callStrikes = new uint256[](1);
+        callStrikes[0] = 20000 * UNIT;
+
         FullMarginDetailV2 memory detail = FullMarginDetailV2({
             putWeights: putWeights,
             putStrikes: putStrikes,

@@ -10,6 +10,7 @@ import "../../../config/constants.sol";
 import "../../../config/enums.sol";
 import "../../../config/types.sol";
 import "../../../config/errors.sol";
+import "../../../test/utils/Console.sol";
 
 /**
  * @title   FullMarginMathV2
@@ -51,13 +52,20 @@ library FullMarginMathV2 {
      * @notice checks inputs for calculating margin, reverts if bad inputs
      * @param _detail margin details
      */
-    function verifyInputs(FullMarginDetailV2 memory _detail, int256[] memory weights)
+    function verifyInputs(FullMarginDetailV2 memory _detail)
         internal pure
     {
         if(_detail.callStrikes.length != _detail.callWeights.length) revert FMMV2_InvalidCallLengths();
         if(_detail.putStrikes.length != _detail.putWeights.length) revert FMMV2_InvalidPutLengths();
-        for (uint256 i; i < weights.length; ) {
-            if (weights[i] == sZERO) revert FMMV2_InvalidZeroWeight({weights: weights});
+        uint256 i;
+        for (i; i < _detail.putWeights.length; ) {
+            if (_detail.putWeights[i] == sZERO) revert FMMV2_InvalidZeroWeight({weights: _detail.putWeights});
+            unchecked {
+                ++i;
+            }
+        }
+        for (i=0; i < _detail.callWeights.length; ) {
+            if (_detail.callWeights[i] == sZERO) revert FMMV2_InvalidZeroWeight({weights: _detail.callWeights});
             unchecked {
                 ++i;
             }
@@ -72,18 +80,17 @@ library FullMarginMathV2 {
      */
     function getMinCollateral(FullMarginDetailV2 memory _detail)
         external
-        pure
+        view //pure
         returns (int256 cashNeeded, int256 underlyingNeeded)
     {
+        verifyInputs(_detail);
+
         (
             uint256[] memory strikes,
             int256 syntheticUnderlyingWeight,
             uint256[] memory pois,
-            int256[] memory payouts,
-            int256[] memory weights
+            int256[] memory payouts
         ) = baseSetup(_detail);
-
-        verifyInputs(_detail, weights);
 
         PoisAndPayouts memory poisAndPayouts = PoisAndPayouts(pois, payouts);
 
@@ -147,16 +154,16 @@ library FullMarginMathV2 {
 
     function baseSetup(FullMarginDetailV2 memory _detail)
         private
-        pure
+        view //pure
         returns (
             uint256[] memory strikes,
             int256 syntheticUnderlyingWeight,
             uint256[] memory pois,
-            int256[] memory payouts,
-            int256[] memory weights
+            int256[] memory payouts
         )
     {
         int256 intrinsicValue;
+        int256[] memory weights;
 
         (strikes, weights, syntheticUnderlyingWeight, intrinsicValue) = convertPutsToCalls(_detail);
 
@@ -194,7 +201,7 @@ library FullMarginMathV2 {
 
     function convertPutsToCalls(FullMarginDetailV2 memory _detail)
         private
-        pure
+        view //pure
         returns (
             uint256[] memory strikes,
             int256[] memory weights,
@@ -205,9 +212,12 @@ library FullMarginMathV2 {
         strikes = _detail.putStrikes.concat(_detail.callStrikes);
         weights = _detail.putWeights.concat(_detail.callWeights);
 
+        consoleG.logUint(strikes.length);
         // sorting strikes
         uint256[] memory indexes;
+        consoleG.log("presort");
         (strikes, indexes) = strikes.argSort();
+        consoleG.log("postsort");
 
         // sorting weights based on strike sorted index
         weights = weights.sortByIndexes(indexes);
