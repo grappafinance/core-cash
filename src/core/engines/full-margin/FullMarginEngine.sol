@@ -56,7 +56,7 @@ contract FullMarginEngine is BaseEngine, IMarginEngine {
     function execute(address _subAccount, ActionArgs[] calldata actions) public override nonReentrant {
         _assertCallerHasAccess(_subAccount);
 
-        // update the account memory and do external calls on the flight
+        // update the account state and do external calls on the flight
         for (uint256 i; i < actions.length; ) {
             if (actions[i].action == ActionType.AddCollateral) _addCollateral(_subAccount, actions[i].data);
             else if (actions[i].action == ActionType.RemoveCollateral) _removeCollateral(_subAccount, actions[i].data);
@@ -193,10 +193,11 @@ contract FullMarginEngine is BaseEngine, IMarginEngine {
      * @dev     this function will revert when called before expiry
      * @param _subAccount account id
      */
-    function _getAccountPayout(address _subAccount) internal view override returns (uint80) {
+    function _getAccountPayout(address _subAccount) internal view override returns (uint8, uint80) {
         FullMarginAccount memory account = marginAccounts[_subAccount];
+        uint8 collatId = account.collateralId;
         (, , uint256 payout) = grappa.getPayout(account.tokenId, account.shortAmount);
-        return payout.toUint80();
+        return (collatId, payout.toUint80());
     }
 
     /** ========================================================= **

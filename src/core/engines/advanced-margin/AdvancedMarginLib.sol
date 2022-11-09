@@ -11,7 +11,7 @@ import "../../../config/errors.sol";
 
 /**
  * @title AdvancedMarginLib
- * @dev   This library is in charge of updating the advanced account memory struct and do validation
+ * @dev   This library is in charge of updating the advanced account struct and do validation
  */
 library AdvancedMarginLib {
     using TokenIdUtil for uint256;
@@ -151,7 +151,7 @@ library AdvancedMarginLib {
 
         uint256 spreadIdInAccount = isSplitingCallSpread ? account.shortCallId : account.shortPutId;
 
-        // passed in spreadId should match the one in account memory (shortCallId or shortPutId)
+        // passed in spreadId should match the one in account (shortCallId or shortPutId)
         if (spreadId != spreadIdInAccount) revert AM_InvalidToken();
 
         if (isSplitingCallSpread) {

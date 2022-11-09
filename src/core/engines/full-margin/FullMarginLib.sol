@@ -11,7 +11,7 @@ import "../../../config/errors.sol";
 
 /**
  * @title FullMarginLib
- * @dev   This library is in charge of updating the simple account memory struct and do validations
+ * @dev   This library is in charge of updating the simple account struct and do validations
  */
 library FullMarginLib {
     using TokenIdUtil for uint256;

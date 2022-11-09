@@ -13,7 +13,7 @@ import "../../../config/errors.sol";
 contract BaseEngineFlow is BaseEngineSetup {
     address public random = address(0xaabb);
 
-    event AccountSettled(address subAccount, uint256 payout);
+    event AccountSettled(address subAccount, Balance[] payouts);
 
     function setUp() public {
         usdc.mint(address(this), 10000 * 1e6);
@@ -278,13 +278,17 @@ contract BaseEngineFlow is BaseEngineSetup {
     function testSettlementShouldEmitEvent() public {
         uint80 amount = 100 * 1e6;
         engine.setPayout(amount);
+        engine.setPayoutCollatId(usdcId);
 
         // execute merge
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSettleAction();
 
+        Balance[] memory balances = new Balance[](1);
+        balances[0] = Balance(usdcId, amount);
+
         vm.expectEmit(false, false, false, true, address(engine));
-        emit AccountSettled(address(this), amount);
+        emit AccountSettled(address(this), balances);
         engine.execute(address(this), actions);
     }
 }

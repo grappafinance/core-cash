@@ -63,9 +63,7 @@ abstract contract BaseEngine is ReentrancyGuard {
 
     event OptionTokenTransfered(address from, address to, uint256 tokenId, uint64 amount);
 
-    event AccountSettled(address subAccount, uint256 payout);
-
-    event AccountSettled2(address subAccount, Balance[] payouts);
+    event AccountSettled(address subAccount, Balance[] payouts);
 
     /** ========================================================= **
                             External Functions
@@ -127,7 +125,7 @@ abstract contract BaseEngine is ReentrancyGuard {
      ** ========================================================= **/
 
     /**
-     * @dev pull token from user, increase collateral in account memory
+     * @dev pull token from user, increase collateral in account storage
             the collateral has to be provided by either caller, or the primary owner of subaccount
      */
     function _addCollateral(address _subAccount, bytes memory _data) internal virtual {
@@ -147,7 +145,7 @@ abstract contract BaseEngine is ReentrancyGuard {
     }
 
     /**
-     * @dev push token to user, decrease collateral in account memory
+     * @dev push token to user, decrease collateral in storage
      * @param _data bytes data to decode
      */
     function _removeCollateral(address _subAccount, bytes memory _data) internal virtual {
@@ -165,7 +163,7 @@ abstract contract BaseEngine is ReentrancyGuard {
     }
 
     /**
-     * @dev mint option token to user, increase short position (debt) in account memory
+     * @dev mint option token to user, increase short position (debt) in storage
      * @param _data bytes data to decode
      */
     function _mintOption(address _subAccount, bytes memory _data) internal virtual {
@@ -182,7 +180,7 @@ abstract contract BaseEngine is ReentrancyGuard {
     }
 
     /**
-     * @dev mint option token into account, increase short position (debt) and increase long position in account memory
+     * @dev mint option token into account, increase short position (debt) and increase long position in storage
      * @param _data bytes data to decode
      */
     function _mintOptionIntoAccount(address _subAccount, bytes memory _data) internal virtual {
@@ -206,7 +204,7 @@ abstract contract BaseEngine is ReentrancyGuard {
     }
 
     /**
-     * @dev burn option token from user, decrease short position (debt) in account memory
+     * @dev burn option token from user, decrease short position (debt) in storage
             the option has to be provided by either caller, or the primary owner of subaccount
      * @param _data bytes data to decode
      */
@@ -361,15 +359,18 @@ abstract contract BaseEngine is ReentrancyGuard {
 
     /**
      * @notice  settle the margin account at expiry
-     * @dev     this update the account memory in-place
+     * @dev     this update the account storage
      */
     function _settle(address _subAccount) internal virtual {
-        uint80 payout = _getAccountPayout(_subAccount);
+        (uint8 collateralId, uint80 payout) = _getAccountPayout(_subAccount);
 
         // update the account in state
         _settleAccount(_subAccount, payout);
 
-        emit AccountSettled(_subAccount, payout);
+        Balance[] memory balances = new Balance[](1);
+        balances[0] = Balance(collateralId, payout);
+
+        emit AccountSettled(_subAccount, balances);
     }
 
     /** ========================================================= **
@@ -435,7 +436,7 @@ abstract contract BaseEngine is ReentrancyGuard {
      * @dev     this function will revert when called before expiry
      * @param _subAccount account id
      */
-    function _getAccountPayout(address _subAccount) internal view virtual returns (uint80);
+    function _getAccountPayout(address _subAccount) internal view virtual returns (uint8 collateralId, uint80 payout);
 
     /**
      * @dev [MUST Implement] return whether if an account is healthy.

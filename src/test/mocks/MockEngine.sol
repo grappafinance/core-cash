@@ -20,6 +20,7 @@ contract MockEngine is BaseEngine {
     bool public isAboveWater;
 
     uint80 public mockPayout;
+    uint8 private mockPayoutCollatId;
 
     constructor(address _grappa, address _option) BaseEngine(_grappa, _option) {}
 
@@ -31,10 +32,14 @@ contract MockEngine is BaseEngine {
         mockPayout = _payout;
     }
 
+    function setPayoutCollatId(uint8 _id) external {
+        mockPayoutCollatId = _id;
+    }
+
     function _getAccountPayout(
         address /*subAccount*/
-    ) internal view override returns (uint80) {
-        return mockPayout;
+    ) internal view override returns (uint8, uint80) {
+        return (mockPayoutCollatId, mockPayout);
     }
 
     /**
@@ -44,7 +49,7 @@ contract MockEngine is BaseEngine {
     function execute(address _subAccount, ActionArgs[] calldata actions) public virtual nonReentrant {
         _assertCallerHasAccess(_subAccount);
 
-        // update the account memory and do external calls on the flight
+        // update the account and do external calls on the flight
         for (uint256 i; i < actions.length; ) {
             if (actions[i].action == ActionType.AddCollateral) _addCollateral(_subAccount, actions[i].data);
             else if (actions[i].action == ActionType.RemoveCollateral) _removeCollateral(_subAccount, actions[i].data);
