@@ -175,12 +175,14 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
 
     /**
      * @notice  settle the margin account at expiry
-     * @dev     this update the account memory in-place
+     * @dev     override this function from BaseEngine
+                because we get the payout while updating the storage during settlement
+     * @dev     this update the account storage
      */
     function _settle(address _subAccount) internal override {
         // update the account in state
-        (, Balance[] memory shortPayouts) = _settleAccount2(_subAccount);
-        emit AccountSettled2(_subAccount, shortPayouts);
+        (,Balance[] memory shortPayouts) = accounts[_subAccount].settleAtExpiry(grappa);
+        emit AccountSettled(_subAccount, shortPayouts);
     }
 
     /** ========================================================= **
@@ -235,16 +237,15 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
         accounts[_subAccount].removeOption(tokenId, amount);
     }
 
-    function _settleAccount2(address _subAccount)
-        internal
-        returns (Balance[] memory longPayouts, Balance[] memory shortPayouts)
-    {
-        (longPayouts, shortPayouts) = accounts[_subAccount].settleAtExpiry(grappa);
-    }
-
     /** ========================================================= **
                     Override view functions for BaseEngine
      ** ========================================================= **/
+
+    /**
+     * @dev because we override _settle(), this function is not used
+     */
+     // solhint-disable-next-line no-empty-blocks
+    function _getAccountPayout(address /* */) internal view override returns (uint8, uint80) {}
 
     /**
      * @dev return whether if an account is healthy.
@@ -265,10 +266,6 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
 
         return true;
     }
-
-    // handling this in MarginLib
-    // solhint-disable-next-line no-empty-blocks
-    function _getAccountPayout(address _subAccount) internal view override returns (uint80) {}
 
     /**
      * @dev reverts if the account cannot add this token into the margin account.
@@ -295,7 +292,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
     function _execute(address _subAccount, ActionArgs[] calldata actions) internal {
         _assertCallerHasAccess(_subAccount);
 
-        // update the account memory and do external calls on the flight
+        // update the account storage and do external calls on the flight
         for (uint256 i; i < actions.length; ) {
             if (actions[i].action == ActionType.AddCollateral) _addCollateral(_subAccount, actions[i].data);
             else if (actions[i].action == ActionType.RemoveCollateral) _removeCollateral(_subAccount, actions[i].data);

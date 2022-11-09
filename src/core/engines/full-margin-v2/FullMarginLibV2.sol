@@ -15,7 +15,7 @@ import "../../../config/errors.sol";
 
 /**
  * @title FullMarginLibV2
- * @dev   This library is in charge of updating the simple account memory struct and do validations
+ * @dev   This library is in charge of updating the simple account struct and do validations
  */
 library FullMarginLibV2 {
     using AccountUtil for Balance[];
@@ -225,6 +225,8 @@ library FullMarginLibV2 {
             payouts = grappa.batchGetPayouts(tokenIds, amounts);
 
             for (i = 0; i < payouts.length; ) {
+
+                // remove the collateral in the account storage.
                 removeCollateral(account, payouts[i].collateralId, payouts[i].amount);
 
                 unchecked {
