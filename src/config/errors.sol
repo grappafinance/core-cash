@@ -35,6 +35,12 @@ error GP_NotExpired();
 /// @dev settlement price is not finalized yet
 error GP_PriceNotFinalized();
 
+/// @dev cannot mint token after expiry
+error GP_InvalidExpiry();
+
+/// @dev put and call should not contain "short stirkes"
+error GP_BadStrikes();
+
 // Common error in BaseMargin
 
 /// @dev can only merge subaccount with put or call.
@@ -137,12 +143,6 @@ error AM_WrongRepayAmounts();
 
 /// @dev burn or mint can only be called by corresponding engine.
 error OT_Not_Authorized_Engine();
-
-/// @dev cannot mint token after expiry
-error OT_InvalidExpiry();
-
-/// @dev put and call should not contain "short stirkes"
-error OT_BadStrikes();
 
 // Vol Oracle
 

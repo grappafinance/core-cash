@@ -18,7 +18,7 @@ interface IGrappa {
             uint8 collateralDecimals
         );
 
-    function checkTokenId(uint256 _tokenId) external view;
+    function checkTokenIdToMint(uint256 _tokenId) external view;
 
     function assets(uint8 _id) external view returns (address addr, uint8 decimals);
 

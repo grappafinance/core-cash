@@ -353,19 +353,19 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      * @dev this logic is abstract away from OptionToken so we can add more option type in the near future.
      * @param _tokenId tokenId
      */
-    function checkTokenId(uint256 _tokenId) external view {
+    function checkTokenIdToMint(uint256 _tokenId) external view {
         (TokenType optionType, , uint64 expiry, uint64 longStrike, uint64 shortStrike) = _tokenId.parseTokenId();
 
         // check option type and strikes
         // check that vanilla options doesnt have a shortStrike argument
-        if ((optionType == TokenType.CALL || optionType == TokenType.PUT) && (shortStrike != 0)) revert OT_BadStrikes();
+        if ((optionType == TokenType.CALL || optionType == TokenType.PUT) && (shortStrike != 0)) revert GP_BadStrikes();
 
         // check that you cannot mint a "credit spread" token
-        if (optionType == TokenType.CALL_SPREAD && (shortStrike < longStrike)) revert OT_BadStrikes();
-        if (optionType == TokenType.PUT_SPREAD && (shortStrike > longStrike)) revert OT_BadStrikes();
+        if (optionType == TokenType.CALL_SPREAD && (shortStrike < longStrike)) revert GP_BadStrikes();
+        if (optionType == TokenType.PUT_SPREAD && (shortStrike > longStrike)) revert GP_BadStrikes();
 
         // check expiry
-        if (expiry <= block.timestamp) revert OT_InvalidExpiry();
+        if (expiry <= block.timestamp) revert GP_InvalidExpiry();
     }
 
     /*///////////////////////////////////////////////////////////////
