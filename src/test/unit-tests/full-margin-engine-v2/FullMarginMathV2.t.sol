@@ -48,6 +48,23 @@ contract TestStructuresFMMV2 is Test {
         spotPrice = 19000 * UNIT;
     }
 
+    function testVerifyInputs1() public {
+        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+            putWeights: putWeights,
+            putStrikes: putStrikes,
+            callWeights: callWeights,
+            callStrikes: callStrikes,
+            underlyingId: 0,
+            underlyingDecimals: UNIT_DECIMALS,
+            collateralId: 1,
+            collateralDecimals: UNIT_DECIMALS,
+            spotPrice: spotPrice,
+            expiry: 0
+        });
+        bool output = FullMarginMathV2.verifyInputs(detail);
+        assert(output);
+    }
+
     function testMarginRequirement1() public {
         FullMarginDetailV2 memory detail = FullMarginDetailV2({
             putWeights: putWeights,
@@ -507,8 +524,6 @@ contract TestStrangles is Test {
         });
 
         (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        consoleG.logInt(cashNeeded);
-        consoleG.logInt(underlyingNeeded);
         assertEq(cashNeeded, int256(putStrikes[0]));
         assertEq(underlyingNeeded, -callWeights[0]);
     }
@@ -531,6 +546,42 @@ contract TestStrangles is Test {
 
         (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
         assertEq(cashNeeded, sZERO);
+        assertEq(underlyingNeeded, sZERO);
+    }
+
+    function testStrangleSpread() public {
+        putWeights = new int256[](2);
+        putWeights[0] = -1 * sUNIT;
+        putWeights[1] = 1 * sUNIT;
+        
+        callWeights = new int256[](2);
+        callWeights[0] = -1 * sUNIT;
+        callWeights[1] = 1 * sUNIT;
+
+        putStrikes = new uint256[](2);
+        putStrikes[0] = 18000 * UNIT;
+        putStrikes[1] = 17000 * UNIT;
+
+
+        callStrikes = new uint256[](2);
+        callStrikes[0] = 20000 * UNIT;
+        callStrikes[1] = 21000 * UNIT;
+
+        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+            putWeights: putWeights,
+            putStrikes: putStrikes,
+            callWeights: callWeights,
+            callStrikes: callStrikes,
+            underlyingId: 0,
+            underlyingDecimals: UNIT_DECIMALS,
+            collateralId: 1,
+            collateralDecimals: UNIT_DECIMALS,
+            spotPrice: spotPrice,
+            expiry: 0
+        });
+
+        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, int256(putStrikes[0]-putStrikes[1]));
         assertEq(underlyingNeeded, sZERO);
     }
 }

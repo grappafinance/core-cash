@@ -44,6 +44,28 @@ library FullMarginMathV2 {
     error FMMV2_InvalidLeftPointLength();
 
     error FMMV2_InvalidRightPointLength();
+    
+    error FMMV2_InvalidZeroWeights();
+
+    /**
+     * @notice checks inputs for calculating margin, reverts if bad inputs
+     * @param _detail margin details
+     * @return goodInputs boolean
+     */
+    function verifyInputs(FullMarginDetailV2 memory _detail)
+        external pure returns (bool goodInputs)
+    {
+        if(_detail.callStrikes.length != _detail.callWeights.length) revert FMMV2_InvalidCallLengths();
+        if(_detail.putStrikes.length != _detail.putWeights.length) revert FMMV2_InvalidPutLengths();
+        int256[] memory weights = _detail.putWeights.concat(_detail.callWeights);
+        for (uint256 i; i < weights.length; ) {
+            if (weights[i] == sZERO) revert FMMV2_InvalidZeroWeights();
+            unchecked {
+                ++i;
+            }
+        }
+        return true;
+    }
 
     /**
      * @notice get minimum collateral denominated in strike asset
@@ -62,6 +84,8 @@ library FullMarginMathV2 {
             uint256[] memory pois,
             int256[] memory payouts
         ) = baseSetup(_detail);
+
+        // verifyInputs();
 
         PoisAndPayouts memory poisAndPayouts = PoisAndPayouts(pois, payouts);
 
@@ -237,7 +261,7 @@ library FullMarginMathV2 {
     function calcSlope(int256[] memory leftPoint, int256[] memory rightPoint) private pure returns (int256) {
         if (leftPoint[0] > rightPoint[0]) revert FMMV2_BadPoints();
         if (leftPoint.length != 2) revert FMMV2_InvalidLeftPointLength();
-        if (leftPoint.length != rightPoint.length) revert FMMV2_InvalidRightPointLength();
+        if (leftPoint.length != 2) revert FMMV2_InvalidRightPointLength();
 
         return (((rightPoint[1] - leftPoint[1]) * sUNIT) / (rightPoint[0] - leftPoint[0]));
     }
