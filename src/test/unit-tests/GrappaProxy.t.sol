@@ -51,6 +51,14 @@ contract GrappaProxyTest is Test {
         grappa.initialize();
     }
 
+    function testCannotUpgradeFromNonOwner() public {
+        MockGrappaV2 v2 = new MockGrappaV2();
+
+        vm.prank(address(0xaa));
+        vm.expectRevert("Ownable: caller is not the owner");
+        grappa.upgradeTo(address(v2));
+    }
+
     function testCanUpgradeToAnotherUUPSContract() public {
         MockGrappaV2 v2 = new MockGrappaV2();
 
