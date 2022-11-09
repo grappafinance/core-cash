@@ -59,7 +59,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
     ///     this give every account access to 256 sub-accounts
     mapping(address => FullMarginAccountV2) internal accounts;
 
-    address public whitelist;
+    IWhitelist public whitelist;
 
     // solhint-disable-next-line no-empty-blocks
     constructor(address _grappa, address _optionToken) BaseEngine(_grappa, _optionToken) {}
@@ -75,7 +75,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
     function setWhitelist(address _whitelist) external {
         _onlyOwner();
 
-        whitelist = _whitelist;
+        whitelist = IWhitelist(_whitelist);
     }
 
     function batchExecute(BatchExecute[] calldata batchActions) public nonReentrant {
@@ -313,11 +313,11 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
 
     /**
      * @notice gets access status of an address
-     * @dev if whitelist address is not sent, it ignores this
+     * @dev if whitelist address is not set, it ignores this
      * @param _address address
      */
     function _checkPermissioned(address _address) internal view {
-        if (whitelist != address(0) && !IWhitelist(whitelist).grappaAccess(_address)) revert NoAccess();
+        if (address(whitelist) != address(0) && !whitelist.grappaAccess(_address)) revert NoAccess();
     }
 
     function _execute(address _subAccount, ActionArgs[] calldata actions) internal {
