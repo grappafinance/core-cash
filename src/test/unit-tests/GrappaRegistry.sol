@@ -24,7 +24,7 @@ contract GrappaRegistry is Test {
     constructor() {
         weth = new MockERC20("WETH", "WETH", 18);
 
-        // set option to 0        
+        // set option to 0
         address grappaImplementation = address(new Grappa(address(0))); // nonce: 5
 
         bytes memory data = abi.encode(Grappa.initialize.selector);

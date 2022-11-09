@@ -57,7 +57,7 @@ abstract contract BaseEngineSetup is Test, ActionHelper, Utilities {
         address grappaAddr = predictAddress(address(this), 6);
 
         option = new OptionToken(grappaAddr); // nonce: 4
-        
+
         address grappaImplementation = address(new Grappa(address(option))); // nonce: 5
 
         bytes memory data = abi.encode(Grappa.initialize.selector);

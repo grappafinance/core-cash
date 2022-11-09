@@ -65,7 +65,7 @@ abstract contract AdvancedFixture is Test, ActionHelper, Utilities {
 
         option = new OptionToken(grappaAddr); // nonce: 4
 
-        // predit address of margin account and use it here        
+        // predit address of margin account and use it here
         address grappaImplementation = address(new Grappa(address(option))); // nonce: 5
 
         bytes memory data = abi.encode(Grappa.initialize.selector);

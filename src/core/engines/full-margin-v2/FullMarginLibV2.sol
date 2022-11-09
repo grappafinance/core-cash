@@ -225,7 +225,6 @@ library FullMarginLibV2 {
             payouts = grappa.batchGetPayouts(tokenIds, amounts);
 
             for (i = 0; i < payouts.length; ) {
-
                 // remove the collateral in the account storage.
                 removeCollateral(account, payouts[i].collateralId, payouts[i].amount);
 

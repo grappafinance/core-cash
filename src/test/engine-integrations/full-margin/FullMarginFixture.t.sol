@@ -63,13 +63,12 @@ abstract contract FullMarginFixture is Test, ActionHelper, Utilities {
 
         option = new OptionToken(grappaAddr); // nonce: 4
 
-        // predit address of margin account and use it here        
+        // predit address of margin account and use it here
         address grappaImplementation = address(new Grappa(address(option))); // nonce: 5
 
         bytes memory data = abi.encode(Grappa.initialize.selector);
 
         grappa = Grappa(address(new ERC1967Proxy(grappaImplementation, data))); // 6
-
 
         engine = new FullMarginEngine(address(grappa), address(option)); // nonce 6
 
