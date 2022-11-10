@@ -45,9 +45,6 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     /// @dev optionToken address
     IOptionToken public immutable optionToken;
 
-    /// @dev only upgradable within this timeframe since deployment
-    uint256 public immutable deployTimestamp;
-
     /*///////////////////////////////////////////////////////////////
                          State Variables V1 
     //////////////////////////////////////////////////////////////*/
@@ -99,7 +96,6 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     /// @dev also set the implemention contract to initialized = true
     constructor(address _optionToken) initializer {
         optionToken = IOptionToken(_optionToken);
-        deployTimestamp = block.timestamp;
     }
 
     /*///////////////////////////////////////////////////////////////
