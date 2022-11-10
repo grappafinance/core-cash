@@ -63,7 +63,7 @@ contract TestStructuresFMMV2 is Test {
             spotPrice: spotPrice,
             expiry: 0
         });
-        vm.expectRevert();
+        vm.expectRevert(FullMarginMathV2.FMMV2_InvalidZeroWeight.selector);
         detail.getMinCollateral();
     }
 
@@ -85,7 +85,7 @@ contract TestStructuresFMMV2 is Test {
             spotPrice: spotPrice,
             expiry: 0
         });
-        vm.expectRevert();
+        vm.expectRevert(FullMarginMathV2.FMMV2_InvalidPutLengths.selector);
         detail.getMinCollateral();
     }
 
@@ -107,7 +107,7 @@ contract TestStructuresFMMV2 is Test {
             spotPrice: spotPrice,
             expiry: 0
         });
-        vm.expectRevert();
+        vm.expectRevert(FullMarginMathV2.FMMV2_InvalidCallLengths.selector);
         detail.getMinCollateral();
     }
 
@@ -720,8 +720,7 @@ contract TestCornerCases is Test {
             spotPrice: spotPrice,
             expiry: 0
         });
-
-        vm.expectRevert();
+        vm.expectRevert(FullMarginMathV2.FMMV2_InvalidZeroWeight.selector);
         detail.getMinCollateral();
     }
 

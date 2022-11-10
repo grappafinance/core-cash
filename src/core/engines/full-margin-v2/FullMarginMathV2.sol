@@ -46,7 +46,7 @@ library FullMarginMathV2 {
 
     error FMMV2_InvalidRightPointLength();
     
-    error FMMV2_InvalidZeroWeight(int256[] weights);
+    error FMMV2_InvalidZeroWeight();
 
     /**
      * @notice checks inputs for calculating margin, reverts if bad inputs
@@ -59,13 +59,13 @@ library FullMarginMathV2 {
         if(_detail.putStrikes.length != _detail.putWeights.length) revert FMMV2_InvalidPutLengths();
         uint256 i;
         for (i; i < _detail.putWeights.length; ) {
-            if (_detail.putWeights[i] == sZERO) revert FMMV2_InvalidZeroWeight({weights: _detail.putWeights});
+            if (_detail.putWeights[i] == sZERO) revert FMMV2_InvalidZeroWeight();
             unchecked {
                 ++i;
             }
         }
         for (i=0; i < _detail.callWeights.length; ) {
-            if (_detail.callWeights[i] == sZERO) revert FMMV2_InvalidZeroWeight({weights: _detail.callWeights});
+            if (_detail.callWeights[i] == sZERO) revert FMMV2_InvalidZeroWeight();
             unchecked {
                 ++i;
             }
@@ -154,7 +154,7 @@ library FullMarginMathV2 {
 
     function baseSetup(FullMarginDetailV2 memory _detail)
         private
-        view //pure
+        pure
         returns (
             uint256[] memory strikes,
             int256 syntheticUnderlyingWeight,
@@ -201,7 +201,7 @@ library FullMarginMathV2 {
 
     function convertPutsToCalls(FullMarginDetailV2 memory _detail)
         private
-        view //pure
+        pure
         returns (
             uint256[] memory strikes,
             int256[] memory weights,
@@ -212,12 +212,9 @@ library FullMarginMathV2 {
         strikes = _detail.putStrikes.concat(_detail.callStrikes);
         weights = _detail.putWeights.concat(_detail.callWeights);
 
-        consoleG.logUint(strikes.length);
         // sorting strikes
         uint256[] memory indexes;
-        consoleG.log("presort");
         (strikes, indexes) = strikes.argSort();
-        consoleG.log("postsort");
 
         // sorting weights based on strike sorted index
         weights = weights.sortByIndexes(indexes);
