@@ -244,8 +244,10 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
     /**
      * @dev because we override _settle(), this function is not used
      */
-     // solhint-disable-next-line no-empty-blocks
-    function _getAccountPayout(address /* */) internal view override returns (uint8, uint80) {}
+    // solhint-disable-next-line no-empty-blocks
+    function _getAccountPayout(
+        address /* */
+    ) internal view override returns (uint8, uint80) {}
 
     /**
      * @dev return whether if an account is healthy.
