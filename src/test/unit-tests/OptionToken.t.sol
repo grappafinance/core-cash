@@ -26,8 +26,8 @@ contract OptionTokenTest is Test {
         // put in valid tokenId
         uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
         uint256 expiry = block.timestamp + 1 days;
-        uint tokenId = TokenIdUtil.getTokenId(TokenType.CALL_SPREAD, productId, expiry, 20, 40);
-        
+        uint256 tokenId = TokenIdUtil.getTokenId(TokenType.CALL_SPREAD, productId, expiry, 20, 40);
+
         vm.expectRevert(OT_Not_Authorized_Engine.selector);
         option.mint(address(this), tokenId, 1000_000_000);
     }
