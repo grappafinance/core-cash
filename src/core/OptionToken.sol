@@ -50,9 +50,7 @@ contract OptionToken is ERC1155, IOptionToken {
         uint256 _tokenId,
         uint256 _amount
     ) external override {
-        _checkEngineAccess(_tokenId);
-
-        grappa.checkTokenIdToMint(_tokenId);
+        grappa.checkEngineAccessAndTokenId(_tokenId, msg.sender);
 
         _mint(_recipient, _tokenId, _amount, "");
     }
@@ -68,7 +66,8 @@ contract OptionToken is ERC1155, IOptionToken {
         uint256 _tokenId,
         uint256 _amount
     ) external override {
-        _checkEngineAccess(_tokenId);
+        grappa.checkEngineAccess(_tokenId, msg.sender);
+
         _burn(_from, _tokenId, _amount);
     }
 

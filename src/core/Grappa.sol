@@ -119,7 +119,8 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      **/
     function _authorizeUpgrade(
         address /*newImplementation*/
-    ) internal view override onlyOwner {
+    ) internal view override {
+        _checkOwner();
         if (block.timestamp > deployTimestamp + 365 days) revert GP_NotUpgradable();
     }
 
@@ -349,23 +350,28 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     }
 
     /**
-     * @notice check whether a tokenId is valid or not, revert on bad Ids with custom errors
-     * @dev this logic is abstract away from OptionToken so we can add more option type in the near future.
-     * @param _tokenId tokenId
+     * @dev revert if _engine doesn't have access to mint / burn a tokenId;
+     * @param _tokenId tokenid
+     * @param _engine address intending to mint / burn
      */
-    function checkTokenIdToMint(uint256 _tokenId) external view {
-        (TokenType optionType, , uint64 expiry, uint64 longStrike, uint64 shortStrike) = _tokenId.parseTokenId();
+    function checkEngineAccess(uint256 _tokenId, address _engine) external view {
+        // create check engine access
+        uint8 engineId = TokenIdUtil.parseEnginelId(_tokenId);
+        if (_engine != engines[engineId]) revert OT_Not_Authorized_Engine();
+    }
 
-        // check option type and strikes
-        // check that vanilla options doesnt have a shortStrike argument
-        if ((optionType == TokenType.CALL || optionType == TokenType.PUT) && (shortStrike != 0)) revert GP_BadStrikes();
+    /**
+     * @dev revert if _engine doesn't have access to mint or the tokenId is invalid.
+     * @param _tokenId tokenid
+     * @param _engine address intending to mint / burn
+     */
+    function checkEngineAccessAndTokenId(uint256 _tokenId, address _engine) external view {
+        // check tokenId
+        _isValidTokenIdToMint(_tokenId);
 
-        // check that you cannot mint a "credit spread" token
-        if (optionType == TokenType.CALL_SPREAD && (shortStrike < longStrike)) revert GP_BadStrikes();
-        if (optionType == TokenType.PUT_SPREAD && (shortStrike > longStrike)) revert GP_BadStrikes();
-
-        // check expiry
-        if (expiry <= block.timestamp) revert GP_InvalidExpiry();
+        //  check engine access
+        uint8 engineId = _tokenId.parseEnginelId();
+        if (_engine != engines[engineId]) revert OT_Not_Authorized_Engine();
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -376,7 +382,9 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      * @dev register an asset to be used as strike/underlying
      * @param _asset address to add
      **/
-    function registerAsset(address _asset) external onlyOwner returns (uint8 id) {
+    function registerAsset(address _asset) external returns (uint8 id) {
+        _checkOwner();
+
         if (assetIds[_asset] != 0) revert GP_AssetAlreadyRegistered();
 
         uint8 decimals = IERC20Metadata(_asset).decimals();
@@ -392,7 +400,9 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      * @dev register an engine to create / settle options
      * @param _engine address of the new margin engine
      **/
-    function registerEngine(address _engine) external onlyOwner returns (uint8 id) {
+    function registerEngine(address _engine) external returns (uint8 id) {
+        _checkOwner();
+
         if (engineIds[_engine] != 0) revert GP_EngineAlreadyRegistered();
 
         id = ++nextengineId;
@@ -407,7 +417,9 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      * @dev register an oracle to report prices
      * @param _oracle address of the new oracle
      **/
-    function registerOracle(address _oracle) external onlyOwner returns (uint8 id) {
+    function registerOracle(address _oracle) external returns (uint8 id) {
+        _checkOwner();
+
         if (oracleIds[_oracle] != 0) revert GP_OracleAlreadyRegistered();
 
         // this is a soft check on whether an oracle is suitable to be used.
@@ -424,6 +436,24 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     /* =====================================
      *          Internal Functions
      * ====================================**/
+
+    /**
+     * @dev make sure that the tokenId make sense
+     */
+    function _isValidTokenIdToMint(uint256 _tokenId) internal view {
+        (TokenType optionType, , uint64 expiry, uint64 longStrike, uint64 shortStrike) = _tokenId.parseTokenId();
+
+        // check option type and strikes
+        // check that vanilla options doesnt have a shortStrike argument
+        if ((optionType == TokenType.CALL || optionType == TokenType.PUT) && (shortStrike != 0)) revert GP_BadStrikes();
+
+        // check that you cannot mint a "credit spread" token
+        if (optionType == TokenType.CALL_SPREAD && (shortStrike < longStrike)) revert GP_BadStrikes();
+        if (optionType == TokenType.PUT_SPREAD && (shortStrike > longStrike)) revert GP_BadStrikes();
+
+        // check expiry
+        if (expiry <= block.timestamp) revert GP_InvalidExpiry();
+    }
 
     /**
      * @dev calculate the payout for one option token
