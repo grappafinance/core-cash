@@ -115,13 +115,12 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @dev Upgradable by the owner, can only be upgraded within 365 days after deployment
+     * @dev Upgradable by the owner.
      **/
     function _authorizeUpgrade(
         address /*newImplementation*/
     ) internal view override {
         _checkOwner();
-        if (block.timestamp > deployTimestamp + 365 days) revert GP_NotUpgradable();
     }
 
     /*///////////////////////////////////////////////////////////////
