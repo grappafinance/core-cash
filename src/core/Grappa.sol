@@ -3,9 +3,11 @@ pragma solidity ^0.8.0;
 
 // imported contracts and libraries
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
-import {Ownable} from "openzeppelin/access/Ownable.sol";
-import {ReentrancyGuard} from "solmate/utils/ReentrancyGuard.sol";
+
 import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
+import {UUPSUpgradeable} from "openzeppelin/proxy/utils/UUPSUpgradeable.sol";
+import {OwnableUpgradeable} from "openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
+import {ReentrancyGuardUpgradeable} from "openzeppelin-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 // interfaces
 import {IERC20Metadata} from "openzeppelin/token/ERC20/extensions/IERC20Metadata.sol";
@@ -30,8 +32,9 @@ import "../config/errors.sol";
 /**
  * @title   Grappa
  * @author  @antoncoding, @dsshap
+ * @dev     This contract serves as the registry of the system who system.
  */
-contract Grappa is Ownable, ReentrancyGuard {
+contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
     using AccountUtil for Balance[];
     using FixedPointMathLib for uint256;
     using NumberUtil for uint256;
@@ -41,11 +44,9 @@ contract Grappa is Ownable, ReentrancyGuard {
 
     /// @dev optionToken address
     IOptionToken public immutable optionToken;
-    // IMarginEngine public immutable engine;
-    // IOracle public immutable oracle;
 
     /*///////////////////////////////////////////////////////////////
-                            State Variables
+                         State Variables V1 
     //////////////////////////////////////////////////////////////*/
 
     /// @dev next id used to represent an address
@@ -87,8 +88,35 @@ contract Grappa is Ownable, ReentrancyGuard {
     event MarginEngineRegistered(address engine, uint8 id);
     event OracleRegistered(address oracle, uint8 id);
 
-    constructor(address _optionToken) {
+    /*///////////////////////////////////////////////////////////////
+                Constructor for implementation Contract
+    //////////////////////////////////////////////////////////////*/
+
+    /// @dev set immutables in constructor
+    /// @dev also set the implemention contract to initialized = true
+    constructor(address _optionToken) initializer {
         optionToken = IOptionToken(_optionToken);
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                            Initializer
+    //////////////////////////////////////////////////////////////*/
+
+    function initialize() external initializer {
+        __Ownable_init();
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                    Override Upgrade Permission
+    //////////////////////////////////////////////////////////////*/
+
+    /**
+     * @dev Upgradable by the owner.
+     **/
+    function _authorizeUpgrade(
+        address /*newImplementation*/
+    ) internal view override {
+        _checkOwner();
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -239,7 +267,9 @@ contract Grappa is Ownable, ReentrancyGuard {
         for (uint256 i; i < _tokenIds.length; ) {
             (address engine, address collateral, uint256 payout) = getPayout(_tokenIds[i], _amounts[i].toUint64());
 
-            payouts = _addToPayouts(payouts, collateral, payout);
+            uint8 collateralId = _tokenIds[i].parseCollateralId();
+
+            payouts = _addToPayouts(payouts, collateralId, payout);
 
             // if engine or collateral changes, payout and clear temporary parameters
             if (lastEngine == address(0)) {
@@ -260,22 +290,6 @@ contract Grappa is Ownable, ReentrancyGuard {
         }
 
         IMarginEngine(lastEngine).payCashValue(lastCollateral, _account, lastTotalPayout);
-    }
-
-    function batchGetPayouts(uint256[] memory _tokenIds, uint256[] memory _amounts)
-        external
-        view
-        returns (Balance[] memory payouts)
-    {
-        for (uint256 i; i < _tokenIds.length; ) {
-            (, address collateral, uint256 payout) = getPayout(_tokenIds[i], _amounts[i].toUint64());
-
-            payouts = _addToPayouts(payouts, collateral, payout);
-
-            unchecked {
-                ++i;
-            }
-        }
     }
 
     /**
@@ -305,6 +319,56 @@ contract Grappa is Ownable, ReentrancyGuard {
         }
     }
 
+    /**
+     * @dev calculate the payout for array of options
+     *
+     * @param _tokenIds array of token id
+     * @param _amounts  array of amount
+     *
+     * @return payouts amounts paid
+     **/
+    function batchGetPayouts(uint256[] memory _tokenIds, uint256[] memory _amounts)
+        external
+        view
+        returns (Balance[] memory payouts)
+    {
+        for (uint256 i; i < _tokenIds.length; ) {
+            (, , uint256 payout) = getPayout(_tokenIds[i], _amounts[i].toUint64());
+
+            uint8 collateralId = _tokenIds[i].parseCollateralId();
+            payouts = _addToPayouts(payouts, collateralId, payout);
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    /**
+     * @dev revert if _engine doesn't have access to mint / burn a tokenId;
+     * @param _tokenId tokenid
+     * @param _engine address intending to mint / burn
+     */
+    function checkEngineAccess(uint256 _tokenId, address _engine) external view {
+        // create check engine access
+        uint8 engineId = TokenIdUtil.parseEnginelId(_tokenId);
+        if (_engine != engines[engineId]) revert OT_Not_Authorized_Engine();
+    }
+
+    /**
+     * @dev revert if _engine doesn't have access to mint or the tokenId is invalid.
+     * @param _tokenId tokenid
+     * @param _engine address intending to mint / burn
+     */
+    function checkEngineAccessAndTokenId(uint256 _tokenId, address _engine) external view {
+        // check tokenId
+        _isValidTokenIdToMint(_tokenId);
+
+        //  check engine access
+        uint8 engineId = _tokenId.parseEnginelId();
+        if (_engine != engines[engineId]) revert OT_Not_Authorized_Engine();
+    }
+
     /*///////////////////////////////////////////////////////////////
                             Admin Functions
     //////////////////////////////////////////////////////////////*/
@@ -313,7 +377,9 @@ contract Grappa is Ownable, ReentrancyGuard {
      * @dev register an asset to be used as strike/underlying
      * @param _asset address to add
      **/
-    function registerAsset(address _asset) external onlyOwner returns (uint8 id) {
+    function registerAsset(address _asset) external returns (uint8 id) {
+        _checkOwner();
+
         if (assetIds[_asset] != 0) revert GP_AssetAlreadyRegistered();
 
         uint8 decimals = IERC20Metadata(_asset).decimals();
@@ -329,7 +395,9 @@ contract Grappa is Ownable, ReentrancyGuard {
      * @dev register an engine to create / settle options
      * @param _engine address of the new margin engine
      **/
-    function registerEngine(address _engine) external onlyOwner returns (uint8 id) {
+    function registerEngine(address _engine) external returns (uint8 id) {
+        _checkOwner();
+
         if (engineIds[_engine] != 0) revert GP_EngineAlreadyRegistered();
 
         id = ++nextengineId;
@@ -344,7 +412,9 @@ contract Grappa is Ownable, ReentrancyGuard {
      * @dev register an oracle to report prices
      * @param _oracle address of the new oracle
      **/
-    function registerOracle(address _oracle) external onlyOwner returns (uint8 id) {
+    function registerOracle(address _oracle) external returns (uint8 id) {
+        _checkOwner();
+
         if (oracleIds[_oracle] != 0) revert GP_OracleAlreadyRegistered();
 
         // this is a soft check on whether an oracle is suitable to be used.
@@ -356,6 +426,28 @@ contract Grappa is Ownable, ReentrancyGuard {
         oracleIds[_oracle] = id;
 
         emit OracleRegistered(_oracle, id);
+    }
+
+    /* =====================================
+     *          Internal Functions
+     * ====================================**/
+
+    /**
+     * @dev make sure that the tokenId make sense
+     */
+    function _isValidTokenIdToMint(uint256 _tokenId) internal view {
+        (TokenType optionType, , uint64 expiry, uint64 longStrike, uint64 shortStrike) = _tokenId.parseTokenId();
+
+        // check option type and strikes
+        // check that vanilla options doesnt have a shortStrike argument
+        if ((optionType == TokenType.CALL || optionType == TokenType.PUT) && (shortStrike != 0)) revert GP_BadStrikes();
+
+        // check that you cannot mint a "credit spread" token
+        if (optionType == TokenType.CALL_SPREAD && (shortStrike < longStrike)) revert GP_BadStrikes();
+        if (optionType == TokenType.PUT_SPREAD && (shortStrike > longStrike)) revert GP_BadStrikes();
+
+        // check expiry
+        if (expiry <= block.timestamp) revert GP_InvalidExpiry();
     }
 
     /**
@@ -421,14 +513,18 @@ contract Grappa is Ownable, ReentrancyGuard {
         return (engine, collateral, payoutPerOption);
     }
 
+    /**
+     * @dev add an entry to array of Balance
+     * @param payouts existing payout array
+     * @param collateralId new collateralId
+     * @param payout new payout
+     */
     function _addToPayouts(
         Balance[] memory payouts,
-        address collateral,
+        uint8 collateralId,
         uint256 payout
-    ) private view returns (Balance[] memory) {
+    ) internal pure returns (Balance[] memory) {
         if (payout == 0) return payouts;
-
-        uint8 collateralId = assetIds[collateral];
 
         (bool found, uint256 index) = payouts.indexOf(collateralId);
         if (!found) {

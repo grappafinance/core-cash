@@ -113,6 +113,34 @@ library TokenIdUtil {
     }
 
     /**
+     * @notice parse collateral id from tokenId
+     * @dev more efficient than parsing tokenId and than parse productId
+     * @param tokenId token id
+     * @return collatearlId
+     */
+    function parseCollateralId(uint256 tokenId) internal pure returns (uint8 collatearlId) {
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            // collateralId is the last bits of productId
+            collatearlId := shr(192, tokenId)
+        }
+    }
+
+    /**
+     * @notice parse engine id from tokenId
+     * @dev more efficient than parsing tokenId and than parse productId
+     * @param tokenId token id
+     * @return engineId
+     */
+    function parseEnginelId(uint256 tokenId) internal pure returns (uint8 engineId) {
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            // collateralId is the last bits of productId
+            engineId := shr(216, tokenId) // 192 to get product id, another 24 to get engineId
+        }
+    }
+
+    /**
      * @notice derive option, product, expiry and strike price from short token id (no shortStrike)
      * @dev    See table above for tokenId composition
      * @param tokenId token id

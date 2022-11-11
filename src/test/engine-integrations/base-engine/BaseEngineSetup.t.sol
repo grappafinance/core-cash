@@ -3,6 +3,8 @@ pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
 
+import {ERC1967Proxy} from "openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
+
 import "../../mocks/MockERC20.sol";
 import "../../mocks/MockOracle.sol";
 import "../../mocks/MockChainlinkAggregator.sol";
@@ -52,13 +54,17 @@ abstract contract BaseEngineSetup is Test, ActionHelper, Utilities {
         oracle = new MockOracle(); // nonce: 3
 
         // predit address of margin account and use it here
-        address grappaAddr = predictAddress(address(this), 5);
+        address grappaAddr = predictAddress(address(this), 6);
 
         option = new OptionToken(grappaAddr); // nonce: 4
 
-        grappa = new Grappa(address(option)); // nonce: 5
+        address grappaImplementation = address(new Grappa(address(option))); // nonce: 5
 
-        engine = new MockEngine(address(grappa), address(option)); // nonce 6
+        bytes memory data = abi.encode(Grappa.initialize.selector);
+
+        grappa = Grappa(address(new ERC1967Proxy(grappaImplementation, data))); // 6
+
+        engine = new MockEngine(address(grappa), address(option)); // nonce 7
 
         // register products
         usdcId = grappa.registerAsset(address(usdc));

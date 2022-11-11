@@ -138,7 +138,7 @@ contract TestMint_FMV2 is FullMarginFixtureV2 {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createMintAction(tokenId, address(this), amount);
 
-        vm.expectRevert(OT_InvalidExpiry.selector);
+        vm.expectRevert(GP_InvalidExpiry.selector);
         engine.execute(address(this), actions);
     }
 

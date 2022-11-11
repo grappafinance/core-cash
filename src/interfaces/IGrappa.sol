@@ -18,6 +18,10 @@ interface IGrappa {
             uint8 collateralDecimals
         );
 
+    function checkEngineAccess(uint256 _tokenId, address _engine) external view;
+
+    function checkEngineAccessAndTokenId(uint256 _tokenId, address _engine) external view;
+
     function assets(uint8 _id) external view returns (address addr, uint8 decimals);
 
     function engines(uint8 _id) external view returns (address engine);

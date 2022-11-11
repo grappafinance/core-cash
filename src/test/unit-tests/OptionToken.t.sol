@@ -21,8 +21,15 @@ contract OptionTokenTest is Test {
     }
 
     function testCannotMint() public {
+        uint8 engineId = 1;
+
+        // put in valid tokenId
+        uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
+        uint256 expiry = block.timestamp + 1 days;
+        uint256 tokenId = TokenIdUtil.getTokenId(TokenType.CALL_SPREAD, productId, expiry, 20, 40);
+
         vm.expectRevert(OT_Not_Authorized_Engine.selector);
-        option.mint(address(this), 0, 1000_000_000);
+        option.mint(address(this), tokenId, 1000_000_000);
     }
 
     function testCannotBurn() public {
@@ -53,7 +60,7 @@ contract OptionTokenTest is Test {
         uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
         uint256 tokenId = TokenIdUtil.getTokenId(TokenType.CALL_SPREAD, productId, expiry, 40, 20);
 
-        vm.expectRevert(OT_BadStrikes.selector);
+        vm.expectRevert(GP_BadStrikes.selector);
         option.mint(address(this), tokenId, 1);
     }
 
@@ -70,7 +77,7 @@ contract OptionTokenTest is Test {
         uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
         uint256 tokenId = TokenIdUtil.getTokenId(TokenType.PUT_SPREAD, productId, expiry, 20, 40);
 
-        vm.expectRevert(OT_BadStrikes.selector);
+        vm.expectRevert(GP_BadStrikes.selector);
         option.mint(address(this), tokenId, 1);
     }
 
@@ -87,7 +94,7 @@ contract OptionTokenTest is Test {
         uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
         uint256 tokenId = TokenIdUtil.getTokenId(TokenType.CALL, productId, expiry, 20, 40);
 
-        vm.expectRevert(OT_BadStrikes.selector);
+        vm.expectRevert(GP_BadStrikes.selector);
         option.mint(address(this), tokenId, 1);
     }
 
@@ -104,7 +111,7 @@ contract OptionTokenTest is Test {
         uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
         uint256 tokenId = TokenIdUtil.getTokenId(TokenType.PUT, productId, expiry, 20, 40);
 
-        vm.expectRevert(OT_BadStrikes.selector);
+        vm.expectRevert(GP_BadStrikes.selector);
         option.mint(address(this), tokenId, 1);
     }
 
