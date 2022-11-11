@@ -159,7 +159,6 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
         view
         returns (Balance[] memory balances)
     {
-
         FullMarginAccountV2 memory account;
 
         account.shorts = shorts.getPositionOptims();
@@ -330,17 +329,20 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
 
         for (uint256 i; i < details.length; ) {
             FullMarginDetailV2 memory detail = details[i];
-            if(detail.callWeights.length != 0 || detail.putWeights.length != 0) {
+
+            if (detail.callWeights.length != 0 || detail.putWeights.length != 0) {
                 (int256 cashCollateralNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
 
                 if (cashCollateralNeeded != 0) {
                     (found, index) = balances.indexOf(detail.collateralId);
+
                     if (found) balances[index].amount -= cashCollateralNeeded.toInt80();
                     else balances = balances.append(SBalance(detail.collateralId, -cashCollateralNeeded.toInt80()));
                 }
 
                 if (underlyingNeeded != 0) {
                     (found, index) = balances.indexOf(detail.underlyingId);
+
                     if (found) balances[index].amount -= underlyingNeeded.toInt80();
                     else balances = balances.append(SBalance(detail.underlyingId, -underlyingNeeded.toInt80()));
                 }
@@ -392,6 +394,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
 
             int256 amount = int256(int64(positions[i].amount));
             if (i < shortLength) amount = -amount;
+
             _processDetailWithToken(detail, positions[i].tokenId, amount);
 
             unchecked {
@@ -405,37 +408,39 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
         uint256 tokenId,
         int256 amount
     ) internal pure {
-        (TokenType tokenType, , , uint64 longStrike, ) = tokenId.parseTokenId();
+        (TokenType tokenType, , , uint64 strike, ) = tokenId.parseTokenId();
 
         bool found;
         uint256 index;
 
         if (tokenType == TokenType.CALL) {
-            (found, index) = detail.callStrikes.indexOf(longStrike);
+            (found, index) = detail.callStrikes.indexOf(strike);
+
             if (found) {
                 detail.callWeights[index] += amount;
-                if(detail.callWeights[index] == 0) {
+
+                if (detail.callWeights[index] == 0) {
                     detail.callWeights = detail.callWeights.remove(index);
                     detail.callStrikes = detail.callStrikes.remove(index);
                 }
-            }
-            else {
-                detail.callStrikes = detail.callStrikes.append(longStrike);
+            } else {
+                detail.callStrikes = detail.callStrikes.append(strike);
                 detail.callWeights = detail.callWeights.append(amount);
             }
         }
 
         if (tokenType == TokenType.PUT) {
-            (found, index) = detail.putStrikes.indexOf(longStrike);
+            (found, index) = detail.putStrikes.indexOf(strike);
+
             if (found) {
                 detail.putWeights[index] += amount;
-                if(detail.putWeights[index] == 0) {
+
+                if (detail.putWeights[index] == 0) {
                     detail.putWeights = detail.putWeights.remove(index);
                     detail.putStrikes = detail.putStrikes.remove(index);
                 }
-            }
-            else {
-                detail.putStrikes = detail.putStrikes.append(longStrike);
+            } else {
+                detail.putStrikes = detail.putStrikes.append(strike);
                 detail.putWeights = detail.putWeights.append(amount);
             }
         }

@@ -8,8 +8,6 @@ import "../../../config/constants.sol";
 import "../../../config/errors.sol";
 import "../../../config/types.sol";
 
-import "../../utils/Console.sol";
-
 /**
  * test full margin calculation for complicated structure
  */
@@ -599,7 +597,7 @@ contract TestStrangles is Test {
         putWeights = new int256[](2);
         putWeights[0] = -1 * sUNIT;
         putWeights[1] = 1 * sUNIT;
-        
+
         callWeights = new int256[](2);
         callWeights[0] = -1 * sUNIT;
         callWeights[1] = 1 * sUNIT;
@@ -607,7 +605,6 @@ contract TestStrangles is Test {
         putStrikes = new uint256[](2);
         putStrikes[0] = 18000 * UNIT;
         putStrikes[1] = 17000 * UNIT;
-
 
         callStrikes = new uint256[](2);
         callStrikes[0] = 20000 * UNIT;
@@ -627,7 +624,7 @@ contract TestStrangles is Test {
         });
 
         (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, int256(putStrikes[0]-putStrikes[1]));
+        assertEq(cashNeeded, int256(putStrikes[0] - putStrikes[1]));
         assertEq(underlyingNeeded, sZERO);
     }
 }

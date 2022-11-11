@@ -98,15 +98,15 @@ library ArrayUtil {
     // }
 
     /**
-     * @dev Removes element at index in a new signed int array, does not change x memory in place
+     * @dev Removes element at index in a new unsigned int array, does not change x memory in place
      * @return y new array
      */
     function remove(uint256[] memory x, uint256 z) internal pure returns (uint256[] memory y) {
         if (z >= x.length) return x;
         y = new uint256[](x.length - 1);
-        for (uint256 i; i < x.length;) {
+        for (uint256 i; i < x.length; ) {
             if (i < z) y[i] = x[i];
-            else if (i > z) y[i-1] = x[i];
+            else if (i > z) y[i - 1] = x[i];
             unchecked {
                 ++i;
             }
@@ -114,15 +114,15 @@ library ArrayUtil {
     }
 
     /**
-     * @dev Removes element at index in a new unsigned int array, does not change x memory in place
+     * @dev Removes element at index in a new signed int array, does not change x memory in place
      * @return y new array
      */
     function remove(int256[] memory x, uint256 z) internal pure returns (int256[] memory y) {
         if (z >= x.length) return x;
         y = new int256[](x.length - 1);
-        for (uint256 i; i < x.length;) {
+        for (uint256 i; i < x.length; ) {
             if (i < z) y[i] = x[i];
-            else if (i > z) y[i-1] = x[i];
+            else if (i > z) y[i - 1] = x[i];
             unchecked {
                 ++i;
             }

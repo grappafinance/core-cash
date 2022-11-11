@@ -10,7 +10,6 @@ import "../../../config/constants.sol";
 import "../../../config/enums.sol";
 import "../../../config/types.sol";
 import "../../../config/errors.sol";
-import "../../../test/utils/Console.sol";
 
 /**
  * @title   FullMarginMathV2
@@ -45,27 +44,29 @@ library FullMarginMathV2 {
     error FMMV2_InvalidLeftPointLength();
 
     error FMMV2_InvalidRightPointLength();
-    
+
     error FMMV2_InvalidZeroWeight();
 
     /**
      * @notice checks inputs for calculating margin, reverts if bad inputs
      * @param _detail margin details
      */
-    function verifyInputs(FullMarginDetailV2 memory _detail)
-        internal pure
-    {
-        if(_detail.callStrikes.length != _detail.callWeights.length) revert FMMV2_InvalidCallLengths();
-        if(_detail.putStrikes.length != _detail.putWeights.length) revert FMMV2_InvalidPutLengths();
+    function verifyInputs(FullMarginDetailV2 memory _detail) internal pure {
+        if (_detail.callStrikes.length != _detail.callWeights.length) revert FMMV2_InvalidCallLengths();
+        if (_detail.putStrikes.length != _detail.putWeights.length) revert FMMV2_InvalidPutLengths();
+
         uint256 i;
         for (i; i < _detail.putWeights.length; ) {
             if (_detail.putWeights[i] == sZERO) revert FMMV2_InvalidZeroWeight();
+
             unchecked {
                 ++i;
             }
         }
-        for (i=0; i < _detail.callWeights.length; ) {
+
+        for (i = 0; i < _detail.callWeights.length; ) {
             if (_detail.callWeights[i] == sZERO) revert FMMV2_InvalidZeroWeight();
+
             unchecked {
                 ++i;
             }
@@ -80,7 +81,7 @@ library FullMarginMathV2 {
      */
     function getMinCollateral(FullMarginDetailV2 memory _detail)
         external
-        view //pure
+        pure
         returns (int256 cashNeeded, int256 underlyingNeeded)
     {
         verifyInputs(_detail);
