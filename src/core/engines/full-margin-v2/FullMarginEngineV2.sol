@@ -59,6 +59,10 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
     ///     this give every account access to 256 sub-accounts
     mapping(address => FullMarginAccountV2) internal accounts;
 
+    ///@dev contract that verifys permissions
+    ///     if not set allows anyone to transact
+    ///     checks msg.sender on execute & batchExecute
+    ///     checks receipient on payCashValue
     IWhitelist public whitelist;
 
     // solhint-disable-next-line no-empty-blocks
@@ -73,12 +77,14 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
      * @param _whitelist is the address of the new whitelist
      */
     function setWhitelist(address _whitelist) external {
-        _onlyOwner();
+        _checkOwner();
 
         whitelist = IWhitelist(_whitelist);
     }
 
-    function batchExecute(BatchExecute[] calldata batchActions) public nonReentrant {
+    function batchExecute(BatchExecute[] calldata batchActions) external nonReentrant {
+        _checkPermissioned(msg.sender);
+
         uint256 i;
         for (i; i < batchActions.length; ) {
             address subAccount = batchActions[i].subAccount;
@@ -101,7 +107,9 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
         }
     }
 
-    function execute(address _subAccount, ActionArgs[] calldata actions) public override nonReentrant {
+    function execute(address _subAccount, ActionArgs[] calldata actions) external override nonReentrant {
+        _checkPermissioned(msg.sender);
+
         _execute(_subAccount, actions);
 
         if (!_isAccountAboveWater(_subAccount)) revert BM_AccountUnderwater();
@@ -306,9 +314,9 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
                             Internal Functions
      ** ========================================================= **/
 
-    function _onlyOwner() internal view {
+    function _checkOwner() internal view {
         // TODO uncomment when Ownable gets added
-        // if (msg.sender != owner()) revert HV_Unauthorized();
+        // if (msg.sender != owner()) revert NoAccess();
     }
 
     /**
@@ -317,11 +325,10 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
      * @param _address address
      */
     function _checkPermissioned(address _address) internal view {
-        if (address(whitelist) != address(0) && !whitelist.grappaAccess(_address)) revert NoAccess();
+        if (address(whitelist) != address(0) && !whitelist.engineAccess(_address)) revert NoAccess();
     }
 
     function _execute(address _subAccount, ActionArgs[] calldata actions) internal {
-        _checkPermissioned(msg.sender);
         _assertCallerHasAccess(_subAccount);
 
         // update the account storage and do external calls on the flight

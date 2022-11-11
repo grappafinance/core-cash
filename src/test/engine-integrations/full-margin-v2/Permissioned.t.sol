@@ -48,7 +48,7 @@ contract Permissioned is FullMarginFixtureV2 {
     }
 
     function testCanExecute() public {
-        whitelist.setGrappaAccess(address(this), true);
+        whitelist.setEngineAccess(address(this), true);
 
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createAddCollateralAction(wethId, address(this), 1000 * UNIT);
@@ -60,7 +60,7 @@ contract Permissioned is FullMarginFixtureV2 {
     }
 
     function testCannotSettleOption() public {
-        whitelist.setGrappaAccess(address(this), true);
+        whitelist.setEngineAccess(address(this), true);
 
         _mintOptionToAlice();
 
@@ -74,8 +74,8 @@ contract Permissioned is FullMarginFixtureV2 {
     }
 
     function testAliceCanSettleOption() public {
-        whitelist.setGrappaAccess(address(this), true);
-        whitelist.setGrappaAccess(alice, true);
+        whitelist.setEngineAccess(address(this), true);
+        whitelist.setEngineAccess(alice, true);
 
         _mintOptionToAlice();
 
