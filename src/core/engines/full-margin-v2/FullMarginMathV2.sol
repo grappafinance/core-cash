@@ -39,11 +39,41 @@ library FullMarginMathV2 {
 
     error FMMV2_InvalidCallLengths();
 
-    error FMMV2_BadPoints();
+    error FMMV2_InvalidPutWeight();
+
+    error FMMV2_InvalidCallWeight();
+
+    error FMMV2_InvalidPoints();
 
     error FMMV2_InvalidLeftPointLength();
 
     error FMMV2_InvalidRightPointLength();
+
+    /**
+     * @notice checks inputs for calculating margin, reverts if bad inputs
+     * @param _detail margin details
+     */
+    function verifyInputs(FullMarginDetailV2 memory _detail) internal pure {
+        if (_detail.callStrikes.length != _detail.callWeights.length) revert FMMV2_InvalidCallLengths();
+        if (_detail.putStrikes.length != _detail.putWeights.length) revert FMMV2_InvalidPutLengths();
+
+        uint256 i;
+        for (i; i < _detail.putWeights.length; ) {
+            if (_detail.putWeights[i] == sZERO) revert FMMV2_InvalidPutWeight();
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        for (i = 0; i < _detail.callWeights.length; ) {
+            if (_detail.callWeights[i] == sZERO) revert FMMV2_InvalidCallWeight();
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
 
     /**
      * @notice get minimum collateral denominated in strike asset
@@ -56,6 +86,8 @@ library FullMarginMathV2 {
         pure
         returns (int256 cashNeeded, int256 underlyingNeeded)
     {
+        verifyInputs(_detail);
+
         (
             uint256[] memory strikes,
             int256 syntheticUnderlyingWeight,
@@ -133,8 +165,8 @@ library FullMarginMathV2 {
             int256[] memory payouts
         )
     {
-        int256[] memory weights;
         int256 intrinsicValue;
+        int256[] memory weights;
 
         (strikes, weights, syntheticUnderlyingWeight, intrinsicValue) = convertPutsToCalls(_detail);
 
@@ -180,9 +212,6 @@ library FullMarginMathV2 {
             int256 intrinsicValue
         )
     {
-        if (_detail.putWeights.length != _detail.putStrikes.length) revert FMMV2_InvalidPutLengths();
-        if (_detail.callWeights.length != _detail.callStrikes.length) revert FMMV2_InvalidCallLengths();
-
         strikes = _detail.putStrikes.concat(_detail.callStrikes);
         weights = _detail.putWeights.concat(_detail.callWeights);
 
@@ -235,9 +264,9 @@ library FullMarginMathV2 {
     }
 
     function calcSlope(int256[] memory leftPoint, int256[] memory rightPoint) private pure returns (int256) {
-        if (leftPoint[0] > rightPoint[0]) revert FMMV2_BadPoints();
+        if (leftPoint[0] > rightPoint[0]) revert FMMV2_InvalidPoints();
         if (leftPoint.length != 2) revert FMMV2_InvalidLeftPointLength();
-        if (leftPoint.length != rightPoint.length) revert FMMV2_InvalidRightPointLength();
+        if (leftPoint.length != 2) revert FMMV2_InvalidRightPointLength();
 
         return (((rightPoint[1] - leftPoint[1]) * sUNIT) / (rightPoint[0] - leftPoint[0]));
     }
