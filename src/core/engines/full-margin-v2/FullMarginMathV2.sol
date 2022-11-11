@@ -99,9 +99,7 @@ library FullMarginMathV2 {
 
         (cashNeeded, underlyingNeeded) = calcCollateralNeeds(
             _detail,
-            poisAndPayouts,
-            syntheticUnderlyingWeight,
-            strikes
+            poisAndPayouts
         );
 
         if (cashNeeded > 0 && _detail.underlyingId == _detail.collateralId) {
@@ -131,16 +129,14 @@ library FullMarginMathV2 {
 
     function calcCollateralNeeds(
         FullMarginDetailV2 memory _detail,
-        PoisAndPayouts memory poisAndPayouts,
-        int256 leftDelta,
-        uint256[] memory strikes
+        PoisAndPayouts memory poisAndPayouts
     ) private pure returns (int256 cashNeeded, int256 underlyingNeeded) {
         bool hasCalls = _detail.callStrikes.length > 0;
         bool hasPuts = _detail.putStrikes.length > 0;
 
         if (hasCalls) (underlyingNeeded, ) = getUnderlyingNeeded(poisAndPayouts);
 
-        if (hasPuts) cashNeeded = getCashNeeded(poisAndPayouts.payouts, leftDelta, strikes.min());
+        if (hasPuts) cashNeeded = getCashNeeded(_detail.putStrikes, _detail.putWeights);
 
         cashNeeded = getUnderlyingAdjustedCashNeeded(poisAndPayouts, cashNeeded, underlyingNeeded, hasPuts);
 
@@ -292,11 +288,10 @@ library FullMarginMathV2 {
 
     // this computes the slope to the left of the left most strike
     function getCashNeeded(
-        int256[] memory payouts,
-        int256 leftDelta,
-        uint256 minStrike
+        uint256[] memory putStrikes,
+        int256[] memory putWeights
     ) private pure returns (int256 cashNeeded) {
-        cashNeeded = ((minStrike.toInt256() * leftDelta) / sUNIT) - payouts[1];
+        cashNeeded = -(putStrikes.dot(putWeights) / sUNIT);
 
         if (cashNeeded < sZERO) cashNeeded = sZERO;
     }

@@ -444,6 +444,12 @@ library ArrayUtil {
         }
     }
 
+    function dot(uint256[] memory a, int256[] memory b) internal pure returns (int256 s) {
+        for (uint256 i = 0; i < a.length; i++) {
+            s += int256(a[i]) * b[i];
+        }
+    }
+
     /**
      * @dev converting array of variable types
      */
