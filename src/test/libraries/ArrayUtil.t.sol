@@ -127,7 +127,7 @@ contract ArrayUtilTest is Test {
         assertEq(sorted[3], 400);
         assertEq(sorted[4], 500);
     }
-    
+
     function testSortDups() public {
         uint256[] memory array = new uint256[](6);
         array[0] = 1;

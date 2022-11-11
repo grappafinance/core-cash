@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
+import "../test/utils/Console.sol";
 
 library ArrayUtil {
     using SafeCast for uint256;
@@ -221,13 +222,33 @@ library ArrayUtil {
         }
     }
 
-    function sort(uint256[] memory x) internal pure returns (uint256[] memory y) {
+    function sort(uint256[] memory x) internal pure returns(uint256[] memory y) {
         y = new uint256[](x.length);
         y = populate(y, x, 0);
-        for (uint256 i = 0; i < x.length - 1; i++) {
-            // find the min of [i, last] and put in position i;
-            _sortItem(y, i);
+        quickSort(y, int256(0), int256(y.length - 1));
+    }
+
+    // quicksort implementation        
+    function quickSort(uint256[] memory arr, int256 left, int256 right) internal pure {
+        if(left==right) return;
+        int256 i = left;
+        int256 j = right;
+        uint256 pivot = arr[uint256(left + (right - left) / 2)];
+        while (i <= j) {
+            while (arr[uint256(i)] < pivot) {unchecked{++i;}}
+            while (pivot < arr[uint256(j)]) {unchecked{--j;}}
+            if (i <= j) {
+                (arr[uint256(i)], arr[uint256(j)]) = (arr[uint256(j)], arr[uint256(i)]);
+                unchecked {
+                    ++i;
+                    --j;
+                }
+            }
         }
+        if (left < j)
+            quickSort(arr, left, j);
+        if (i < right)
+            quickSort(arr, i, right);
     }
 
     function sortByIndexes(int256[] memory x, uint256[] memory z) internal pure returns (int256[] memory y) {
