@@ -43,7 +43,7 @@ library FullMarginMathV2 {
 
     error FMMV2_InvalidCallWeight();
 
-    error FMMV2_BadPoints();
+    error FMMV2_InvalidPoints();
 
     error FMMV2_InvalidLeftPointLength();
 
@@ -264,7 +264,7 @@ library FullMarginMathV2 {
     }
 
     function calcSlope(int256[] memory leftPoint, int256[] memory rightPoint) private pure returns (int256) {
-        if (leftPoint[0] > rightPoint[0]) revert FMMV2_BadPoints();
+        if (leftPoint[0] > rightPoint[0]) revert FMMV2_InvalidPoints();
         if (leftPoint.length != 2) revert FMMV2_InvalidLeftPointLength();
         if (leftPoint.length != 2) revert FMMV2_InvalidRightPointLength();
 
