@@ -39,13 +39,15 @@ library FullMarginMathV2 {
 
     error FMMV2_InvalidCallLengths();
 
+    error FMMV2_InvalidPutWeight();
+
+    error FMMV2_InvalidCallWeight();
+
     error FMMV2_BadPoints();
 
     error FMMV2_InvalidLeftPointLength();
 
     error FMMV2_InvalidRightPointLength();
-
-    error FMMV2_InvalidZeroWeight();
 
     /**
      * @notice checks inputs for calculating margin, reverts if bad inputs
@@ -57,7 +59,7 @@ library FullMarginMathV2 {
 
         uint256 i;
         for (i; i < _detail.putWeights.length; ) {
-            if (_detail.putWeights[i] == sZERO) revert FMMV2_InvalidZeroWeight();
+            if (_detail.putWeights[i] == sZERO) revert FMMV2_InvalidPutWeight();
 
             unchecked {
                 ++i;
@@ -65,7 +67,7 @@ library FullMarginMathV2 {
         }
 
         for (i = 0; i < _detail.callWeights.length; ) {
-            if (_detail.callWeights[i] == sZERO) revert FMMV2_InvalidZeroWeight();
+            if (_detail.callWeights[i] == sZERO) revert FMMV2_InvalidCallWeight();
 
             unchecked {
                 ++i;
