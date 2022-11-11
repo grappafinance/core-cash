@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
-import "../test/utils/Console.sol";
 
 library ArrayUtil {
     using SafeCast for uint256;
@@ -196,30 +195,21 @@ library ArrayUtil {
     /**
      * @dev put the min of last p elements in array at position p.
      */
-    function _sortItem(uint256[] memory x, uint256 p) private pure {
-        uint256 _min = p;
-        for (uint256 i = p; i < x.length; ) {
-            if (x[i] < x[_min]) {
-                _min = i;
-            }
-            unchecked {
-                ++i;
-            }
-        }
-        if (_min == p) return;
-        (x[p], x[_min]) = (x[_min], x[p]);
-    }
 
-    function argSort(uint256[] memory x) internal pure returns (uint256[] memory y, uint256[] memory z) {
-        y = sort(x);
-        z = new uint256[](y.length);
-        for (uint256 i; i < y.length; ) {
-            (, uint256 w) = indexOf(x, y[i]);
-            z[i] = w;
-            unchecked {
+    function argSort(uint256[] memory x) internal pure returns (uint256[] memory y, uint256[] memory ixArray) {
+        ixArray = new uint256[](x.length);
+        // fill in index array
+        for(uint256 i; i < x.length;) {
+            ixArray[i] = i;
+            unchecked{
                 ++i;
             }
         }
+        // initialize copy of x
+        y = new uint256[](x.length);
+        y = populate(y, x, 0);
+        // sort 
+        quickSort(y, int256(0), int256(y.length - 1), ixArray);
     }
 
     function sort(uint256[] memory x) internal pure returns(uint256[] memory y) {
@@ -228,7 +218,7 @@ library ArrayUtil {
         quickSort(y, int256(0), int256(y.length - 1));
     }
 
-    // quicksort implementation        
+    // quicksort implementation, sorts arr in place
     function quickSort(uint256[] memory arr, int256 left, int256 right) internal pure {
         if(left==right) return;
         int256 i = left;
@@ -249,6 +239,28 @@ library ArrayUtil {
             quickSort(arr, left, j);
         if (i < right)
             quickSort(arr, i, right);
+    }
+
+    // quicksort implementation with indexes, sorts arr and indexArray in place
+    function quickSort(uint256[] memory arr, int256 left, int256 right, uint256[] memory indexArray) internal pure {
+        if(left==right) return;
+        int256 i = left;
+        int256 j = right;
+        uint256 pivot = arr[uint256(left + (right - left) / 2)];
+        while (i <= j) {
+            while (arr[uint256(i)] < pivot) {unchecked{++i;}}
+            while (pivot < arr[uint256(j)]) {unchecked{--j;}}
+            if (i <= j) {
+                (arr[uint256(i)], arr[uint256(j)]) = (arr[uint256(j)], arr[uint256(i)]);
+                (indexArray[uint256(i)],indexArray[uint256(j)]) = (indexArray[uint256(j)], indexArray[uint256(i)]);
+                unchecked {
+                    ++i;
+                    --j;
+                }
+            }
+        }
+        if (left < j) quickSort(arr, left, j, indexArray);
+        if (i < right) quickSort(arr, i, right, indexArray);
     }
 
     function sortByIndexes(int256[] memory x, uint256[] memory z) internal pure returns (int256[] memory y) {

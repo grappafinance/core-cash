@@ -188,8 +188,8 @@ contract ArrayUtilTest is Test {
         assertEq(sorted[4], 4);
 
         assertEq(indexes.length, 5);
-        assertEq(indexes[0], 1);
-        assertEq(indexes[1], 1);
+        assertEq(indexes[0], 2);
+        assertEq(indexes[1], 3);
         assertEq(indexes[2], 1);
         assertEq(indexes[3], 4);
         assertEq(indexes[4], 0);
