@@ -78,6 +78,6 @@ contract FullMarginEngineGenernalV2 is FullMarginFixtureV2 {
 
         assertEq(balances.length, 1);
         assertEq(balances[0].collateralId, usdcId);
-        assertEq(balances[0].amount, int256(depositAmount)-int256(strikePrice));
+        assertEq(balances[0].amount, int256(depositAmount) - int256(strikePrice));
     }
 }

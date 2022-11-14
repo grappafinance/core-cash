@@ -252,7 +252,7 @@ contract TestStructuresFMMV2 is Test {
         });
 
         (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, int(putStrikes[0]));
+        assertEq(cashNeeded, int256(putStrikes[0]));
         assertEq(underlyingNeeded, sZERO);
     }
 
@@ -280,7 +280,7 @@ contract TestStructuresFMMV2 is Test {
         });
 
         (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, int(putStrikes[0]));
+        assertEq(cashNeeded, int256(putStrikes[0]));
         assertEq(underlyingNeeded, sZERO);
     }
 
@@ -579,7 +579,7 @@ contract TestStructuresFMMV2 is Test {
         (int256 cashNeeded1, int256 underlyingNeeded1) = detail.getMinCollateral();
         assertEq(cashNeeded1, 17000 * sUNIT);
         assertEq(underlyingNeeded1, 1 * sUNIT);
-        
+
         callWeights[0] = 314 * callWeights[0];
         detail = FullMarginDetailV2({
             putWeights: putWeights,

@@ -97,10 +97,7 @@ library FullMarginMathV2 {
 
         PoisAndPayouts memory poisAndPayouts = PoisAndPayouts(pois, payouts);
 
-        (cashNeeded, underlyingNeeded) = calcCollateralNeeds(
-            _detail,
-            poisAndPayouts
-        );
+        (cashNeeded, underlyingNeeded) = calcCollateralNeeds(_detail, poisAndPayouts);
 
         if (cashNeeded > 0 && _detail.underlyingId == _detail.collateralId) {
             cashNeeded = 0;
@@ -127,10 +124,11 @@ library FullMarginMathV2 {
             .toInt256();
     }
 
-    function calcCollateralNeeds(
-        FullMarginDetailV2 memory _detail,
-        PoisAndPayouts memory poisAndPayouts
-    ) private pure returns (int256 cashNeeded, int256 underlyingNeeded) {
+    function calcCollateralNeeds(FullMarginDetailV2 memory _detail, PoisAndPayouts memory poisAndPayouts)
+        private
+        pure
+        returns (int256 cashNeeded, int256 underlyingNeeded)
+    {
         bool hasCalls = _detail.callStrikes.length > 0;
         bool hasPuts = _detail.putStrikes.length > 0;
 
@@ -287,11 +285,12 @@ library FullMarginMathV2 {
     }
 
     // this computes the slope to the left of the left most strike
-    function getCashNeeded(
-        uint256[] memory putStrikes,
-        int256[] memory putWeights
-    ) private pure returns (int256 cashNeeded) {
-        cashNeeded = -(putStrikes.dot(putWeights) / sUNIT);
+    function getCashNeeded(uint256[] memory putStrikes, int256[] memory putWeights)
+        private
+        pure
+        returns (int256 cashNeeded)
+    {
+        cashNeeded = -putStrikes.dot(putWeights) / sUNIT;
 
         if (cashNeeded < sZERO) cashNeeded = sZERO;
     }
