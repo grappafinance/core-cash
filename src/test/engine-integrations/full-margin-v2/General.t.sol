@@ -61,7 +61,7 @@ contract FullMarginEngineGenernalV2 is FullMarginFixtureV2 {
 
     function testGetMinCollateral() public {
         uint256 expiry = block.timestamp + 1 days;
-        uint256 depositAmount = 3000 * 1e6;
+        uint256 depositAmount = 5000 * 1e6;
 
         uint256 strikePrice = 3000 * UNIT;
         uint256 amount = 1 * UNIT;
@@ -78,6 +78,6 @@ contract FullMarginEngineGenernalV2 is FullMarginFixtureV2 {
 
         assertEq(balances.length, 1);
         assertEq(balances[0].collateralId, usdcId);
-        assertEq(balances[0].amount, int256(depositAmount));
+        assertEq(balances[0].amount, int256(depositAmount) - int256(strikePrice));
     }
 }
