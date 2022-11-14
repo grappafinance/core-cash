@@ -68,11 +68,15 @@ abstract contract FullMarginFixtureV2 is Test, ActionHelper, Utilities {
 
         address grappaImplementation = address(new Grappa(address(option))); // nonce: 5
 
-        bytes memory data = abi.encode(Grappa.initialize.selector);
+        bytes memory grappaData = abi.encode(Grappa.initialize.selector);
 
-        grappa = Grappa(address(new ERC1967Proxy(grappaImplementation, data))); // 6
+        grappa = Grappa(address(new ERC1967Proxy(grappaImplementation, grappaData))); // 6
 
-        engine = new FullMarginEngineV2(address(grappa), address(option)); // nonce 6
+        address engineImplementation = address(new FullMarginEngineV2(address(grappa), address(option))); // nonce 7
+
+        bytes memory engineData = abi.encode(FullMarginEngineV2.initialize.selector);
+
+        engine = FullMarginEngineV2(address(new ERC1967Proxy(engineImplementation, engineData))); // 8
 
         whitelist = new MockWhitelist();
 

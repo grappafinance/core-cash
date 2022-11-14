@@ -7,6 +7,7 @@ import {IMarginEngine} from "../../interfaces/IMarginEngine.sol";
 import {BaseEngine} from "../../core/engines/BaseEngine.sol";
 import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin/token/ERC20/utils/SafeERC20.sol";
+import {ReentrancyGuard} from "solmate/utils/ReentrancyGuard.sol";
 
 import "../../config/enums.sol";
 import "../../config/types.sol";
@@ -16,7 +17,7 @@ import "../../config/errors.sol";
  * @title   MockEngine
  * @notice  Implement execute to test all flow in BaseEngine
  */
-contract MockEngine is BaseEngine {
+contract MockEngine is BaseEngine, ReentrancyGuard {
     bool public isAboveWater;
 
     uint80 public mockPayout;

@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
+// imported contracts and libraries
+import {UUPSUpgradeable} from "openzeppelin/proxy/utils/UUPSUpgradeable.sol";
+import {OwnableUpgradeable} from "openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
+import {ReentrancyGuardUpgradeable} from "openzeppelin-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+
 // inheriting contracts
 import {BaseEngine} from "../BaseEngine.sol";
 import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
@@ -33,7 +38,13 @@ import "../../../config/errors.sol";
             Interacts with OptionToken to mint / burn
             Interacts with grappa to fetch registered asset info
  */
-contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
+contract FullMarginEngineV2 is
+    BaseEngine,
+    IMarginEngine,
+    OwnableUpgradeable,
+    ReentrancyGuardUpgradeable,
+    UUPSUpgradeable
+{
     using ArrayUtil for bytes32[];
     using ArrayUtil for int256[];
     using ArrayUtil for uint256[];
@@ -51,7 +62,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
     using TokenIdUtil for uint256;
 
     /*///////////////////////////////////////////////////////////////
-                                  Variables
+                         State Variables V1
     //////////////////////////////////////////////////////////////*/
 
     ///@dev subAccount => FullMarginAccountV2 structure.
@@ -65,8 +76,33 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
     ///     checks receipient on payCashValue
     IWhitelist public whitelist;
 
+    /*///////////////////////////////////////////////////////////////
+                Constructor for implementation Contract
+    //////////////////////////////////////////////////////////////*/
+
     // solhint-disable-next-line no-empty-blocks
-    constructor(address _grappa, address _optionToken) BaseEngine(_grappa, _optionToken) {}
+    constructor(address _grappa, address _optionToken) BaseEngine(_grappa, _optionToken) initializer {}
+
+    /*///////////////////////////////////////////////////////////////
+                            Initializer
+    //////////////////////////////////////////////////////////////*/
+
+    function initialize() external initializer {
+        __Ownable_init();
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                    Override Upgrade Permission
+    //////////////////////////////////////////////////////////////*/
+
+    /**
+     * @dev Upgradable by the owner.
+     **/
+    function _authorizeUpgrade(
+        address /*newImplementation*/
+    ) internal view override {
+        _checkOwner();
+    }
 
     /*///////////////////////////////////////////////////////////////
                         External Functions
@@ -311,11 +347,6 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
     /** ========================================================= **
                             Internal Functions
      ** ========================================================= **/
-
-    function _checkOwner() internal view {
-        // TODO uncomment when Ownable gets added
-        // if (msg.sender != owner()) revert NoAccess();
-    }
 
     /**
      * @notice gets access status of an address
