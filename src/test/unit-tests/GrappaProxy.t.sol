@@ -66,4 +66,14 @@ contract GrappaProxyTest is Test {
 
         assertEq(MockGrappaV2(address(grappa)).version(), 2);
     }
+
+    function testCannotUpgradeTov3() public {
+        MockGrappaV2 v2 = new MockGrappaV2();
+        MockGrappaV2 v3 = new MockGrappaV2();
+
+        grappa.upgradeTo(address(v2));
+
+        vm.expectRevert("not upgrdable anymore");
+        grappa.upgradeTo(address(v3));
+    }
 }

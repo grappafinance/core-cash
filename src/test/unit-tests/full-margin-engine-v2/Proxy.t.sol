@@ -62,4 +62,14 @@ contract EngineProxyTest is Test {
 
         assertEq(MockEngineV2(address(engine)).version(), 2);
     }
+
+    function testCannotUpgradeTov3() public {
+        MockEngineV2 v2 = new MockEngineV2();
+        MockEngineV2 v3 = new MockEngineV2();
+
+        engine.upgradeTo(address(v2));
+
+        vm.expectRevert("not upgrdable anymore");
+        engine.upgradeTo(address(v3));
+    }
 }
