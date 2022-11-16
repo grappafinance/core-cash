@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 // import test base and helpers.
-import {FullMarginFixtureV2} from "./FullMarginFixtureV2.t.sol";
+import {CrossMarginFixture} from "./CrossMarginFixture.t.sol";
 
 import "../../../config/enums.sol";
 import "../../../config/types.sol";
@@ -11,7 +11,7 @@ import "../../../config/errors.sol";
 
 import "../../../test/mocks/MockERC20.sol";
 
-contract FullMarginEngineGenernalV2 is FullMarginFixtureV2 {
+contract CrossEngineGenernal is CrossMarginFixture {
     function setUp() public {
         usdc.mint(address(this), 1000_000 * 1e6);
         usdc.approve(address(engine), type(uint256).max);
@@ -24,7 +24,7 @@ contract FullMarginEngineGenernalV2 is FullMarginFixtureV2 {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createAddLongAction(0, 0, address(this));
 
-        vm.expectRevert(FM_Option_Expired.selector);
+        vm.expectRevert(CM_Option_Expired.selector);
         engine.execute(address(this), actions);
     }
 
@@ -42,7 +42,7 @@ contract FullMarginEngineGenernalV2 is FullMarginFixtureV2 {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createAddLongAction(tokenId, 0, address(this));
 
-        vm.expectRevert(FM_Not_Authorized_Engine.selector);
+        vm.expectRevert(CM_Not_Authorized_Engine.selector);
         engine.execute(address(this), actions);
     }
 
@@ -50,7 +50,7 @@ contract FullMarginEngineGenernalV2 is FullMarginFixtureV2 {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createRemoveLongAction(0, 0, address(this));
 
-        vm.expectRevert(FM_InvalidToken.selector);
+        vm.expectRevert(CM_InvalidToken.selector);
         engine.execute(address(this), actions);
     }
 

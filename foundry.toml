@@ -8,6 +8,7 @@ gas_reports = [
   "Grappa",
   "OptionToken",
   "FullMarginEngine",
-  "FullMarginEngineV2",
+  "CrossMarginEngine",
+  "AdvancedMarginEngine",
   "ChainlinkOracle"
 ]

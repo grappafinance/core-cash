@@ -16,8 +16,8 @@ import {ProductIdUtil} from "../../../libraries/ProductIdUtil.sol";
 import {AccountUtil} from "../../../libraries/AccountUtil.sol";
 import {ArrayUtil} from "../../../libraries/ArrayUtil.sol";
 
-import {FullMarginMathV2} from "./FullMarginMathV2.sol";
-import {FullMarginLibV2} from "./FullMarginLibV2.sol";
+import {CrossMarginMath} from "./CrossMarginMath.sol";
+import {CrossMarginLib} from "./CrossMarginLib.sol";
 
 // constants and types
 import "../../../config/types.sol";
@@ -26,26 +26,26 @@ import "../../../config/constants.sol";
 import "../../../config/errors.sol";
 
 /**
- * @title   FullMarginEngineV2
+ * @title   CrossMarginEngine
  * @author  @dsshap, @antoncoding
  * @notice  Fully collateralized margin engine
             Users can deposit collateral into FullMargin and mint optionTokens (debt) out of it.
             Interacts with OptionToken to mint / burn
             Interacts with grappa to fetch registered asset info
  */
-contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
+contract CrossMarginEngine is BaseEngine, IMarginEngine {
     using ArrayUtil for bytes32[];
     using ArrayUtil for int256[];
     using ArrayUtil for uint256[];
 
     using AccountUtil for Balance[];
-    using AccountUtil for FullMarginDetailV2[];
+    using AccountUtil for CrossMarginDetail[];
     using AccountUtil for Position[];
     using AccountUtil for PositionOptim[];
     using AccountUtil for SBalance[];
 
-    using FullMarginLibV2 for FullMarginAccountV2;
-    using FullMarginMathV2 for FullMarginDetailV2;
+    using CrossMarginLib for CrossMarginAccount;
+    using CrossMarginMath for CrossMarginDetail;
     using SafeCast for uint256;
     using SafeCast for int256;
     using TokenIdUtil for uint256;
@@ -54,10 +54,10 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
                                   Variables
     //////////////////////////////////////////////////////////////*/
 
-    ///@dev subAccount => FullMarginAccountV2 structure.
+    ///@dev subAccount => CrossMarginAccount structure.
     ///     subAccount can be an address similar to the primary account, but has the last 8 bits different.
     ///     this give every account access to 256 sub-accounts
-    mapping(address => FullMarginAccountV2) internal accounts;
+    mapping(address => CrossMarginAccount) internal accounts;
 
     ///@dev contract that verifys permissions
     ///     if not set allows anyone to transact
@@ -138,7 +138,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
      * @return balances array of collaterals and amount (signed)
      */
     function getMinCollateral(address _subAccount) external view returns (SBalance[] memory balances) {
-        FullMarginAccountV2 memory account = accounts[_subAccount];
+        CrossMarginAccount memory account = accounts[_subAccount];
         balances = _getMinCollateral(account);
     }
 
@@ -151,7 +151,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
     function transferAccount(address _subAccount, address _newSubAccount) external {
         if (!_isPrimaryAccountFor(msg.sender, _subAccount)) revert NoAccess();
 
-        if (!accounts[_newSubAccount].isEmpty()) revert FM_AccountIsNotEmpty();
+        if (!accounts[_newSubAccount].isEmpty()) revert CM_AccountIsNotEmpty();
         accounts[_newSubAccount] = accounts[_subAccount];
 
         delete accounts[_subAccount];
@@ -166,7 +166,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
             Balance[] memory collaterals
         )
     {
-        FullMarginAccountV2 memory account = accounts[_subAccount];
+        CrossMarginAccount memory account = accounts[_subAccount];
 
         return (account.shorts.getPositions(), account.longs.getPositions(), account.collaterals);
     }
@@ -182,7 +182,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
         view
         returns (Balance[] memory balances)
     {
-        FullMarginAccountV2 memory account;
+        CrossMarginAccount memory account;
 
         account.shorts = shorts.getPositionOptims();
         account.longs = longs.getPositionOptims();
@@ -276,7 +276,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
      * @return isHealthy true if account is in good condition, false if it's underwater (liquidatable)
      */
     function _isAccountAboveWater(address _subAccount) internal view override returns (bool isHealthy) {
-        FullMarginAccountV2 memory account = accounts[_subAccount];
+        CrossMarginAccount memory account = accounts[_subAccount];
         SBalance[] memory balances = _getMinCollateral(account);
 
         for (uint256 i; i < balances.length; ) {
@@ -298,14 +298,14 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
         (TokenType optionType, uint40 productId, uint64 expiry, , ) = tokenId.parseTokenId();
 
         // engine only supports calls and puts
-        if (optionType != TokenType.CALL && optionType != TokenType.PUT) revert FM_UnsupportedTokenType();
+        if (optionType != TokenType.CALL && optionType != TokenType.PUT) revert CM_UnsupportedTokenType();
 
-        if (block.timestamp > expiry) revert FM_Option_Expired();
+        if (block.timestamp > expiry) revert CM_Option_Expired();
 
         ProductDetails memory product = _getProductDetails(productId);
 
         // in the future reference a whitelist of engines
-        if (product.engine != address(this)) revert FM_Not_Authorized_Engine();
+        if (product.engine != address(this)) revert CM_Not_Authorized_Engine();
     }
 
     /** ========================================================= **
@@ -344,7 +344,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
             else if (actions[i].action == ActionType.AddLong) _addOption(_subAccount, actions[i].data);
             else if (actions[i].action == ActionType.RemoveLong) _removeOption(_subAccount, actions[i].data);
             else if (actions[i].action == ActionType.SettleAccount) _settle(_subAccount);
-            else revert FM_UnsupportedAction();
+            else revert CM_UnsupportedAction();
 
             // increase i without checking overflow
             unchecked {
@@ -353,8 +353,8 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
         }
     }
 
-    function _getMinCollateral(FullMarginAccountV2 memory account) internal view returns (SBalance[] memory balances) {
-        FullMarginDetailV2[] memory details = _getAccountDetails(account);
+    function _getMinCollateral(CrossMarginAccount memory account) internal view returns (SBalance[] memory balances) {
+        CrossMarginDetail[] memory details = _getAccountDetails(account);
 
         balances = account.collaterals.toSBalances();
 
@@ -364,7 +364,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
         uint256 index;
 
         for (uint256 i; i < details.length; ) {
-            FullMarginDetailV2 memory detail = details[i];
+            CrossMarginDetail memory detail = details[i];
 
             if (detail.callWeights.length != 0 || detail.putWeights.length != 0) {
                 (int256 cashCollateralNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
@@ -393,12 +393,12 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
     /**
      * @notice  convert Account struct from storage to in-memory detail struct
      */
-    function _getAccountDetails(FullMarginAccountV2 memory account)
+    function _getAccountDetails(CrossMarginAccount memory account)
         internal
         view
-        returns (FullMarginDetailV2[] memory details)
+        returns (CrossMarginDetail[] memory details)
     {
-        details = new FullMarginDetailV2[](0);
+        details = new CrossMarginDetail[](0);
 
         bytes32[] memory usceLookUp = new bytes32[](0);
 
@@ -413,7 +413,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
             bytes32 pos = keccak256(abi.encode(product.underlyingId, product.strikeId, product.collateralId, expiry));
             (bool found, uint256 index) = usceLookUp.indexOf(pos);
 
-            FullMarginDetailV2 memory detail;
+            CrossMarginDetail memory detail;
 
             if (found) detail = details[index];
             else {
@@ -440,7 +440,7 @@ contract FullMarginEngineV2 is BaseEngine, IMarginEngine {
     }
 
     function _processDetailWithToken(
-        FullMarginDetailV2 memory detail,
+        CrossMarginDetail memory detail,
         uint256 tokenId,
         int256 amount
     ) internal pure {

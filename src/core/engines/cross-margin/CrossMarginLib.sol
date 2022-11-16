@@ -14,10 +14,10 @@ import "../../../config/constants.sol";
 import "../../../config/errors.sol";
 
 /**
- * @title FullMarginLibV2
+ * @title CrossMarginLib
  * @dev   This library is in charge of updating the simple account struct and do validations
  */
-library FullMarginLibV2 {
+library CrossMarginLib {
     using AccountUtil for Balance[];
     using AccountUtil for Position[];
     using AccountUtil for PositionOptim[];
@@ -29,14 +29,14 @@ library FullMarginLibV2 {
     /**
      * @dev return true if the account has no short,long positions nor collateral
      */
-    function isEmpty(FullMarginAccountV2 storage account) external view returns (bool) {
+    function isEmpty(CrossMarginAccount storage account) external view returns (bool) {
         return account.shorts.sum() == 0 && account.longs.sum() == 0 && account.collaterals.sum() == 0;
     }
 
     ///@dev Increase the collateral in the account
-    ///@param account FullMarginAccountV2 memory that will be updated
+    ///@param account CrossMarginAccount memory that will be updated
     function addCollateral(
-        FullMarginAccountV2 storage account,
+        CrossMarginAccount storage account,
         uint8 collateralId,
         uint80 amount
     ) public {
@@ -50,9 +50,9 @@ library FullMarginLibV2 {
     }
 
     ///@dev Reduce the collateral in the account
-    ///@param account FullMarginAccountV2 memory that will be updated
+    ///@param account CrossMarginAccount memory that will be updated
     function removeCollateral(
-        FullMarginAccountV2 storage account,
+        CrossMarginAccount storage account,
         uint8 collateralId,
         uint80 amount
     ) public {
@@ -60,7 +60,7 @@ library FullMarginLibV2 {
 
         (bool found, uint256 index) = collaterals.indexOf(collateralId);
 
-        if (!found) revert FM_WrongCollateralId();
+        if (!found) revert CM_WrongCollateralId();
 
         uint80 newAmount = collaterals[index].amount - amount;
 
@@ -70,9 +70,9 @@ library FullMarginLibV2 {
     }
 
     ///@dev Increase the amount of short call or put (debt) of the account
-    ///@param account FullMarginAccountV2 memory that will be updated
+    ///@param account CrossMarginAccount memory that will be updated
     function mintOption(
-        FullMarginAccountV2 storage account,
+        CrossMarginAccount storage account,
         uint256 tokenId,
         uint64 amount
     ) external {
@@ -84,14 +84,14 @@ library FullMarginLibV2 {
         (, , uint8 underlyingId, uint8 strikeId, uint8 collateralId) = productId.parseProductId();
 
         // engine only supports calls and puts
-        if (optionType != TokenType.CALL && optionType != TokenType.PUT) revert FM_UnsupportedTokenType();
+        if (optionType != TokenType.CALL && optionType != TokenType.PUT) revert CM_UnsupportedTokenType();
 
         // call can only collateralized by underlying
         if ((optionType == TokenType.CALL) && underlyingId != collateralId)
-            revert FM_CannotMintOptionWithThisCollateral();
+            revert CM_CannotMintOptionWithThisCollateral();
 
         // put can only be collateralized by strike
-        if ((optionType == TokenType.PUT) && strikeId != collateralId) revert FM_CannotMintOptionWithThisCollateral();
+        if ((optionType == TokenType.PUT) && strikeId != collateralId) revert CM_CannotMintOptionWithThisCollateral();
 
         (bool found, uint256 index) = account.shorts.getPositions().indexOf(tokenId);
         if (!found) {
@@ -100,15 +100,15 @@ library FullMarginLibV2 {
     }
 
     ///@dev Remove the amount of short call or put (debt) of the account
-    ///@param account FullMarginAccountV2 memory that will be updated in-place
+    ///@param account CrossMarginAccount memory that will be updated in-place
     function burnOption(
-        FullMarginAccountV2 storage account,
+        CrossMarginAccount storage account,
         uint256 tokenId,
         uint64 amount
     ) external {
         (bool found, PositionOptim memory position, uint256 index) = account.shorts.find(tokenId.compress());
 
-        if (!found) revert FM_InvalidToken();
+        if (!found) revert CM_InvalidToken();
 
         uint64 newShortAmount = position.amount - amount;
         if (newShortAmount == 0) {
@@ -117,9 +117,9 @@ library FullMarginLibV2 {
     }
 
     ///@dev Increase the amount of long call or put (debt) of the account
-    ///@param account FullMarginAccountV2 memory that will be updated
+    ///@param account CrossMarginAccount memory that will be updated
     function addOption(
-        FullMarginAccountV2 storage account,
+        CrossMarginAccount storage account,
         uint256 tokenId,
         uint64 amount
     ) external {
@@ -133,15 +133,15 @@ library FullMarginLibV2 {
     }
 
     ///@dev Remove the amount of long call or put held by the account
-    ///@param account FullMarginAccountV2 memory that will be updated in-place
+    ///@param account CrossMarginAccount memory that will be updated in-place
     function removeOption(
-        FullMarginAccountV2 storage account,
+        CrossMarginAccount storage account,
         uint256 tokenId,
         uint64 amount
     ) external {
         (bool found, PositionOptim memory position, uint256 index) = account.longs.find(tokenId.compress());
 
-        if (!found) revert FM_InvalidToken();
+        if (!found) revert CM_InvalidToken();
 
         uint64 newLongAmount = position.amount - amount;
         if (newLongAmount == 0) {
@@ -150,9 +150,9 @@ library FullMarginLibV2 {
     }
 
     ///@dev Settles the accounts short calls and puts, reserving collateral for ITM options
-    ///@param account FullMarginAccountV2 memory that will be updated in-place
+    ///@param account CrossMarginAccount memory that will be updated in-place
     function settleAtExpiry(
-        FullMarginAccountV2 storage account,
+        CrossMarginAccount storage account,
         // Balance[] memory payouts,
         IGrappa grappa
     ) external returns (Balance[] memory longPayouts, Balance[] memory shortPayouts) {
@@ -162,7 +162,7 @@ library FullMarginLibV2 {
         shortPayouts = _settleShorts(grappa, account);
     }
 
-    function _settleLongs(IGrappa grappa, FullMarginAccountV2 storage account)
+    function _settleLongs(IGrappa grappa, CrossMarginAccount storage account)
         public
         returns (Balance[] memory payouts)
     {
@@ -199,7 +199,7 @@ library FullMarginLibV2 {
         }
     }
 
-    function _settleShorts(IGrappa grappa, FullMarginAccountV2 storage account)
+    function _settleShorts(IGrappa grappa, CrossMarginAccount storage account)
         public
         returns (Balance[] memory payouts)
     {

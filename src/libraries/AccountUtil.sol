@@ -21,12 +21,12 @@ library AccountUtil {
         y[i] = v;
     }
 
-    function append(FullMarginDetailV2[] memory x, FullMarginDetailV2 memory v)
+    function append(CrossMarginDetail[] memory x, CrossMarginDetail memory v)
         internal
         pure
-        returns (FullMarginDetailV2[] memory y)
+        returns (CrossMarginDetail[] memory y)
     {
-        y = new FullMarginDetailV2[](x.length + 1);
+        y = new CrossMarginDetail[](x.length + 1);
         uint256 i;
         for (i; i < x.length; ) {
             y[i] = x[i];

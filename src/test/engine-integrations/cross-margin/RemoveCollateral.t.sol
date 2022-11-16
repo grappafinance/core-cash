@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 // import test base and helpers.
-import {FullMarginFixtureV2} from "./FullMarginFixtureV2.t.sol";
+import {CrossMarginFixture} from "./CrossMarginFixture.t.sol";
 import {stdError} from "forge-std/Test.sol";
 
 import "../../../config/enums.sol";
@@ -11,7 +11,7 @@ import "../../../config/types.sol";
 import "../../../config/errors.sol";
 
 // solhint-disable-next-line contract-name-camelcase
-contract TestRemoveCollateral_FMV2 is FullMarginFixtureV2 {
+contract TestRemoveCollateral_CM is CrossMarginFixture {
     uint256 private depositAmount = 1000 * 1e6;
 
     function setUp() public {
@@ -69,7 +69,7 @@ contract TestRemoveCollateral_FMV2 is FullMarginFixtureV2 {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createRemoveCollateralAction(depositAmount, wethId, address(this));
 
-        vm.expectRevert(FM_WrongCollateralId.selector);
+        vm.expectRevert(CM_WrongCollateralId.selector);
         engine.execute(address(this), actions);
     }
 

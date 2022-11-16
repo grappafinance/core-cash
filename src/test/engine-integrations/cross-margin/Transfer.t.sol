@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 // import test base and helpers.
-import {FullMarginFixtureV2} from "./FullMarginFixtureV2.t.sol";
+import {CrossMarginFixture} from "./CrossMarginFixture.t.sol";
 
 import "../../../config/enums.sol";
 import "../../../config/types.sol";
@@ -12,7 +12,7 @@ import "../../../config/errors.sol";
 import "../../utils/Console.sol";
 
 // solhint-disable-next-line contract-name-camelcase
-contract TestTransfer_FMV2 is FullMarginFixtureV2 {
+contract TestTransfer_CM is CrossMarginFixture {
     uint256 public expiry;
     uint256 public c4000;
     uint256 public c5000;
