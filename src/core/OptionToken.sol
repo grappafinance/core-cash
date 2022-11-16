@@ -7,6 +7,7 @@ import {ERC1155} from "solmate/tokens/ERC1155.sol";
 // interfaces
 import {IOptionToken} from "../interfaces/IOptionToken.sol";
 import {IGrappa} from "../interfaces/IGrappa.sol";
+import {IOptionTokenDescriptor} from "../interfaces/IOptionTokenDescriptor.sol";
 
 import {TokenIdUtil} from "../libraries/TokenIdUtil.sol";
 import {ProductIdUtil} from "../libraries/ProductIdUtil.sol";
@@ -25,18 +26,21 @@ import "../config/errors.sol";
 contract OptionToken is ERC1155, IOptionToken {
     ///@dev grappa serve as the registry
     IGrappa public immutable grappa;
+    IOptionTokenDescriptor public immutable descriptor;
 
-    constructor(address _grappa) {
+    constructor(address _grappa, address _descriptor) {
         // solhint-disable-next-line reason-string
         if (_grappa == address(0)) revert();
         grappa = IGrappa(_grappa);
+
+        descriptor = IOptionTokenDescriptor(_descriptor);
     }
 
-    // @todo: update function
-    function uri(
-        uint256 /*id*/
-    ) public pure override returns (string memory) {
-        return "https://grappa.maybe";
+    /**
+     *  @dev return string as defined in token descriptor
+     **/
+    function uri(uint256 id) public view override returns (string memory) {
+        return descriptor.tokenURI(id);
     }
 
     /**
@@ -106,13 +110,5 @@ contract OptionToken is ERC1155, IOptionToken {
      */
     function _checkIsGrappa() internal view {
         if (msg.sender != address(grappa)) revert NoAccess();
-    }
-
-    /**
-     * @dev check that the call is from authrized engine
-     */
-    function _checkEngineAccess(uint256 _tokenId) internal view {
-        uint8 engineId = TokenIdUtil.parseEnginelId(_tokenId);
-        if (msg.sender != grappa.engines(engineId)) revert OT_Not_Authorized_Engine();
     }
 }
