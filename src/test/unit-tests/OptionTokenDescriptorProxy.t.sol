@@ -22,7 +22,7 @@ import "../../config/constants.sol";
 contract GrappaProxyTest is Test {
     OptionTokenDescriptor public implementation;
     OptionTokenDescriptor public desciptor;
-    
+
     constructor() {
         implementation = new OptionTokenDescriptor();
         bytes memory data = abi.encode(OptionTokenDescriptor.initialize.selector);
