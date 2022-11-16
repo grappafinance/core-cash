@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 // import test base and helpers.
-import {FullMarginFixtureV2} from "./FullMarginFixtureV2.t.sol";
+import {CrossMarginFixture} from "./CrossMarginFixture.t.sol";
 
 import "../../../config/enums.sol";
 import "../../../config/types.sol";
@@ -11,7 +11,7 @@ import "../../../config/errors.sol";
 
 import "../../../test/mocks/MockERC20.sol";
 
-contract Permissioned is FullMarginFixtureV2 {
+contract Permissioned is CrossMarginFixture {
     uint256 public expiry;
     uint256 public tokenId;
     uint256 public amount;

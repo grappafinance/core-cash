@@ -10,7 +10,7 @@ import "../../mocks/MockOracle.sol";
 import "../../mocks/MockWhitelist.sol";
 import "../../mocks/MockChainlinkAggregator.sol";
 
-import "../../../core/engines/full-margin-v2/FullMarginEngineV2.sol";
+import "../../../core/engines/cross-margin/CrossMarginEngine.sol";
 import "../../../core/Grappa.sol";
 import "../../../core/OptionToken.sol";
 
@@ -26,8 +26,8 @@ import {ActionHelper} from "../../shared/ActionHelper.sol";
 /**
  * helper contract for full margin integration test to inherit.
  */
-abstract contract FullMarginFixtureV2 is Test, ActionHelper, Utilities {
-    FullMarginEngineV2 internal engine;
+abstract contract CrossMarginFixture is Test, ActionHelper, Utilities {
+    CrossMarginEngine internal engine;
     Grappa internal grappa;
     OptionToken internal option;
 
@@ -72,11 +72,11 @@ abstract contract FullMarginFixtureV2 is Test, ActionHelper, Utilities {
 
         grappa = Grappa(address(new ERC1967Proxy(grappaImplementation, grappaData))); // 6
 
-        address engineImplementation = address(new FullMarginEngineV2(address(grappa), address(option))); // nonce 7
+        address engineImplementation = address(new CrossMarginEngine(address(grappa), address(option))); // nonce 7
 
-        bytes memory engineData = abi.encode(FullMarginEngineV2.initialize.selector);
+        bytes memory engineData = abi.encode(CrossMarginEngine.initialize.selector);
 
-        engine = FullMarginEngineV2(address(new ERC1967Proxy(engineImplementation, engineData))); // 8
+        engine = CrossMarginEngine(address(new ERC1967Proxy(engineImplementation, engineData))); // 8
 
         whitelist = new MockWhitelist();
 

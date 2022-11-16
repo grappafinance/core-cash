@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 // import test base and helpers.
-import {FullMarginFixtureV2} from "./FullMarginFixtureV2.t.sol";
+import {CrossMarginFixture} from "./CrossMarginFixture.t.sol";
 import "../../mocks/MockERC20.sol";
 
 import "../../../config/enums.sol";
@@ -13,7 +13,7 @@ import "../../../config/errors.sol";
 import "../../utils/Console.sol";
 
 // solhint-disable-next-line contract-name-camelcase
-contract TestSettleCoveredCall_FMV2 is FullMarginFixtureV2 {
+contract TestSettleCoveredCall_CM is CrossMarginFixture {
     uint256 public expiry;
 
     uint64 private amount = uint64(1 * UNIT);
@@ -217,7 +217,7 @@ contract TestSettleCoveredCall_FMV2 is FullMarginFixtureV2 {
 }
 
 // solhint-disable-next-line contract-name-camelcase
-contract TestSettleCollateralizedPut_FMV2 is FullMarginFixtureV2 {
+contract TestSettleCollateralizedPut_CM is CrossMarginFixture {
     uint256 public expiry;
 
     uint64 private amount = uint64(1 * UNIT);

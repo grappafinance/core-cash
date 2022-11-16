@@ -20,13 +20,13 @@ struct FullMarginDetail {
     TokenType tokenType;
 }
 
-struct FullMarginAccountV2 {
+struct CrossMarginAccount {
     PositionOptim[] shorts;
     PositionOptim[] longs;
     Balance[] collaterals;
 }
 
-struct FullMarginDetailV2 {
+struct CrossMarginDetail {
     int256[] putWeights;
     uint256[] putStrikes;
     int256[] callWeights;

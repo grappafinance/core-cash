@@ -12,10 +12,10 @@ import "../../../config/types.sol";
 import "../../../config/errors.sol";
 
 /**
- * @title   FullMarginMathV2
+ * @title   CrossMarginMath
  * @notice  this library is in charge of calculating the min collateral for a given simple margin account
  */
-library FullMarginMathV2 {
+library CrossMarginMath {
     using ArrayUtil for uint256[];
     using ArrayUtil for int256[];
     using SafeCast for int256;
@@ -35,31 +35,31 @@ library FullMarginMathV2 {
         int256[] payouts;
     }
 
-    error FMMV2_InvalidPutLengths();
+    error CM_InvalidPutLengths();
 
-    error FMMV2_InvalidCallLengths();
+    error CM_InvalidCallLengths();
 
-    error FMMV2_InvalidPutWeight();
+    error CM_InvalidPutWeight();
 
-    error FMMV2_InvalidCallWeight();
+    error CM_InvalidCallWeight();
 
-    error FMMV2_InvalidPoints();
+    error CM_InvalidPoints();
 
-    error FMMV2_InvalidLeftPointLength();
+    error CM_InvalidLeftPointLength();
 
-    error FMMV2_InvalidRightPointLength();
+    error CM_InvalidRightPointLength();
 
     /**
      * @notice checks inputs for calculating margin, reverts if bad inputs
      * @param _detail margin details
      */
-    function verifyInputs(FullMarginDetailV2 memory _detail) internal pure {
-        if (_detail.callStrikes.length != _detail.callWeights.length) revert FMMV2_InvalidCallLengths();
-        if (_detail.putStrikes.length != _detail.putWeights.length) revert FMMV2_InvalidPutLengths();
+    function verifyInputs(CrossMarginDetail memory _detail) internal pure {
+        if (_detail.callStrikes.length != _detail.callWeights.length) revert CM_InvalidCallLengths();
+        if (_detail.putStrikes.length != _detail.putWeights.length) revert CM_InvalidPutLengths();
 
         uint256 i;
         for (i; i < _detail.putWeights.length; ) {
-            if (_detail.putWeights[i] == sZERO) revert FMMV2_InvalidPutWeight();
+            if (_detail.putWeights[i] == sZERO) revert CM_InvalidPutWeight();
 
             unchecked {
                 ++i;
@@ -67,7 +67,7 @@ library FullMarginMathV2 {
         }
 
         for (i = 0; i < _detail.callWeights.length; ) {
-            if (_detail.callWeights[i] == sZERO) revert FMMV2_InvalidCallWeight();
+            if (_detail.callWeights[i] == sZERO) revert CM_InvalidCallWeight();
 
             unchecked {
                 ++i;
@@ -81,7 +81,7 @@ library FullMarginMathV2 {
      * @return cashNeeded with {BASE_UNIT} decimals
      * @return underlyingNeeded with {BASE_UNIT} decimals
      */
-    function getMinCollateral(FullMarginDetailV2 memory _detail)
+    function getMinCollateral(CrossMarginDetail memory _detail)
         external
         pure
         returns (int256 cashNeeded, int256 underlyingNeeded)
@@ -124,7 +124,7 @@ library FullMarginMathV2 {
             .toInt256();
     }
 
-    function calcCollateralNeeds(FullMarginDetailV2 memory _detail, PoisAndPayouts memory poisAndPayouts)
+    function calcCollateralNeeds(CrossMarginDetail memory _detail, PoisAndPayouts memory poisAndPayouts)
         private
         pure
         returns (int256 cashNeeded, int256 underlyingNeeded)
@@ -149,7 +149,7 @@ library FullMarginMathV2 {
         // );
     }
 
-    function baseSetup(FullMarginDetailV2 memory _detail)
+    function baseSetup(CrossMarginDetail memory _detail)
         private
         pure
         returns (
@@ -196,7 +196,7 @@ library FullMarginMathV2 {
         pois[pois.length - 1] = strikes.max() + epsilon;
     }
 
-    function convertPutsToCalls(FullMarginDetailV2 memory _detail)
+    function convertPutsToCalls(CrossMarginDetail memory _detail)
         private
         pure
         returns (
@@ -258,9 +258,9 @@ library FullMarginMathV2 {
     }
 
     function calcSlope(int256[] memory leftPoint, int256[] memory rightPoint) private pure returns (int256) {
-        if (leftPoint[0] > rightPoint[0]) revert FMMV2_InvalidPoints();
-        if (leftPoint.length != 2) revert FMMV2_InvalidLeftPointLength();
-        if (leftPoint.length != 2) revert FMMV2_InvalidRightPointLength();
+        if (leftPoint[0] > rightPoint[0]) revert CM_InvalidPoints();
+        if (leftPoint.length != 2) revert CM_InvalidLeftPointLength();
+        if (leftPoint.length != 2) revert CM_InvalidRightPointLength();
 
         return (((rightPoint[1] - leftPoint[1]) * sUNIT) / (rightPoint[0] - leftPoint[0]));
     }
@@ -347,7 +347,7 @@ library FullMarginMathV2 {
     // }
 
     function checkHedgableTailRisk(
-        FullMarginDetailV2 memory _detail,
+        CrossMarginDetail memory _detail,
         PoisAndPayouts memory poisAndPayouts,
         uint256[] memory strikes,
         int256 syntheticUnderlyingWeight,
