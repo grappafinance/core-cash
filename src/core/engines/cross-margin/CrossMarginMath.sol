@@ -30,11 +30,6 @@ library CrossMarginMath {
         int256 intrinsicValue;
     }
 
-    struct PoisAndPayouts {
-        uint256[] pois;
-        int256[] payouts;
-    }
-
     error CM_InvalidPutLengths();
 
     error CM_InvalidCallLengths();
@@ -95,20 +90,20 @@ library CrossMarginMath {
             int256[] memory payouts
         ) = baseSetup(_detail);
 
-        PoisAndPayouts memory poisAndPayouts = PoisAndPayouts(pois, payouts);
-
-        (cashNeeded, underlyingNeeded) = calcCollateralNeeds(_detail, poisAndPayouts);
+        (cashNeeded, underlyingNeeded) = calcCollateralNeeds(_detail, pois, payouts);
 
         if (cashNeeded > 0 && _detail.underlyingId == _detail.collateralId) {
             cashNeeded = 0;
             // underlyingNeeded = convertCashCollateralToUnderlyingNeeded(
-            //     poisAndPayouts,
+            //     pois,
+            //     payouts,
             //     underlyingNeeded,
             //     _detail.putStrikes.length > 0
             // );
             (, underlyingNeeded) = checkHedgableTailRisk(
                 _detail,
-                poisAndPayouts,
+                pois,
+                payouts,
                 strikes,
                 syntheticUnderlyingWeight,
                 underlyingNeeded,
@@ -124,24 +119,24 @@ library CrossMarginMath {
             .toInt256();
     }
 
-    function calcCollateralNeeds(CrossMarginDetail memory _detail, PoisAndPayouts memory poisAndPayouts)
-        private
-        pure
-        returns (int256 cashNeeded, int256 underlyingNeeded)
-    {
+    function calcCollateralNeeds(
+        CrossMarginDetail memory _detail,
+        uint256[] memory pois,
+        int256[] memory payouts
+    ) private pure returns (int256 cashNeeded, int256 underlyingNeeded) {
         bool hasCalls = _detail.callStrikes.length > 0;
         bool hasPuts = _detail.putStrikes.length > 0;
 
-        if (hasCalls) (underlyingNeeded, ) = getUnderlyingNeeded(poisAndPayouts);
+        if (hasCalls) (underlyingNeeded, ) = getUnderlyingNeeded(pois, payouts);
 
         if (hasPuts) cashNeeded = getCashNeeded(_detail.putStrikes, _detail.putWeights);
 
-        cashNeeded = getUnderlyingAdjustedCashNeeded(poisAndPayouts, cashNeeded, underlyingNeeded, hasPuts);
+        cashNeeded = getUnderlyingAdjustedCashNeeded(pois, payouts, cashNeeded, underlyingNeeded, hasPuts);
 
         // Not including this until partial collateralization enabled
         // (inUnderlyingOnly, underlyingOnlyNeeded) = checkHedgableTailRisk(
         //     _detail,
-        //     poisAndPayouts,
+        //     pois, payouts,
         //     strikes,
         //     syntheticUnderlyingWeight,
         //     underlyingNeeded,
@@ -167,7 +162,7 @@ library CrossMarginMath {
         pois = createPois(strikes, _detail.putStrikes.length);
 
         payouts = calcPayouts(
-            PayoutsParams(pois, strikes, weights, syntheticUnderlyingWeight, _detail.spotPrice, intrinsicValue)
+            pois, strikes, weights, syntheticUnderlyingWeight, _detail.spotPrice, intrinsicValue
         );
     }
 
@@ -266,18 +261,18 @@ library CrossMarginMath {
     }
 
     // this computes the slope to the right of the right most strike, resulting in the delta hedge (underlying)
-    function getUnderlyingNeeded(PoisAndPayouts memory poisAndPayouts)
+    function getUnderlyingNeeded(uint256[] memory pois, int256[] memory payouts)
         private
         pure
         returns (int256 underlyingNeeded, int256 rightDelta)
     {
         int256[] memory leftPoint = new int256[](2);
-        leftPoint[0] = poisAndPayouts.pois.at(-2).toInt256();
-        leftPoint[1] = poisAndPayouts.payouts.at(-2);
+        leftPoint[0] = pois.at(-2).toInt256();
+        leftPoint[1] = payouts.at(-2);
 
         int256[] memory rightPoint = new int256[](2);
-        rightPoint[0] = poisAndPayouts.pois.at(-1).toInt256();
-        rightPoint[1] = poisAndPayouts.payouts.at(-1);
+        rightPoint[0] = pois.at(-1).toInt256();
+        rightPoint[1] = payouts.at(-1);
 
         // slope
         rightDelta = calcSlope(leftPoint, rightPoint);
@@ -296,16 +291,17 @@ library CrossMarginMath {
     }
 
     function getUnderlyingAdjustedCashNeeded(
-        PoisAndPayouts memory poisAndPayouts,
+        uint256[] memory pois,
+        int256[] memory payouts,
         int256 cashNeeded,
         int256 underlyingNeeded,
         bool hasPuts
     ) private pure returns (int256) {
-        int256 minStrikePayout = -poisAndPayouts.payouts.slice(hasPuts ? int256(1) : sZERO, -1).min();
+        int256 minStrikePayout = -payouts.slice(hasPuts ? int256(1) : sZERO, -1).min();
 
         if (cashNeeded < minStrikePayout) {
-            (, uint256 index) = poisAndPayouts.payouts.indexOf(-minStrikePayout);
-            int256 underlyingPayoutAtMinStrike = (poisAndPayouts.pois[index].toInt256() * underlyingNeeded) / sUNIT;
+            (, uint256 index) = payouts.indexOf(-minStrikePayout);
+            int256 underlyingPayoutAtMinStrike = (pois[index].toInt256() * underlyingNeeded) / sUNIT;
 
             if (underlyingPayoutAtMinStrike - minStrikePayout > 0) cashNeeded = 0;
             else cashNeeded = minStrikePayout - underlyingPayoutAtMinStrike;
@@ -316,20 +312,21 @@ library CrossMarginMath {
 
     // Not Currently Used
     // function convertCashCollateralToUnderlyingNeeded(
-    //     PoisAndPayouts memory poisAndPayouts,
+    //     uint256[] memory pois,
+    //     int256[] memory payouts,
     //     int256 underlyingNeeded,
     //     bool hasPuts
     // ) private pure returns (int256) {
     //     uint256 start = hasPuts ? 1 : 0;
     //     // could have used payouts as well
-    //     uint256 end = poisAndPayouts.pois.length - 1;
+    //     uint256 end = pois.length - 1;
 
     //     int256[] memory underlyingNeededAtStrikes = new int256[](end - start);
 
     //     uint256 y;
     //     for (uint256 i = start; i < end; ) {
-    //         int256 strike = poisAndPayouts.pois[i].toInt256();
-    //         int256 payout = poisAndPayouts.payouts[i];
+    //         int256 strike = pois[i].toInt256();
+    //         int256 payout = payouts[i];
 
     //         payout = payout < 0 ? -payout : sZERO;
 
@@ -348,7 +345,8 @@ library CrossMarginMath {
 
     function checkHedgableTailRisk(
         CrossMarginDetail memory _detail,
-        PoisAndPayouts memory poisAndPayouts,
+        uint256[] memory pois,
+        int256[] memory payouts,
         uint256[] memory strikes,
         int256 syntheticUnderlyingWeight,
         int256 underlyingNeeded,
@@ -361,19 +359,16 @@ library CrossMarginMath {
 
         int256 valueAtFirstStrike;
 
-        if (hasPuts)
-            valueAtFirstStrike = -syntheticUnderlyingWeight * int256(strikes[0]) + poisAndPayouts.payouts[startPos];
+        if (hasPuts) valueAtFirstStrike = -syntheticUnderlyingWeight * int256(strikes[0]) + payouts[startPos];
 
         inUnderlyingOnly = valueAtFirstStrike + minPutPayout >= sZERO;
 
         if (inUnderlyingOnly) {
             // shifting pois if there is a left of leftmost, removing right of rightmost, adding underlyingNeeded at the end
-            int256[] memory negPayoutsOverPois = new int256[](poisAndPayouts.pois.length - startPos - 1 + 1);
+            int256[] memory negPayoutsOverPois = new int256[](pois.length - startPos - 1 + 1);
 
-            for (uint256 i = startPos; i < poisAndPayouts.pois.length - 1; ) {
-                negPayoutsOverPois[i - startPos] =
-                    (-poisAndPayouts.payouts[i] * sUNIT) /
-                    int256(poisAndPayouts.pois[i]);
+            for (uint256 i = startPos; i < pois.length - 1; ) {
+                negPayoutsOverPois[i - startPos] = (-payouts[i] * sUNIT) / int256(pois[i]);
 
                 unchecked {
                     ++i;
