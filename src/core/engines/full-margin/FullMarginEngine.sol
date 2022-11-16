@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+// imported contracts and libraries
+import {ReentrancyGuard} from "solmate/utils/ReentrancyGuard.sol";
+
 // inheriting contracts
 import {BaseEngine} from "../BaseEngine.sol";
 import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
@@ -31,7 +34,7 @@ import "../../../config/errors.sol";
             Interacts with OptionToken to mint / burn
             Interacts with grappa to fetch registered asset info
  */
-contract FullMarginEngine is BaseEngine, IMarginEngine {
+contract FullMarginEngine is BaseEngine, IMarginEngine, ReentrancyGuard {
     using FullMarginLib for FullMarginAccount;
     using FullMarginMath for FullMarginDetail;
     using TokenIdUtil for uint256;
