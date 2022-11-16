@@ -21,15 +21,6 @@ library CrossMarginMath {
     using SafeCast for int256;
     using SafeCast for uint256;
 
-    struct PayoutsParams {
-        uint256[] pois;
-        uint256[] strikes;
-        int256[] weights;
-        int256 syntheticUnderlyingWeight;
-        uint256 spotPrice;
-        int256 intrinsicValue;
-    }
-
     error CM_InvalidPutLengths();
 
     error CM_InvalidCallLengths();
@@ -161,9 +152,7 @@ library CrossMarginMath {
 
         pois = createPois(strikes, _detail.putStrikes.length);
 
-        payouts = calcPayouts(
-            pois, strikes, weights, syntheticUnderlyingWeight, _detail.spotPrice, intrinsicValue
-        );
+        payouts = calcPayouts(pois, strikes, weights, syntheticUnderlyingWeight, _detail.spotPrice, intrinsicValue);
     }
 
     function createPois(uint256[] memory strikes, uint256 numOfPuts) private pure returns (uint256[] memory pois) {
@@ -218,22 +207,27 @@ library CrossMarginMath {
         intrinsicValue = -intrinsicValue;
     }
 
-    function calcPayouts(PayoutsParams memory params) private pure returns (int256[] memory payouts) {
-        payouts = new int256[](params.pois.length);
+    function calcPayouts(
+        uint256[] memory pois,
+        uint256[] memory strikes,
+        int256[] memory weights,
+        int256 syntheticUnderlyingWeight,
+        uint256 spotPrice,
+        int256 intrinsicValue
+    ) private pure returns (int256[] memory payouts) {
+        payouts = new int256[](pois.length);
 
-        for (uint256 i; i < params.strikes.length; ) {
-            payouts = payouts.add(
-                params.pois.subEachBy(params.strikes[i]).maximum(0).eachMulDivDown(params.weights[i], sUNIT)
-            );
+        for (uint256 i; i < strikes.length; ) {
+            payouts = payouts.add(pois.subEachBy(strikes[i]).maximum(0).eachMulDivDown(weights[i], sUNIT));
 
             unchecked {
                 ++i;
             }
         }
 
-        payouts = payouts
-            .add(params.pois.subEachBy(params.spotPrice).eachMulDivDown(params.syntheticUnderlyingWeight, sUNIT))
-            .addEachBy(params.intrinsicValue);
+        payouts = payouts.add(pois.subEachBy(spotPrice).eachMulDivDown(syntheticUnderlyingWeight, sUNIT)).addEachBy(
+            intrinsicValue
+        );
     }
 
     function calcPutPayouts(uint256[] memory strikes, int256[] memory weights)
