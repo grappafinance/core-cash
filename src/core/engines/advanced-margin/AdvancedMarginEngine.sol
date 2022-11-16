@@ -5,6 +5,7 @@ pragma solidity ^0.8.0;
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import {SafeERC20} from "openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import {Ownable} from "openzeppelin/access/Ownable.sol";
+import {ReentrancyGuard} from "solmate/utils/ReentrancyGuard.sol";
 import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 
 // inheriting contracts
@@ -38,7 +39,7 @@ import "../../../config/errors.sol";
             Interacts with Oracle to read spot
             Interacts with VolOracle to read vol
  */
-contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
+contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable, ReentrancyGuard {
     using AdvancedMarginMath for AdvancedMarginDetail;
     using AdvancedMarginLib for AdvancedMarginAccount;
     using SafeERC20 for IERC20;
