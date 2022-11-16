@@ -3,8 +3,14 @@ pragma solidity ^0.8.0;
 
 import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
 
-import {NumberUtil} from "../../../libraries/NumberUtil.sol";
+import {IGrappa} from "../../../interfaces/IGrappa.sol";
+import {IOracle} from "../../../interfaces/IOracle.sol";
+
+import {AccountUtil} from "../../../libraries/AccountUtil.sol";
 import {ArrayUtil} from "../../../libraries/ArrayUtil.sol";
+import {NumberUtil} from "../../../libraries/NumberUtil.sol";
+import {ProductIdUtil} from "../../../libraries/ProductIdUtil.sol";
+import {TokenIdUtil} from "../../../libraries/TokenIdUtil.sol";
 
 import "../../../config/constants.sol";
 import "../../../config/enums.sol";
@@ -16,10 +22,16 @@ import "../../../config/errors.sol";
  * @notice  this library is in charge of calculating the min collateral for a given simple margin account
  */
 library CrossMarginMath {
+    using AccountUtil for Balance[];
+    using AccountUtil for CrossMarginDetail[];
+    using AccountUtil for Position[];
+    using AccountUtil for PositionOptim[];
+    using AccountUtil for SBalance[];
     using ArrayUtil for uint256[];
     using ArrayUtil for int256[];
     using SafeCast for int256;
     using SafeCast for uint256;
+    using TokenIdUtil for uint256;
 
     error CM_InvalidPutLengths();
 
@@ -35,11 +47,109 @@ library CrossMarginMath {
 
     error CM_InvalidRightPointLength();
 
+    /*///////////////////////////////////////////////////////////////
+                         Portfolio Margin Requirements
+    //////////////////////////////////////////////////////////////*/
+
+    function getMinCollateralForAccount(IGrappa grappa, CrossMarginAccount memory account)
+        external
+        view
+        returns (SBalance[] memory balances)
+    {
+        CrossMarginDetail[] memory details = _getAccountDetails(grappa, account);
+
+        balances = account.collaterals.toSBalances();
+
+        if (details.length == 0) return balances;
+
+        bool found;
+        uint256 index;
+
+        for (uint256 i; i < details.length; ) {
+            CrossMarginDetail memory detail = details[i];
+
+            if (detail.callWeights.length != 0 || detail.putWeights.length != 0) {
+                (int256 cashCollateralNeeded, int256 underlyingNeeded) = getMinCollateral(detail);
+
+                if (cashCollateralNeeded != 0) {
+                    (found, index) = balances.indexOf(detail.collateralId);
+
+                    if (found) balances[index].amount -= cashCollateralNeeded.toInt80();
+                    else balances = balances.append(SBalance(detail.collateralId, -cashCollateralNeeded.toInt80()));
+                }
+
+                if (underlyingNeeded != 0) {
+                    (found, index) = balances.indexOf(detail.underlyingId);
+
+                    if (found) balances[index].amount -= underlyingNeeded.toInt80();
+                    else balances = balances.append(SBalance(detail.underlyingId, -underlyingNeeded.toInt80()));
+                }
+            }
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                         Cross Margin Calculations
+    //////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice get minimum collateral denominated in strike asset
+     * @param _detail margin details
+     * @return cashNeeded with {BASE_UNIT} decimals
+     * @return underlyingNeeded with {BASE_UNIT} decimals
+     */
+    function getMinCollateral(CrossMarginDetail memory _detail)
+        public
+        pure
+        returns (int256 cashNeeded, int256 underlyingNeeded)
+    {
+        _verifyInputs(_detail);
+
+        (
+            uint256[] memory strikes,
+            int256 syntheticUnderlyingWeight,
+            uint256[] memory pois,
+            int256[] memory payouts
+        ) = _baseSetup(_detail);
+
+        (cashNeeded, underlyingNeeded) = _calcCollateralNeeds(_detail, pois, payouts);
+
+        if (cashNeeded > 0 && _detail.underlyingId == _detail.collateralId) {
+            cashNeeded = 0;
+            // underlyingNeeded = convertCashCollateralToUnderlyingNeeded(
+            //     pois,
+            //     payouts,
+            //     underlyingNeeded,
+            //     _detail.putStrikes.length > 0
+            // );
+            (, underlyingNeeded) = _checkHedgableTailRisk(
+                _detail,
+                pois,
+                payouts,
+                strikes,
+                syntheticUnderlyingWeight,
+                underlyingNeeded,
+                _detail.putStrikes.length > 0
+            );
+        } else
+            cashNeeded = NumberUtil
+                .convertDecimals(cashNeeded.toUint256(), UNIT_DECIMALS, _detail.collateralDecimals)
+                .toInt256();
+
+        underlyingNeeded = NumberUtil
+            .convertDecimals(underlyingNeeded.toUint256(), UNIT_DECIMALS, _detail.underlyingDecimals)
+            .toInt256();
+    }
+
     /**
      * @notice checks inputs for calculating margin, reverts if bad inputs
      * @param _detail margin details
      */
-    function verifyInputs(CrossMarginDetail memory _detail) internal pure {
+    function _verifyInputs(CrossMarginDetail memory _detail) internal pure {
         if (_detail.callStrikes.length != _detail.callWeights.length) revert CM_InvalidCallLengths();
         if (_detail.putStrikes.length != _detail.putWeights.length) revert CM_InvalidPutLengths();
 
@@ -61,68 +171,19 @@ library CrossMarginMath {
         }
     }
 
-    /**
-     * @notice get minimum collateral denominated in strike asset
-     * @param _detail margin details
-     * @return cashNeeded with {BASE_UNIT} decimals
-     * @return underlyingNeeded with {BASE_UNIT} decimals
-     */
-    function getMinCollateral(CrossMarginDetail memory _detail)
-        external
-        pure
-        returns (int256 cashNeeded, int256 underlyingNeeded)
-    {
-        verifyInputs(_detail);
-
-        (
-            uint256[] memory strikes,
-            int256 syntheticUnderlyingWeight,
-            uint256[] memory pois,
-            int256[] memory payouts
-        ) = baseSetup(_detail);
-
-        (cashNeeded, underlyingNeeded) = calcCollateralNeeds(_detail, pois, payouts);
-
-        if (cashNeeded > 0 && _detail.underlyingId == _detail.collateralId) {
-            cashNeeded = 0;
-            // underlyingNeeded = convertCashCollateralToUnderlyingNeeded(
-            //     pois,
-            //     payouts,
-            //     underlyingNeeded,
-            //     _detail.putStrikes.length > 0
-            // );
-            (, underlyingNeeded) = checkHedgableTailRisk(
-                _detail,
-                pois,
-                payouts,
-                strikes,
-                syntheticUnderlyingWeight,
-                underlyingNeeded,
-                _detail.putStrikes.length > 0
-            );
-        } else
-            cashNeeded = NumberUtil
-                .convertDecimals(cashNeeded.toUint256(), UNIT_DECIMALS, _detail.collateralDecimals)
-                .toInt256();
-
-        underlyingNeeded = NumberUtil
-            .convertDecimals(underlyingNeeded.toUint256(), UNIT_DECIMALS, _detail.underlyingDecimals)
-            .toInt256();
-    }
-
-    function calcCollateralNeeds(
+    function _calcCollateralNeeds(
         CrossMarginDetail memory _detail,
         uint256[] memory pois,
         int256[] memory payouts
-    ) private pure returns (int256 cashNeeded, int256 underlyingNeeded) {
+    ) internal pure returns (int256 cashNeeded, int256 underlyingNeeded) {
         bool hasCalls = _detail.callStrikes.length > 0;
         bool hasPuts = _detail.putStrikes.length > 0;
 
-        if (hasCalls) (underlyingNeeded, ) = getUnderlyingNeeded(pois, payouts);
+        if (hasCalls) (underlyingNeeded, ) = _getUnderlyingNeeded(pois, payouts);
 
-        if (hasPuts) cashNeeded = getCashNeeded(_detail.putStrikes, _detail.putWeights);
+        if (hasPuts) cashNeeded = _getCashNeeded(_detail.putStrikes, _detail.putWeights);
 
-        cashNeeded = getUnderlyingAdjustedCashNeeded(pois, payouts, cashNeeded, underlyingNeeded, hasPuts);
+        cashNeeded = _getUnderlyingAdjustedCashNeeded(pois, payouts, cashNeeded, underlyingNeeded, hasPuts);
 
         // Not including this until partial collateralization enabled
         // (inUnderlyingOnly, underlyingOnlyNeeded) = checkHedgableTailRisk(
@@ -135,8 +196,8 @@ library CrossMarginMath {
         // );
     }
 
-    function baseSetup(CrossMarginDetail memory _detail)
-        private
+    function _baseSetup(CrossMarginDetail memory _detail)
+        internal
         pure
         returns (
             uint256[] memory strikes,
@@ -148,14 +209,14 @@ library CrossMarginMath {
         int256 intrinsicValue;
         int256[] memory weights;
 
-        (strikes, weights, syntheticUnderlyingWeight, intrinsicValue) = convertPutsToCalls(_detail);
+        (strikes, weights, syntheticUnderlyingWeight, intrinsicValue) = _convertPutsToCalls(_detail);
 
-        pois = createPois(strikes, _detail.putStrikes.length);
+        pois = _createPois(strikes, _detail.putStrikes.length);
 
-        payouts = calcPayouts(pois, strikes, weights, syntheticUnderlyingWeight, _detail.spotPrice, intrinsicValue);
+        payouts = _calcPayouts(pois, strikes, weights, syntheticUnderlyingWeight, _detail.spotPrice, intrinsicValue);
     }
 
-    function createPois(uint256[] memory strikes, uint256 numOfPuts) private pure returns (uint256[] memory pois) {
+    function _createPois(uint256[] memory strikes, uint256 numOfPuts) internal pure returns (uint256[] memory pois) {
         uint256 epsilon = strikes.min() / 10;
 
         bool hasPuts = numOfPuts > 0;
@@ -180,8 +241,8 @@ library CrossMarginMath {
         pois[pois.length - 1] = strikes.max() + epsilon;
     }
 
-    function convertPutsToCalls(CrossMarginDetail memory _detail)
-        private
+    function _convertPutsToCalls(CrossMarginDetail memory _detail)
+        internal
         pure
         returns (
             uint256[] memory strikes,
@@ -207,14 +268,14 @@ library CrossMarginMath {
         intrinsicValue = -intrinsicValue;
     }
 
-    function calcPayouts(
+    function _calcPayouts(
         uint256[] memory pois,
         uint256[] memory strikes,
         int256[] memory weights,
         int256 syntheticUnderlyingWeight,
         uint256 spotPrice,
         int256 intrinsicValue
-    ) private pure returns (int256[] memory payouts) {
+    ) internal pure returns (int256[] memory payouts) {
         payouts = new int256[](pois.length);
 
         for (uint256 i; i < strikes.length; ) {
@@ -230,8 +291,8 @@ library CrossMarginMath {
         );
     }
 
-    function calcPutPayouts(uint256[] memory strikes, int256[] memory weights)
-        private
+    function _calcPutPayouts(uint256[] memory strikes, int256[] memory weights)
+        internal
         pure
         returns (int256[] memory putPayouts)
     {
@@ -246,7 +307,7 @@ library CrossMarginMath {
         }
     }
 
-    function calcSlope(int256[] memory leftPoint, int256[] memory rightPoint) private pure returns (int256) {
+    function _calcSlope(int256[] memory leftPoint, int256[] memory rightPoint) internal pure returns (int256) {
         if (leftPoint[0] > rightPoint[0]) revert CM_InvalidPoints();
         if (leftPoint.length != 2) revert CM_InvalidLeftPointLength();
         if (leftPoint.length != 2) revert CM_InvalidRightPointLength();
@@ -255,8 +316,8 @@ library CrossMarginMath {
     }
 
     // this computes the slope to the right of the right most strike, resulting in the delta hedge (underlying)
-    function getUnderlyingNeeded(uint256[] memory pois, int256[] memory payouts)
-        private
+    function _getUnderlyingNeeded(uint256[] memory pois, int256[] memory payouts)
+        internal
         pure
         returns (int256 underlyingNeeded, int256 rightDelta)
     {
@@ -269,13 +330,13 @@ library CrossMarginMath {
         rightPoint[1] = payouts.at(-1);
 
         // slope
-        rightDelta = calcSlope(leftPoint, rightPoint);
+        rightDelta = _calcSlope(leftPoint, rightPoint);
         underlyingNeeded = rightDelta < sZERO ? -rightDelta : sZERO;
     }
 
     // this computes the slope to the left of the left most strike
-    function getCashNeeded(uint256[] memory putStrikes, int256[] memory putWeights)
-        private
+    function _getCashNeeded(uint256[] memory putStrikes, int256[] memory putWeights)
+        internal
         pure
         returns (int256 cashNeeded)
     {
@@ -284,13 +345,13 @@ library CrossMarginMath {
         if (cashNeeded < sZERO) cashNeeded = sZERO;
     }
 
-    function getUnderlyingAdjustedCashNeeded(
+    function _getUnderlyingAdjustedCashNeeded(
         uint256[] memory pois,
         int256[] memory payouts,
         int256 cashNeeded,
         int256 underlyingNeeded,
         bool hasPuts
-    ) private pure returns (int256) {
+    ) internal pure returns (int256) {
         int256 minStrikePayout = -payouts.slice(hasPuts ? int256(1) : sZERO, -1).min();
 
         if (cashNeeded < minStrikePayout) {
@@ -310,7 +371,7 @@ library CrossMarginMath {
     //     int256[] memory payouts,
     //     int256 underlyingNeeded,
     //     bool hasPuts
-    // ) private pure returns (int256) {
+    // ) internal pure returns (int256) {
     //     uint256 start = hasPuts ? 1 : 0;
     //     // could have used payouts as well
     //     uint256 end = pois.length - 1;
@@ -337,7 +398,7 @@ library CrossMarginMath {
     //     return max > underlyingNeeded ? max : underlyingNeeded;
     // }
 
-    function checkHedgableTailRisk(
+    function _checkHedgableTailRisk(
         CrossMarginDetail memory _detail,
         uint256[] memory pois,
         int256[] memory payouts,
@@ -345,11 +406,11 @@ library CrossMarginMath {
         int256 syntheticUnderlyingWeight,
         int256 underlyingNeeded,
         bool hasPuts
-    ) public pure returns (bool inUnderlyingOnly, int256 underlyingOnlyNeeded) {
+    ) internal pure returns (bool inUnderlyingOnly, int256 underlyingOnlyNeeded) {
         int256 minPutPayout;
         uint256 startPos = hasPuts ? 1 : 0;
 
-        if (_detail.putStrikes.length > 0) minPutPayout = calcPutPayouts(_detail.putStrikes, _detail.putWeights).min();
+        if (_detail.putStrikes.length > 0) minPutPayout = _calcPutPayouts(_detail.putStrikes, _detail.putWeights).min();
 
         int256 valueAtFirstStrike;
 
@@ -372,5 +433,128 @@ library CrossMarginMath {
 
             underlyingOnlyNeeded = negPayoutsOverPois.max();
         }
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                         Setup CrossMarginDetail
+    //////////////////////////////////////////////////////////////*/
+
+    /**
+     * @notice  convert Account struct from storage to in-memory detail struct
+     */
+    function _getAccountDetails(IGrappa grappa, CrossMarginAccount memory account)
+        internal
+        view
+        returns (CrossMarginDetail[] memory details)
+    {
+        details = new CrossMarginDetail[](0);
+
+        bytes32[] memory usceLookUp = new bytes32[](0);
+
+        Position[] memory positions = account.shorts.getPositions().concat(account.longs.getPositions());
+        uint256 shortLength = account.shorts.length;
+
+        for (uint256 i; i < positions.length; ) {
+            (, uint40 productId, uint64 expiry, , ) = positions[i].tokenId.parseTokenId();
+
+            ProductDetails memory product = _getProductDetails(grappa, productId);
+
+            bytes32 pos = keccak256(abi.encode(product.underlyingId, product.strikeId, product.collateralId, expiry));
+            (bool found, uint256 index) = ArrayUtil.indexOf(usceLookUp, pos);
+
+            CrossMarginDetail memory detail;
+
+            if (found) detail = details[index];
+            else {
+                usceLookUp = ArrayUtil.append(usceLookUp, pos);
+                details = details.append(detail);
+
+                detail.underlyingId = product.underlyingId;
+                detail.underlyingDecimals = product.underlyingDecimals;
+                detail.collateralId = product.collateralId;
+                detail.collateralDecimals = product.collateralDecimals;
+                detail.spotPrice = IOracle(product.oracle).getSpotPrice(product.underlying, product.strike);
+                detail.expiry = expiry;
+            }
+
+            int256 amount = int256(int64(positions[i].amount));
+            if (i < shortLength) amount = -amount;
+
+            _processDetailWithToken(detail, positions[i].tokenId, amount);
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    function _processDetailWithToken(
+        CrossMarginDetail memory detail,
+        uint256 tokenId,
+        int256 amount
+    ) internal pure {
+        (TokenType tokenType, , , uint64 strike, ) = tokenId.parseTokenId();
+
+        bool found;
+        uint256 index;
+
+        if (tokenType == TokenType.CALL) {
+            (found, index) = detail.callStrikes.indexOf(strike);
+
+            if (found) {
+                detail.callWeights[index] += amount;
+
+                if (detail.callWeights[index] == 0) {
+                    detail.callWeights = detail.callWeights.remove(index);
+                    detail.callStrikes = detail.callStrikes.remove(index);
+                }
+            } else {
+                detail.callStrikes = detail.callStrikes.append(strike);
+                detail.callWeights = detail.callWeights.append(amount);
+            }
+        }
+
+        if (tokenType == TokenType.PUT) {
+            (found, index) = detail.putStrikes.indexOf(strike);
+
+            if (found) {
+                detail.putWeights[index] += amount;
+
+                if (detail.putWeights[index] == 0) {
+                    detail.putWeights = detail.putWeights.remove(index);
+                    detail.putStrikes = detail.putStrikes.remove(index);
+                }
+            } else {
+                detail.putStrikes = detail.putStrikes.append(strike);
+                detail.putWeights = detail.putWeights.append(amount);
+            }
+        }
+    }
+
+    function _getProductDetails(IGrappa grappa, uint40 productId) internal view returns (ProductDetails memory info) {
+        (, , uint8 underlyingId, uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(productId);
+
+        (
+            address oracle,
+            address engine,
+            address underlying,
+            uint8 underlyingDecimals,
+            address strike,
+            uint8 strikeDecimals,
+            address collateral,
+            uint8 collatDecimals
+        ) = grappa.getDetailFromProductId(productId);
+
+        info.oracle = oracle;
+        info.engine = engine;
+        info.underlying = underlying;
+        info.underlyingId = underlyingId;
+        info.underlyingDecimals = underlyingDecimals;
+        info.strike = strike;
+        info.strikeId = strikeId;
+        info.strikeDecimals = strikeDecimals;
+        info.collateral = collateral;
+        info.collateralId = collateralId;
+        info.collateralDecimals = collatDecimals;
     }
 }

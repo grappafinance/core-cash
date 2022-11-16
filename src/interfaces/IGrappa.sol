@@ -22,6 +22,8 @@ interface IGrappa {
 
     function checkEngineAccessAndTokenId(uint256 _tokenId, address _engine) external view;
 
+    function engineIds(address _engine) external view returns (uint8 id);
+
     function assets(uint8 _id) external view returns (address addr, uint8 decimals);
 
     function engines(uint8 _id) external view returns (address engine);
