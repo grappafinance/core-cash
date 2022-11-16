@@ -43,11 +43,14 @@ contract Deploy is Script, Utilities {
         address optionTokenAddr = predictAddress(msg.sender, nonce + 2);
         console.log("optionToken address (prediction)", optionTokenAddr);
 
+        // todo: need upgradability
         grappa = new Grappa(optionTokenAddr); // nonce + 1
         console.log("grappa", address(grappa));
 
         // deploy following contracts directly, just so the address is the same as predicted by `create` (optionTokenAddr)
-        optionToken = address(new OptionToken(address(grappa))); // nonce: 2
+
+        // todo: need upgradable descriptor
+        optionToken = address(new OptionToken(address(grappa), address(0))); // nonce: 2
         console.log("optionToken", optionToken);
 
         address volOracle = address(new VolOracle()); // nonce: 3
