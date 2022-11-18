@@ -51,7 +51,7 @@ library CrossMarginMath {
                          Portfolio Margin Requirements
     //////////////////////////////////////////////////////////////*/
 
-    function getMinCollateralForAccount(IGrappa grappa, CrossMarginAccount memory account)
+    function getMinCollateralForAccount(IGrappa grappa, CrossMarginAccount calldata account)
         external
         view
         returns (SBalance[] memory balances)
@@ -442,7 +442,7 @@ library CrossMarginMath {
     /**
      * @notice  convert Account struct from storage to in-memory detail struct
      */
-    function _getAccountDetails(IGrappa grappa, CrossMarginAccount memory account)
+    function _getAccountDetails(IGrappa grappa, CrossMarginAccount calldata account)
         internal
         view
         returns (CrossMarginDetail[] memory details)
