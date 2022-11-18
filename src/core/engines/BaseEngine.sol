@@ -46,7 +46,7 @@ abstract contract BaseEngine {
 
     event CollateralRemoved(address subAccount, address collateral, uint256 amount);
 
-    event CollateralTransfered(address from, address to, address collateral, uint256 amount);
+    event CollateralTransfered(address from, address to, uint8 collateralId, uint256 amount);
 
     event OptionTokenMinted(address subAccount, uint256 tokenId, uint256 amount);
 
@@ -273,9 +273,7 @@ abstract contract BaseEngine {
         _removeCollateralFromAccount(_subAccount, collateralId, amount);
         _addCollateralToAccount(to, collateralId, amount);
 
-        (address collateral, ) = grappa.assets(collateralId);
-
-        emit CollateralTransfered(_subAccount, to, collateral, amount);
+        emit CollateralTransfered(_subAccount, to, collateralId, amount);
     }
 
     /**

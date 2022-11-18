@@ -111,6 +111,11 @@ contract CrossMarginEngine is
         whitelist = IWhitelist(_whitelist);
     }
 
+    /**
+     * @notice batch execute on multiple subAccounts
+     * @dev    check margin after all subAccounts are updated
+     *         because we support actions like `TransferCollateral` that moves collateral between subAccounts
+     */
     function batchExecute(BatchExecute[] calldata batchActions) external nonReentrant {
         _checkPermissioned(msg.sender);
 
