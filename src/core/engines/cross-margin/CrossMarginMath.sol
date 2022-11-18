@@ -70,7 +70,7 @@ library CrossMarginMath {
             CrossMarginDetail memory detail = details[i];
 
             if (detail.callWeights.length != 0 || detail.putWeights.length != 0) {
-                (int256 cashCollateralNeeded, int256 underlyingNeeded) = _getMinCollateralWithoutVerification(detail);
+                (int256 cashCollateralNeeded, int256 underlyingNeeded) = getMinCollateral(detail);
 
                 if (cashCollateralNeeded != 0) {
                     (found, index) = balances.indexOf(detail.collateralId);
@@ -104,27 +104,12 @@ library CrossMarginMath {
      * @return underlyingNeeded with {underlying asset's} decimals
      */
     function getMinCollateral(CrossMarginDetail memory _detail)
-        external
+        public
         pure
         returns (int256 cashNeeded, int256 underlyingNeeded)
     {
         _verifyInputs(_detail);
 
-        return _getMinCollateralWithoutVerification(_detail);
-    }
-
-    /**
-     * @notice get minimum collateral
-     * @dev   this function won't check if _details contain positions with 0 amount
-     * @param _detail margin details
-     * @return cashNeeded with {collateral asset's} decimals
-     * @return underlyingNeeded with {underlying asset's} decimals
-     */
-    function _getMinCollateralWithoutVerification(CrossMarginDetail memory _detail)
-        private
-        pure
-        returns (int256 cashNeeded, int256 underlyingNeeded)
-    {
         (
             uint256[] memory strikes,
             int256 syntheticUnderlyingWeight,
