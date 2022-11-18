@@ -19,7 +19,8 @@ import "../../../config/errors.sol";
 
 /**
  * @title   CrossMarginMath
- * @notice  this library is in charge of calculating the min collateral for a given simple margin account
+ * @notice  this library is in charge of calculating the min collateral for a given cross margin account
+ * @dev     deployed as a separate contract to save space
  */
 library CrossMarginMath {
     using AccountUtil for Balance[];
@@ -69,7 +70,7 @@ library CrossMarginMath {
             CrossMarginDetail memory detail = details[i];
 
             if (detail.callWeights.length != 0 || detail.putWeights.length != 0) {
-                (int256 cashCollateralNeeded, int256 underlyingNeeded) = getMinCollateral(detail);
+                (int256 cashCollateralNeeded, int256 underlyingNeeded) = _getMinCollateralWithoutVerification(detail);
 
                 if (cashCollateralNeeded != 0) {
                     (found, index) = balances.indexOf(detail.collateralId);
@@ -97,18 +98,33 @@ library CrossMarginMath {
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice get minimum collateral denominated in strike asset
+     * @notice get minimum collateral
      * @param _detail margin details
-     * @return cashNeeded with {BASE_UNIT} decimals
-     * @return underlyingNeeded with {BASE_UNIT} decimals
+     * @return cashNeeded with {collateral asset's} decimals
+     * @return underlyingNeeded with {underlying asset's} decimals
      */
     function getMinCollateral(CrossMarginDetail memory _detail)
-        public
+        external
         pure
         returns (int256 cashNeeded, int256 underlyingNeeded)
     {
         _verifyInputs(_detail);
 
+        return _getMinCollateralWithoutVerification(_detail);
+    }
+
+    /**
+     * @notice get minimum collateral
+     * @dev   this function won't check if _details contain positions with 0 amount
+     * @param _detail margin details
+     * @return cashNeeded with {collateral asset's} decimals
+     * @return underlyingNeeded with {underlying asset's} decimals
+     */
+    function _getMinCollateralWithoutVerification(CrossMarginDetail memory _detail)
+        private
+        pure
+        returns (int256 cashNeeded, int256 underlyingNeeded)
+    {
         (
             uint256[] memory strikes,
             int256 syntheticUnderlyingWeight,
@@ -135,10 +151,11 @@ library CrossMarginMath {
                 underlyingNeeded,
                 _detail.putStrikes.length > 0
             );
-        } else
+        } else {
             cashNeeded = NumberUtil
                 .convertDecimals(cashNeeded.toUint256(), UNIT_DECIMALS, _detail.collateralDecimals)
                 .toInt256();
+        }
 
         underlyingNeeded = NumberUtil
             .convertDecimals(underlyingNeeded.toUint256(), UNIT_DECIMALS, _detail.underlyingDecimals)
@@ -440,7 +457,7 @@ library CrossMarginMath {
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice  convert Account struct from storage to in-memory detail struct
+     * @notice  convert CrossMarginAccount struct to in-memory detail struct arrays
      */
     function _getAccountDetails(IGrappa grappa, CrossMarginAccount memory account)
         internal
@@ -449,6 +466,7 @@ library CrossMarginMath {
     {
         details = new CrossMarginDetail[](0);
 
+        // used to reference which detail struct should be updated for a given position
         bytes32[] memory usceLookUp = new bytes32[](0);
 
         Position[] memory positions = account.shorts.getPositions().concat(account.longs.getPositions());
@@ -460,6 +478,7 @@ library CrossMarginMath {
             ProductDetails memory product = _getProductDetails(grappa, productId);
 
             bytes32 pos = keccak256(abi.encode(product.underlyingId, product.strikeId, product.collateralId, expiry));
+
             (bool found, uint256 index) = ArrayUtil.indexOf(usceLookUp, pos);
 
             CrossMarginDetail memory detail;
@@ -498,6 +517,7 @@ library CrossMarginMath {
         bool found;
         uint256 index;
 
+        // adjust or append to callStrikes array or callWeights array.
         if (tokenType == TokenType.CALL) {
             (found, index) = detail.callStrikes.indexOf(strike);
 
@@ -512,9 +532,8 @@ library CrossMarginMath {
                 detail.callStrikes = detail.callStrikes.append(strike);
                 detail.callWeights = detail.callWeights.append(amount);
             }
-        }
-
-        if (tokenType == TokenType.PUT) {
+        } else if (tokenType == TokenType.PUT) {
+            // adjust or append to putStrikes array or putWeights array.
             (found, index) = detail.putStrikes.indexOf(strike);
 
             if (found) {

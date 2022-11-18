@@ -91,7 +91,7 @@ contract OptionToken is ERC1155, IOptionToken {
     }
 
     /**
-     * @dev burn batch of option token from an address. Can only be called by grappa
+     * @dev burn batch of option token from an address. Can only be called by grappa, used for settlement
      * @param _from         account to burn from
      * @param _ids          tokenId to burn
      * @param _amounts      amount to burn

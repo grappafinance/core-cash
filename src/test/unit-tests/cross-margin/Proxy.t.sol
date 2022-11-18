@@ -48,11 +48,9 @@ contract EngineProxyTest is Test {
     }
 
     function testCannotUpgradeFromNonOwner() public {
-        MockEngineV2 v2 = new MockEngineV2();
-
         vm.prank(address(0xaa));
         vm.expectRevert("Ownable: caller is not the owner");
-        engine.upgradeTo(address(v2));
+        engine.upgradeTo(address(0));
     }
 
     function testCanUpgradeToAnotherUUPSContract() public {
