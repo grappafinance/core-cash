@@ -124,8 +124,8 @@ contract TestStructures_CMM is Test {
             expiry: 0
         });
 
-        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, 28000 * UNIT);
+        (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(numeraireNeeded, 28000 * UNIT);
         assertEq(underlyingNeeded, ZERO);
     }
 
@@ -145,8 +145,8 @@ contract TestStructures_CMM is Test {
             expiry: 0
         });
 
-        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, 28000 * UNIT);
+        (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(numeraireNeeded, 28000 * UNIT);
         assertEq(underlyingNeeded, ZERO);
     }
 
@@ -166,8 +166,8 @@ contract TestStructures_CMM is Test {
             expiry: 0
         });
 
-        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, 3000 * UNIT);
+        (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(numeraireNeeded, 3000 * UNIT);
         assertEq(underlyingNeeded, 1 * UNIT);
     }
 
@@ -188,8 +188,8 @@ contract TestStructures_CMM is Test {
             expiry: 0
         });
 
-        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, 33000 * UNIT);
+        (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(numeraireNeeded, 33000 * UNIT);
         assertEq(underlyingNeeded, ZERO);
     }
 
@@ -223,8 +223,8 @@ contract TestStructures_CMM is Test {
             expiry: 0
         });
 
-        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, 28000 * UNIT);
+        (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(numeraireNeeded, 28000 * UNIT);
         assertEq(underlyingNeeded, ZERO);
     }
 
@@ -251,8 +251,8 @@ contract TestStructures_CMM is Test {
             expiry: 0
         });
 
-        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, putStrikes[0]);
+        (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(numeraireNeeded, putStrikes[0]);
         assertEq(underlyingNeeded, ZERO);
     }
 
@@ -279,8 +279,8 @@ contract TestStructures_CMM is Test {
             expiry: 0
         });
 
-        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, putStrikes[0]);
+        (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(numeraireNeeded, putStrikes[0]);
         assertEq(underlyingNeeded, ZERO);
     }
 
@@ -307,8 +307,8 @@ contract TestStructures_CMM is Test {
             expiry: 0
         });
 
-        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, ZERO);
+        (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(numeraireNeeded, ZERO);
         assertEq(underlyingNeeded, 1 * UNIT);
     }
 
@@ -335,8 +335,8 @@ contract TestStructures_CMM is Test {
             expiry: 0
         });
 
-        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, ZERO);
+        (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(numeraireNeeded, ZERO);
         assertEq(underlyingNeeded, 1 * UNIT);
     }
 
@@ -365,8 +365,8 @@ contract TestStructures_CMM is Test {
             expiry: 0
         });
 
-        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, 1);
+        (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(numeraireNeeded, 1);
         assertEq(underlyingNeeded, ZERO);
     }
 
@@ -395,8 +395,8 @@ contract TestStructures_CMM is Test {
             expiry: 0
         });
 
-        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, ZERO);
+        (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(numeraireNeeded, ZERO);
         assertEq(underlyingNeeded, ZERO);
     }
 
@@ -425,8 +425,8 @@ contract TestStructures_CMM is Test {
             expiry: 0
         });
 
-        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, 1);
+        (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(numeraireNeeded, 1);
         assertEq(underlyingNeeded, ZERO);
     }
 
@@ -455,8 +455,8 @@ contract TestStructures_CMM is Test {
             expiry: 0
         });
 
-        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, ZERO);
+        (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(numeraireNeeded, ZERO);
         assertEq(underlyingNeeded, (1 * UNIT) / 22000);
     }
 
@@ -485,8 +485,8 @@ contract TestStructures_CMM is Test {
             expiry: 0
         });
 
-        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, ZERO);
+        (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(numeraireNeeded, ZERO);
         assertEq(underlyingNeeded, (1000_00000 * UNIT) / 22000);
     }
 
@@ -515,8 +515,8 @@ contract TestStructures_CMM is Test {
             expiry: 0
         });
 
-        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, ZERO);
+        (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(numeraireNeeded, ZERO);
         assertEq(underlyingNeeded, ZERO);
     }
 
@@ -545,8 +545,8 @@ contract TestStructures_CMM is Test {
             expiry: 0
         });
 
-        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, 1000 * UNIT);
+        (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(numeraireNeeded, 1000 * UNIT);
         assertEq(underlyingNeeded, ZERO);
     }
 
@@ -576,8 +576,8 @@ contract TestStructures_CMM is Test {
             expiry: 0
         });
 
-        (uint256 cashNeeded1, uint256 underlyingNeeded1) = detail.getMinCollateral();
-        assertEq(cashNeeded1, 17000 * UNIT);
+        (uint256 numeraireNeeded1, uint256 underlyingNeeded1) = detail.getMinCollateral();
+        assertEq(numeraireNeeded1, 17000 * UNIT);
         assertEq(underlyingNeeded1, 1 * UNIT);
 
         callWeights[0] = 314 * callWeights[0];
@@ -594,8 +594,8 @@ contract TestStructures_CMM is Test {
             expiry: 0
         });
 
-        (uint256 cashNeeded2, uint256 underlyingNeeded2) = detail.getMinCollateral();
-        assertEq(cashNeeded1, cashNeeded2);
+        (uint256 numeraireNeeded2, uint256 underlyingNeeded2) = detail.getMinCollateral();
+        assertEq(numeraireNeeded1, numeraireNeeded2);
         assertEq(underlyingNeeded2, 314 * underlyingNeeded1);
     }
 }
@@ -639,8 +639,8 @@ contract TestVanillaCall_CMM is Test {
             expiry: 0
         });
 
-        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, ZERO);
+        (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(numeraireNeeded, ZERO);
         assertEq(underlyingNeeded, 1 * UNIT);
     }
 }
@@ -684,8 +684,8 @@ contract TestVanillaPut_CMM is Test {
             expiry: 0
         });
 
-        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, 18000 * UNIT);
+        (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(numeraireNeeded, 18000 * UNIT);
         assertEq(underlyingNeeded, ZERO);
     }
 }
@@ -731,8 +731,8 @@ contract TestStrangles is Test {
             expiry: 0
         });
 
-        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, putStrikes[0]);
+        (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(numeraireNeeded, putStrikes[0]);
         assertEq(underlyingNeeded, uint256(-callWeights[0]));
     }
 
@@ -752,8 +752,8 @@ contract TestStrangles is Test {
             expiry: 0
         });
 
-        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, ZERO);
+        (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(numeraireNeeded, ZERO);
         assertEq(underlyingNeeded, ZERO);
     }
 
@@ -787,8 +787,8 @@ contract TestStrangles is Test {
             expiry: 0
         });
 
-        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, putStrikes[0] - putStrikes[1]);
+        (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(numeraireNeeded, putStrikes[0] - putStrikes[1]);
         assertEq(underlyingNeeded, ZERO);
     }
 }
@@ -841,8 +841,8 @@ contract TestCornerCases_CMM is Test {
             expiry: 0
         });
 
-        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, ZERO);
+        (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(numeraireNeeded, ZERO);
         assertEq(underlyingNeeded, 1 * UNIT);
     }
 
@@ -862,9 +862,9 @@ contract TestCornerCases_CMM is Test {
             expiry: 0
         });
 
-        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
         assertEq(underlyingNeeded, 1 * UNIT);
-        assertEq(cashNeeded, ZERO);
+        assertEq(numeraireNeeded, ZERO);
     }
 
     function testPotentialBreakOnZeroWeight() public {
@@ -902,8 +902,8 @@ contract TestCornerCases_CMM is Test {
             expiry: 0
         });
 
-        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, putStrikes[1] - 1000 * UNIT);
+        (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(numeraireNeeded, putStrikes[1] - 1000 * UNIT);
         assertEq(underlyingNeeded, ZERO);
     }
 
@@ -921,8 +921,8 @@ contract TestCornerCases_CMM is Test {
             expiry: 0
         });
 
-        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, putStrikes[1] - 1000 * UNIT);
+        (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(numeraireNeeded, putStrikes[1] - 1000 * UNIT);
         assertEq(underlyingNeeded, 1 * UNIT);
     }
 
@@ -945,9 +945,9 @@ contract TestCornerCases_CMM is Test {
             expiry: 0
         });
 
-        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
         uint256 cashRequired = uint256(-putWeights[1]) * putStrikes[1] - uint256(putWeights[0]) * putStrikes[0];
-        assertEq(cashNeeded, cashRequired);
+        assertEq(numeraireNeeded, cashRequired);
         assertEq(underlyingNeeded, ZERO);
     }
 
@@ -969,9 +969,9 @@ contract TestCornerCases_CMM is Test {
             expiry: 0
         });
 
-        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
         uint256 cashRequired = uint256(-putWeights[1]) * putStrikes[1] - uint256(putWeights[0]) * putStrikes[0];
-        assertEq(cashNeeded, cashRequired / UNIT);
+        assertEq(numeraireNeeded, cashRequired / UNIT);
         assertEq(underlyingNeeded, ZERO);
     }
 
@@ -996,9 +996,9 @@ contract TestCornerCases_CMM is Test {
             expiry: 0
         });
 
-        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
         uint256 cashRequired = uint256(-putWeights[1]) * putStrikes[1] - uint256(putWeights[0]) * putStrikes[0];
-        assertEq(cashNeeded, cashRequired / UNIT);
+        assertEq(numeraireNeeded, cashRequired / UNIT);
         assertEq(underlyingNeeded, ZERO);
     }
 
@@ -1018,9 +1018,9 @@ contract TestCornerCases_CMM is Test {
             expiry: 0
         });
 
-        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
         uint256 cashRequired = uint256(-putWeights[1]) * putStrikes[1] - uint256(putWeights[0]) * putStrikes[0];
-        assertEq(cashNeeded, cashRequired / UNIT);
+        assertEq(numeraireNeeded, cashRequired / UNIT);
         assertEq(underlyingNeeded, uint256(-callWeights[1]) - uint256(callWeights[0]));
     }
 
@@ -1049,9 +1049,9 @@ contract TestCornerCases_CMM is Test {
             expiry: 0
         });
 
-        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
         uint256 cashRequired = uint256(-putWeights[0]) * putStrikes[0] - uint256(putWeights[1]) * putStrikes[1];
-        assertEq(cashNeeded, cashRequired / UNIT);
+        assertEq(numeraireNeeded, cashRequired / UNIT);
         assertEq(underlyingNeeded, uint256(callWeights[0] + callWeights[1]));
     }
 }
