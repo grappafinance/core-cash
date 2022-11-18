@@ -114,7 +114,7 @@ library CrossMarginMath {
     }
 
     /**
-     * @notice get minimum collateral 
+     * @notice get minimum collateral
      * @dev   this function won't check if _details contain positions with 0 amount
      * @param _detail margin details
      * @return cashNeeded with {collateral asset's} decimals
@@ -466,7 +466,7 @@ library CrossMarginMath {
     {
         details = new CrossMarginDetail[](0);
 
-        // used to reference which detail struct should be updated for a given position 
+        // used to reference which detail struct should be updated for a given position
         bytes32[] memory usceLookUp = new bytes32[](0);
 
         Position[] memory positions = account.shorts.getPositions().concat(account.longs.getPositions());
