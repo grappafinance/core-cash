@@ -55,11 +55,9 @@ library CrossMarginMath {
     function getMinCollateralForAccount(IGrappa grappa, CrossMarginAccount calldata account)
         external
         view
-        returns (SBalance[] memory balances)
+        returns (Balance[] memory balances)
     {
         CrossMarginDetail[] memory details = _getAccountDetails(grappa, account);
-
-        balances = account.collaterals.toSBalances();
 
         if (details.length == 0) return balances;
 
@@ -70,20 +68,20 @@ library CrossMarginMath {
             CrossMarginDetail memory detail = details[i];
 
             if (detail.callWeights.length != 0 || detail.putWeights.length != 0) {
-                (int256 cashCollateralNeeded, int256 underlyingNeeded) = getMinCollateral(detail);
+                (uint256 cashCollateralNeeded, uint256 underlyingNeeded) = getMinCollateral(detail);
 
                 if (cashCollateralNeeded != 0) {
                     (found, index) = balances.indexOf(detail.collateralId);
 
-                    if (found) balances[index].amount -= cashCollateralNeeded.toInt80();
-                    else balances = balances.append(SBalance(detail.collateralId, -cashCollateralNeeded.toInt80()));
+                    if (found) balances[index].amount += cashCollateralNeeded.toUint80();
+                    else balances = balances.append(Balance(detail.collateralId, cashCollateralNeeded.toUint80()));
                 }
 
                 if (underlyingNeeded != 0) {
                     (found, index) = balances.indexOf(detail.underlyingId);
 
-                    if (found) balances[index].amount -= underlyingNeeded.toInt80();
-                    else balances = balances.append(SBalance(detail.underlyingId, -underlyingNeeded.toInt80()));
+                    if (found) balances[index].amount += underlyingNeeded.toUint80();
+                    else balances = balances.append(Balance(detail.underlyingId, underlyingNeeded.toUint80()));
                 }
             }
 
@@ -106,7 +104,7 @@ library CrossMarginMath {
     function getMinCollateral(CrossMarginDetail memory _detail)
         public
         pure
-        returns (int256 cashNeeded, int256 underlyingNeeded)
+        returns (uint256 cashNeeded, uint256 underlyingNeeded)
     {
         _verifyInputs(_detail);
 
@@ -137,14 +135,10 @@ library CrossMarginMath {
                 _detail.putStrikes.length > 0
             );
         } else {
-            cashNeeded = NumberUtil
-                .convertDecimals(cashNeeded.toUint256(), UNIT_DECIMALS, _detail.collateralDecimals)
-                .toInt256();
+            cashNeeded = NumberUtil.convertDecimals(cashNeeded, UNIT_DECIMALS, _detail.collateralDecimals);
         }
 
-        underlyingNeeded = NumberUtil
-            .convertDecimals(underlyingNeeded.toUint256(), UNIT_DECIMALS, _detail.underlyingDecimals)
-            .toInt256();
+        underlyingNeeded = NumberUtil.convertDecimals(underlyingNeeded, UNIT_DECIMALS, _detail.underlyingDecimals);
     }
 
     /**
@@ -177,7 +171,7 @@ library CrossMarginMath {
         CrossMarginDetail memory _detail,
         uint256[] memory pois,
         int256[] memory payouts
-    ) internal pure returns (int256 cashNeeded, int256 underlyingNeeded) {
+    ) internal pure returns (uint256 cashNeeded, uint256 underlyingNeeded) {
         bool hasCalls = _detail.callStrikes.length > 0;
         bool hasPuts = _detail.putStrikes.length > 0;
 
@@ -321,7 +315,7 @@ library CrossMarginMath {
     function _getUnderlyingNeeded(uint256[] memory pois, int256[] memory payouts)
         internal
         pure
-        returns (int256 underlyingNeeded, int256 rightDelta)
+        returns (uint256 underlyingNeeded, int256 rightDelta)
     {
         int256[] memory leftPoint = new int256[](2);
         leftPoint[0] = pois.at(-2).toInt256();
@@ -333,35 +327,35 @@ library CrossMarginMath {
 
         // slope
         rightDelta = _calcSlope(leftPoint, rightPoint);
-        underlyingNeeded = rightDelta < sZERO ? -rightDelta : sZERO;
+        underlyingNeeded = rightDelta < sZERO ? uint256(-rightDelta) : ZERO;
     }
 
     // this computes the slope to the left of the left most strike
     function _getCashNeeded(uint256[] memory putStrikes, int256[] memory putWeights)
         internal
         pure
-        returns (int256 cashNeeded)
+        returns (uint256 cashNeeded)
     {
-        cashNeeded = -putStrikes.dot(putWeights) / sUNIT;
+        int256 tmpCashNeeded = -putStrikes.dot(putWeights) / sUNIT;
 
-        if (cashNeeded < sZERO) cashNeeded = sZERO;
+        cashNeeded = tmpCashNeeded > sZERO ? uint256(tmpCashNeeded) : ZERO;
     }
 
     function _getUnderlyingAdjustedCashNeeded(
         uint256[] memory pois,
         int256[] memory payouts,
-        int256 cashNeeded,
-        int256 underlyingNeeded,
+        uint256 cashNeeded,
+        uint256 underlyingNeeded,
         bool hasPuts
-    ) internal pure returns (int256) {
+    ) internal pure returns (uint256) {
         int256 minStrikePayout = -payouts.slice(hasPuts ? int256(1) : sZERO, -1).min();
 
-        if (cashNeeded < minStrikePayout) {
+        if (cashNeeded.toInt256() < minStrikePayout) {
             (, uint256 index) = payouts.indexOf(-minStrikePayout);
-            int256 underlyingPayoutAtMinStrike = (pois[index].toInt256() * underlyingNeeded) / sUNIT;
+            uint256 underlyingPayoutAtMinStrike = (pois[index] * underlyingNeeded) / UNIT;
 
-            if (underlyingPayoutAtMinStrike - minStrikePayout > 0) cashNeeded = 0;
-            else cashNeeded = minStrikePayout - underlyingPayoutAtMinStrike;
+            if (underlyingPayoutAtMinStrike.toInt256() > minStrikePayout) cashNeeded = ZERO;
+            else cashNeeded = uint256(minStrikePayout) - underlyingPayoutAtMinStrike; // check in the line above means that minStrikePayout > 0
         }
 
         return cashNeeded;
@@ -406,9 +400,9 @@ library CrossMarginMath {
         int256[] memory payouts,
         uint256[] memory strikes,
         int256 syntheticUnderlyingWeight,
-        int256 underlyingNeeded,
+        uint256 underlyingNeeded,
         bool hasPuts
-    ) internal pure returns (bool inUnderlyingOnly, int256 underlyingOnlyNeeded) {
+    ) internal pure returns (bool inUnderlyingOnly, uint256 underlyingOnlyNeeded) {
         int256 minPutPayout;
         uint256 startPos = hasPuts ? 1 : 0;
 
@@ -422,7 +416,8 @@ library CrossMarginMath {
 
         if (inUnderlyingOnly) {
             // shifting pois if there is a left of leftmost, removing right of rightmost, adding underlyingNeeded at the end
-            int256[] memory negPayoutsOverPois = new int256[](pois.length - startPos - 1 + 1);
+            // ie: pois.length - startPos - 1 + 1
+            int256[] memory negPayoutsOverPois = new int256[](pois.length - startPos);
 
             for (uint256 i = startPos; i < pois.length - 1; ) {
                 negPayoutsOverPois[i - startPos] = (-payouts[i] * sUNIT) / int256(pois[i]);
@@ -431,9 +426,11 @@ library CrossMarginMath {
                     ++i;
                 }
             }
-            negPayoutsOverPois[negPayoutsOverPois.length - 1] = underlyingNeeded;
+            negPayoutsOverPois[negPayoutsOverPois.length - 1] = underlyingNeeded.toInt256();
 
-            underlyingOnlyNeeded = negPayoutsOverPois.max();
+            int256 tmpUnderlyingOnlyNeeded = negPayoutsOverPois.max();
+
+            underlyingOnlyNeeded = tmpUnderlyingOnlyNeeded > 0 ? uint256(tmpUnderlyingOnlyNeeded) : ZERO;
         }
     }
 

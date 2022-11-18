@@ -47,7 +47,7 @@ contract CrossMarginEngine is
 {
     using AccountUtil for Position[];
     using AccountUtil for PositionOptim[];
-    using AccountUtil for SBalance[];
+    using AccountUtil for Balance[];
     using CrossMarginLib for CrossMarginAccount;
     using ProductIdUtil for uint40;
     using SafeCast for uint256;
@@ -175,9 +175,9 @@ contract CrossMarginEngine is
      * @param _subAccount account id.
      * @return balances array of collaterals and amount (signed)
      */
-    function getMinCollateral(address _subAccount) external view returns (SBalance[] memory balances) {
+    function getMinCollateral(address _subAccount) external view returns (Balance[] memory) {
         CrossMarginAccount memory account = accounts[_subAccount];
-        balances = _getMinCollateral(account);
+        return _getMinCollateral(account);
     }
 
     /**
@@ -221,14 +221,14 @@ contract CrossMarginEngine is
     function previewMinCollateral(Position[] memory shorts, Position[] memory longs)
         external
         view
-        returns (Balance[] memory balances)
+        returns (Balance[] memory)
     {
         CrossMarginAccount memory account;
 
         account.shorts = shorts.getPositionOptims();
         account.longs = longs.getPositionOptims();
 
-        balances = _getMinCollateral(account).toBalances();
+        return _getMinCollateral(account);
     }
 
     /** ========================================================= **
@@ -314,12 +314,17 @@ contract CrossMarginEngine is
      * @param _subAccount subaccount id
      * @return isHealthy true if account is in good condition, false if it's underwater (liquidatable)
      */
-    function _isAccountAboveWater(address _subAccount) internal view override returns (bool isHealthy) {
+    function _isAccountAboveWater(address _subAccount) internal view override returns (bool) {
         CrossMarginAccount memory account = accounts[_subAccount];
-        SBalance[] memory balances = _getMinCollateral(account);
 
-        for (uint256 i; i < balances.length; ) {
-            if (balances[i].amount < 0) return false;
+        Balance[] memory balances = account.collaterals;
+
+        Balance[] memory minCollateralAmounts = _getMinCollateral(account);
+
+        for (uint256 i; i < minCollateralAmounts.length; ) {
+            (, Balance memory balance, ) = balances.find(minCollateralAmounts[i].collateralId);
+
+            if (balance.amount < minCollateralAmounts[i].amount) return false;
 
             unchecked {
                 ++i;
@@ -394,7 +399,7 @@ contract CrossMarginEngine is
     /**
      * @dev get minimum collateral requirement for an account
      */
-    function _getMinCollateral(CrossMarginAccount memory account) internal view returns (SBalance[] memory) {
+    function _getMinCollateral(CrossMarginAccount memory account) internal view returns (Balance[] memory) {
         return CrossMarginMath.getMinCollateralForAccount(grappa, account);
     }
 

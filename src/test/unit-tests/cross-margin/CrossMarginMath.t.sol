@@ -7,12 +7,11 @@ import {CrossMarginMath} from "../../../core/engines/cross-margin/CrossMarginMat
 import "../../../config/constants.sol";
 import "../../../config/errors.sol";
 import "../../../config/types.sol";
-import "../../utils/Console.sol";
 
 /**
  * test full margin calculation for complicated structure
  */
-contract TestStructuresFMMV2 is Test {
+contract TestStructures_CM is Test {
     using CrossMarginMath for CrossMarginDetail;
 
     uint256 private spotPrice;
@@ -124,9 +123,9 @@ contract TestStructuresFMMV2 is Test {
             expiry: 0
         });
 
-        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, 28000 * sUNIT);
-        assertEq(underlyingNeeded, sZERO);
+        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, 28000 * UNIT);
+        assertEq(underlyingNeeded, ZERO);
     }
 
     function testMarginRequirement2() public {
@@ -145,9 +144,9 @@ contract TestStructuresFMMV2 is Test {
             expiry: 0
         });
 
-        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, 28000 * sUNIT);
-        assertEq(underlyingNeeded, sZERO);
+        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, 28000 * UNIT);
+        assertEq(underlyingNeeded, ZERO);
     }
 
     function testMarginRequirement3() public {
@@ -166,9 +165,9 @@ contract TestStructuresFMMV2 is Test {
             expiry: 0
         });
 
-        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, 3000 * sUNIT);
-        assertEq(underlyingNeeded, 1 * sUNIT);
+        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, 3000 * UNIT);
+        assertEq(underlyingNeeded, 1 * UNIT);
     }
 
     function testMarginRequirement4() public {
@@ -188,9 +187,9 @@ contract TestStructuresFMMV2 is Test {
             expiry: 0
         });
 
-        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, 33000 * sUNIT);
-        assertEq(underlyingNeeded, sZERO);
+        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, 33000 * UNIT);
+        assertEq(underlyingNeeded, ZERO);
     }
 
     function testMarginUnsortedStrikes() public {
@@ -223,9 +222,9 @@ contract TestStructuresFMMV2 is Test {
             expiry: 0
         });
 
-        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, 28000 * sUNIT);
-        assertEq(underlyingNeeded, sZERO);
+        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, 28000 * UNIT);
+        assertEq(underlyingNeeded, ZERO);
     }
 
     function testMarginSimpleITMPut() public {
@@ -251,9 +250,9 @@ contract TestStructuresFMMV2 is Test {
             expiry: 0
         });
 
-        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, int256(putStrikes[0]));
-        assertEq(underlyingNeeded, sZERO);
+        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, putStrikes[0]);
+        assertEq(underlyingNeeded, ZERO);
     }
 
     function testMarginSimpleOTMPut() public {
@@ -279,9 +278,9 @@ contract TestStructuresFMMV2 is Test {
             expiry: 0
         });
 
-        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, int256(putStrikes[0]));
-        assertEq(underlyingNeeded, sZERO);
+        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, putStrikes[0]);
+        assertEq(underlyingNeeded, ZERO);
     }
 
     function testMarginSimpleITMCall() public {
@@ -307,9 +306,9 @@ contract TestStructuresFMMV2 is Test {
             expiry: 0
         });
 
-        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, sZERO);
-        assertEq(underlyingNeeded, 1 * sUNIT);
+        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, ZERO);
+        assertEq(underlyingNeeded, 1 * UNIT);
     }
 
     function testMarginSimpleOTMCall() public {
@@ -335,9 +334,9 @@ contract TestStructuresFMMV2 is Test {
             expiry: 0
         });
 
-        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, sZERO);
-        assertEq(underlyingNeeded, 1 * sUNIT);
+        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, ZERO);
+        assertEq(underlyingNeeded, 1 * UNIT);
     }
 
     function testMarginPutSpread1() public {
@@ -365,9 +364,9 @@ contract TestStructuresFMMV2 is Test {
             expiry: 0
         });
 
-        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
         assertEq(cashNeeded, 1);
-        assertEq(underlyingNeeded, sZERO);
+        assertEq(underlyingNeeded, ZERO);
     }
 
     function testMarginLongBinaryPut() public {
@@ -395,9 +394,9 @@ contract TestStructuresFMMV2 is Test {
             expiry: 0
         });
 
-        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, sZERO);
-        assertEq(underlyingNeeded, sZERO);
+        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, ZERO);
+        assertEq(underlyingNeeded, ZERO);
     }
 
     function testMarginShortBinaryPut() public {
@@ -425,9 +424,9 @@ contract TestStructuresFMMV2 is Test {
             expiry: 0
         });
 
-        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
+        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
         assertEq(cashNeeded, 1);
-        assertEq(underlyingNeeded, sZERO);
+        assertEq(underlyingNeeded, ZERO);
     }
 
     function testMarginCallSpreadSameUnderlyingCollateral() public {
@@ -455,9 +454,9 @@ contract TestStructuresFMMV2 is Test {
             expiry: 0
         });
 
-        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, sZERO);
-        assertEq(underlyingNeeded, (1 * sUNIT) / 22000);
+        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, ZERO);
+        assertEq(underlyingNeeded, (1 * UNIT) / 22000);
     }
 
     function testMarginCallSpreadSameUnderlyingCollateralBiggerNumbers() public {
@@ -485,9 +484,9 @@ contract TestStructuresFMMV2 is Test {
             expiry: 0
         });
 
-        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, sZERO);
-        assertEq(underlyingNeeded, (1000_00000 * sUNIT) / 22000);
+        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, ZERO);
+        assertEq(underlyingNeeded, (1000_00000 * UNIT) / 22000);
     }
 
     function testMarginBinaryCallOption() public {
@@ -515,9 +514,9 @@ contract TestStructuresFMMV2 is Test {
             expiry: 0
         });
 
-        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, sZERO);
-        assertEq(underlyingNeeded, sZERO);
+        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, ZERO);
+        assertEq(underlyingNeeded, ZERO);
     }
 
     function testMarginCallSpreadWithCash() public {
@@ -545,9 +544,9 @@ contract TestStructuresFMMV2 is Test {
             expiry: 0
         });
 
-        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, 1000 * sUNIT);
-        assertEq(underlyingNeeded, sZERO);
+        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, 1000 * UNIT);
+        assertEq(underlyingNeeded, ZERO);
     }
 
     function testConversion() public {
@@ -576,9 +575,9 @@ contract TestStructuresFMMV2 is Test {
             expiry: 0
         });
 
-        (int256 cashNeeded1, int256 underlyingNeeded1) = detail.getMinCollateral();
-        assertEq(cashNeeded1, 17000 * sUNIT);
-        assertEq(underlyingNeeded1, 1 * sUNIT);
+        (uint256 cashNeeded1, uint256 underlyingNeeded1) = detail.getMinCollateral();
+        assertEq(cashNeeded1, 17000 * UNIT);
+        assertEq(underlyingNeeded1, 1 * UNIT);
 
         callWeights[0] = 314 * callWeights[0];
         detail = CrossMarginDetail({
@@ -594,7 +593,7 @@ contract TestStructuresFMMV2 is Test {
             expiry: 0
         });
 
-        (int256 cashNeeded2, int256 underlyingNeeded2) = detail.getMinCollateral();
+        (uint256 cashNeeded2, uint256 underlyingNeeded2) = detail.getMinCollateral();
         assertEq(cashNeeded1, cashNeeded2);
         assertEq(underlyingNeeded2, 314 * underlyingNeeded1);
     }
@@ -638,9 +637,9 @@ contract TestVanillaCallFMMV2 is Test {
             expiry: 0
         });
 
-        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, sZERO);
-        assertEq(underlyingNeeded, 1 * sUNIT);
+        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, ZERO);
+        assertEq(underlyingNeeded, 1 * UNIT);
     }
 }
 
@@ -682,9 +681,9 @@ contract TestVanillaPutFMMV2 is Test {
             expiry: 0
         });
 
-        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, 18000 * sUNIT);
-        assertEq(underlyingNeeded, sZERO);
+        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, 18000 * UNIT);
+        assertEq(underlyingNeeded, ZERO);
     }
 }
 
@@ -729,9 +728,9 @@ contract TestStrangles is Test {
             expiry: 0
         });
 
-        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, int256(putStrikes[0]));
-        assertEq(underlyingNeeded, -callWeights[0]);
+        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, putStrikes[0]);
+        assertEq(underlyingNeeded, uint256(-callWeights[0]));
     }
 
     function testLongStrangle() public {
@@ -750,9 +749,9 @@ contract TestStrangles is Test {
             expiry: 0
         });
 
-        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, sZERO);
-        assertEq(underlyingNeeded, sZERO);
+        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, ZERO);
+        assertEq(underlyingNeeded, ZERO);
     }
 
     function testStrangleSpread() public {
@@ -785,13 +784,13 @@ contract TestStrangles is Test {
             expiry: 0
         });
 
-        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, int256(putStrikes[0] - putStrikes[1]));
-        assertEq(underlyingNeeded, sZERO);
+        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, putStrikes[0] - putStrikes[1]);
+        assertEq(underlyingNeeded, ZERO);
     }
 }
 
-contract TestCornerCases is Test {
+contract TestCornerCases_CM is Test {
     using CrossMarginMath for CrossMarginDetail;
 
     uint256 private spotPrice;
@@ -838,9 +837,9 @@ contract TestCornerCases is Test {
             expiry: 0
         });
 
-        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, sZERO);
-        assertEq(underlyingNeeded, 1 * sUNIT);
+        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, ZERO);
+        assertEq(underlyingNeeded, 1 * UNIT);
     }
 
     function testOneByTwoCall2() public {
@@ -859,9 +858,9 @@ contract TestCornerCases is Test {
             expiry: 0
         });
 
-        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(underlyingNeeded, 1 * sUNIT);
-        assertEq(cashNeeded, sZERO);
+        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(underlyingNeeded, 1 * UNIT);
+        assertEq(cashNeeded, ZERO);
     }
 
     function testPotentialBreakOnZeroWeight() public {
@@ -899,9 +898,9 @@ contract TestCornerCases is Test {
             expiry: 0
         });
 
-        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, int256(putStrikes[1]) - 1000 * sUNIT);
-        assertEq(underlyingNeeded, sZERO);
+        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, putStrikes[1] - 1000 * UNIT);
+        assertEq(underlyingNeeded, ZERO);
     }
 
     function testIronCondor() public {
@@ -918,9 +917,9 @@ contract TestCornerCases is Test {
             expiry: 0
         });
 
-        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(cashNeeded, int256(putStrikes[1]) - 1000 * sUNIT);
-        assertEq(underlyingNeeded, 1 * sUNIT);
+        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        assertEq(cashNeeded, putStrikes[1] - 1000 * UNIT);
+        assertEq(underlyingNeeded, 1 * UNIT);
     }
 
     function testUpAndDown1() public {
@@ -942,10 +941,10 @@ contract TestCornerCases is Test {
             expiry: 0
         });
 
-        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        int256 cashRequired = -putWeights[0] * int256(putStrikes[0]) - putWeights[1] * int256(putStrikes[1]);
+        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        uint256 cashRequired = uint256(-putWeights[1]) * putStrikes[1] - uint256(putWeights[0]) * putStrikes[0];
         assertEq(cashNeeded, cashRequired);
-        assertEq(underlyingNeeded, sZERO);
+        assertEq(underlyingNeeded, ZERO);
     }
 
     function testUpAndDown2() public {
@@ -966,10 +965,10 @@ contract TestCornerCases is Test {
             expiry: 0
         });
 
-        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        int256 cashRequired = -putWeights[0] * int256(putStrikes[0]) - putWeights[1] * int256(putStrikes[1]);
-        assertEq(cashNeeded, cashRequired / sUNIT);
-        assertEq(underlyingNeeded, sZERO);
+        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        uint256 cashRequired = uint256(-putWeights[1]) * putStrikes[1] - uint256(putWeights[0]) * putStrikes[0];
+        assertEq(cashNeeded, cashRequired / UNIT);
+        assertEq(underlyingNeeded, ZERO);
     }
 
     function testUpAndDown3() public {
@@ -993,10 +992,10 @@ contract TestCornerCases is Test {
             expiry: 0
         });
 
-        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        int256 cashRequired = -putWeights[0] * int256(putStrikes[0]) - putWeights[1] * int256(putStrikes[1]);
-        assertEq(cashNeeded, cashRequired / sUNIT);
-        assertEq(underlyingNeeded, sZERO);
+        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        uint256 cashRequired = uint256(-putWeights[1]) * putStrikes[1] - uint256(putWeights[0]) * putStrikes[0];
+        assertEq(cashNeeded, cashRequired / UNIT);
+        assertEq(underlyingNeeded, ZERO);
     }
 
     function testUpAndDown4() public {
@@ -1015,10 +1014,10 @@ contract TestCornerCases is Test {
             expiry: 0
         });
 
-        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        int256 cashRequired = -putWeights[0] * int256(putStrikes[0]) - putWeights[1] * int256(putStrikes[1]);
-        assertEq(cashNeeded, cashRequired / sUNIT);
-        assertEq(underlyingNeeded, -int256(callWeights[0] + callWeights[1]));
+        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        uint256 cashRequired = uint256(-putWeights[1]) * putStrikes[1] - uint256(putWeights[0]) * putStrikes[0];
+        assertEq(cashNeeded, cashRequired / UNIT);
+        assertEq(underlyingNeeded, uint256(-callWeights[1]) - uint256(callWeights[0]));
     }
 
     function testPutGreaterThanCalls() public {
@@ -1028,7 +1027,7 @@ contract TestCornerCases is Test {
         putStrikes[0] = 2500 * UNIT;
         putStrikes[1] = 100 * UNIT;
 
-        callWeights[1] = 1 * sUNIT;
+        callWeights[0] = 1 * sUNIT;
         callWeights[1] = -1 * sUNIT;
 
         callStrikes[0] = 300 * UNIT;
@@ -1046,9 +1045,9 @@ contract TestCornerCases is Test {
             expiry: 0
         });
 
-        (int256 cashNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-        int256 cashRequired = -putWeights[0] * int256(putStrikes[0]) - putWeights[1] * int256(putStrikes[1]);
-        assertEq(cashNeeded, cashRequired / sUNIT);
-        assertEq(underlyingNeeded, -int256(callWeights[0] + callWeights[1]));
+        (uint256 cashNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+        uint256 cashRequired = uint256(-putWeights[0]) * putStrikes[0] - uint256(putWeights[1]) * putStrikes[1];
+        assertEq(cashNeeded, cashRequired / UNIT);
+        assertEq(underlyingNeeded, uint256(callWeights[0] + callWeights[1]));
     }
 }
