@@ -127,7 +127,7 @@ abstract contract BaseEngine {
      * @dev pull token from user, increase collateral in account storage
             the collateral has to be provided by either caller, or the primary owner of subaccount
      */
-    function _addCollateral(address _subAccount, bytes memory _data) internal virtual {
+    function _addCollateral(address _subAccount, bytes calldata _data) internal virtual {
         // decode parameters
         (address from, uint80 amount, uint8 collateralId) = abi.decode(_data, (address, uint80, uint8));
 
@@ -147,7 +147,7 @@ abstract contract BaseEngine {
      * @dev push token to user, decrease collateral in storage
      * @param _data bytes data to decode
      */
-    function _removeCollateral(address _subAccount, bytes memory _data) internal virtual {
+    function _removeCollateral(address _subAccount, bytes calldata _data) internal virtual {
         // decode parameters
         (uint80 amount, address recipient, uint8 collateralId) = abi.decode(_data, (uint80, address, uint8));
 
@@ -165,7 +165,7 @@ abstract contract BaseEngine {
      * @dev mint option token to user, increase short position (debt) in storage
      * @param _data bytes data to decode
      */
-    function _mintOption(address _subAccount, bytes memory _data) internal virtual {
+    function _mintOption(address _subAccount, bytes calldata _data) internal virtual {
         // decode parameters
         (uint256 tokenId, address recipient, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
 
@@ -182,7 +182,7 @@ abstract contract BaseEngine {
      * @dev mint option token into account, increase short position (debt) and increase long position in storage
      * @param _data bytes data to decode
      */
-    function _mintOptionIntoAccount(address _subAccount, bytes memory _data) internal virtual {
+    function _mintOptionIntoAccount(address _subAccount, bytes calldata _data) internal virtual {
         // decode parameters
         (uint256 tokenId, address recipientSubAccount, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
 
@@ -207,7 +207,7 @@ abstract contract BaseEngine {
             the option has to be provided by either caller, or the primary owner of subaccount
      * @param _data bytes data to decode
      */
-    function _burnOption(address _subAccount, bytes memory _data) internal virtual {
+    function _burnOption(address _subAccount, bytes calldata _data) internal virtual {
         // decode parameters
         (uint256 tokenId, address from, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
 
@@ -226,7 +226,7 @@ abstract contract BaseEngine {
      * @dev Add long token into the account to reduce capital requirement.
      * @param _subAccount subaccount that will be update in place
      */
-    function _addOption(address _subAccount, bytes memory _data) internal virtual {
+    function _addOption(address _subAccount, bytes calldata _data) internal virtual {
         // decode parameters
         (uint256 tokenId, uint64 amount, address from) = abi.decode(_data, (uint256, uint64, address));
 
@@ -248,7 +248,7 @@ abstract contract BaseEngine {
      * @dev Remove long token from the account to increase capital requirement.
      * @param _subAccount subaccount that will be update in place
      */
-    function _removeOption(address _subAccount, bytes memory _data) internal virtual {
+    function _removeOption(address _subAccount, bytes calldata _data) internal virtual {
         // decode parameters
         (uint256 tokenId, uint64 amount, address to) = abi.decode(_data, (uint256, uint64, address));
 
@@ -265,7 +265,7 @@ abstract contract BaseEngine {
      * @dev Transfers collateral to another account.
      * @param _subAccount subaccount that will be update in place
      */
-    function _transferCollateral(address _subAccount, bytes memory _data) internal virtual {
+    function _transferCollateral(address _subAccount, bytes calldata _data) internal virtual {
         // decode parameters
         (uint80 amount, address to, uint8 collateralId) = abi.decode(_data, (uint80, address, uint8));
 
@@ -282,7 +282,7 @@ abstract contract BaseEngine {
      * @dev Transfers short tokens to another account.
      * @param _subAccount subaccount that will be update in place
      */
-    function _transferShort(address _subAccount, bytes memory _data) internal virtual {
+    function _transferShort(address _subAccount, bytes calldata _data) internal virtual {
         // decode parameters
         (uint256 tokenId, address to, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
 
@@ -301,7 +301,7 @@ abstract contract BaseEngine {
      * @dev Transfers long tokens to another account.
      * @param _subAccount subaccount that will be update in place
      */
-    function _transferLong(address _subAccount, bytes memory _data) internal virtual {
+    function _transferLong(address _subAccount, bytes calldata _data) internal virtual {
         // decode parameters
         (uint256 tokenId, address to, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
 
@@ -317,7 +317,7 @@ abstract contract BaseEngine {
             the option has to be provided by either caller, or the primary owner of subaccount
      * @param _data bytes data to decode
      */
-    function _merge(address _subAccount, bytes memory _data) internal virtual {
+    function _merge(address _subAccount, bytes calldata _data) internal virtual {
         // decode parameters
         (uint256 longTokenId, uint256 shortTokenId, address from, uint64 amount) = abi.decode(
             _data,
@@ -342,7 +342,7 @@ abstract contract BaseEngine {
      * @dev Change existing spread position to short, and mint option token for recipient
      * @param _subAccount subaccount that will be update in place
      */
-    function _split(address _subAccount, bytes memory _data) internal virtual {
+    function _split(address _subAccount, bytes calldata _data) internal virtual {
         // decode parameters
         (uint256 spreadId, uint64 amount, address recipient) = abi.decode(_data, (uint256, uint64, address));
 
