@@ -111,6 +111,11 @@ contract CrossMarginEngine is
         whitelist = IWhitelist(_whitelist);
     }
 
+    /**
+     * @notice batch execute on multiple subAccounts
+     * @dev    check margin after all subAccounts are updated
+     *         because we support actions like `TransferCollateral` that moves collateral between subAccounts
+     */
     function batchExecute(BatchExecute[] calldata batchActions) external nonReentrant {
         _checkPermissioned(msg.sender);
 
@@ -136,6 +141,10 @@ contract CrossMarginEngine is
         }
     }
 
+    /**
+     * @notice execute multiple actions on one subAccounts
+     * @dev    check margin all actions are applied
+     */
     function execute(address _subAccount, ActionArgs[] calldata actions) external override nonReentrant {
         _checkPermissioned(msg.sender);
 
@@ -186,6 +195,9 @@ contract CrossMarginEngine is
         delete accounts[_subAccount];
     }
 
+    /**
+     * @dev view function to get all shorts, longs and collaterals
+     */
     function marginAccounts(address _subAccount)
         external
         view
@@ -220,7 +232,7 @@ contract CrossMarginEngine is
     }
 
     /** ========================================================= **
-                   Override Internal Functions For Each Action
+                Override Internal Functions For Each Action
      ** ========================================================= **/
 
     /**
@@ -348,6 +360,10 @@ contract CrossMarginEngine is
         if (address(whitelist) != address(0) && !whitelist.engineAccess(_address)) revert NoAccess();
     }
 
+    /**
+     * @notice execute multiple actions on one subAccounts
+     * @dev    also check access of msg.sender
+     */
     function _execute(address _subAccount, ActionArgs[] calldata actions) internal {
         _assertCallerHasAccess(_subAccount);
 
@@ -375,6 +391,9 @@ contract CrossMarginEngine is
         }
     }
 
+    /**
+     * @dev get minimum collateral requirement for an account
+     */
     function _getMinCollateral(CrossMarginAccount memory account) internal view returns (SBalance[] memory) {
         return CrossMarginMath.getMinCollateralForAccount(grappa, account);
     }
