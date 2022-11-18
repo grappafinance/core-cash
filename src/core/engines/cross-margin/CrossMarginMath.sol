@@ -355,7 +355,7 @@ library CrossMarginMath {
             uint256 underlyingPayoutAtMinStrike = (pois[index] * underlyingNeeded) / UNIT;
 
             if (underlyingPayoutAtMinStrike.toInt256() > minStrikePayout) cashNeeded = ZERO;
-            else cashNeeded = uint256(minStrikePayout) - underlyingPayoutAtMinStrike; // check in the line above means that minStrikePayout > 0
+            else cashNeeded = uint256(minStrikePayout) - underlyingPayoutAtMinStrike; // check directly above means minStrikePayout > 0
         }
 
         return cashNeeded;

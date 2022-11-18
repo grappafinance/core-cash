@@ -11,7 +11,8 @@ import "../../../config/types.sol";
 /**
  * test full margin calculation for complicated structure
  */
-contract TestStructures_CM is Test {
+// solhint-disable-next-line contract-name-camelcase
+contract TestStructures_CMM is Test {
     using CrossMarginMath for CrossMarginDetail;
 
     uint256 private spotPrice;
@@ -599,7 +600,8 @@ contract TestStructures_CM is Test {
     }
 }
 
-contract TestVanillaCallFMMV2 is Test {
+// solhint-disable-next-line contract-name-camelcase
+contract TestVanillaCall_CMM is Test {
     using CrossMarginMath for CrossMarginDetail;
 
     uint256 private spotPrice;
@@ -643,7 +645,8 @@ contract TestVanillaCallFMMV2 is Test {
     }
 }
 
-contract TestVanillaPutFMMV2 is Test {
+// solhint-disable-next-line contract-name-camelcase
+contract TestVanillaPut_CMM is Test {
     using CrossMarginMath for CrossMarginDetail;
 
     uint256 private spotPrice;
@@ -790,7 +793,8 @@ contract TestStrangles is Test {
     }
 }
 
-contract TestCornerCases_CM is Test {
+// solhint-disable-next-line contract-name-camelcase
+contract TestCornerCases_CMM is Test {
     using CrossMarginMath for CrossMarginDetail;
 
     uint256 private spotPrice;
