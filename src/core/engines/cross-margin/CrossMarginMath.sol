@@ -537,24 +537,21 @@ library CrossMarginMath {
 
         (
             address oracle,
-            address engine,
+            ,
             address underlying,
             uint8 underlyingDecimals,
             address strike,
-            uint8 strikeDecimals,
-            address collateral,
+            ,
+            ,
             uint8 collatDecimals
         ) = grappa.getDetailFromProductId(productId);
 
         info.oracle = oracle;
-        info.engine = engine;
         info.underlying = underlying;
         info.underlyingId = underlyingId;
         info.underlyingDecimals = underlyingDecimals;
         info.strike = strike;
         info.strikeId = strikeId;
-        info.strikeDecimals = strikeDecimals;
-        info.collateral = collateral;
         info.collateralId = collateralId;
         info.collateralDecimals = collatDecimals;
     }
