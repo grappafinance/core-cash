@@ -1,28 +1,33 @@
 # Grappa Contract Doc
 
+In this doc, we will go through the architecture of the core Grappa system, and the role of each system.
+
+To understand the structure of the repo, please go to [repo guide](./repo-guide.md).
+
 ## Architecture
 
 
-This is the basic diagram of how contracts interact with each other.
+This is the basic diagram of how all contracts interact with each other.
 
 ![high level](https://i.imgur.com/DKbsMnU.png)
 
 There are 2 main contracts: `Grappa`, `OptionToken`, and 2 "sets" of contracts: oracles, and margin engines. 
 
-- `Grappa`: served as a registry for the whole system. Also used for settlement.
-- `OptionToken`: ERC1155 token that represent the right to claim for a non-negative payout at expiry. It can represent a long call position, a long put position, or debit spreads. How the Id of an option token is interpreted is determined by the Grappa contract at settlement.
-- **Oracles**: contracts that can be used to determine settlement price, different user / protocol might want to settle with different oracles
-- **Margin Engines**: contracts that determine the rule to collateralize option tokens. Tokens minted by different engines are not fungible, so that the risk are always isolated. There should be multiple margin engines working together to provide user flexibilities to choose from, based on user preference such as gas fee, capital efficiency, composability and risk.
+## `Grappa.sol`
 
-## Grappa
+`Grappa`: served as a registry for the whole system. Also used for settlement.
 
-(wip)
+## `OptionToken.sol`
 
-## OptionToken
+`OptionToken`: ERC1155 token that represent the right to claim for a non-negative payout at expiry. It can represent a long call position, a long put position, or debit spreads. How the Id of an option token is interpreted is determined by the Grappa contract at settlement.
 
 ## Oracles
 
-## Engines
+Grappa Owner can register bunch of oracles to the system. Oracles are contracts that can be used to determine settlement price, different user / protocol might want to settle with different oracles.
+
+## Margin Engines
+
+**Margine Engines** are contracts that determine the rule to collateralize option tokens. Tokens minted by different engines are not fungible, so that the risk are always isolated. There should be multiple margin engines working together to provide user flexibilities to choose from, based on user preference such as gas fee, capital efficiency, composability and risk.
 
 ### List of Margin Engines
 

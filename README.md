@@ -112,27 +112,6 @@ slither ./src/core/
 
 For detailed documentation about how the system architecture is designed, please visit [docs](./docs/)
 
-## Base Layer Contract Architecture
-
-The 4 pieces that compose Grappa are `Oracle`, `MarginEngine` `OptionToken` and `Grappa`.
-
-- `Grappa`: served as a registry for margin engines, assets and oracles. Also used for settling optionTokens.
-- `OptionToken`: ERC1155 token that represent the right to claim for a non-negative payout at expiry. It can represent a long call position, a long put position, or debit spreads.
-- `Oracle`: contracts to report spot price and expiry price of an asset. People can choose to create options that settled with different oracles.
-- `MarginEngine`: each margin engine can be authorized to mint different option tokens. There should be multiple margin engines working together to provide user flexibilities to choose from, based on user preference such as gas fee, capital efficiency, composability and risk.
-
-## List of Oracles
-
-- `ChainlinkOracle`
-
-
-
-### WIP Margin Engines
-
-- **PortfolioMargin**: Support up to 30(?) positions and calculate max loss as required collateral.
-
-Other margin system can be added to Grappa as long as it complies with the interface.
-
 ## Install Grappa into your project
 
 With hardhat
