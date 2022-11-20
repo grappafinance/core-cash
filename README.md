@@ -108,11 +108,11 @@ slither ./src/core/AdvancedMargin
 slither ./src/core/
 ```
 
+## Documentation
+
+For detailed documentation about how the system architecture is designed, please visit [docs](./docs/)
+
 ## Base Layer Contract Architecture
-
-![architecture](https://i.imgur.com/1HVOLYG.png)
-
-This is the basic diagram of how contracts interact with each other in the draft version. A more detail diagram will be added later.
 
 The 4 pieces that compose Grappa are `Oracle`, `MarginEngine` `OptionToken` and `Grappa`.
 
@@ -125,16 +125,7 @@ The 4 pieces that compose Grappa are `Oracle`, `MarginEngine` `OptionToken` and 
 
 - `ChainlinkOracle`
 
-## List of Margin Engines
 
-- `FullMargin`: fully collateralized margin. can be used to mint:
-  - covered call (collateralized with underlying)
-  - covered put (collateralized with strike)
-  - call spread (collateralized with strike or underlying)
-  - put spread (collateralized with strike)
-- `AdvancedMargin`: mint partially collateralized options which is 3x - 20x more capital efficient compared to fully collateralized options. Requires dependencies on vol oracle to estimate the value of option. Each 'subAccounts' can process:
-  - single collateral type
-  - can mint 1 call (or call spread) + 1 put (or put spread) in a single account.
 
 ### WIP Margin Engines
 
