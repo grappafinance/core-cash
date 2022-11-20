@@ -21,8 +21,8 @@ import {ProductIdUtil} from "../../../libraries/ProductIdUtil.sol";
 import {AccountUtil} from "../../../libraries/AccountUtil.sol";
 import {ArrayUtil} from "../../../libraries/ArrayUtil.sol";
 
-import {FullMarginMathV2} from "./FullMarginMathV2.sol";
-import {FullMarginLibV2} from "./FullMarginLibV2.sol";
+import {CrossMarginMath} from "./CrossMarginMath.sol";
+import {CrossMarginLib} from "./CrossMarginLib.sol";
 
 // constants and types
 import "../../../config/types.sol";
@@ -31,32 +31,25 @@ import "../../../config/constants.sol";
 import "../../../config/errors.sol";
 
 /**
- * @title   FullMarginEngineV2
+ * @title   CrossMarginEngine
  * @author  @dsshap, @antoncoding
  * @notice  Fully collateralized margin engine
-            Users can deposit collateral into FullMargin and mint optionTokens (debt) out of it.
+            Users can deposit collateral into Cross Margin and mint optionTokens (debt) out of it.
             Interacts with OptionToken to mint / burn
             Interacts with grappa to fetch registered asset info
  */
-contract FullMarginEngineV2 is
+contract CrossMarginEngine is
     BaseEngine,
     IMarginEngine,
     OwnableUpgradeable,
     ReentrancyGuardUpgradeable,
     UUPSUpgradeable
 {
-    using ArrayUtil for bytes32[];
-    using ArrayUtil for int256[];
-    using ArrayUtil for uint256[];
-
-    using AccountUtil for Balance[];
-    using AccountUtil for FullMarginDetailV2[];
     using AccountUtil for Position[];
     using AccountUtil for PositionOptim[];
     using AccountUtil for SBalance[];
-
-    using FullMarginLibV2 for FullMarginAccountV2;
-    using FullMarginMathV2 for FullMarginDetailV2;
+    using CrossMarginLib for CrossMarginAccount;
+    using ProductIdUtil for uint40;
     using SafeCast for uint256;
     using SafeCast for int256;
     using TokenIdUtil for uint256;
@@ -65,10 +58,10 @@ contract FullMarginEngineV2 is
                          State Variables V1
     //////////////////////////////////////////////////////////////*/
 
-    ///@dev subAccount => FullMarginAccountV2 structure.
+    ///@dev subAccount => CrossMarginAccount structure.
     ///     subAccount can be an address similar to the primary account, but has the last 8 bits different.
     ///     this give every account access to 256 sub-accounts
-    mapping(address => FullMarginAccountV2) internal accounts;
+    mapping(address => CrossMarginAccount) internal accounts;
 
     ///@dev contract that verifys permissions
     ///     if not set allows anyone to transact
@@ -118,6 +111,11 @@ contract FullMarginEngineV2 is
         whitelist = IWhitelist(_whitelist);
     }
 
+    /**
+     * @notice batch execute on multiple subAccounts
+     * @dev    check margin after all subAccounts are updated
+     *         because we support actions like `TransferCollateral` that moves collateral between subAccounts
+     */
     function batchExecute(BatchExecute[] calldata batchActions) external nonReentrant {
         _checkPermissioned(msg.sender);
 
@@ -143,6 +141,10 @@ contract FullMarginEngineV2 is
         }
     }
 
+    /**
+     * @notice execute multiple actions on one subAccounts
+     * @dev    check margin all actions are applied
+     */
     function execute(address _subAccount, ActionArgs[] calldata actions) external override nonReentrant {
         _checkPermissioned(msg.sender);
 
@@ -174,7 +176,7 @@ contract FullMarginEngineV2 is
      * @return balances array of collaterals and amount (signed)
      */
     function getMinCollateral(address _subAccount) external view returns (SBalance[] memory balances) {
-        FullMarginAccountV2 memory account = accounts[_subAccount];
+        CrossMarginAccount memory account = accounts[_subAccount];
         balances = _getMinCollateral(account);
     }
 
@@ -187,12 +189,15 @@ contract FullMarginEngineV2 is
     function transferAccount(address _subAccount, address _newSubAccount) external {
         if (!_isPrimaryAccountFor(msg.sender, _subAccount)) revert NoAccess();
 
-        if (!accounts[_newSubAccount].isEmpty()) revert FM_AccountIsNotEmpty();
+        if (!accounts[_newSubAccount].isEmpty()) revert CM_AccountIsNotEmpty();
         accounts[_newSubAccount] = accounts[_subAccount];
 
         delete accounts[_subAccount];
     }
 
+    /**
+     * @dev view function to get all shorts, longs and collaterals
+     */
     function marginAccounts(address _subAccount)
         external
         view
@@ -202,7 +207,7 @@ contract FullMarginEngineV2 is
             Balance[] memory collaterals
         )
     {
-        FullMarginAccountV2 memory account = accounts[_subAccount];
+        CrossMarginAccount memory account = accounts[_subAccount];
 
         return (account.shorts.getPositions(), account.longs.getPositions(), account.collaterals);
     }
@@ -218,7 +223,7 @@ contract FullMarginEngineV2 is
         view
         returns (Balance[] memory balances)
     {
-        FullMarginAccountV2 memory account;
+        CrossMarginAccount memory account;
 
         account.shorts = shorts.getPositionOptims();
         account.longs = longs.getPositionOptims();
@@ -227,7 +232,7 @@ contract FullMarginEngineV2 is
     }
 
     /** ========================================================= **
-                   Override Internal Functions For Each Action
+                Override Internal Functions For Each Action
      ** ========================================================= **/
 
     /**
@@ -310,7 +315,7 @@ contract FullMarginEngineV2 is
      * @return isHealthy true if account is in good condition, false if it's underwater (liquidatable)
      */
     function _isAccountAboveWater(address _subAccount) internal view override returns (bool isHealthy) {
-        FullMarginAccountV2 memory account = accounts[_subAccount];
+        CrossMarginAccount memory account = accounts[_subAccount];
         SBalance[] memory balances = _getMinCollateral(account);
 
         for (uint256 i; i < balances.length; ) {
@@ -332,14 +337,14 @@ contract FullMarginEngineV2 is
         (TokenType optionType, uint40 productId, uint64 expiry, , ) = tokenId.parseTokenId();
 
         // engine only supports calls and puts
-        if (optionType != TokenType.CALL && optionType != TokenType.PUT) revert FM_UnsupportedTokenType();
+        if (optionType != TokenType.CALL && optionType != TokenType.PUT) revert CM_UnsupportedTokenType();
 
-        if (block.timestamp > expiry) revert FM_Option_Expired();
+        if (block.timestamp > expiry) revert CM_Option_Expired();
 
-        ProductDetails memory product = _getProductDetails(productId);
+        (, uint8 engineId, , , ) = productId.parseProductId();
 
         // in the future reference a whitelist of engines
-        if (product.engine != address(this)) revert FM_Not_Authorized_Engine();
+        if (engineId != grappa.engineIds(address(this))) revert CM_Not_Authorized_Engine();
     }
 
     /** ========================================================= **
@@ -355,6 +360,10 @@ contract FullMarginEngineV2 is
         if (address(whitelist) != address(0) && !whitelist.engineAccess(_address)) revert NoAccess();
     }
 
+    /**
+     * @notice execute multiple actions on one subAccounts
+     * @dev    also check access of msg.sender
+     */
     function _execute(address _subAccount, ActionArgs[] calldata actions) internal {
         _assertCallerHasAccess(_subAccount);
 
@@ -373,7 +382,7 @@ contract FullMarginEngineV2 is
             else if (actions[i].action == ActionType.AddLong) _addOption(_subAccount, actions[i].data);
             else if (actions[i].action == ActionType.RemoveLong) _removeOption(_subAccount, actions[i].data);
             else if (actions[i].action == ActionType.SettleAccount) _settle(_subAccount);
-            else revert FM_UnsupportedAction();
+            else revert CM_UnsupportedAction();
 
             // increase i without checking overflow
             unchecked {
@@ -382,160 +391,11 @@ contract FullMarginEngineV2 is
         }
     }
 
-    function _getMinCollateral(FullMarginAccountV2 memory account) internal view returns (SBalance[] memory balances) {
-        FullMarginDetailV2[] memory details = _getAccountDetails(account);
-
-        balances = account.collaterals.toSBalances();
-
-        if (details.length == 0) return balances;
-
-        bool found;
-        uint256 index;
-
-        for (uint256 i; i < details.length; ) {
-            FullMarginDetailV2 memory detail = details[i];
-
-            if (detail.callWeights.length != 0 || detail.putWeights.length != 0) {
-                (int256 cashCollateralNeeded, int256 underlyingNeeded) = detail.getMinCollateral();
-
-                if (cashCollateralNeeded != 0) {
-                    (found, index) = balances.indexOf(detail.collateralId);
-
-                    if (found) balances[index].amount -= cashCollateralNeeded.toInt80();
-                    else balances = balances.append(SBalance(detail.collateralId, -cashCollateralNeeded.toInt80()));
-                }
-
-                if (underlyingNeeded != 0) {
-                    (found, index) = balances.indexOf(detail.underlyingId);
-
-                    if (found) balances[index].amount -= underlyingNeeded.toInt80();
-                    else balances = balances.append(SBalance(detail.underlyingId, -underlyingNeeded.toInt80()));
-                }
-            }
-
-            unchecked {
-                ++i;
-            }
-        }
-    }
-
     /**
-     * @notice  convert Account struct from storage to in-memory detail struct
+     * @dev get minimum collateral requirement for an account
      */
-    function _getAccountDetails(FullMarginAccountV2 memory account)
-        internal
-        view
-        returns (FullMarginDetailV2[] memory details)
-    {
-        details = new FullMarginDetailV2[](0);
-
-        bytes32[] memory usceLookUp = new bytes32[](0);
-
-        Position[] memory positions = account.shorts.getPositions().concat(account.longs.getPositions());
-        uint256 shortLength = account.shorts.length;
-
-        for (uint256 i; i < positions.length; ) {
-            (, uint40 productId, uint64 expiry, , ) = positions[i].tokenId.parseTokenId();
-
-            ProductDetails memory product = _getProductDetails(productId);
-
-            bytes32 pos = keccak256(abi.encode(product.underlyingId, product.strikeId, product.collateralId, expiry));
-            (bool found, uint256 index) = usceLookUp.indexOf(pos);
-
-            FullMarginDetailV2 memory detail;
-
-            if (found) detail = details[index];
-            else {
-                usceLookUp = usceLookUp.append(pos);
-                details = details.append(detail);
-
-                detail.underlyingId = product.underlyingId;
-                detail.underlyingDecimals = product.underlyingDecimals;
-                detail.collateralId = product.collateralId;
-                detail.collateralDecimals = product.collateralDecimals;
-                detail.spotPrice = IOracle(product.oracle).getSpotPrice(product.underlying, product.strike);
-                detail.expiry = expiry;
-            }
-
-            int256 amount = int256(int64(positions[i].amount));
-            if (i < shortLength) amount = -amount;
-
-            _processDetailWithToken(detail, positions[i].tokenId, amount);
-
-            unchecked {
-                ++i;
-            }
-        }
-    }
-
-    function _processDetailWithToken(
-        FullMarginDetailV2 memory detail,
-        uint256 tokenId,
-        int256 amount
-    ) internal pure {
-        (TokenType tokenType, , , uint64 strike, ) = tokenId.parseTokenId();
-
-        bool found;
-        uint256 index;
-
-        if (tokenType == TokenType.CALL) {
-            (found, index) = detail.callStrikes.indexOf(strike);
-
-            if (found) {
-                detail.callWeights[index] += amount;
-
-                if (detail.callWeights[index] == 0) {
-                    detail.callWeights = detail.callWeights.remove(index);
-                    detail.callStrikes = detail.callStrikes.remove(index);
-                }
-            } else {
-                detail.callStrikes = detail.callStrikes.append(strike);
-                detail.callWeights = detail.callWeights.append(amount);
-            }
-        }
-
-        if (tokenType == TokenType.PUT) {
-            (found, index) = detail.putStrikes.indexOf(strike);
-
-            if (found) {
-                detail.putWeights[index] += amount;
-
-                if (detail.putWeights[index] == 0) {
-                    detail.putWeights = detail.putWeights.remove(index);
-                    detail.putStrikes = detail.putStrikes.remove(index);
-                }
-            } else {
-                detail.putStrikes = detail.putStrikes.append(strike);
-                detail.putWeights = detail.putWeights.append(amount);
-            }
-        }
-    }
-
-    function _getProductDetails(uint40 productId) internal view returns (ProductDetails memory info) {
-        (, , uint8 underlyingId, uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(productId);
-
-        (
-            address oracle,
-            address engine,
-            address underlying,
-            uint8 underlyingDecimals,
-            address strike,
-            uint8 strikeDecimals,
-            address collateral,
-            uint8 collatDecimals
-        ) = grappa.getDetailFromProductId(productId);
-
-        info.oracle = oracle;
-        info.engine = engine;
-        info.underlying = underlying;
-        info.underlyingId = underlyingId;
-        info.underlyingDecimals = underlyingDecimals;
-        info.strike = strike;
-        info.strikeId = strikeId;
-        info.strikeDecimals = strikeDecimals;
-        info.collateral = collateral;
-        info.collateralId = collateralId;
-        info.collateralDecimals = collatDecimals;
+    function _getMinCollateral(CrossMarginAccount memory account) internal view returns (SBalance[] memory) {
+        return CrossMarginMath.getMinCollateralForAccount(grappa, account);
     }
 
     function onERC1155Received(

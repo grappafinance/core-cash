@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 // import test base and helpers.
-import {FullMarginFixtureV2} from "./FullMarginFixtureV2.t.sol";
+import {CrossMarginFixture} from "./CrossMarginFixture.t.sol";
 
 import "../../../config/enums.sol";
 import "../../../config/types.sol";
@@ -12,7 +12,7 @@ import "../../../config/errors.sol";
 import "../../../test/mocks/MockERC20.sol";
 
 // solhint-disable-next-line contract-name-camelcase
-contract TestMint_FMV2 is FullMarginFixtureV2 {
+contract TestMint_CM is CrossMarginFixture {
     uint256 public expiry;
 
     function setUp() public {
@@ -61,7 +61,7 @@ contract TestMint_FMV2 is FullMarginFixtureV2 {
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
 
-        vm.expectRevert(FM_CannotMintOptionWithThisCollateral.selector);
+        vm.expectRevert(CM_CannotMintOptionWithThisCollateral.selector);
         engine.execute(address(this), actions);
     }
 
@@ -154,7 +154,7 @@ contract TestMint_FMV2 is FullMarginFixtureV2 {
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
 
-        vm.expectRevert(FM_CannotMintOptionWithThisCollateral.selector);
+        vm.expectRevert(CM_CannotMintOptionWithThisCollateral.selector);
         engine.execute(address(this), actions);
     }
 
@@ -217,7 +217,7 @@ contract TestMint_FMV2 is FullMarginFixtureV2 {
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
 
-        vm.expectRevert(FM_UnsupportedTokenType.selector);
+        vm.expectRevert(CM_UnsupportedTokenType.selector);
         engine.execute(address(this), actions);
     }
 
@@ -235,7 +235,7 @@ contract TestMint_FMV2 is FullMarginFixtureV2 {
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
 
-        vm.expectRevert(FM_UnsupportedTokenType.selector);
+        vm.expectRevert(CM_UnsupportedTokenType.selector);
         engine.execute(address(this), actions);
     }
 }

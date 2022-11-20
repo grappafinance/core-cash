@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import {Test} from "forge-std/Test.sol";
 
-import {FullMarginMathV2} from "../../../core/engines/full-margin-v2/FullMarginMathV2.sol";
+import {CrossMarginMath} from "../../../core/engines/cross-margin/CrossMarginMath.sol";
 import "../../../config/constants.sol";
 import "../../../config/errors.sol";
 import "../../../config/types.sol";
@@ -13,7 +13,7 @@ import "../../utils/Console.sol";
  * test full margin calculation for complicated structure
  */
 contract TestStructuresFMMV2 is Test {
-    using FullMarginMathV2 for FullMarginDetailV2;
+    using CrossMarginMath for CrossMarginDetail;
 
     uint256 private spotPrice;
 
@@ -50,7 +50,7 @@ contract TestStructuresFMMV2 is Test {
     function testVerifyInputs2() public {
         callWeights[2] = 0;
 
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -62,7 +62,7 @@ contract TestStructuresFMMV2 is Test {
             spotPrice: spotPrice,
             expiry: 0
         });
-        vm.expectRevert(FullMarginMathV2.FMMV2_InvalidCallWeight.selector);
+        vm.expectRevert(CrossMarginMath.CM_InvalidCallWeight.selector);
         detail.getMinCollateral();
     }
 
@@ -72,7 +72,7 @@ contract TestStructuresFMMV2 is Test {
         putWeights[1] = 1 * sUNIT;
         putWeights[2] = 1 * sUNIT;
 
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -84,7 +84,7 @@ contract TestStructuresFMMV2 is Test {
             spotPrice: spotPrice,
             expiry: 0
         });
-        vm.expectRevert(FullMarginMathV2.FMMV2_InvalidPutLengths.selector);
+        vm.expectRevert(CrossMarginMath.CM_InvalidPutLengths.selector);
         detail.getMinCollateral();
     }
 
@@ -94,7 +94,7 @@ contract TestStructuresFMMV2 is Test {
         callWeights[1] = 1 * sUNIT;
         callWeights[2] = 1 * sUNIT;
 
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -106,12 +106,12 @@ contract TestStructuresFMMV2 is Test {
             spotPrice: spotPrice,
             expiry: 0
         });
-        vm.expectRevert(FullMarginMathV2.FMMV2_InvalidCallLengths.selector);
+        vm.expectRevert(CrossMarginMath.CM_InvalidCallLengths.selector);
         detail.getMinCollateral();
     }
 
     function testMarginRequirement1() public {
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -132,7 +132,7 @@ contract TestStructuresFMMV2 is Test {
     function testMarginRequirement2() public {
         callWeights[3] = -7 * sUNIT;
 
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -153,7 +153,7 @@ contract TestStructuresFMMV2 is Test {
     function testMarginRequirement3() public {
         callWeights[3] = -8 * sUNIT;
 
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -175,7 +175,7 @@ contract TestStructuresFMMV2 is Test {
         putWeights[0] = -3 * sUNIT;
         putWeights[1] = 1 * sUNIT;
 
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -210,7 +210,7 @@ contract TestStructuresFMMV2 is Test {
         callStrikes[2] = 21000 * UNIT;
         callStrikes[3] = 25000 * UNIT;
 
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -238,7 +238,7 @@ contract TestStructuresFMMV2 is Test {
         callWeights = new int256[](0);
         callStrikes = new uint256[](0);
 
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -266,7 +266,7 @@ contract TestStructuresFMMV2 is Test {
         callWeights = new int256[](0);
         callStrikes = new uint256[](0);
 
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -294,7 +294,7 @@ contract TestStructuresFMMV2 is Test {
         callStrikes = new uint256[](1);
         callStrikes[0] = 15000 * UNIT;
 
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -322,7 +322,7 @@ contract TestStructuresFMMV2 is Test {
         callStrikes = new uint256[](1);
         callStrikes[0] = 22000 * UNIT;
 
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -352,7 +352,7 @@ contract TestStructuresFMMV2 is Test {
         callWeights = new int256[](0);
         callStrikes = new uint256[](0);
 
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -382,7 +382,7 @@ contract TestStructuresFMMV2 is Test {
         callWeights = new int256[](0);
         callStrikes = new uint256[](0);
 
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -412,7 +412,7 @@ contract TestStructuresFMMV2 is Test {
         callWeights = new int256[](0);
         callStrikes = new uint256[](0);
 
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -442,7 +442,7 @@ contract TestStructuresFMMV2 is Test {
         putWeights = new int256[](0);
         putStrikes = new uint256[](0);
 
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -472,7 +472,7 @@ contract TestStructuresFMMV2 is Test {
         putWeights = new int256[](0);
         putStrikes = new uint256[](0);
 
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -502,7 +502,7 @@ contract TestStructuresFMMV2 is Test {
         putWeights = new int256[](0);
         putStrikes = new uint256[](0);
 
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -532,7 +532,7 @@ contract TestStructuresFMMV2 is Test {
         putWeights = new int256[](0);
         putStrikes = new uint256[](0);
 
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -563,7 +563,7 @@ contract TestStructuresFMMV2 is Test {
         putStrikes = new uint256[](1);
         putStrikes[0] = callStrikes[0];
 
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -581,7 +581,7 @@ contract TestStructuresFMMV2 is Test {
         assertEq(underlyingNeeded1, 1 * sUNIT);
 
         callWeights[0] = 314 * callWeights[0];
-        detail = FullMarginDetailV2({
+        detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -601,7 +601,7 @@ contract TestStructuresFMMV2 is Test {
 }
 
 contract TestVanillaCallFMMV2 is Test {
-    using FullMarginMathV2 for FullMarginDetailV2;
+    using CrossMarginMath for CrossMarginDetail;
 
     uint256 private spotPrice;
 
@@ -625,7 +625,7 @@ contract TestVanillaCallFMMV2 is Test {
     }
 
     function testMarginRequirementVanillaCall1() public {
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -645,7 +645,7 @@ contract TestVanillaCallFMMV2 is Test {
 }
 
 contract TestVanillaPutFMMV2 is Test {
-    using FullMarginMathV2 for FullMarginDetailV2;
+    using CrossMarginMath for CrossMarginDetail;
 
     uint256 private spotPrice;
 
@@ -669,7 +669,7 @@ contract TestVanillaPutFMMV2 is Test {
     }
 
     function testMarginRequirement1() public {
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -689,7 +689,7 @@ contract TestVanillaPutFMMV2 is Test {
 }
 
 contract TestStrangles is Test {
-    using FullMarginMathV2 for FullMarginDetailV2;
+    using CrossMarginMath for CrossMarginDetail;
 
     uint256 private spotPrice;
 
@@ -716,7 +716,7 @@ contract TestStrangles is Test {
     }
 
     function testShortStrangles() public {
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -737,7 +737,7 @@ contract TestStrangles is Test {
     function testLongStrangle() public {
         putWeights[0] = 1 * sUNIT;
         callWeights[0] = 1 * sUNIT;
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -772,7 +772,7 @@ contract TestStrangles is Test {
         callStrikes[0] = 20000 * UNIT;
         callStrikes[1] = 21000 * UNIT;
 
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -792,7 +792,7 @@ contract TestStrangles is Test {
 }
 
 contract TestCornerCases is Test {
-    using FullMarginMathV2 for FullMarginDetailV2;
+    using CrossMarginMath for CrossMarginDetail;
 
     uint256 private spotPrice;
 
@@ -825,7 +825,7 @@ contract TestCornerCases is Test {
     function testOneByTwoCall() public {
         putWeights = new int256[](0);
         putStrikes = new uint256[](0);
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -846,7 +846,7 @@ contract TestCornerCases is Test {
     function testOneByTwoCall2() public {
         putStrikes = new uint256[](0);
         putWeights = new int256[](0);
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -867,7 +867,7 @@ contract TestCornerCases is Test {
     function testPotentialBreakOnZeroWeight() public {
         putWeights[0] = 0;
         putWeights[1] = 0;
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -879,14 +879,14 @@ contract TestCornerCases is Test {
             spotPrice: spotPrice,
             expiry: 0
         });
-        vm.expectRevert(FullMarginMathV2.FMMV2_InvalidPutWeight.selector);
+        vm.expectRevert(CrossMarginMath.CM_InvalidPutWeight.selector);
         detail.getMinCollateral();
     }
 
     function testOneByTwoPut() public {
         callStrikes = new uint256[](0);
         callWeights = new int256[](0);
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -905,7 +905,7 @@ contract TestCornerCases is Test {
     }
 
     function testIronCondor() public {
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -929,7 +929,7 @@ contract TestCornerCases is Test {
         callWeights = new int256[](0);
         callStrikes = new uint256[](0);
 
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -953,7 +953,7 @@ contract TestCornerCases is Test {
         putWeights[1] = -18 * sUNIT;
         callWeights = new int256[](0);
         callStrikes = new uint256[](0);
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -980,7 +980,7 @@ contract TestCornerCases is Test {
         callStrikes = new uint256[](1);
         callStrikes[0] = 20000 * UNIT;
 
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -1002,7 +1002,7 @@ contract TestCornerCases is Test {
     function testUpAndDown4() public {
         putWeights[0] = 17 * sUNIT;
         putWeights[1] = -18 * sUNIT;
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,
@@ -1033,7 +1033,7 @@ contract TestCornerCases is Test {
 
         callStrikes[0] = 300 * UNIT;
         callStrikes[1] = 200 * UNIT;
-        FullMarginDetailV2 memory detail = FullMarginDetailV2({
+        CrossMarginDetail memory detail = CrossMarginDetail({
             putWeights: putWeights,
             putStrikes: putStrikes,
             callWeights: callWeights,

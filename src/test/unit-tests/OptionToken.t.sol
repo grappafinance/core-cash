@@ -6,6 +6,7 @@ import "forge-std/Test.sol";
 
 import {OptionToken} from "../../core/OptionToken.sol";
 import {Grappa} from "../../core/Grappa.sol";
+import {OptionTokenDescriptor} from "../../core/OptionTokenDescriptor.sol";
 import "../../libraries/TokenIdUtil.sol";
 import "../../libraries/ProductIdUtil.sol";
 import "../../config/errors.sol";
@@ -14,10 +15,14 @@ contract OptionTokenTest is Test {
     OptionToken public option;
 
     address public grappa;
+    address public nftDescriptor;
 
     function setUp() public {
         grappa = address(new Grappa(address(0)));
-        option = new OptionToken(grappa);
+
+        nftDescriptor = address(new OptionTokenDescriptor());
+
+        option = new OptionToken(grappa, nftDescriptor);
     }
 
     function testCannotMint() public {
@@ -116,7 +121,8 @@ contract OptionTokenTest is Test {
     }
 
     function testGetUrl() public {
-        string memory uri = option.uri(0);
-        assertEq(uri, "https://grappa.maybe");
+        assertEq(option.uri(0), "https://grappa.finance/token/0");
+
+        assertEq(option.uri(200), "https://grappa.finance/token/200");
     }
 }

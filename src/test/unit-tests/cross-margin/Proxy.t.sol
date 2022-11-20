@@ -6,7 +6,7 @@ import "forge-std/Test.sol";
 
 import {ERC1967Proxy} from "openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 
-import "../../../core/engines/full-margin-v2/FullMarginEngineV2.sol";
+import "../../../core/engines/cross-margin/CrossMarginEngine.sol";
 
 import {MockOracle} from "../../mocks/MockOracle.sol";
 import {MockEngineV2} from "../../mocks/MockEngineV2.sol";
@@ -19,14 +19,14 @@ import "../../../config/constants.sol";
  * @dev test on implementation contract
  */
 contract EngineProxyTest is Test {
-    FullMarginEngineV2 public implementation;
-    FullMarginEngineV2 public engine;
+    CrossMarginEngine public implementation;
+    CrossMarginEngine public engine;
 
     constructor() {
-        implementation = new FullMarginEngineV2(address(0), address(0));
-        bytes memory data = abi.encode(FullMarginEngineV2.initialize.selector);
+        implementation = new CrossMarginEngine(address(0), address(0));
+        bytes memory data = abi.encode(CrossMarginEngine.initialize.selector);
 
-        engine = FullMarginEngineV2(address(new ERC1967Proxy(address(implementation), data)));
+        engine = CrossMarginEngine(address(new ERC1967Proxy(address(implementation), data)));
     }
 
     function testImplementationContractOwnerIsZero() public {
@@ -48,11 +48,9 @@ contract EngineProxyTest is Test {
     }
 
     function testCannotUpgradeFromNonOwner() public {
-        MockEngineV2 v2 = new MockEngineV2();
-
         vm.prank(address(0xaa));
         vm.expectRevert("Ownable: caller is not the owner");
-        engine.upgradeTo(address(v2));
+        engine.upgradeTo(address(0));
     }
 
     function testCanUpgradeToAnotherUUPSContract() public {

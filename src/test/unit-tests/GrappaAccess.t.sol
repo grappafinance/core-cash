@@ -23,6 +23,26 @@ contract GrappaAccessTest is FullMarginFixture {
         _assertCanAccessAccount(subAccountIdToModify, false);
     }
 
+    function testAliceCanGrantAccessToMaxSubAccount() public {
+        // alice grant access to this contract
+        vm.startPrank(alice);
+        engine.setAccountAccess(address(this), 1);
+        vm.stopPrank();
+
+        // we can update the account now
+        _assertCanAccessAccount(address(uint160(alice) ^ uint160(255)), true);
+    }
+
+    function testAliceCannotGrantAccessToMaxSubAccountPlusOne() public {
+        // alice grant access to this contract
+        vm.startPrank(alice);
+        engine.setAccountAccess(address(this), 1);
+        vm.stopPrank();
+
+        // we can update the account now
+        _assertCanAccessAccount(address(uint160(alice) ^ uint160(256)), false);
+    }
+
     function testAliceCanGrantAccess() public {
         // alice grant access to this contract
         vm.startPrank(alice);

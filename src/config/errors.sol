@@ -64,7 +64,9 @@ error BM_AccountUnderwater();
 /// @dev msg.sender is not authorized to ask margin account to pull token from {from} address
 error BM_InvalidFromAddress();
 
-// Fully Collateralized Margin
+/* ------------------------ *
+ *    Full Margin Errors
+ * -----------------------  */
 
 /// @dev full margin doesn't support this action
 error FM_UnsupportedAction();
@@ -79,9 +81,6 @@ error FM_WrongCollateralId();
 
 /// @dev invalid tokenId specify to mint / burn actions
 error FM_InvalidToken();
-
-/// @dev unsupported token type
-error FM_UnsupportedTokenType();
 
 /// @dev trying to merge an long with a non-existant short position
 error FM_ShortDoesnotExist();
@@ -98,13 +97,37 @@ error FM_CollateraliMisMatch();
 /// @dev cannot override a non-empty subaccount id
 error FM_AccountIsNotEmpty();
 
-/// @dev can only add long tokens from authorized engines
-error FM_Not_Authorized_Engine();
+/* --------------------- *
+ *  Cross Margin Errors
+ * --------------------- */
+
+/// @dev cross margin doesn't support this action
+error CM_UnsupportedAction();
+
+/// @dev cannot override a non-empty subaccount id
+error CM_AccountIsNotEmpty();
+
+/// @dev unsupported token type
+error CM_UnsupportedTokenType();
 
 /// @dev can only add long tokens that are not expired
-error FM_Option_Expired();
+error CM_Option_Expired();
 
-// Advanced Margin and AdvancedMarginLib Errors
+/// @dev can only add long tokens from authorized engines
+error CM_Not_Authorized_Engine();
+
+/// @dev collateral id is wrong: the id doesn't match the existing collateral
+error CM_WrongCollateralId();
+
+/// @dev invalid collateral:
+error CM_CannotMintOptionWithThisCollateral();
+
+/// @dev invalid tokenId specify to mint / burn actions
+error CM_InvalidToken();
+
+/* ------------------------ *
+ *  Advanced Margin Errors
+ * -----------------------  */
 
 /// @dev full margin doesn't support this action (add long and remove long)
 error AM_UnsupportedAction();

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 // import test base and helpers.
-import {FullMarginFixtureV2} from "./FullMarginFixtureV2.t.sol";
+import {CrossMarginFixture} from "./CrossMarginFixture.t.sol";
 import {stdError} from "forge-std/Test.sol";
 
 import "../../../config/enums.sol";
@@ -11,7 +11,7 @@ import "../../../config/constants.sol";
 import "../../../config/errors.sol";
 
 // solhint-disable-next-line contract-name-camelcase
-contract TestBurnOption_FMV2 is FullMarginFixtureV2 {
+contract TestBurnOption_CM is CrossMarginFixture {
     uint256 public expiry;
     uint256 public strikePrice = 4000 * UNIT;
     uint256 public depositAmount = 1 ether;
@@ -60,7 +60,7 @@ contract TestBurnOption_FMV2 is FullMarginFixtureV2 {
         actions[0] = createBurnAction(badTokenId, address(this), amount);
 
         // action
-        vm.expectRevert(FM_InvalidToken.selector);
+        vm.expectRevert(CM_InvalidToken.selector);
         engine.execute(subAccount, actions); // execute on subaccount
     }
 
@@ -72,7 +72,7 @@ contract TestBurnOption_FMV2 is FullMarginFixtureV2 {
         actions[0] = createBurnAction(tokenId, address(this), amount);
 
         // action
-        vm.expectRevert(FM_InvalidToken.selector);
+        vm.expectRevert(CM_InvalidToken.selector);
         engine.execute(subAccount, actions); // execute on subaccount
     }
 

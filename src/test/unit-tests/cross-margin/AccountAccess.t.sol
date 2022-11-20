@@ -2,12 +2,12 @@
 pragma solidity ^0.8.0;
 
 // import test base and helpers.
-import {FullMarginFixtureV2} from "../../engine-integrations/full-margin-v2/FullMarginFixtureV2.t.sol";
+import {CrossMarginFixture} from "../../engine-integrations/cross-margin/CrossMarginFixture.t.sol";
 
 import "../../../config/types.sol";
 import "../../../config/errors.sol";
 
-contract FullMarginEngineV2AccessTest is FullMarginFixtureV2 {
+contract CrossMarginEngineAccessTest is CrossMarginFixture {
     uint256 private depositAmount = 100 * 1e6;
 
     address private subAccountIdToModify;
@@ -31,7 +31,7 @@ contract FullMarginEngineV2AccessTest is FullMarginFixtureV2 {
         vm.stopPrank();
     }
 
-    function testTransferFMV2Account() public {
+    function testTransferCMAccount() public {
         vm.startPrank(alice);
         engine.transferAccount(subAccountIdToModify, address(this));
         vm.stopPrank();
@@ -56,7 +56,7 @@ contract FullMarginEngineV2AccessTest is FullMarginFixtureV2 {
         _assertCanAccessAccount(address(this), true);
 
         vm.startPrank(alice);
-        vm.expectRevert(FM_AccountIsNotEmpty.selector);
+        vm.expectRevert(CM_AccountIsNotEmpty.selector);
         engine.transferAccount(subAccountIdToModify, address(this));
         vm.stopPrank();
     }
