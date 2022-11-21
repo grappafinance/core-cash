@@ -12,13 +12,14 @@
 <img src="https://codecov.io/gh/antoncoding/grappa/branch/master/graph/badge.svg?token=G52EOD1X5B"/>
 </a> -->
   <h5 align="center"> Don't waste your capital.</h5>
-  <p align="center">
-    <!-- badge goes here -->
-  </p>
-
+  
 <p align='center'>
     <img src='https://i.imgur.com/A04IOW6.jpg' alt='grappa' width="500" />
 </p> 
+
+<p align="center" style="font-size:2vw;color:grey">
+  Grappa is a grape-based pomace brandy originally made to prevent waste by using leftovers. We believe there're lots of waste in capital when it comes to DeFi options. We are here to change that.
+  </p>
 </div>
 
 # Introduction
@@ -39,15 +40,12 @@ The base layer is a decentralized option (derivative) token that can be created 
 
 We also natively support call spread and put spread that can increase capital efficiency by a lot while being fully collateralized.
 
-### 2. Exchange Layer (research in progress)
+### 2. Exchange Layer (not in this repo)
 
 We also planned to build an exchange layer between the same kind of option token created by different margin engine. For example: AMM to exchange between fully collateralized and partially collateralized options.
 
-There's no development on the exchange layer yet since we're still finalizing the design of the base layer. Please go to forum to see more discussion on the design of the AMM.
+There's no development on the exchange layer yet since we're still finalizing the design of the base layer. 
 
-### Why is it called "Grappa"?
-
-Grappa is a grape-based pomace brandy originally made to prevent waste by using leftovers. We believe there're lots of waste in capital when it comes to DeFi options. Grappa is here to change that.
 
 ## Get Started with Grappa
 
