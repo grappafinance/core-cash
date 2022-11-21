@@ -27,7 +27,6 @@ library CrossMarginMath {
     using AccountUtil for CrossMarginDetail[];
     using AccountUtil for Position[];
     using AccountUtil for PositionOptim[];
-    using AccountUtil for SBalance[];
     using ArrayUtil for uint256[];
     using ArrayUtil for int256[];
     using SafeCast for int256;
@@ -350,22 +349,13 @@ library CrossMarginMath {
         );
     }
 
-    function _calcPutPayouts(uint256[] memory strikes, int256[] memory weights)
-        internal
-        pure
-        returns (int256[] memory putPayouts)
-    {
-        putPayouts = new int256[](strikes.length);
-
-        for (uint256 i; i < strikes.length; ) {
-            putPayouts = putPayouts.add(strikes.subEachFrom(strikes[i]).maximum(0).eachMul(weights[i]));
-
-            unchecked {
-                ++i;
-            }
-        }
-    }
-
+    /**
+     * @notice calculate slope
+     * @dev used to calculate directionality of the payout profile
+     * @param leftPoint coordinates of x,y
+     * @param rightPoint coordinates of x,y
+     * @return direction positive or negative
+     */
     function _calcSlope(int256[] memory leftPoint, int256[] memory rightPoint) internal pure returns (int256) {
         if (leftPoint[0] > rightPoint[0]) revert CM_InvalidPoints();
         if (leftPoint.length != 2) revert CM_InvalidLeftPointLength();
@@ -374,7 +364,13 @@ library CrossMarginMath {
         return (((rightPoint[1] - leftPoint[1]) * sUNIT) / (rightPoint[0] - leftPoint[0]));
     }
 
-    // this computes the slope to the right of the right most strike, resulting in the delta hedge (underlying)
+    /**
+     * @notice computes the slope to the right of the right most strike (call options), resulting in the delta hedge (underlying)
+     * @param pois points of interest (strikes)
+     * @param payouts payouts at coorisponding pois
+     * @return underlyingNeeded amount of underlying needed
+     * @return rightDelta the slope
+     */
     function _getUnderlyingNeeded(uint256[] memory pois, int256[] memory payouts)
         internal
         pure
@@ -393,7 +389,13 @@ library CrossMarginMath {
         underlyingNeeded = rightDelta < sZERO ? uint256(-rightDelta) : ZERO;
     }
 
-    // this computes the slope to the left of the left most strike
+    /**
+     * @notice computes the slope to the left of the left most strike (put options)
+     * @dev only called if there are put options, usually denominated in cash
+     * @param putStrikes put option strikes
+     * @param putWeights number of put options at a coorisponding strike
+     * @return numeraireNeeded amount of numeraire asset needed
+     */
     function _getNumeraireNeeded(uint256[] memory putStrikes, int256[] memory putWeights)
         internal
         pure
@@ -404,6 +406,16 @@ library CrossMarginMath {
         numeraireNeeded = tmpNumeraireNeeded > sZERO ? uint256(tmpNumeraireNeeded) : ZERO;
     }
 
+    /**
+     * @notice crediting the numeraire if underlying has a positive payout
+     * @dev checks if subAccount has positive underlying value, if it does then cash requirements can be lowered
+     * @param pois option strikes
+     * @param payouts payouts at coorisponding pois
+     * @param numeraireNeeded current numeraire needed
+     * @param underlyingNeeded underlying needed
+     * @param hasPuts has put options
+     * @return numeraireNeeded adjusted numerarie needed
+     */
     function _getUnderlyingAdjustedNumeraireNeeded(
         uint256[] memory pois,
         int256[] memory payouts,
@@ -425,6 +437,19 @@ library CrossMarginMath {
         return numeraireNeeded;
     }
 
+    /**
+     * @notice converts numerarie needed entirely in underlying
+     * @dev only used if options collateralizied in underlying
+     * @param _detail margin details
+     * @param pois option strikes
+     * @param payouts payouts at coorisponding pois
+     * @param strikes option strikes without testing strikes
+     * @param syntheticUnderlyingWeight sum of put positions (negative)
+     * @param underlyingNeeded current underlying needed
+     * @param hasPuts has put options
+     * @return inUnderlyingOnly bool if it can be done
+     * @return underlyingOnlyNeeded adjusted underlying needed
+     */
     function _checkHedgableTailRisk(
         CrossMarginDetail memory _detail,
         uint256[] memory pois,
@@ -462,6 +487,29 @@ library CrossMarginMath {
             int256 tmpUnderlyingOnlyNeeded = negPayoutsOverPois.max();
 
             underlyingOnlyNeeded = tmpUnderlyingOnlyNeeded > 0 ? uint256(tmpUnderlyingOnlyNeeded) : ZERO;
+        }
+    }
+
+    /**
+     * @notice calculate put option payouts at each point of interest
+     * @dev only called if there are put options
+     * @param strikes concatentated array of shorts and longs
+     * @param weights number of options at each strike
+     * @return putPayouts payouts for a put options at a coorisponding strike
+     */
+    function _calcPutPayouts(uint256[] memory strikes, int256[] memory weights)
+        internal
+        pure
+        returns (int256[] memory putPayouts)
+    {
+        putPayouts = new int256[](strikes.length);
+
+        for (uint256 i; i < strikes.length; ) {
+            putPayouts = putPayouts.add(strikes.subEachFrom(strikes[i]).maximum(0).eachMul(weights[i]));
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -520,6 +568,10 @@ library CrossMarginMath {
         }
     }
 
+    /**
+     * @notice merges option and amounts into the set
+     * @dev if weight turns into zero, we remove it from the set
+     */
     function _processDetailWithToken(
         CrossMarginDetail memory detail,
         uint256 tokenId,
@@ -563,6 +615,9 @@ library CrossMarginMath {
         }
     }
 
+    /**
+     * @notice gets product asset specific details from grappa in one call
+     */
     function _getProductDetails(IGrappa grappa, uint40 productId) internal view returns (ProductDetails memory info) {
         (, , uint8 underlyingId, uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(productId);
 
