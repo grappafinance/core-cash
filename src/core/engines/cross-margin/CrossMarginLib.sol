@@ -149,11 +149,10 @@ library CrossMarginLib {
         } else account.longs[index].amount = newLongAmount;
     }
 
-    ///@dev Settles the accounts short calls and puts, reserving collateral for ITM options
+    ///@dev Settles the accounts longs and shorts
     ///@param account CrossMarginAccount memory that will be updated in-place
     function settleAtExpiry(
         CrossMarginAccount storage account,
-        // Balance[] memory payouts,
         IGrappa grappa
     ) external returns (Balance[] memory longPayouts, Balance[] memory shortPayouts) {
         // settling longs first as they can only increase collateral
@@ -162,6 +161,9 @@ library CrossMarginLib {
         shortPayouts = _settleShorts(grappa, account);
     }
 
+    ///@dev Settles the accounts longs, adding collateral to balances
+    ///@param grappa interface to settle long options in a batch call
+    ///@param account CrossMarginAccount memory that will be updated in-place
     function _settleLongs(IGrappa grappa, CrossMarginAccount storage account)
         public
         returns (Balance[] memory payouts)
@@ -199,6 +201,9 @@ library CrossMarginLib {
         }
     }
 
+    ///@dev Settles the accounts shorts, reserving collateral for ITM options
+    ///@param grappa interface to get short option payouts in a batch call
+    ///@param account CrossMarginAccount memory that will be updated in-place
     function _settleShorts(IGrappa grappa, CrossMarginAccount storage account)
         public
         returns (Balance[] memory payouts)
