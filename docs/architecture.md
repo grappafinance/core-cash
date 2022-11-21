@@ -10,7 +10,11 @@ There are 2 main contracts: `Grappa`, `OptionToken`, and 2 sets of contracts: or
 
 ## `Grappa.sol`
 
-`Grappa`: served as a registry for the whole system. Also used for settlement.
+`Grappa.sol` serves as the registry of the system that has an owner role to add assets, oracles and engine into the system.
+
+Grappa is upgradeable right now, given that we might want to expand the definition of "Option Tokens" in the short term to support other derivatives. We will remove the upgradeability once we have enough confidence in the form of the contract.
+
+Grappa is also in charge of settling the options after expiry. Once a optionToken is created by the engine, `Grappa` serve as the fair clearing house to determine the settlement price. Each engines has to comply with the interface to pay out to users accordingly.
 
 ## `OptionToken.sol`
 

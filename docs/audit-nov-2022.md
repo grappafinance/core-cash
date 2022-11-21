@@ -18,7 +18,7 @@ During this audit, the 2 main contracts `Grappa` and `OptionToken` are in scope,
 
 ### OptionToken
 
-* Can an engine create option tokens that it's not suppose to?
+* Can an engine create an option token with an id that it's not suppose to?
 
 ### ChainlinkOracle
 
