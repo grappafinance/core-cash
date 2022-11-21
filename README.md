@@ -1,5 +1,8 @@
 <div align="center">
   <h1 align="center"> Grappa</h1>
+  <p align="center" style="font-size:2.2vw;color:grey">
+  An option protocol that focus on composability and capital efficiency.
+  </p>
   <img height=60 src="https://i.imgur.com/vSIO8xJ.png"> </image>
   <br/>
   <br/>
@@ -14,12 +17,14 @@
   <h5 align="center"> Don't waste your capital.</h5>
   
 <p align='center'>
-    <img src='https://i.imgur.com/A04IOW6.jpg' alt='grappa' width="500" />
+    <img src='https://i.imgur.com/A04IOW6.jpg' alt='grappa' width="520" />
 </p> 
 
+<div style="max-width:550px">
 <p align="center" style="font-size:2vw;color:grey">
-  Grappa is a grape-based pomace brandy originally made to prevent waste by using leftovers. We believe there're lots of waste in capital when it comes to DeFi options. We are here to change that.
+  Grappa is a grape-based pomace brandy originally made to prevent waste by using leftovers. We believe there're lots of waste in capital when it comes to DeFi options, and we are here to change that.
   </p>
+</div>
 </div>
 
 # Introduction
@@ -47,7 +52,12 @@ We also planned to build an exchange layer between the same kind of option token
 There's no development on the exchange layer yet since we're still finalizing the design of the base layer. 
 
 
-## Get Started with Grappa
+## Documentation
+
+For detailed documentation about how the system architecture is designed, please visit [docs](./docs/)
+
+
+## Get Started
 
 ```shell
 forge build
@@ -77,7 +87,7 @@ forge coverage
 Simulate deployment
 
 ```shell
-forge script script/Deploy.sol --private-key <your PK> --fork-url <RPC-endpoint> --ffi -vvv
+forge script script/Deploy.sol --private-key <your PK> --fork-url <RPC-endpoint> 
 ```
 
 ## Linting
@@ -102,13 +112,10 @@ solc-select use 0.8.13
 Run analysis
 
 ```shell
-slither ./src/core/AdvancedMargin
+slither ./src/core/FullMargin
 slither ./src/core/
 ```
 
-## Documentation
-
-For detailed documentation about how the system architecture is designed, please visit [docs](./docs/)
 
 ## Install Grappa into your project
 
