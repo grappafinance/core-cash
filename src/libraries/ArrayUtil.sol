@@ -207,18 +207,20 @@ library ArrayUtil {
         }
         // initialize copy of x
         y = new uint256[](x.length);
-        y = populate(y, x, 0);
+        populate(y, x, 0);
         // sort
         quickSort(y, int256(0), int256(y.length - 1), ixArray);
     }
 
     function sort(uint256[] memory x) internal pure returns (uint256[] memory y) {
         y = new uint256[](x.length);
-        y = populate(y, x, 0);
+        populate(y, x, 0);
         quickSort(y, int256(0), int256(y.length - 1));
     }
 
-    // quicksort implementation, sorts arr in place
+    /*
+    @dev quicksort implementation, sorts arr input IN PLACE
+    */
     function quickSort(
         uint256[] memory arr,
         int256 left,
@@ -251,7 +253,9 @@ library ArrayUtil {
         if (i < right) quickSort(arr, i, right);
     }
 
-    // quicksort implementation with indexes, sorts arr and indexArray in place
+    /*
+    @dev quicksort implementation with indexes, sorts input arr and indexArray IN PLACE
+    */
     function quickSort(
         uint256[] memory arr,
         int256 left,
@@ -262,28 +266,24 @@ library ArrayUtil {
         int256 i = left;
         int256 j = right;
         uint256 pivot = arr[uint256(left + (right - left) / 2)];
-        while (i <= j) {
-            while (arr[uint256(i)] < pivot) {
-                unchecked {
+        unchecked {
+            while (i <= j) {
+                while (arr[uint256(i)] < pivot) {
                     ++i;
                 }
-            }
-            while (pivot < arr[uint256(j)]) {
-                unchecked {
+                while (pivot < arr[uint256(j)]) {
                     --j;
                 }
-            }
-            if (i <= j) {
-                (arr[uint256(i)], arr[uint256(j)]) = (arr[uint256(j)], arr[uint256(i)]);
-                (indexArray[uint256(i)], indexArray[uint256(j)]) = (indexArray[uint256(j)], indexArray[uint256(i)]);
-                unchecked {
+                if (i <= j) {
+                    (arr[uint256(i)], arr[uint256(j)]) = (arr[uint256(j)], arr[uint256(i)]);
+                    (indexArray[uint256(i)], indexArray[uint256(j)]) = (indexArray[uint256(j)], indexArray[uint256(i)]);
                     ++i;
                     --j;
                 }
             }
+            if (left < j) quickSort(arr, left, j, indexArray);
+            if (i < right) quickSort(arr, i, right, indexArray);
         }
-        if (left < j) quickSort(arr, left, j, indexArray);
-        if (i < right) quickSort(arr, i, right, indexArray);
     }
 
     /*****  sort functions for int ****/
@@ -460,22 +460,26 @@ library ArrayUtil {
         }
     }
 
-    function fill(int256[] memory x, int256 v) internal pure returns (int256[] memory) {
+    /*
+    @dev this function modifies memory x IN PLACE. Fills x with value v
+    */
+    function fill(int256[] memory x, int256 v) internal pure {
         for (uint256 i = 0; i < x.length; i++) {
             x[i] = v;
         }
-        return x;
     }
 
+    /*
+    @dev modifies memory a IN PLACE. Populates a starting at index z with values from b.
+    */
     function populate(
         uint256[] memory a,
         uint256[] memory b,
         uint256 z
-    ) internal pure returns (uint256[] memory) {
+    ) internal pure {
         for (uint256 i = 0; i < a.length; i++) {
             a[z + i] = b[i];
         }
-        return a;
     }
 
     function populate(
