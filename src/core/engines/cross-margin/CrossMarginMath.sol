@@ -401,9 +401,9 @@ library CrossMarginMath {
         pure
         returns (uint256 numeraireNeeded)
     {
-        int256 tmpNumeraireNeeded = -putStrikes.dot(putWeights) / sUNIT;
+        int256 tmpNumeraireNeeded = putStrikes.dot(putWeights) / sUNIT;
 
-        numeraireNeeded = tmpNumeraireNeeded > sZERO ? uint256(tmpNumeraireNeeded) : ZERO;
+        numeraireNeeded = tmpNumeraireNeeded < sZERO ? uint256(-tmpNumeraireNeeded) : ZERO;
     }
 
     /**
