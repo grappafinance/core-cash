@@ -10,6 +10,7 @@ import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 
 // inheriting contracts
 import {BaseEngine} from "../BaseEngine.sol";
+import {DebitSpread} from "../mixins/DebitSpread.sol";
 import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
 
 // interfaces
@@ -39,7 +40,7 @@ import "../../../config/errors.sol";
             Interacts with Oracle to read spot
             Interacts with VolOracle to read vol
  */
-contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable, ReentrancyGuard {
+contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable, ReentrancyGuard {
     using AdvancedMarginMath for AdvancedMarginDetail;
     using AdvancedMarginLib for AdvancedMarginAccount;
     using SafeERC20 for IERC20;

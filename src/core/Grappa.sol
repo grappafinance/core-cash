@@ -46,7 +46,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     IOptionToken public immutable optionToken;
 
     /*///////////////////////////////////////////////////////////////
-                         State Variables V1 
+                         State Variables V1
     //////////////////////////////////////////////////////////////*/
 
     /// @dev next id used to represent an address

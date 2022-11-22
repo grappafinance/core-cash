@@ -5,6 +5,7 @@ pragma solidity ^0.8.0;
 
 import {IMarginEngine} from "../../interfaces/IMarginEngine.sol";
 import {BaseEngine} from "../../core/engines/BaseEngine.sol";
+import {DebitSpread} from "../../core/engines/mixins/DebitSpread.sol";
 import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "solmate/utils/ReentrancyGuard.sol";
@@ -17,7 +18,7 @@ import "../../config/errors.sol";
  * @title   MockEngine
  * @notice  Implement execute to test all flow in BaseEngine
  */
-contract MockEngine is BaseEngine, ReentrancyGuard {
+contract MockEngine is BaseEngine, DebitSpread, ReentrancyGuard {
     bool public isAboveWater;
 
     uint80 public mockPayout;
