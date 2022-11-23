@@ -151,21 +151,24 @@ contract TestRemoveCollateral_CM is CrossMarginFixture {
 
         (,, collaterals) = engine.marginAccounts(address(this));
 
-        // collaterals should have reversed position since eth was removed and re-added
+        // collaterals should have reversed position since usdc was removed and re-added
         assertEq(collaterals[0].collateralId, wethId);
         assertEq(collaterals[0].amount, depositAmountETH * 2);
         assertEq(collaterals[1].collateralId, usdcId);
         assertEq(collaterals[1].amount, depositAmountUSDC);
 
         // remove all collaterals
-        actions = new ActionArgs[](2);
-        actions[0] = createRemoveCollateralAction(depositAmountETH * 2, wethId, address(this));
-        actions[1] = createRemoveCollateralAction(depositAmountUSDC, usdcId, address(this));
+        actions = new ActionArgs[](1);
+        actions[0] = createRemoveCollateralAction(depositAmountUSDC, usdcId, address(this));
         engine.execute(address(this), actions);
 
         (,, collaterals) = engine.marginAccounts(address(this));
 
-        // nothing should be left
-        assertEq(collaterals.length, 0);
+        // only eth left
+        assertEq(collaterals.length, 1);
+
+        // check half has been removed
+        assertEq(collaterals[0].collateralId, wethId);
+        assertEq(collaterals[0].amount, depositAmountETH * 2);
     }
 }
