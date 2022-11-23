@@ -345,15 +345,14 @@ contract TestSettleCollateralizedPut_CM is CrossMarginFixture {
     }
 }
 
-contract TestMultiCollateralSettlement is CrossMarginFixture {
+contract TestLongShortSettlement is CrossMarginFixture {
     uint256 public expiry;
 
     uint64 private amount = uint64(1 * UNIT);
     uint256 private aliceTokenId;
     uint256 private selfTokenId;
-    uint64 private selfStrike;
-    uint64 private aliceStrike;
-    uint256 private depositAmount = 1 ether;
+    uint256 private selfStrike;
+    uint256 private aliceStrike;
 
     function setUp() public {
         selfStrike = uint64(3000 * UNIT);
