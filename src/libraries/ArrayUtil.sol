@@ -510,17 +510,6 @@ library ArrayUtil {
         }
     }
 
-    function populate(
-        int256[] memory a,
-        int256[] memory b,
-        uint256 z
-    ) internal pure returns (int256[] memory) {
-        for (uint256 i = 0; i < a.length; i++) {
-            a[z + i] = b[i];
-        }
-        return a;
-    }
-
     function at(int256[] memory x, int256 i) internal pure returns (int256) {
         int256 len = x.length.toInt256();
         if (i > 0) {
