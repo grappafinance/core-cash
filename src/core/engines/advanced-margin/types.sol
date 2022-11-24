@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 
 import "../../../config/enums.sol";
 
-
 /**
  * @dev base unit of margin account. This is the data stored in the state
  *      storage packing is utilized to save gas.
@@ -48,7 +47,6 @@ struct AdvancedMarginDetail {
     uint256 collateralAmount;
     uint40 productId;
 }
-
 
 /**
  * @notice  parameters for calculating min collateral for a specific product

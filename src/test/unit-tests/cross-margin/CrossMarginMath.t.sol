@@ -9,7 +9,6 @@ import "../../../config/errors.sol";
 
 import "../../../core/engines/cross-margin/types.sol";
 
-
 /**
  * test full margin calculation for complicated structure
  */
