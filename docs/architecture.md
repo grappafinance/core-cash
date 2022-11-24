@@ -37,7 +37,7 @@ Grappa Owner can register bunch of oracles to the system. Oracles are contracts 
   - put spread (collateralized with strike)
 
 - `CrossMargin`: use a single subAccount to hold multiple collateral, long and short positions.
-  - Upgradable and maintained by HashNote team
+  - Upgradable and maintained by Hashnote team
   - Can use single account to collateralize arbitrary amount of short positions, and offset requirements with long positions.
   - Currently fully collateralize all positions. Can be expanded to partial collateral in the future
   - Does not support spread token
