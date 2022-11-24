@@ -11,10 +11,10 @@ import {NumberUtil} from "../../../libraries/NumberUtil.sol";
 import {ProductIdUtil} from "../../../libraries/ProductIdUtil.sol";
 import {TokenIdUtil} from "../../../libraries/TokenIdUtil.sol";
 import {BalanceUtil} from "../../../libraries/BalanceUtil.sol";
+import {ArrayUtil} from "../../../libraries/ArrayUtil.sol";
 
 // cross margin libraries
 import {AccountUtil} from "./AccountUtil.sol";
-import {ArrayUtil} from "./ArrayUtil.sol";
 
 import "../../../config/constants.sol";
 import "../../../config/enums.sol";

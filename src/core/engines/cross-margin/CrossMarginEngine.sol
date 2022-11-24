@@ -19,10 +19,10 @@ import {IWhitelist} from "../../../interfaces/IWhitelist.sol";
 import {TokenIdUtil} from "../../../libraries/TokenIdUtil.sol";
 import {ProductIdUtil} from "../../../libraries/ProductIdUtil.sol";
 import {BalanceUtil} from "../../../libraries/BalanceUtil.sol";
+import {ArrayUtil} from "../../../libraries/ArrayUtil.sol";
 
 // Cross margin libraries
 import {AccountUtil} from "./AccountUtil.sol";
-import {ArrayUtil} from "./ArrayUtil.sol";
 import {CrossMarginMath} from "./CrossMarginMath.sol";
 import {CrossMarginLib} from "./CrossMarginLib.sol";
 

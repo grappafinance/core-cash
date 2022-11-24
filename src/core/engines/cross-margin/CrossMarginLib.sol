@@ -7,6 +7,7 @@ import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 import "../../../libraries/TokenIdUtil.sol";
 import "../../../libraries/ProductIdUtil.sol";
 import "../../../libraries/BalanceUtil.sol";
+import "../../../libraries/ArrayUtil.sol";
 
 import "../../../config/types.sol";
 import "../../../config/constants.sol";
@@ -14,7 +15,7 @@ import "../../../config/errors.sol";
 
 // Cross Margin libraries
 import "./AccountUtil.sol";
-import "./ArrayUtil.sol";
+
 
 /**
  * @title CrossMarginLib

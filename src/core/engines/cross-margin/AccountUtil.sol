@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {TokenIdUtil} from "../../../libraries/TokenIdUtil.sol";
-import "./ArrayUtil.sol";
+import "../../../libraries/TokenIdUtil.sol";
+import "../../../libraries/ArrayUtil.sol";
 import "../../../config/types.sol";
 
 library AccountUtil {
