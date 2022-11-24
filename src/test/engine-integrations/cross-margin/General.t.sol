@@ -74,10 +74,10 @@ contract CrossEngineGenernal is CrossMarginFixture {
 
         engine.execute(address(this), actions);
 
-        SBalance[] memory balances = engine.getMinCollateral(address(this));
+        Balance[] memory balances = engine.getMinCollateral(address(this));
 
         assertEq(balances.length, 1);
         assertEq(balances[0].collateralId, usdcId);
-        assertEq(balances[0].amount, int256(depositAmount) - int256(strikePrice));
+        assertEq(balances[0].amount, strikePrice);
     }
 }

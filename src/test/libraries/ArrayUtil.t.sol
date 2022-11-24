@@ -234,6 +234,7 @@ contract ArrayUtilTest is Test {
         assertEq(sorted[5], 4);
 
         assertEq(indexes.length, 6);
+
         assertEq(indexes[0], 2);
         assertEq(indexes[1], 3);
         assertEq(indexes[2], 1);

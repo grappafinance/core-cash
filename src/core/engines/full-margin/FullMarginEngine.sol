@@ -6,6 +6,7 @@ import {ReentrancyGuard} from "solmate/utils/ReentrancyGuard.sol";
 
 // inheriting contracts
 import {BaseEngine} from "../BaseEngine.sol";
+import {DebitSpread} from "../mixins/DebitSpread.sol";
 import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
 
 // interfaces
@@ -34,7 +35,7 @@ import "../../../config/errors.sol";
             Interacts with OptionToken to mint / burn
             Interacts with grappa to fetch registered asset info
  */
-contract FullMarginEngine is BaseEngine, IMarginEngine, ReentrancyGuard {
+contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyGuard {
     using FullMarginLib for FullMarginAccount;
     using FullMarginMath for FullMarginDetail;
     using TokenIdUtil for uint256;
