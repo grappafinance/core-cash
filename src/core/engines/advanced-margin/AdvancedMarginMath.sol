@@ -14,7 +14,6 @@ import "../../../config/constants.sol";
 
 import "../../../config/types.sol";
 
-
 /**
  * @title   AdvancedMarginMath
  * @notice  this library is in charge of calculating the min collateral for a given advanced margin account

@@ -35,7 +35,6 @@ error AM_AccountIsNotEmpty();
 /// @dev amounts to repay in liquidation are not valid. Missing call, put or not proportional to the amount in subaccount.
 error AM_WrongRepayAmounts();
 
-
 // Vol Oracle
 
 /// @dev cannot re-set aggregator

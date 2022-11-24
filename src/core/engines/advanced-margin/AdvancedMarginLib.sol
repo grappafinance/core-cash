@@ -13,7 +13,6 @@ import "./errors.sol";
 import "../../../config/types.sol";
 import "../../../config/constants.sol";
 
-
 /**
  * @title AdvancedMarginLib
  * @dev   This library is in charge of updating the advanced account struct and do validation
