@@ -299,14 +299,14 @@ library ArrayUtil {
         }
         // initialize copy of x
         y = new int256[](x.length);
-        y = populate(y, x, 0);
+        populate(y, x, 0);
         // sort
         quickSort(y, int256(0), int256(y.length - 1), ixArray);
     }
 
     function sort(int256[] memory x) internal pure returns (int256[] memory y) {
         y = new int256[](x.length);
-        y = populate(y, x, 0);
+        populate(y, x, 0);
         quickSort(y, int256(0), int256(y.length - 1));
     }
 
@@ -378,7 +378,7 @@ library ArrayUtil {
         if (i < right) quickSort(arr, i, right, indexArray);
     }
 
-    /************ End Sort Functions for Int *******/    
+    /************ End Sort Functions for Int *******/
 
     function sortByIndexes(int256[] memory x, uint256[] memory z) internal pure returns (int256[] memory y) {
         y = new int256[](x.length);
@@ -482,17 +482,18 @@ library ArrayUtil {
         }
     }
 
+    /*
+    @dev modifies memory a IN PLACE. Populates a starting at index z with values from b.
+    */
     function populate(
         int256[] memory a,
         int256[] memory b,
         uint256 z
-    ) internal pure returns (int256[] memory) {
+    ) internal pure {
         for (uint256 i = 0; i < a.length; i++) {
             a[z + i] = b[i];
         }
-        return a;
     }
-
 
     function at(int256[] memory x, int256 i) internal pure returns (int256) {
         int256 len = x.length.toInt256();
