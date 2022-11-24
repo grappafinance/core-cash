@@ -49,18 +49,6 @@ library AccountUtil {
         y[i] = v;
     }
 
-    function append(SBalance[] memory x, SBalance memory v) internal pure returns (SBalance[] memory y) {
-        y = new SBalance[](x.length + 1);
-        uint256 i;
-        for (i; i < x.length; ) {
-            y[i] = x[i];
-            unchecked {
-                ++i;
-            }
-        }
-        y[i] = v;
-    }
-
     function concat(Position[] memory a, Position[] memory b) internal pure returns (Position[] memory y) {
         y = new Position[](a.length + b.length);
         uint256 v;
@@ -182,18 +170,6 @@ library AccountUtil {
         }
     }
 
-    function indexOf(SBalance[] memory x, uint8 v) internal pure returns (bool f, uint256 i) {
-        for (i; i < x.length; ) {
-            if (x[i].collateralId == v) {
-                f = true;
-                break;
-            }
-            unchecked {
-                ++i;
-            }
-        }
-    }
-
     function remove(Balance[] storage x, uint256 y) internal {
         if (y >= x.length) return;
         x[y] = x[x.length - 1];
@@ -212,28 +188,6 @@ library AccountUtil {
     function sum(PositionOptim[] memory x) internal pure returns (uint64 s) {
         for (uint256 i; i < x.length; ) {
             s += x[i].amount;
-            unchecked {
-                ++i;
-            }
-        }
-    }
-
-    function toSBalances(Balance[] memory x) internal pure returns (SBalance[] memory y) {
-        y = new SBalance[](x.length);
-        for (uint256 i; i < x.length; ) {
-            y[i] = SBalance(x[i].collateralId, int80(x[i].amount));
-            unchecked {
-                ++i;
-            }
-        }
-    }
-
-    function toBalances(SBalance[] memory x) internal pure returns (Balance[] memory y) {
-        y = new Balance[](x.length);
-        for (uint256 i; i < x.length; ) {
-            int80 a = x[i].amount;
-            a = a < 0 ? -a : a;
-            y[i] = Balance(x[i].collateralId, uint80(a));
             unchecked {
                 ++i;
             }

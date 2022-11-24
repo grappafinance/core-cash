@@ -64,10 +64,8 @@ contract TestPMRemoveCollateral_CM is CrossMarginFixture {
 
         assertEq(option.balanceOf(address(this), tokenId), 0);
 
-        SBalance[] memory balances = engine.getMinCollateral(address(this));
-        assertEq(balances.length, 1);
-        assertEq(balances[0].collateralId, wethId);
-        assertEq(uint80(balances[0].amount), depositAmount);
+        Balance[] memory balances = engine.getMinCollateral(address(this));
+        assertEq(balances.length, 0);
 
         uint256 balanceBefore = weth.balanceOf(address(this));
 
@@ -118,24 +116,19 @@ contract TestPMRemoveCollateral_CM is CrossMarginFixture {
 
         uint256 underlyingRequired = (((strikeSpread * UNIT) / strikePrice) * (10**(18 - 6)));
 
-        uint256 expectedBalance = depositAmount - underlyingRequired;
-
-        SBalance[] memory balances = engine.getMinCollateral(address(this));
+        Balance[] memory balances = engine.getMinCollateral(address(this));
         assertEq(balances.length, 1);
         assertEq(balances[0].collateralId, wethId);
-        assertEq(uint80(balances[0].amount), expectedBalance);
+        assertEq(balances[0].amount, underlyingRequired);
 
         uint256 balanceBefore = weth.balanceOf(address(this));
 
-        actions[0] = createRemoveCollateralAction(uint256(uint80(balances[0].amount)), wethId, address(this));
+        actions[0] = createRemoveCollateralAction(depositAmount - uint256(balances[0].amount), wethId, address(this));
         engine.execute(address(this), actions);
 
-        balances = engine.getMinCollateral(address(this));
-        assertEq(balances.length, 1);
-        assertEq(balances[0].collateralId, wethId);
-        assertEq(uint80(balances[0].amount), 0);
-
         uint256 balanceAfter = weth.balanceOf(address(this));
+
+        uint256 expectedBalance = depositAmount - underlyingRequired;
         assertEq(balanceAfter, balanceBefore + expectedBalance);
 
         (, , Balance[] memory _collaters) = engine.marginAccounts(address(this));
@@ -178,24 +171,19 @@ contract TestPMRemoveCollateral_CM is CrossMarginFixture {
 
         uint256 strikeSpreadScaled = strikeSpread * (10**(6 - 6));
 
-        uint256 expectedBalance = depositAmount - strikeSpreadScaled;
-
-        SBalance[] memory balances = engine.getMinCollateral(address(this));
+        Balance[] memory balances = engine.getMinCollateral(address(this));
         assertEq(balances.length, 1);
         assertEq(balances[0].collateralId, usdcId);
-        assertEq(uint80(balances[0].amount), expectedBalance);
+        assertEq(balances[0].amount, strikeSpreadScaled);
 
         uint256 balanceBefore = usdc.balanceOf(address(this));
 
-        actions[0] = createRemoveCollateralAction(uint256(uint80(balances[0].amount)), usdcId, address(this));
+        actions[0] = createRemoveCollateralAction(depositAmount - uint256(balances[0].amount), usdcId, address(this));
         engine.execute(address(this), actions);
 
-        balances = engine.getMinCollateral(address(this));
-        assertEq(balances.length, 1);
-        assertEq(balances[0].collateralId, usdcId);
-        assertEq(uint80(balances[0].amount), 0);
-
         uint256 balanceAfter = usdc.balanceOf(address(this));
+
+        uint256 expectedBalance = depositAmount - strikeSpreadScaled;
         assertEq(balanceAfter, balanceBefore + expectedBalance);
 
         (, , Balance[] memory _collaters) = engine.marginAccounts(address(this));

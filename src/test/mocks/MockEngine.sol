@@ -78,14 +78,4 @@ contract MockEngine is BaseEngine, DebitSpread, ReentrancyGuard {
     ) internal view override returns (bool) {
         return isAboveWater;
     }
-
-    function onERC1155Received(
-        address,
-        address,
-        uint256,
-        uint256,
-        bytes calldata
-    ) external virtual returns (bytes4) {
-        return this.onERC1155Received.selector;
-    }
 }

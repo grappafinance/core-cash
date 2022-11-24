@@ -115,6 +115,26 @@ abstract contract BaseEngine {
         if (_recipient != address(this)) IERC20(_asset).safeTransfer(_recipient, _amount);
     }
 
+    function onERC1155Received(
+        address,
+        address,
+        uint256,
+        uint256,
+        bytes calldata
+    ) external virtual returns (bytes4) {
+        return this.onERC1155Received.selector;
+    }
+
+    function onERC1155BatchReceived(
+        address,
+        address,
+        uint256[] memory,
+        uint256[] memory,
+        bytes memory
+    ) external virtual returns (bytes4) {
+        return this.onERC1155BatchReceived.selector;
+    }
+
     /** ========================================================= **
                    Internal Functions For Each Action
      ** ========================================================= **/
