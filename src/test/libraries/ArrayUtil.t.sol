@@ -218,7 +218,7 @@ contract ArrayUtilTest is Test {
         assertEq(indexes[3], 4);
         assertEq(indexes[4], 0);
     }
-        
+
     function testArgSortDupsEvenItems() public {
         uint256[] memory array = new uint256[](6);
         array[0] = 4;
@@ -238,7 +238,7 @@ contract ArrayUtilTest is Test {
         assertEq(sorted[5], 4);
 
         assertEq(indexes.length, 6);
-        
+
         assertEq(indexes[0], 2);
         assertEq(indexes[1], 3);
         assertEq(indexes[2], 1);
