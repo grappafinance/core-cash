@@ -27,3 +27,7 @@ During this audit, the 2 main contracts `Grappa` and `OptionToken` are in scope,
 * Are there scenarios where the settlement price cannot be reported quickly enough after expiry (especially for stable assets)?
 * Are there scenarios where no one can report a valid price?
 * Any centralization risk except that owner can set aggregators?
+
+### CrossMarginEngine
+
+* Can someone use the engine to create under collateralized options
