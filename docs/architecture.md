@@ -40,7 +40,7 @@ Grappa Owner can register bunch of oracles to the system. Oracles are contracts 
   - Upgradable and maintained by HashNote team
   - Can use single account to collateralize arbitrary amount of short positions, and offset requirements with long positions.
   - Currently fully collateralize all positions. Can be expanded to partial collateral in the future
-  - Cannot natively create spread token
+  - Does not support spread token
 
 - `AdvancedMargin`: mint partially collateralized options which is 3x - 20x more capital efficient compared to fully collateralized options. Requires dependencies on vol oracle to estimate the value of option. Each subAccounts can process:
   - single collateral type
