@@ -11,13 +11,11 @@ import "../../../libraries/ArrayUtil.sol";
 
 import "../../../config/types.sol";
 import "../../../config/constants.sol";
-import "../../../config/errors.sol";
 
-// Cross Margin libraries
+// Cross Margin libraries and configs
 import "./AccountUtil.sol";
-
-// Cross margin types
 import "./types.sol";
+import "./errors.sol";
 
 /**
  * @title CrossMarginLib

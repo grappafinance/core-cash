@@ -6,10 +6,10 @@ import "../../../libraries/TokenIdUtil.sol";
 import "../../../libraries/ProductIdUtil.sol";
 
 import "../../../config/constants.sol";
-import "../../../config/errors.sol";
 
 // Full margin types
 import "./types.sol";
+import "./errors.sol";
 
 /**
  * @title FullMarginLib

@@ -5,13 +5,14 @@ import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import "../../../libraries/TokenIdUtil.sol";
 import "../../../libraries/ProductIdUtil.sol";
 
-// advance margin types
+// advance margin types and errors
 import "./types.sol";
+import "./errors.sol";
 
 // global
 import "../../../config/types.sol";
 import "../../../config/constants.sol";
-import "../../../config/errors.sol";
+
 
 /**
  * @title AdvancedMarginLib

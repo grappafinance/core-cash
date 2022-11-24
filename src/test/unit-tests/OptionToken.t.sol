@@ -33,12 +33,12 @@ contract OptionTokenTest is Test {
         uint256 expiry = block.timestamp + 1 days;
         uint256 tokenId = TokenIdUtil.getTokenId(TokenType.CALL_SPREAD, productId, expiry, 20, 40);
 
-        vm.expectRevert(OT_Not_Authorized_Engine.selector);
+        vm.expectRevert(GP_Not_Authorized_Engine.selector);
         option.mint(address(this), tokenId, 1000_000_000);
     }
 
     function testCannotBurn() public {
-        vm.expectRevert(OT_Not_Authorized_Engine.selector);
+        vm.expectRevert(GP_Not_Authorized_Engine.selector);
         option.burn(address(this), 0, 1000_000_000);
     }
 

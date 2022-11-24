@@ -29,6 +29,7 @@ import "../../../config/errors.sol";
 
 // Full margin types
 import "./types.sol";
+import "./errors.sol";
 
 /**
  * @title   FullMarginEngine
