@@ -6,15 +6,21 @@ import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
 import {IGrappa} from "../../../interfaces/IGrappa.sol";
 import {IOracle} from "../../../interfaces/IOracle.sol";
 
-import {AccountUtil} from "../../../libraries/AccountUtil.sol";
-import {ArrayUtil} from "../../../libraries/ArrayUtil.sol";
+// shard libraries
 import {NumberUtil} from "../../../libraries/NumberUtil.sol";
 import {ProductIdUtil} from "../../../libraries/ProductIdUtil.sol";
 import {TokenIdUtil} from "../../../libraries/TokenIdUtil.sol";
+import {BalanceUtil} from "../../../libraries/BalanceUtil.sol";
+import {ArrayUtil} from "../../../libraries/ArrayUtil.sol";
+
+// cross margin libraries
+import {AccountUtil} from "./AccountUtil.sol";
+
+// Cross margin types
+import "./types.sol";
 
 import "../../../config/constants.sol";
 import "../../../config/enums.sol";
-import "../../../config/types.sol";
 import "../../../config/errors.sol";
 
 /**
@@ -23,7 +29,7 @@ import "../../../config/errors.sol";
  * @dev     deployed as a separate contract to save space
  */
 library CrossMarginMath {
-    using AccountUtil for Balance[];
+    using BalanceUtil for Balance[];
     using AccountUtil for CrossMarginDetail[];
     using AccountUtil for Position[];
     using AccountUtil for PositionOptim[];

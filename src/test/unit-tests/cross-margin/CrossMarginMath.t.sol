@@ -6,7 +6,8 @@ import {Test} from "forge-std/Test.sol";
 import {CrossMarginMath} from "../../../core/engines/cross-margin/CrossMarginMath.sol";
 import "../../../config/constants.sol";
 import "../../../config/errors.sol";
-import "../../../config/types.sol";
+
+import "../../../core/engines/cross-margin/types.sol";
 
 /**
  * test full margin calculation for complicated structure

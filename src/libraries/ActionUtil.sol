@@ -6,6 +6,7 @@ import "../config/types.sol";
 
 /**
  * @title libraries to encode action arguments
+ * @dev   only used in tests
  */
 library ActionUtil {
     /**

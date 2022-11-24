@@ -27,6 +27,10 @@ import "../../../config/enums.sol";
 import "../../../config/constants.sol";
 import "../../../config/errors.sol";
 
+// Full margin types
+import "./types.sol";
+import "./errors.sol";
+
 /**
  * @title   FullMarginEngine
  * @author  @antoncoding

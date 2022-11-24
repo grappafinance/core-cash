@@ -10,7 +10,7 @@ import "../../../config/types.sol";
 import "../../../config/constants.sol";
 import "../../../config/errors.sol";
 
-import "../../utils/Console.sol";
+import "../../../core/engines/cross-margin/types.sol";
 
 // solhint-disable-next-line contract-name-camelcase
 contract TestSettleCoveredCall_CM is CrossMarginFixture {
