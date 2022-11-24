@@ -16,7 +16,6 @@ import "../../../config/errors.sol";
 // Cross Margin libraries
 import "./AccountUtil.sol";
 
-
 /**
  * @title CrossMarginLib
  * @dev   This library is in charge of updating the simple account struct and do validations
