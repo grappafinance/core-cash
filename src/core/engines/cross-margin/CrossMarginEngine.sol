@@ -26,7 +26,10 @@ import {AccountUtil} from "./AccountUtil.sol";
 import {CrossMarginMath} from "./CrossMarginMath.sol";
 import {CrossMarginLib} from "./CrossMarginLib.sol";
 
-// constants and types
+// Cross margin types
+import "./types.sol";
+
+// global constants and types
 import "../../../config/types.sol";
 import "../../../config/enums.sol";
 import "../../../config/constants.sol";

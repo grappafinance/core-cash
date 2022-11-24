@@ -3,7 +3,9 @@ pragma solidity ^0.8.0;
 
 import "../../../libraries/TokenIdUtil.sol";
 import "../../../libraries/ArrayUtil.sol";
-import "../../../config/types.sol";
+
+// cross margin types
+import "./types.sol";
 
 library AccountUtil {
     using TokenIdUtil for uint192;

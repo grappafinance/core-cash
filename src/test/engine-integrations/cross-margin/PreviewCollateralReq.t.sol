@@ -11,6 +11,8 @@ import "../../../config/types.sol";
 import "../../../config/constants.sol";
 import "../../../config/errors.sol";
 
+import "../../../core/engines/cross-margin/types.sol";
+
 import "../../utils/Console.sol";
 
 /**

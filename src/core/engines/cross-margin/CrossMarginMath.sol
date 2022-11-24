@@ -16,9 +16,11 @@ import {ArrayUtil} from "../../../libraries/ArrayUtil.sol";
 // cross margin libraries
 import {AccountUtil} from "./AccountUtil.sol";
 
+// Cross margin types
+import "./types.sol";
+
 import "../../../config/constants.sol";
 import "../../../config/enums.sol";
-import "../../../config/types.sol";
 import "../../../config/errors.sol";
 
 /**

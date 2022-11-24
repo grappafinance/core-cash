@@ -6,8 +6,10 @@ import {MoneynessLib} from "../../../libraries/MoneynessLib.sol";
 import {NumberUtil} from "../../../libraries/NumberUtil.sol";
 
 import "../../../config/constants.sol";
-import "../../../config/types.sol";
 import "../../../config/errors.sol";
+
+// Full margin types
+import "./types.sol";
 
 /**
  * @title   FullMarginMath

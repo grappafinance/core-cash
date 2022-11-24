@@ -25,6 +25,7 @@ import {AdvancedMarginMath} from "./AdvancedMarginMath.sol";
 import {AdvancedMarginLib} from "./AdvancedMarginLib.sol";
 
 // constants and types
+import "./types.sol";
 import "../../../config/types.sol";
 import "../../../config/enums.sol";
 import "../../../config/constants.sol";

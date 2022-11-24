@@ -5,9 +5,11 @@ import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import "../../../libraries/TokenIdUtil.sol";
 import "../../../libraries/ProductIdUtil.sol";
 
-import "../../../config/types.sol";
 import "../../../config/constants.sol";
 import "../../../config/errors.sol";
+
+// Full margin types
+import "./types.sol";
 
 /**
  * @title FullMarginLib

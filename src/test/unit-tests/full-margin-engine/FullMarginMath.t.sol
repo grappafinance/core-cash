@@ -6,7 +6,8 @@ import {Test} from "forge-std/Test.sol";
 import {FullMarginMath} from "../../../core/engines/full-margin/FullMarginMath.sol";
 import "../../../config/constants.sol";
 import "../../../config/errors.sol";
-import "../../../config/types.sol";
+
+import "../../../core/engines/full-margin/types.sol";
 
 /**
  * test full margin calculation for simple call
