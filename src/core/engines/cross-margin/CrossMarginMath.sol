@@ -147,7 +147,7 @@ library CrossMarginMath {
                 strikes,
                 syntheticUnderlyingWeight,
                 underlyingNeeded,
-                _detail.putStrikes.length > 0
+                false
             );
         } else {
             numeraireNeeded = NumberUtil.convertDecimals(numeraireNeeded, UNIT_DECIMALS, _detail.numeraireDecimals);
