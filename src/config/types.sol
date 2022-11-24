@@ -43,8 +43,8 @@ struct CrossMarginAccount {
  * @param callStrikes           strikes of call options held in account (shorts and longs)
  * @param underlyingId          grappa id for underlying asset
  * @param underlyingDecimals    decimal points of underlying asset
- * @param collateralId          grappa id for collateral asset
- * @param collateralDecimals    decimal points of collateral asset
+ * @param numeraireId           grappa id for numeraire (aka strike) asset
+ * @param numeraireDecimals     decimal points of numeraire (aka strike) asset
  * @param spotPrice             current spot price of underlying in terms of strike asset
  * @param expiry                expiry of the option
  */
@@ -55,8 +55,8 @@ struct CrossMarginDetail {
     uint256[] callStrikes;
     uint8 underlyingId;
     uint8 underlyingDecimals;
-    uint8 collateralId;
-    uint8 collateralDecimals;
+    uint8 numeraireId;
+    uint8 numeraireDecimals;
     uint256 spotPrice;
     uint256 expiry;
 }

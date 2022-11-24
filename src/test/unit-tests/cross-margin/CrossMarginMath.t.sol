@@ -57,8 +57,8 @@ contract TestStructures_CMM is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 1,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 1,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });
@@ -79,8 +79,8 @@ contract TestStructures_CMM is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 1,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 1,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });
@@ -101,8 +101,8 @@ contract TestStructures_CMM is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 1,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 1,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });
@@ -118,8 +118,8 @@ contract TestStructures_CMM is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 1,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 1,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });
@@ -139,8 +139,8 @@ contract TestStructures_CMM is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 1,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 1,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });
@@ -160,8 +160,8 @@ contract TestStructures_CMM is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 1,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 1,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });
@@ -182,8 +182,8 @@ contract TestStructures_CMM is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 1,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 1,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });
@@ -217,8 +217,8 @@ contract TestStructures_CMM is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 1,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 1,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });
@@ -245,8 +245,8 @@ contract TestStructures_CMM is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 1,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 1,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });
@@ -273,8 +273,8 @@ contract TestStructures_CMM is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 1,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 1,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });
@@ -301,8 +301,8 @@ contract TestStructures_CMM is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 1,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 1,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });
@@ -329,8 +329,8 @@ contract TestStructures_CMM is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 1,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 1,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });
@@ -359,8 +359,8 @@ contract TestStructures_CMM is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 1,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 1,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });
@@ -389,8 +389,8 @@ contract TestStructures_CMM is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 0,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 0,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });
@@ -419,8 +419,8 @@ contract TestStructures_CMM is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 1,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 1,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });
@@ -449,8 +449,8 @@ contract TestStructures_CMM is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 0,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 0,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });
@@ -479,8 +479,8 @@ contract TestStructures_CMM is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 0,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 0,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });
@@ -509,8 +509,8 @@ contract TestStructures_CMM is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 0,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 0,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });
@@ -520,35 +520,36 @@ contract TestStructures_CMM is Test {
         assertEq(underlyingNeeded, ZERO);
     }
 
-    function testMarginCallSpreadWithCash() public {
-        callWeights = new int256[](2);
-        callWeights[0] = -1 * sUNIT;
-        callWeights[1] = 1 * sUNIT;
+    // not possible to mint calls with with anything other than underlying
+    // function testMarginCallSpreadWithCash() public {
+    //     callWeights = new int256[](2);
+    //     callWeights[0] = -1 * sUNIT;
+    //     callWeights[1] = 1 * sUNIT;
 
-        callStrikes = new uint256[](2);
-        callStrikes[0] = 21000 * UNIT;
-        callStrikes[1] = 22000 * UNIT;
+    //     callStrikes = new uint256[](2);
+    //     callStrikes[0] = 21000 * UNIT;
+    //     callStrikes[1] = 22000 * UNIT;
 
-        putWeights = new int256[](0);
-        putStrikes = new uint256[](0);
+    //     putWeights = new int256[](0);
+    //     putStrikes = new uint256[](0);
 
-        CrossMarginDetail memory detail = CrossMarginDetail({
-            putWeights: putWeights,
-            putStrikes: putStrikes,
-            callWeights: callWeights,
-            callStrikes: callStrikes,
-            underlyingId: 0,
-            underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 1,
-            collateralDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
-            expiry: 0
-        });
+    //     CrossMarginDetail memory detail = CrossMarginDetail({
+    //         putWeights: putWeights,
+    //         putStrikes: putStrikes,
+    //         callWeights: callWeights,
+    //         callStrikes: callStrikes,
+    //         underlyingId: 0,
+    //         underlyingDecimals: UNIT_DECIMALS,
+    //         numeraireId: 1,
+    //         numeraireDecimals: UNIT_DECIMALS,
+    //         spotPrice: spotPrice,
+    //         expiry: 0
+    //     });
 
-        (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(numeraireNeeded, 1000 * UNIT);
-        assertEq(underlyingNeeded, ZERO);
-    }
+    //     (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
+    //     assertEq(numeraireNeeded, 1000 * UNIT);
+    //     assertEq(underlyingNeeded, ZERO);
+    // }
 
     function testConversion() public {
         callWeights = new int256[](1);
@@ -570,8 +571,8 @@ contract TestStructures_CMM is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 1,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 1,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });
@@ -588,8 +589,8 @@ contract TestStructures_CMM is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 1,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 1,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });
@@ -633,8 +634,8 @@ contract TestVanillaCall_CMM is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 0,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 0,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });
@@ -678,8 +679,8 @@ contract TestVanillaPut_CMM is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 1,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 1,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });
@@ -725,8 +726,8 @@ contract TestStrangles is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 1,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 1,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });
@@ -746,8 +747,8 @@ contract TestStrangles is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 1,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 1,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });
@@ -781,8 +782,8 @@ contract TestStrangles is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 1,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 1,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });
@@ -835,8 +836,8 @@ contract TestCornerCases_CMM is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 0,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 0,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });
@@ -856,8 +857,8 @@ contract TestCornerCases_CMM is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 1,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 1,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });
@@ -877,8 +878,8 @@ contract TestCornerCases_CMM is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 1,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 1,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });
@@ -896,8 +897,8 @@ contract TestCornerCases_CMM is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 1,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 1,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });
@@ -915,8 +916,8 @@ contract TestCornerCases_CMM is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 1,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 1,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });
@@ -939,8 +940,8 @@ contract TestCornerCases_CMM is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 1,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 1,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });
@@ -963,8 +964,8 @@ contract TestCornerCases_CMM is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 1,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 1,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });
@@ -990,8 +991,8 @@ contract TestCornerCases_CMM is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 1,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 1,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });
@@ -1012,8 +1013,8 @@ contract TestCornerCases_CMM is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 1,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 1,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });
@@ -1043,8 +1044,8 @@ contract TestCornerCases_CMM is Test {
             callStrikes: callStrikes,
             underlyingId: 0,
             underlyingDecimals: UNIT_DECIMALS,
-            collateralId: 1,
-            collateralDecimals: UNIT_DECIMALS,
+            numeraireId: 1,
+            numeraireDecimals: UNIT_DECIMALS,
             spotPrice: spotPrice,
             expiry: 0
         });

@@ -34,7 +34,7 @@ library CrossMarginLib {
     }
 
     ///@dev Increase the collateral in the account
-    ///@param account CrossMarginAccount memory that will be updated
+    ///@param account CrossMarginAccount storage that will be updated
     function addCollateral(
         CrossMarginAccount storage account,
         uint8 collateralId,
@@ -50,7 +50,7 @@ library CrossMarginLib {
     }
 
     ///@dev Reduce the collateral in the account
-    ///@param account CrossMarginAccount memory that will be updated
+    ///@param account CrossMarginAccount storage that will be updated
     function removeCollateral(
         CrossMarginAccount storage account,
         uint8 collateralId,
@@ -70,7 +70,7 @@ library CrossMarginLib {
     }
 
     ///@dev Increase the amount of short call or put (debt) of the account
-    ///@param account CrossMarginAccount memory that will be updated
+    ///@param account CrossMarginAccount storage that will be updated
     function mintOption(
         CrossMarginAccount storage account,
         uint256 tokenId,
@@ -100,7 +100,7 @@ library CrossMarginLib {
     }
 
     ///@dev Remove the amount of short call or put (debt) of the account
-    ///@param account CrossMarginAccount memory that will be updated in-place
+    ///@param account CrossMarginAccount storage that will be updated in-place
     function burnOption(
         CrossMarginAccount storage account,
         uint256 tokenId,
@@ -117,7 +117,7 @@ library CrossMarginLib {
     }
 
     ///@dev Increase the amount of long call or put (debt) of the account
-    ///@param account CrossMarginAccount memory that will be updated
+    ///@param account CrossMarginAccount storage that will be updated
     function addOption(
         CrossMarginAccount storage account,
         uint256 tokenId,
@@ -133,7 +133,7 @@ library CrossMarginLib {
     }
 
     ///@dev Remove the amount of long call or put held by the account
-    ///@param account CrossMarginAccount memory that will be updated in-place
+    ///@param account CrossMarginAccount storage that will be updated in-place
     function removeOption(
         CrossMarginAccount storage account,
         uint256 tokenId,
@@ -150,7 +150,7 @@ library CrossMarginLib {
     }
 
     ///@dev Settles the accounts longs and shorts
-    ///@param account CrossMarginAccount memory that will be updated in-place
+    ///@param account CrossMarginAccount storage that will be updated in-place
     function settleAtExpiry(
         CrossMarginAccount storage account,
         IGrappa grappa

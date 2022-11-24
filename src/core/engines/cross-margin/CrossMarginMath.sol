@@ -82,10 +82,10 @@ library CrossMarginMath {
                 (uint256 numeraireNeeded, uint256 underlyingNeeded) = getMinCollateral(detail);
 
                 if (numeraireNeeded != 0) {
-                    (found, index) = amounts.indexOf(detail.collateralId);
+                    (found, index) = amounts.indexOf(detail.numeraireId);
 
                     if (found) amounts[index].amount += numeraireNeeded.toUint80();
-                    else amounts = amounts.append(Balance(detail.collateralId, numeraireNeeded.toUint80()));
+                    else amounts = amounts.append(Balance(detail.numeraireId, numeraireNeeded.toUint80()));
                 }
 
                 if (underlyingNeeded != 0) {
@@ -108,9 +108,9 @@ library CrossMarginMath {
 
     /**
      * @notice get minimum collateral
-     * @dev detail is composed of positions with the same underlying + strike + collateral + expiry
+     * @dev detail is composed of positions with the same underlying + strike + expiry
      * @param _detail margin details
-     * @return numeraireNeeded with {collateral asset's} decimals
+     * @return numeraireNeeded with {numeraire asset's} decimals
      * @return underlyingNeeded with {underlying asset's} decimals
      */
     function getMinCollateral(CrossMarginDetail memory _detail)
@@ -137,7 +137,7 @@ library CrossMarginMath {
 
         // if options collateralizied in underlying, forcing numeraire to be converted to underlying
         // only applied to calls since puts cannot be collateralized in underlying
-        if (numeraireNeeded > 0 && _detail.underlyingId == _detail.collateralId) {
+        if (numeraireNeeded > 0 && _detail.putStrikes.length == 0) {
             numeraireNeeded = 0;
 
             (, underlyingNeeded) = _checkHedgableTailRisk(
@@ -150,7 +150,7 @@ library CrossMarginMath {
                 _detail.putStrikes.length > 0
             );
         } else {
-            numeraireNeeded = NumberUtil.convertDecimals(numeraireNeeded, UNIT_DECIMALS, _detail.collateralDecimals);
+            numeraireNeeded = NumberUtil.convertDecimals(numeraireNeeded, UNIT_DECIMALS, _detail.numeraireDecimals);
         }
 
         underlyingNeeded = NumberUtil.convertDecimals(underlyingNeeded, UNIT_DECIMALS, _detail.underlyingDecimals);
@@ -190,7 +190,7 @@ library CrossMarginMath {
      * @param hasCalls has call options
      * @param pois are the strikes we are evaluating
      * @param payouts are the payouts at a given strike
-     * @return numeraireNeeded with {collateral asset's} decimals
+     * @return numeraireNeeded with {numeraire asset's} decimals
      * @return underlyingNeeded with {underlying asset's} decimals
      */
     function _calcCollateralNeeds(
@@ -538,7 +538,7 @@ library CrossMarginMath {
 
             ProductDetails memory product = _getProductDetails(grappa, productId);
 
-            bytes32 pos = keccak256(abi.encode(product.underlyingId, product.strikeId, product.collateralId, expiry));
+            bytes32 pos = keccak256(abi.encode(product.underlyingId, product.strikeId, expiry));
 
             (bool found, uint256 index) = ArrayUtil.indexOf(usceLookUp, pos);
 
@@ -547,14 +547,15 @@ library CrossMarginMath {
             if (found) detail = details[index];
             else {
                 usceLookUp = ArrayUtil.append(usceLookUp, pos);
-                details = details.append(detail);
 
                 detail.underlyingId = product.underlyingId;
                 detail.underlyingDecimals = product.underlyingDecimals;
-                detail.collateralId = product.collateralId;
-                detail.collateralDecimals = product.collateralDecimals;
+                detail.numeraireId = product.strikeId;
+                detail.numeraireDecimals = product.strikeDecimals;
                 detail.spotPrice = IOracle(product.oracle).getSpotPrice(product.underlying, product.strike);
                 detail.expiry = expiry;
+
+                details = details.append(detail);
             }
 
             int256 amount = int256(int64(positions[i].amount));
@@ -619,7 +620,7 @@ library CrossMarginMath {
      * @notice gets product asset specific details from grappa in one call
      */
     function _getProductDetails(IGrappa grappa, uint40 productId) internal view returns (ProductDetails memory info) {
-        (, , uint8 underlyingId, uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(productId);
+        (, , uint8 underlyingId, uint8 strikeId, ) = ProductIdUtil.parseProductId(productId);
 
         (
             address oracle,
@@ -627,9 +628,9 @@ library CrossMarginMath {
             address underlying,
             uint8 underlyingDecimals,
             address strike,
+            uint8 strikeDecimals,
             ,
-            ,
-            uint8 collatDecimals
+
         ) = grappa.getDetailFromProductId(productId);
 
         info.oracle = oracle;
@@ -638,7 +639,6 @@ library CrossMarginMath {
         info.underlyingDecimals = underlyingDecimals;
         info.strike = strike;
         info.strikeId = strikeId;
-        info.collateralId = collateralId;
-        info.collateralDecimals = collatDecimals;
+        info.strikeDecimals = strikeDecimals;
     }
 }
