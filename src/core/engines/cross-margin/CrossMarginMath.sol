@@ -153,7 +153,7 @@ library CrossMarginMath {
                 strikes,
                 syntheticUnderlyingWeight,
                 underlyingNeeded,
-                _detail.putStrikes.length > 0
+                false
             );
         } else {
             numeraireNeeded = NumberUtil.convertDecimals(numeraireNeeded, UNIT_DECIMALS, _detail.numeraireDecimals);
@@ -263,7 +263,8 @@ library CrossMarginMath {
      * @return pois array of point-of-interests (aka strikes)
      */
     function _createPois(uint256[] memory strikes, uint256 numOfPuts) internal pure returns (uint256[] memory pois) {
-        uint256 epsilon = strikes.min() / 10;
+        (uint256 minStrike, uint256 maxStrike) = strikes.minMax();
+        uint256 epsilon = minStrike / 10;
 
         bool hasPuts = numOfPuts > 0;
 
@@ -272,7 +273,7 @@ library CrossMarginMath {
 
         pois = new uint256[](poiCount);
 
-        if (hasPuts) pois[0] = strikes.min() - epsilon;
+        if (hasPuts) pois[0] = minStrike - epsilon;
 
         for (uint256 i; i < strikes.length; ) {
             uint256 offset = hasPuts ? 1 : 0;
@@ -284,7 +285,7 @@ library CrossMarginMath {
             }
         }
 
-        pois[pois.length - 1] = strikes.max() + epsilon;
+        pois[pois.length - 1] = maxStrike + epsilon;
     }
 
     /**

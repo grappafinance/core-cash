@@ -4,6 +4,8 @@ pragma solidity ^0.8.0;
 // import test base and helpers.
 import {CrossMarginFixture} from "./CrossMarginFixture.t.sol";
 
+import "../../../core/engines/cross-margin/AccountUtil.sol";
+
 import "../../../config/enums.sol";
 import "../../../config/types.sol";
 import "../../../config/constants.sol";
