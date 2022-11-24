@@ -344,3 +344,70 @@ contract TestSettleCollateralizedPut_CM is CrossMarginFixture {
         assertEq(collateralsBefore[cIndex].amount - collateralsAfter[cIndex].amount, expectedPayout);
     }
 }
+
+contract TestLongShortSettlement is CrossMarginFixture {
+    uint256 public expiry;
+
+    uint64 private amount = uint64(1 * UNIT);
+    uint256 private aliceTokenId;
+    uint256 private selfTokenId;
+    uint256 private selfStrike;
+    uint256 private aliceStrike;
+
+    function setUp() public {
+        selfStrike = uint64(3000 * UNIT);
+        aliceStrike = uint64(2000 * UNIT);
+
+        usdc.mint(address(this), selfStrike);
+        usdc.approve(address(engine), type(uint256).max);
+
+        usdc.mint(alice, aliceStrike);
+        usdc.approve(address(engine), type(uint256).max);
+
+        expiry = block.timestamp + 14 days;
+
+        selfTokenId = getTokenId(TokenType.PUT, pidUsdcCollat, expiry, selfStrike, 0);
+        aliceTokenId = getTokenId(TokenType.PUT, pidUsdcCollat, expiry, aliceStrike, 0);
+
+        vm.startPrank(alice);
+        usdc.approve(address(engine), type(uint256).max);
+        engine.setAccountAccess(address(this), type(uint256).max);
+        vm.stopPrank();
+
+        option.setApprovalForAll(address(engine), true);
+    }
+
+    function testShortsAreSettledBeforeLongs() public {
+
+        // add collateral to alice and mint options to self
+        ActionArgs[] memory aliceActions = new ActionArgs[](2);
+        aliceActions[0] = createAddCollateralAction(usdcId, alice, aliceStrike);
+        aliceActions[1] = createMintAction(aliceTokenId, address(this), amount);
+
+        // add collateral to self, mint to alice and use alice collateral as long
+        ActionArgs[] memory selfActions = new ActionArgs[](3);
+        selfActions[0] = createAddCollateralAction(usdcId, address(this), selfStrike);
+        selfActions[1] = createMintAction(selfTokenId, alice, amount);
+        selfActions[2] = createAddLongAction(aliceTokenId, amount, address(this));
+
+        BatchExecute[] memory batch = new BatchExecute[](2);
+        batch[0] = BatchExecute(alice, aliceActions);
+        batch[1] = BatchExecute(address(this), selfActions);
+
+        engine.batchExecute(batch);
+
+        // remove extra collateral from long position
+        selfActions = new ActionArgs[](1);
+        selfActions[0] = createRemoveCollateralAction(aliceStrike, usdcId, address(this));
+        engine.execute(address(this), selfActions);
+
+        // expire option & set expiry price
+        vm.warp(expiry);
+        oracle.setExpiryPrice(address(weth), address(usdc), 1000 * UNIT);
+
+        //settle option
+        selfActions = new ActionArgs[](1);
+        selfActions[0] = createSettleAction();
+        engine.execute(address(this), selfActions);
+    }
+}
