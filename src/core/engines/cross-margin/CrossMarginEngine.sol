@@ -18,9 +18,11 @@ import {IWhitelist} from "../../../interfaces/IWhitelist.sol";
 // librarise
 import {TokenIdUtil} from "../../../libraries/TokenIdUtil.sol";
 import {ProductIdUtil} from "../../../libraries/ProductIdUtil.sol";
-import {AccountUtil} from "../../../libraries/AccountUtil.sol";
-import {ArrayUtil} from "../../../libraries/ArrayUtil.sol";
+import {BalanceUtil} from "../../../libraries/BalanceUtil.sol";
 
+// Cross margin libraries
+import {AccountUtil} from "./AccountUtil.sol";
+import {ArrayUtil} from "./ArrayUtil.sol";
 import {CrossMarginMath} from "./CrossMarginMath.sol";
 import {CrossMarginLib} from "./CrossMarginLib.sol";
 
@@ -47,7 +49,7 @@ contract CrossMarginEngine is
 {
     using AccountUtil for Position[];
     using AccountUtil for PositionOptim[];
-    using AccountUtil for Balance[];
+    using BalanceUtil for Balance[];
     using CrossMarginLib for CrossMarginAccount;
     using ProductIdUtil for uint40;
     using SafeCast for uint256;

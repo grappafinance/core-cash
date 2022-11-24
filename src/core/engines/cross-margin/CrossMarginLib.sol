@@ -6,19 +6,22 @@ import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 
 import "../../../libraries/TokenIdUtil.sol";
 import "../../../libraries/ProductIdUtil.sol";
-import "../../../libraries/AccountUtil.sol";
-import "../../../libraries/ArrayUtil.sol";
+import "../../../libraries/BalanceUtil.sol";
 
 import "../../../config/types.sol";
 import "../../../config/constants.sol";
 import "../../../config/errors.sol";
+
+// Cross Margin libraries
+import "./AccountUtil.sol";
+import "./ArrayUtil.sol";
 
 /**
  * @title CrossMarginLib
  * @dev   This library is in charge of updating the simple account struct and do validations
  */
 library CrossMarginLib {
-    using AccountUtil for Balance[];
+    using BalanceUtil for Balance[];
     using AccountUtil for Position[];
     using AccountUtil for PositionOptim[];
     using ArrayUtil for uint256[];

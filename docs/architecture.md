@@ -30,15 +30,19 @@ Grappa Owner can register bunch of oracles to the system. Oracles are contracts 
 
 ### List of Margin Engines
 
-- `FullMargin`: fully collateralized margin. can be used to mint:
+- `FullMargin`: Simple implementation of fully collateralized margin. Only accept 1 collateral + 1 short per account. Can be used to mint the following shorts:
   - covered call (collateralized with underlying)
-  - covered put (collateralized with strike)
+  - put (collateralized with strike)
   - call spread (collateralized with strike or underlying)
   - put spread (collateralized with strike)
-- `CrossMargin`: use a single subAccount to hold multiple long and short positions.
-- `AdvancedMargin`(WIP): mint partially collateralized options which is 3x - 20x more capital efficient compared to fully collateralized options. Requires dependencies on vol oracle to estimate the value of option. Each subAccounts can process:
+
+- `CrossMargin`: use a single subAccount to hold multiple collateral, long and short positions.
+  - Upgradable and maintained by HashNote team
+  - Can use single account to collateralize arbitrary amount of short positions, and offset requirements with long positions.
+  - Currently fully collateralize all positions. Can be expanded to partial collateral in the future
+  - Cannot natively create spread token
+
+- `AdvancedMargin`: mint partially collateralized options which is 3x - 20x more capital efficient compared to fully collateralized options. Requires dependencies on vol oracle to estimate the value of option. Each subAccounts can process:
   - single collateral type
   - can mint 1 call (or call spread) + 1 put (or put spread) in a single account.
-
-
-
+  - Some known issues are still WIP. (See Github Issues)

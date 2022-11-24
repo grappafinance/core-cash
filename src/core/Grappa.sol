@@ -17,7 +17,7 @@ import {IGrappa} from "../interfaces/IGrappa.sol";
 import {IMarginEngine} from "../interfaces/IMarginEngine.sol";
 
 // librarise
-import {AccountUtil} from "../libraries/AccountUtil.sol";
+import {BalanceUtil} from "../libraries/BalanceUtil.sol";
 import {MoneynessLib} from "../libraries/MoneynessLib.sol";
 import {NumberUtil} from "../libraries/NumberUtil.sol";
 import {ProductIdUtil} from "../libraries/ProductIdUtil.sol";
@@ -35,7 +35,7 @@ import "../config/errors.sol";
  * @dev     This contract serves as the registry of the system who system.
  */
 contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
-    using AccountUtil for Balance[];
+    using BalanceUtil for Balance[];
     using FixedPointMathLib for uint256;
     using NumberUtil for uint256;
     using ProductIdUtil for uint40;

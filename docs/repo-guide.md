@@ -1,5 +1,39 @@
 # Repo Guide
 
+## Folder Structure
+
+All contracts can be found in `src`, structured as follow:
+
+```
+src
+├── config
+│   ├── constants.sol
+│   ├── enums.sol
+│   ├── errors.sol
+│   └── types.sol
+├── core
+│   ├── Grappa.sol
+│   ├── OptionToken.sol
+│   ├── OptionTokenDescriptor.sol
+│   ├── engines
+│   │   ├── BaseEngine.sol
+│   │   ├── advanced-margin
+│   │   ├── cross-margin
+│   │   └── full-margin
+│   └── oracles
+│       ├── ChainlinkOracle.sol
+│       ├── ChainlinkOracleDisputable.sol
+│       └── errors.sol
+├── interfaces
+├── libraries
+│   ├── ActionUtil.sol
+│   ├── MoneynessLib.sol
+│   ├── NumberUtil.sol
+│   ├── ProductIdUtil.sol
+│   └── TokenIdUtil.sol
+└── test
+```
+
 ## Margin Engines
 
 All engines are located in `src/core/engines`. They are the most important part of the system as they decide the "rule of margining".
@@ -12,8 +46,12 @@ note: `subAccount`*: In the current shared engine design (inherited from `BaseEn
 
 (You don't have to follow this access control design to be compatible with Grappa)
 
-## Integration tests
+## Test
+
+### Unit tests
+
+### Integration tests
 
 You can find the integration tests for each engine in `test/engine-integrations/`. In these tests, we setup the engine with the real Grappa contract and OptionToken contract to test the margining rules.
 
-Mosts of the tests for engines are in this form, as the 
+Mosts of the tests for engines are in this form, as it give us better gas estimation, and make it easier to test shared logic like payout in settlement.

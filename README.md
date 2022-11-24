@@ -1,8 +1,8 @@
 <div align="center">
-  <h1 align="center"> Grappa</h1>
-  <p align="center" style="font-size:2.2vw;color:grey">
+  <h1 > Grappa</h1>
+  <h3 style="font-size:2.2vw;color:grey">
   An option protocol that focus on composability and capital efficiency.
-  </p>
+  </h3>
   <img height=60 src="https://i.imgur.com/vSIO8xJ.png"> </image>
   <br/>
   <br/>
