@@ -49,13 +49,11 @@ We also natively support call spread and put spread that can increase capital ef
 
 We also planned to build an exchange layer between the same kind of option token created by different margin engine. For example: AMM to exchange between fully collateralized and partially collateralized options.
 
-There's no development on the exchange layer yet since we're still finalizing the design of the base layer. 
-
+There's no development on the exchange layer at the moment since we're still finalizing the design of the base layer. 
 
 ## Documentation
 
 For detailed documentation about how the system architecture is designed, please visit [docs](./docs/)
-
 
 ## Get Started
 

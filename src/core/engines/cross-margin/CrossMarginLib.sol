@@ -155,10 +155,10 @@ library CrossMarginLib {
 
     ///@dev Settles the accounts longs and shorts
     ///@param account CrossMarginAccount storage that will be updated in-place
-    function settleAtExpiry(
-        CrossMarginAccount storage account,
-        IGrappa grappa
-    ) external returns (Balance[] memory longPayouts, Balance[] memory shortPayouts) {
+    function settleAtExpiry(CrossMarginAccount storage account, IGrappa grappa)
+        external
+        returns (Balance[] memory longPayouts, Balance[] memory shortPayouts)
+    {
         // settling longs first as they can only increase collateral
         longPayouts = _settleLongs(grappa, account);
         // settling shorts last as they can only reduce collateral
