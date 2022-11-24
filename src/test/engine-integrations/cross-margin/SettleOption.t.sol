@@ -378,7 +378,6 @@ contract TestLongShortSettlement is CrossMarginFixture {
     }
 
     function testShortsAreSettledBeforeLongs() public {
-
         // add collateral to alice and mint options to self
         ActionArgs[] memory aliceActions = new ActionArgs[](2);
         aliceActions[0] = createAddCollateralAction(usdcId, alice, aliceStrike);

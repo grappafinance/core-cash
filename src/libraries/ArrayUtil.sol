@@ -37,6 +37,21 @@ library ArrayUtil {
         }
     }
 
+    function minMax(uint256[] memory x) internal pure returns (uint256 min_, uint256 max_) {
+        (min_, max_) = (x[0], x[0]);
+        for (uint256 i; i < x.length; ) {
+            if (x[i] < min_) {
+                min_ = x[i];
+            }
+            if (x[i] > max_) {
+                max_ = x[i];
+            }
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
     // /**
     //  * @dev Returns minimal element's index
     //  * @return m
@@ -378,7 +393,7 @@ library ArrayUtil {
         if (i < right) quickSort(arr, i, right, indexArray);
     }
 
-    /************ End Sort Functions for Int *******/    
+    /************ End Sort Functions for Int *******/
 
     function sortByIndexes(int256[] memory x, uint256[] memory z) internal pure returns (int256[] memory y) {
         y = new int256[](x.length);
@@ -488,7 +503,6 @@ library ArrayUtil {
         }
         return a;
     }
-
 
     function at(int256[] memory x, int256 i) internal pure returns (int256) {
         int256 len = x.length.toInt256();
