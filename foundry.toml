@@ -5,12 +5,10 @@ optimizer_runs = 100000
 
 gas_reports = [
   # "*",
-  "Grappa", 
+  "Grappa",
   "OptionToken",
   "FullMarginEngine",
+  "CrossMarginEngine",
+  "AdvancedMarginEngine",
   "ChainlinkOracle"
 ]
-
-[profile.lite]
-via_ir = false
-optimizer_runs = 200

@@ -1,8 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+// imported contracts and libraries
+import {ReentrancyGuard} from "solmate/utils/ReentrancyGuard.sol";
+
 // inheriting contracts
 import {BaseEngine} from "../BaseEngine.sol";
+import {DebitSpread} from "../mixins/DebitSpread.sol";
 import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
 
 // interfaces
@@ -23,6 +27,10 @@ import "../../../config/enums.sol";
 import "../../../config/constants.sol";
 import "../../../config/errors.sol";
 
+// Full margin types
+import "./types.sol";
+import "./errors.sol";
+
 /**
  * @title   FullMarginEngine
  * @author  @antoncoding
@@ -31,7 +39,7 @@ import "../../../config/errors.sol";
             Interacts with OptionToken to mint / burn
             Interacts with grappa to fetch registered asset info
  */
-contract FullMarginEngine is BaseEngine, IMarginEngine {
+contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyGuard {
     using FullMarginLib for FullMarginAccount;
     using FullMarginMath for FullMarginDetail;
     using TokenIdUtil for uint256;
@@ -56,7 +64,7 @@ contract FullMarginEngine is BaseEngine, IMarginEngine {
     function execute(address _subAccount, ActionArgs[] calldata actions) public override nonReentrant {
         _assertCallerHasAccess(_subAccount);
 
-        // update the account memory and do external calls on the flight
+        // update the account state and do external calls on the flight
         for (uint256 i; i < actions.length; ) {
             if (actions[i].action == ActionType.AddCollateral) _addCollateral(_subAccount, actions[i].data);
             else if (actions[i].action == ActionType.RemoveCollateral) _removeCollateral(_subAccount, actions[i].data);
@@ -69,7 +77,7 @@ contract FullMarginEngine is BaseEngine, IMarginEngine {
 
             // increase i without checking overflow
             unchecked {
-                i++;
+                ++i;
             }
         }
         if (!_isAccountAboveWater(_subAccount)) revert BM_AccountUnderwater();
@@ -95,7 +103,7 @@ contract FullMarginEngine is BaseEngine, IMarginEngine {
      * @param _subAccount account id.
      * @return minCollateral minimum collateral required, in collateral asset's decimals
      */
-    function getMinCollateral(address _subAccount) external view override returns (uint256 minCollateral) {
+    function getMinCollateral(address _subAccount) external view returns (uint256 minCollateral) {
         FullMarginAccount memory account = marginAccounts[_subAccount];
         FullMarginDetail memory detail = _getAccountDetail(account);
         minCollateral = detail.getMinCollateral();
@@ -110,7 +118,7 @@ contract FullMarginEngine is BaseEngine, IMarginEngine {
     function transferAccount(address _subAccount, address _newSubAccount) external {
         if (!_isPrimaryAccountFor(msg.sender, _subAccount)) revert NoAccess();
 
-        if (!marginAccounts[_newSubAccount].isEmpty()) revert AM_AccountIsNotEmpty();
+        if (!marginAccounts[_newSubAccount].isEmpty()) revert FM_AccountIsNotEmpty();
         marginAccounts[_newSubAccount] = marginAccounts[_subAccount];
 
         delete marginAccounts[_subAccount];
@@ -193,10 +201,11 @@ contract FullMarginEngine is BaseEngine, IMarginEngine {
      * @dev     this function will revert when called before expiry
      * @param _subAccount account id
      */
-    function _getAccountPayout(address _subAccount) internal view override returns (uint80) {
+    function _getAccountPayout(address _subAccount) internal view override returns (uint8, uint80) {
         FullMarginAccount memory account = marginAccounts[_subAccount];
+        uint8 collatId = account.collateralId;
         (, , uint256 payout) = grappa.getPayout(account.tokenId, account.shortAmount);
-        return payout.toUint80();
+        return (collatId, payout.toUint80());
     }
 
     /** ========================================================= **

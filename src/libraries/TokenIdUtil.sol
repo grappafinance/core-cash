@@ -13,6 +13,14 @@ import "../config/errors.sol";
  *  | tokenType (24 bits) | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) | shortStrike (64 bits) |
  *  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
  */
+
+/**
+ * Compressed Token ID =
+ *
+ *  * ------------------- | ------------------- | ---------------- | -------------------- *
+ *  | tokenType (24 bits) | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) |
+ *  * ------------------- | ------------------- | ---------------- | -------------------- *
+ */
 library TokenIdUtil {
     function getTokenId(
         TokenType tokenType,
@@ -51,7 +59,30 @@ library TokenIdUtil {
     }
 
     /**
-     * @notice derive option expiry and strike price from ERC1155 token id
+     * @notice calculate non-complaint ERC1155 token id for given option parameters. See table above for shorttokenId
+     * @param tokenType TokenType enum
+     * @param productId if of the product
+     * @param expiry timestamp of option expiry
+     * @param longStrike strike price of the long option, with 6 decimals
+     * @return tokenId token id
+     */
+    function formatShortTokenId(
+        TokenType tokenType,
+        uint40 productId,
+        uint64 expiry,
+        uint64 longStrike
+    ) internal pure returns (uint192 tokenId) {
+        unchecked {
+            tokenId =
+                (uint192(tokenType) << 168) +
+                (uint192(productId) << 128) +
+                (uint192(expiry) << 64) +
+                uint192(longStrike);
+        }
+    }
+
+    /**
+     * @notice derive option, product, expiry and strike price from ERC1155 token id
      * @dev    See table above for tokenId composition
      * @param tokenId token id
      * @return tokenType TokenType enum
@@ -82,6 +113,62 @@ library TokenIdUtil {
     }
 
     /**
+     * @notice parse collateral id from tokenId
+     * @dev more efficient than parsing tokenId and than parse productId
+     * @param tokenId token id
+     * @return collatearlId
+     */
+    function parseCollateralId(uint256 tokenId) internal pure returns (uint8 collatearlId) {
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            // collateralId is the last bits of productId
+            collatearlId := shr(192, tokenId)
+        }
+    }
+
+    /**
+     * @notice parse engine id from tokenId
+     * @dev more efficient than parsing tokenId and than parse productId
+     * @param tokenId token id
+     * @return engineId
+     */
+    function parseEnginelId(uint256 tokenId) internal pure returns (uint8 engineId) {
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            // collateralId is the last bits of productId
+            engineId := shr(216, tokenId) // 192 to get product id, another 24 to get engineId
+        }
+    }
+
+    /**
+     * @notice derive option, product, expiry and strike price from short token id (no shortStrike)
+     * @dev    See table above for tokenId composition
+     * @param tokenId token id
+     * @return tokenType TokenType enum
+     * @return productId 32 bits product id
+     * @return expiry timestamp of option expiry
+     * @return longStrike strike price of the long option, with 6 decimals
+     */
+    function parseShortTokenId(uint192 tokenId)
+        internal
+        pure
+        returns (
+            TokenType tokenType,
+            uint40 productId,
+            uint64 expiry,
+            uint64 longStrike
+        )
+    {
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            tokenType := shr(168, tokenId)
+            productId := shr(128, tokenId)
+            expiry := shr(64, tokenId)
+            longStrike := tokenId
+        }
+    }
+
+    /**
      * @notice derive option type from ERC1155 token id
      * @param tokenId token id
      * @return tokenType TokenType enum
@@ -91,6 +178,22 @@ library TokenIdUtil {
         assembly {
             tokenType := shr(232, tokenId)
         }
+    }
+
+    /**
+     * @notice derive if option is expired from ERC1155 token id
+     * @param tokenId token id
+     * @return expired bool
+     */
+    function isExpired(uint256 tokenId) internal view returns (bool expired) {
+        uint64 expiry;
+
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            expiry := shr(128, tokenId)
+        }
+
+        expired = block.timestamp >= expiry;
     }
 
     /**
@@ -132,6 +235,43 @@ library TokenIdUtil {
         unchecked {
             newId = _tokenId + _shortStrike;
             return newId + (1 << 232); // new type (spread type) = old type + 1
+        }
+    }
+
+    /**
+     * @notice Compresses tokenId by removing shortStrike.
+     *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
+     * @dev   oldId =   | call or put type    | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) | 0           (64 bits) |
+     *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
+     *                  * ------------------- | ------------------- | ---------------- | -------------------- *
+     * @dev   newId =   | call or put type    | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) |
+     *                  * ------------------- | ------------------- | ---------------- | -------------------- *
+     *
+     * @param _tokenId token id to change
+     */
+    function compress(uint256 _tokenId) internal pure returns (uint192 newId) {
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            newId := shr(64, _tokenId) // >> 64 to wipe out shortStrike
+        }
+    }
+
+    /**
+     * @notice convert a shortened tokenId back ERC1155 compliant.
+     *                  * ------------------- | ------------------- | ---------------- | -------------------- *
+     * @dev   oldId =   | call or put type    | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) |
+     *                  * ------------------- | ------------------- | ---------------- | -------------------- *
+     *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
+     * @dev   newId =   | call or put type    | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) | 0           (64 bits) |
+     *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
+     *
+     * @param _tokenId token id to change
+     */
+    function expand(uint192 _tokenId) internal pure returns (uint256 newId) {
+        newId = uint256(_tokenId);
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            newId := shl(64, newId)
         }
     }
 }

@@ -7,8 +7,6 @@ pragma solidity ^0.8.0;
 import {SafeERC20} from "openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 import {IERC1155} from "openzeppelin/token/ERC1155/IERC1155.sol";
-import {Ownable} from "openzeppelin/access/Ownable.sol";
-import {ReentrancyGuard} from "solmate/utils/ReentrancyGuard.sol";
 
 // interfaces
 import {IGrappa} from "../../interfaces/IGrappa.sol";
@@ -26,10 +24,10 @@ import "../../config/errors.sol";
 
 /**
  * @title   MarginBase
- * @author  @antoncoding
+ * @author  @antoncoding, @dsshap
  * @notice  util functions for MarginEngines
  */
-abstract contract BaseEngine is ReentrancyGuard {
+abstract contract BaseEngine {
     using SafeERC20 for IERC20;
     using TokenIdUtil for uint256;
 
@@ -48,19 +46,19 @@ abstract contract BaseEngine is ReentrancyGuard {
 
     event CollateralRemoved(address subAccount, address collateral, uint256 amount);
 
+    event CollateralTransfered(address from, address to, uint8 collateralId, uint256 amount);
+
     event OptionTokenMinted(address subAccount, uint256 tokenId, uint256 amount);
 
     event OptionTokenBurned(address subAccount, uint256 tokenId, uint256 amount);
-
-    event OptionTokenMerged(address subAccount, uint256 longToken, uint256 shortToken, uint64 amount);
-
-    event OptionTokenSplit(address subAccount, uint256 spreadId, uint64 amount);
 
     event OptionTokenAdded(address subAccount, uint256 tokenId, uint64 amount);
 
     event OptionTokenRemoved(address subAccount, uint256 tokenId, uint64 amount);
 
-    event AccountSettled(address subAccount, uint256 payout);
+    event OptionTokenTransfered(address from, address to, uint256 tokenId, uint64 amount);
+
+    event AccountSettled(address subAccount, Balance[] payouts);
 
     /** ========================================================= **
                             External Functions
@@ -114,7 +112,27 @@ abstract contract BaseEngine is ReentrancyGuard {
         uint256 _amount
     ) public virtual {
         if (msg.sender != address(grappa)) revert NoAccess();
-        IERC20(_asset).safeTransfer(_recipient, _amount);
+        if (_recipient != address(this)) IERC20(_asset).safeTransfer(_recipient, _amount);
+    }
+
+    function onERC1155Received(
+        address,
+        address,
+        uint256,
+        uint256,
+        bytes calldata
+    ) external virtual returns (bytes4) {
+        return this.onERC1155Received.selector;
+    }
+
+    function onERC1155BatchReceived(
+        address,
+        address,
+        uint256[] memory,
+        uint256[] memory,
+        bytes memory
+    ) external virtual returns (bytes4) {
+        return this.onERC1155BatchReceived.selector;
     }
 
     /** ========================================================= **
@@ -122,10 +140,10 @@ abstract contract BaseEngine is ReentrancyGuard {
      ** ========================================================= **/
 
     /**
-     * @dev pull token from user, increase collateral in account memory
+     * @dev pull token from user, increase collateral in account storage
             the collateral has to be provided by either caller, or the primary owner of subaccount
      */
-    function _addCollateral(address _subAccount, bytes memory _data) internal {
+    function _addCollateral(address _subAccount, bytes calldata _data) internal virtual {
         // decode parameters
         (address from, uint80 amount, uint8 collateralId) = abi.decode(_data, (address, uint80, uint8));
 
@@ -142,10 +160,10 @@ abstract contract BaseEngine is ReentrancyGuard {
     }
 
     /**
-     * @dev push token to user, decrease collateral in account memory
+     * @dev push token to user, decrease collateral in storage
      * @param _data bytes data to decode
      */
-    function _removeCollateral(address _subAccount, bytes memory _data) internal {
+    function _removeCollateral(address _subAccount, bytes calldata _data) internal virtual {
         // decode parameters
         (uint80 amount, address recipient, uint8 collateralId) = abi.decode(_data, (uint80, address, uint8));
 
@@ -160,10 +178,10 @@ abstract contract BaseEngine is ReentrancyGuard {
     }
 
     /**
-     * @dev mint option token to user, increase short position (debt) in account memory
+     * @dev mint option token to user, increase short position (debt) in storage
      * @param _data bytes data to decode
      */
-    function _mintOption(address _subAccount, bytes memory _data) internal {
+    function _mintOption(address _subAccount, bytes calldata _data) internal virtual {
         // decode parameters
         (uint256 tokenId, address recipient, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
 
@@ -177,11 +195,35 @@ abstract contract BaseEngine is ReentrancyGuard {
     }
 
     /**
-     * @dev burn option token from user, decrease short position (debt) in account memory
+     * @dev mint option token into account, increase short position (debt) and increase long position in storage
+     * @param _data bytes data to decode
+     */
+    function _mintOptionIntoAccount(address _subAccount, bytes calldata _data) internal virtual {
+        // decode parameters
+        (uint256 tokenId, address recipientSubAccount, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
+
+        // update the account in state
+        _increaseShortInAccount(_subAccount, tokenId, amount);
+
+        emit OptionTokenMinted(_subAccount, tokenId, amount);
+
+        _verifyLongTokenIdToAdd(tokenId);
+
+        // update the account in state
+        _increaseLongInAccount(recipientSubAccount, tokenId, amount);
+
+        emit OptionTokenAdded(recipientSubAccount, tokenId, amount);
+
+        // mint option token
+        optionToken.mint(address(this), tokenId, amount);
+    }
+
+    /**
+     * @dev burn option token from user, decrease short position (debt) in storage
             the option has to be provided by either caller, or the primary owner of subaccount
      * @param _data bytes data to decode
      */
-    function _burnOption(address _subAccount, bytes memory _data) internal {
+    function _burnOption(address _subAccount, bytes calldata _data) internal virtual {
         // decode parameters
         (uint256 tokenId, address from, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
 
@@ -197,54 +239,10 @@ abstract contract BaseEngine is ReentrancyGuard {
     }
 
     /**
-     * @dev burn option token and change the short position to spread. This will reduce collateral requirement
-            the option has to be provided by either caller, or the primary owner of subaccount
-     * @param _data bytes data to decode
-     */
-    function _merge(address _subAccount, bytes memory _data) internal {
-        // decode parameters
-        (uint256 longTokenId, uint256 shortTokenId, address from, uint64 amount) = abi.decode(
-            _data,
-            (uint256, uint256, address, uint64)
-        );
-
-        // token being burn must come from caller or the primary account for this subAccount
-        if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert BM_InvalidFromAddress();
-
-        _verifyMergeTokenIds(longTokenId, shortTokenId);
-
-        // update the account in state
-        _mergeLongIntoSpread(_subAccount, shortTokenId, longTokenId, amount);
-
-        emit OptionTokenMerged(_subAccount, longTokenId, shortTokenId, amount);
-
-        // this line will revert if usre is trying to burn an un-authrized tokenId
-        optionToken.burn(from, longTokenId, amount);
-    }
-
-    /**
-     * @dev Change existing spread position to short, and mint option token for recipient
-     * @param _subAccount subaccount that will be update in place
-     */
-    function _split(address _subAccount, bytes memory _data) internal {
-        // decode parameters
-        (uint256 spreadId, uint64 amount, address recipient) = abi.decode(_data, (uint256, uint64, address));
-
-        uint256 tokenId = _verifySpreadIdAndGetLong(spreadId);
-
-        // update the account in state
-        _splitSpreadInAccount(_subAccount, spreadId, amount);
-
-        emit OptionTokenSplit(_subAccount, spreadId, amount);
-
-        optionToken.mint(recipient, tokenId, amount);
-    }
-
-    /**
      * @dev Add long token into the account to reduce capital requirement.
      * @param _subAccount subaccount that will be update in place
      */
-    function _addOption(address _subAccount, bytes memory _data) internal {
+    function _addOption(address _subAccount, bytes calldata _data) internal virtual {
         // decode parameters
         (uint256 tokenId, uint64 amount, address from) = abi.decode(_data, (uint256, uint64, address));
 
@@ -254,7 +252,7 @@ abstract contract BaseEngine is ReentrancyGuard {
         _verifyLongTokenIdToAdd(tokenId);
 
         // update the state
-        _addOptionToAccount(_subAccount, tokenId, amount);
+        _increaseLongInAccount(_subAccount, tokenId, amount);
 
         emit OptionTokenAdded(_subAccount, tokenId, amount);
 
@@ -263,15 +261,15 @@ abstract contract BaseEngine is ReentrancyGuard {
     }
 
     /**
-     * @dev Add long token into the account to reduce capital requirement.
+     * @dev Remove long token from the account to increase capital requirement.
      * @param _subAccount subaccount that will be update in place
      */
-    function _removeOption(address _subAccount, bytes memory _data) internal {
+    function _removeOption(address _subAccount, bytes calldata _data) internal virtual {
         // decode parameters
         (uint256 tokenId, uint64 amount, address to) = abi.decode(_data, (uint256, uint64, address));
 
         // update the state
-        _removeOptionfromAccount(_subAccount, tokenId, amount);
+        _decreaseLongInAccount(_subAccount, tokenId, amount);
 
         emit OptionTokenRemoved(_subAccount, tokenId, amount);
 
@@ -280,16 +278,68 @@ abstract contract BaseEngine is ReentrancyGuard {
     }
 
     /**
-     * @notice  settle the margin account at expiry
-     * @dev     this update the account memory in-place
+     * @dev Transfers collateral to another account.
+     * @param _subAccount subaccount that will be update in place
      */
-    function _settle(address _subAccount) internal {
-        uint80 payout = _getAccountPayout(_subAccount);
+    function _transferCollateral(address _subAccount, bytes calldata _data) internal virtual {
+        // decode parameters
+        (uint80 amount, address to, uint8 collateralId) = abi.decode(_data, (uint80, address, uint8));
+
+        // update the account in state
+        _removeCollateralFromAccount(_subAccount, collateralId, amount);
+        _addCollateralToAccount(to, collateralId, amount);
+
+        emit CollateralTransfered(_subAccount, to, collateralId, amount);
+    }
+
+    /**
+     * @dev Transfers short tokens to another account.
+     * @param _subAccount subaccount that will be update in place
+     */
+    function _transferShort(address _subAccount, bytes calldata _data) internal virtual {
+        // decode parameters
+        (uint256 tokenId, address to, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
+
+        _assertCallerHasAccess(to);
+
+        // update the account in state
+        _decreaseShortInAccount(_subAccount, tokenId, amount);
+        _increaseShortInAccount(to, tokenId, amount);
+
+        emit OptionTokenTransfered(_subAccount, to, tokenId, amount);
+
+        if (!_isAccountAboveWater(to)) revert BM_AccountUnderwater();
+    }
+
+    /**
+     * @dev Transfers long tokens to another account.
+     * @param _subAccount subaccount that will be update in place
+     */
+    function _transferLong(address _subAccount, bytes calldata _data) internal virtual {
+        // decode parameters
+        (uint256 tokenId, address to, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
+
+        // update the account in state
+        _decreaseLongInAccount(_subAccount, tokenId, amount);
+        _increaseLongInAccount(to, tokenId, amount);
+
+        emit OptionTokenTransfered(_subAccount, to, tokenId, amount);
+    }
+
+    /**
+     * @notice  settle the margin account at expiry
+     * @dev     this update the account storage
+     */
+    function _settle(address _subAccount) internal virtual {
+        (uint8 collateralId, uint80 payout) = _getAccountPayout(_subAccount);
 
         // update the account in state
         _settleAccount(_subAccount, payout);
 
-        emit AccountSettled(_subAccount, payout);
+        Balance[] memory balances = new Balance[](1);
+        balances[0] = Balance(collateralId, payout);
+
+        emit AccountSettled(_subAccount, balances);
     }
 
     /** ========================================================= **
@@ -319,26 +369,13 @@ abstract contract BaseEngine is ReentrancyGuard {
         uint64 amount
     ) internal virtual {}
 
-    function _mergeLongIntoSpread(
-        address _subAccount,
-        uint256 shortTokenId,
-        uint256 longTokenId,
-        uint64 amount
-    ) internal virtual {}
-
-    function _splitSpreadInAccount(
-        address _subAccount,
-        uint256 spreadId,
-        uint64 amount
-    ) internal virtual {}
-
-    function _addOptionToAccount(
+    function _increaseLongInAccount(
         address _subAccount,
         uint256 tokenId,
         uint64 amount
     ) internal virtual {}
 
-    function _removeOptionfromAccount(
+    function _decreaseLongInAccount(
         address _subAccount,
         uint256 tokenId,
         uint64 amount
@@ -355,7 +392,7 @@ abstract contract BaseEngine is ReentrancyGuard {
      * @dev     this function will revert when called before expiry
      * @param _subAccount account id
      */
-    function _getAccountPayout(address _subAccount) internal view virtual returns (uint80);
+    function _getAccountPayout(address _subAccount) internal view virtual returns (uint8 collateralId, uint80 payout);
 
     /**
      * @dev [MUST Implement] return whether if an account is healthy.
@@ -381,7 +418,7 @@ abstract contract BaseEngine is ReentrancyGuard {
     function _assertCallerHasAccess(address _subAccount) internal {
         if (_isPrimaryAccountFor(msg.sender, _subAccount)) return;
 
-        // the sender is not the direct owner. check if he's authorized
+        // the sender is not the direct owner. check if they're authorized
         uint160 maskedAccountId = (uint160(_subAccount) | 0xFF);
 
         uint256 allowance = allowedExecutionLeft[maskedAccountId][msg.sender];
@@ -396,42 +433,5 @@ abstract contract BaseEngine is ReentrancyGuard {
      */
     function _isPrimaryAccountFor(address _primary, address _subAccount) internal pure returns (bool) {
         return (uint160(_primary) | 0xFF) == (uint160(_subAccount) | 0xFF);
-    }
-
-    /** ========================================================= **
-                Internal Functions for tokenId verification
-     ** ========================================================= **/
-
-    /**
-     * @dev make sure the user can merge 2 tokens (1 long and 1 short) into a spread
-     * @param longId id of the incoming token to be merged
-     * @param shortId id of the existing short position
-     */
-    function _verifyMergeTokenIds(uint256 longId, uint256 shortId) internal pure {
-        // get token attribute for incoming token
-        (TokenType longType, uint40 productId, uint64 expiry, uint64 longStrike, ) = longId.parseTokenId();
-
-        // token being added can only be call or put
-        if (longType != TokenType.CALL && longType != TokenType.PUT) revert BM_CannotMergeSpread();
-
-        (TokenType shortType, uint40 productId_, uint64 expiry_, uint64 shortStrike, ) = shortId.parseTokenId();
-
-        // check that the merging token (long) has the same property as existing short
-        if (shortType != longType) revert BM_MergeTypeMismatch();
-        if (productId_ != productId) revert BM_MergeProductMismatch();
-        if (expiry_ != expiry) revert BM_MergeExpiryMismatch();
-
-        // should use burn instead
-        if (longStrike == shortStrike) revert BM_MergeWithSameStrike();
-    }
-
-    function _verifySpreadIdAndGetLong(uint256 _spreadId) internal pure returns (uint256 longId) {
-        // parse the passed in spread id
-        (TokenType spreadType, uint40 productId, uint64 expiry, , uint64 shortStrike) = _spreadId.parseTokenId();
-
-        if (spreadType != TokenType.CALL_SPREAD && spreadType != TokenType.PUT_SPREAD) revert BM_CanOnlySplitSpread();
-
-        TokenType newType = spreadType == TokenType.CALL_SPREAD ? TokenType.CALL : TokenType.PUT;
-        longId = TokenIdUtil.formatTokenId(newType, productId, expiry, shortStrike, 0);
     }
 }

@@ -5,10 +5,12 @@ pragma solidity ^0.8.0;
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import {SafeERC20} from "openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import {Ownable} from "openzeppelin/access/Ownable.sol";
+import {ReentrancyGuard} from "solmate/utils/ReentrancyGuard.sol";
 import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 
 // inheriting contracts
 import {BaseEngine} from "../BaseEngine.sol";
+import {DebitSpread} from "../mixins/DebitSpread.sol";
 import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
 
 // interfaces
@@ -23,6 +25,7 @@ import {AdvancedMarginMath} from "./AdvancedMarginMath.sol";
 import {AdvancedMarginLib} from "./AdvancedMarginLib.sol";
 
 // constants and types
+import "./types.sol";
 import "../../../config/types.sol";
 import "../../../config/enums.sol";
 import "../../../config/constants.sol";
@@ -38,7 +41,7 @@ import "../../../config/errors.sol";
             Interacts with Oracle to read spot
             Interacts with VolOracle to read vol
  */
-contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
+contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable, ReentrancyGuard {
     using AdvancedMarginMath for AdvancedMarginDetail;
     using AdvancedMarginLib for AdvancedMarginAccount;
     using SafeERC20 for IERC20;
@@ -88,7 +91,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
     function execute(address _subAccount, ActionArgs[] calldata actions) public override nonReentrant {
         _assertCallerHasAccess(_subAccount);
 
-        // update the account memory and do external calls on the flight
+        // update the account storage and do external calls on the flight
         for (uint256 i; i < actions.length; ) {
             if (actions[i].action == ActionType.AddCollateral) _addCollateral(_subAccount, actions[i].data);
             else if (actions[i].action == ActionType.RemoveCollateral) _removeCollateral(_subAccount, actions[i].data);
@@ -101,7 +104,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
 
             // increase i without checking overflow
             unchecked {
-                i++;
+                ++i;
             }
         }
         if (!_isAccountAboveWater(_subAccount)) revert BM_AccountUnderwater();
@@ -324,13 +327,14 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
      * @dev     this function will revert when called before expiry
      * @param _subAccount account id
      */
-    function _getAccountPayout(address _subAccount) internal view override returns (uint80 payout) {
+    function _getAccountPayout(address _subAccount) internal view override returns (uint8, uint80 payout) {
         (uint256 callPayout, uint256 putPayout) = (0, 0);
         AdvancedMarginAccount memory account = marginAccounts[_subAccount];
+        uint8 collatId = account.collateralId;
         if (account.shortCallAmount > 0)
             (, , callPayout) = grappa.getPayout(account.shortCallId, account.shortCallAmount);
         if (account.shortPutAmount > 0) (, , putPayout) = grappa.getPayout(account.shortPutId, account.shortPutAmount);
-        return (callPayout + putPayout).toUint80();
+        return (collatId, (callPayout + putPayout).toUint80());
     }
 
     /** ========================================================= **
@@ -422,7 +426,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, Ownable {
      * @dev get a struct that stores all relevent token addresses, along with collateral asset decimals
      */
     function _getProductDetails(uint40 _productId) internal view returns (ProductDetails memory info) {
-        (address oracle, , address underlying, address strike, address collateral, uint8 collatDecimals) = grappa
+        (address oracle, , address underlying, , address strike, , address collateral, uint8 collatDecimals) = grappa
             .getDetailFromProductId(_productId);
         info.oracle = oracle;
         info.underlying = underlying;

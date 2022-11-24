@@ -14,7 +14,7 @@ contract MockOracle is IOracle {
 
     uint256 private disputePeriod;
 
-    function maxDisputePeriod() external view virtual returns (uint256) {
+    function maxDisputePeriod() external view override returns (uint256) {
         return disputePeriod;
     }
 
@@ -50,7 +50,7 @@ contract MockOracle is IOracle {
         expiryPrice[base][quote] = MockPrice(uint128(_mockedExpiryPrice), true);
     }
 
-    function setExpiryPrice(
+    function setExpiryPriceWithFinality(
         address base,
         address quote,
         uint256 _mockedExpiryPrice,

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "../config/types.sol";
+
 interface IGrappa {
     function getDetailFromProductId(uint40 _productId)
         external
@@ -9,10 +11,18 @@ interface IGrappa {
             address oracle,
             address engine,
             address underlying,
+            uint8 underlyingDecimals,
             address strike,
+            uint8 strikeDecimals,
             address collateral,
             uint8 collateralDecimals
         );
+
+    function checkEngineAccess(uint256 _tokenId, address _engine) external view;
+
+    function checkEngineAccessAndTokenId(uint256 _tokenId, address _engine) external view;
+
+    function engineIds(address _engine) external view returns (uint8 id);
 
     function assets(uint8 _id) external view returns (address addr, uint8 decimals);
 
@@ -53,5 +63,9 @@ interface IGrappa {
         address _account,
         uint256[] memory _tokenIds,
         uint256[] memory _amounts
-    ) external;
+    ) external returns (Balance[] memory payouts);
+
+    function batchGetPayouts(uint256[] memory _tokenIds, uint256[] memory _amounts)
+        external
+        returns (Balance[] memory payouts);
 }

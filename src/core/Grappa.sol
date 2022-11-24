@@ -3,9 +3,11 @@ pragma solidity ^0.8.0;
 
 // imported contracts and libraries
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
-import {Ownable} from "openzeppelin/access/Ownable.sol";
-// use SafeCastLib to  more efficiently cast to uint80
-import {SafeCastLib} from "solmate/utils/SafeCastLib.sol";
+
+import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
+import {UUPSUpgradeable} from "openzeppelin/proxy/utils/UUPSUpgradeable.sol";
+import {OwnableUpgradeable} from "openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
+import {ReentrancyGuardUpgradeable} from "openzeppelin-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 // interfaces
 import {IERC20Metadata} from "openzeppelin/token/ERC20/extensions/IERC20Metadata.sol";
@@ -15,10 +17,11 @@ import {IGrappa} from "../interfaces/IGrappa.sol";
 import {IMarginEngine} from "../interfaces/IMarginEngine.sol";
 
 // librarise
-import {TokenIdUtil} from "../libraries/TokenIdUtil.sol";
-import {ProductIdUtil} from "../libraries/ProductIdUtil.sol";
-import {NumberUtil} from "../libraries/NumberUtil.sol";
+import {BalanceUtil} from "../libraries/BalanceUtil.sol";
 import {MoneynessLib} from "../libraries/MoneynessLib.sol";
+import {NumberUtil} from "../libraries/NumberUtil.sol";
+import {ProductIdUtil} from "../libraries/ProductIdUtil.sol";
+import {TokenIdUtil} from "../libraries/TokenIdUtil.sol";
 
 // constants and types
 import "../config/types.sol";
@@ -28,22 +31,22 @@ import "../config/errors.sol";
 
 /**
  * @title   Grappa
- * @author  @antoncoding
+ * @author  @antoncoding, @dsshap
+ * @dev     This contract serves as the registry of the system who system.
  */
-contract Grappa is Ownable, IGrappa {
+contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
+    using BalanceUtil for Balance[];
     using FixedPointMathLib for uint256;
-    using SafeCastLib for uint256;
     using NumberUtil for uint256;
-    using TokenIdUtil for uint256;
     using ProductIdUtil for uint40;
+    using SafeCast for uint256;
+    using TokenIdUtil for uint256;
 
     /// @dev optionToken address
     IOptionToken public immutable optionToken;
-    // IMarginEngine public immutable engine;
-    // IOracle public immutable oracle;
 
     /*///////////////////////////////////////////////////////////////
-                            State Variables
+                         State Variables V1
     //////////////////////////////////////////////////////////////*/
 
     /// @dev next id used to represent an address
@@ -85,8 +88,35 @@ contract Grappa is Ownable, IGrappa {
     event MarginEngineRegistered(address engine, uint8 id);
     event OracleRegistered(address oracle, uint8 id);
 
-    constructor(address _optionToken) {
+    /*///////////////////////////////////////////////////////////////
+                Constructor for implementation Contract
+    //////////////////////////////////////////////////////////////*/
+
+    /// @dev set immutables in constructor
+    /// @dev also set the implemention contract to initialized = true
+    constructor(address _optionToken) initializer {
         optionToken = IOptionToken(_optionToken);
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                            Initializer
+    //////////////////////////////////////////////////////////////*/
+
+    function initialize() external initializer {
+        __Ownable_init();
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                    Override Upgrade Permission
+    //////////////////////////////////////////////////////////////*/
+
+    /**
+     * @dev Upgradable by the owner.
+     **/
+    function _authorizeUpgrade(
+        address /*newImplementation*/
+    ) internal view override {
+        _checkOwner();
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -104,19 +134,25 @@ contract Grappa is Ownable, IGrappa {
             address oracle,
             address engine,
             address underlying,
+            uint8 underlyingDecimals,
             address strike,
+            uint8 strikeDecimals,
             address collateral,
             uint8 collateralDecimals
         )
     {
         (uint8 oracleId, uint8 engineId, uint8 underlyingId, uint8 strikeId, uint8 collateralId) = ProductIdUtil
             .parseProductId(_productId);
+        AssetDetail memory underlyingDetail = assets[underlyingId];
+        AssetDetail memory strikeDetail = assets[strikeId];
         AssetDetail memory collateralDetail = assets[collateralId];
         return (
             oracles[oracleId],
             engines[engineId],
-            assets[underlyingId].addr,
-            assets[strikeId].addr,
+            underlyingDetail.addr,
+            underlyingDetail.decimals,
+            strikeDetail.addr,
+            strikeDetail.decimals,
             collateralDetail.addr,
             collateralDetail.decimals
         );
@@ -185,7 +221,7 @@ contract Grappa is Ownable, IGrappa {
     /**
      * @notice burn option token and get out cash value at expiry
      *
-     * @param _account who to settle for
+     * @param _account  who to settle for
      * @param _tokenId  tokenId of option token to burn
      * @param _amount   amount to settle
      */
@@ -193,8 +229,8 @@ contract Grappa is Ownable, IGrappa {
         address _account,
         uint256 _tokenId,
         uint256 _amount
-    ) external returns (uint256 payout_) {
-        (address engine, address collateral, uint256 payout) = getPayout(_tokenId, _amount.safeCastTo64());
+    ) external nonReentrant returns (uint256) {
+        (address engine, address collateral, uint256 payout) = getPayout(_tokenId, _amount.toUint64());
 
         emit OptionSettled(_account, _tokenId, _amount, payout);
 
@@ -216,10 +252,10 @@ contract Grappa is Ownable, IGrappa {
         address _account,
         uint256[] memory _tokenIds,
         uint256[] memory _amounts
-    ) external {
+    ) external nonReentrant returns (Balance[] memory payouts) {
         if (_tokenIds.length != _amounts.length) revert GP_WrongArgumentLength();
 
-        if (_tokenIds.length == 0) return;
+        if (_tokenIds.length == 0) return payouts;
 
         optionToken.batchBurnGrappaOnly(_account, _tokenIds, _amounts);
 
@@ -229,7 +265,11 @@ contract Grappa is Ownable, IGrappa {
         uint256 lastTotalPayout;
 
         for (uint256 i; i < _tokenIds.length; ) {
-            (address engine, address collateral, uint256 payout) = getPayout(_tokenIds[i], _amounts[i].safeCastTo64());
+            (address engine, address collateral, uint256 payout) = getPayout(_tokenIds[i], _amounts[i].toUint64());
+
+            uint8 collateralId = _tokenIds[i].parseCollateralId();
+
+            payouts = _addToPayouts(payouts, collateralId, payout);
 
             // if engine or collateral changes, payout and clear temporary parameters
             if (lastEngine == address(0)) {
@@ -245,7 +285,7 @@ contract Grappa is Ownable, IGrappa {
 
             unchecked {
                 lastTotalPayout = lastTotalPayout + payout;
-                i++;
+                ++i;
             }
         }
 
@@ -279,6 +319,56 @@ contract Grappa is Ownable, IGrappa {
         }
     }
 
+    /**
+     * @dev calculate the payout for array of options
+     *
+     * @param _tokenIds array of token id
+     * @param _amounts  array of amount
+     *
+     * @return payouts amounts paid
+     **/
+    function batchGetPayouts(uint256[] memory _tokenIds, uint256[] memory _amounts)
+        external
+        view
+        returns (Balance[] memory payouts)
+    {
+        for (uint256 i; i < _tokenIds.length; ) {
+            (, , uint256 payout) = getPayout(_tokenIds[i], _amounts[i].toUint64());
+
+            uint8 collateralId = _tokenIds[i].parseCollateralId();
+            payouts = _addToPayouts(payouts, collateralId, payout);
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    /**
+     * @dev revert if _engine doesn't have access to mint / burn a tokenId;
+     * @param _tokenId tokenid
+     * @param _engine address intending to mint / burn
+     */
+    function checkEngineAccess(uint256 _tokenId, address _engine) external view {
+        // create check engine access
+        uint8 engineId = TokenIdUtil.parseEnginelId(_tokenId);
+        if (_engine != engines[engineId]) revert GP_Not_Authorized_Engine();
+    }
+
+    /**
+     * @dev revert if _engine doesn't have access to mint or the tokenId is invalid.
+     * @param _tokenId tokenid
+     * @param _engine address intending to mint / burn
+     */
+    function checkEngineAccessAndTokenId(uint256 _tokenId, address _engine) external view {
+        // check tokenId
+        _isValidTokenIdToMint(_tokenId);
+
+        //  check engine access
+        uint8 engineId = _tokenId.parseEnginelId();
+        if (_engine != engines[engineId]) revert GP_Not_Authorized_Engine();
+    }
+
     /*///////////////////////////////////////////////////////////////
                             Admin Functions
     //////////////////////////////////////////////////////////////*/
@@ -287,7 +377,9 @@ contract Grappa is Ownable, IGrappa {
      * @dev register an asset to be used as strike/underlying
      * @param _asset address to add
      **/
-    function registerAsset(address _asset) external onlyOwner returns (uint8 id) {
+    function registerAsset(address _asset) external returns (uint8 id) {
+        _checkOwner();
+
         if (assetIds[_asset] != 0) revert GP_AssetAlreadyRegistered();
 
         uint8 decimals = IERC20Metadata(_asset).decimals();
@@ -303,7 +395,9 @@ contract Grappa is Ownable, IGrappa {
      * @dev register an engine to create / settle options
      * @param _engine address of the new margin engine
      **/
-    function registerEngine(address _engine) external onlyOwner returns (uint8 id) {
+    function registerEngine(address _engine) external returns (uint8 id) {
+        _checkOwner();
+
         if (engineIds[_engine] != 0) revert GP_EngineAlreadyRegistered();
 
         id = ++nextengineId;
@@ -318,7 +412,9 @@ contract Grappa is Ownable, IGrappa {
      * @dev register an oracle to report prices
      * @param _oracle address of the new oracle
      **/
-    function registerOracle(address _oracle) external onlyOwner returns (uint8 id) {
+    function registerOracle(address _oracle) external returns (uint8 id) {
+        _checkOwner();
+
         if (oracleIds[_oracle] != 0) revert GP_OracleAlreadyRegistered();
 
         // this is a soft check on whether an oracle is suitable to be used.
@@ -330,6 +426,28 @@ contract Grappa is Ownable, IGrappa {
         oracleIds[_oracle] = id;
 
         emit OracleRegistered(_oracle, id);
+    }
+
+    /* =====================================
+     *          Internal Functions
+     * ====================================**/
+
+    /**
+     * @dev make sure that the tokenId make sense
+     */
+    function _isValidTokenIdToMint(uint256 _tokenId) internal view {
+        (TokenType optionType, , uint64 expiry, uint64 longStrike, uint64 shortStrike) = _tokenId.parseTokenId();
+
+        // check option type and strikes
+        // check that vanilla options doesnt have a shortStrike argument
+        if ((optionType == TokenType.CALL || optionType == TokenType.PUT) && (shortStrike != 0)) revert GP_BadStrikes();
+
+        // check that you cannot mint a "credit spread" token
+        if (optionType == TokenType.CALL_SPREAD && (shortStrike < longStrike)) revert GP_BadStrikes();
+        if (optionType == TokenType.PUT_SPREAD && (shortStrike > longStrike)) revert GP_BadStrikes();
+
+        // check expiry
+        if (expiry <= block.timestamp) revert GP_InvalidExpiry();
     }
 
     /**
@@ -359,7 +477,9 @@ contract Grappa is Ownable, IGrappa {
             address oracle,
             address engine,
             address underlying,
+            ,
             address strike,
+            ,
             address collateral,
             uint8 collateralDecimals
         ) = getDetailFromProductId(productId);
@@ -391,6 +511,27 @@ contract Grappa is Ownable, IGrappa {
         payoutPerOption = cashValue.convertDecimals(UNIT_DECIMALS, collateralDecimals);
 
         return (engine, collateral, payoutPerOption);
+    }
+
+    /**
+     * @dev add an entry to array of Balance
+     * @param payouts existing payout array
+     * @param collateralId new collateralId
+     * @param payout new payout
+     */
+    function _addToPayouts(
+        Balance[] memory payouts,
+        uint8 collateralId,
+        uint256 payout
+    ) internal pure returns (Balance[] memory) {
+        if (payout == 0) return payouts;
+
+        (bool found, uint256 index) = payouts.indexOf(collateralId);
+        if (!found) {
+            payouts = payouts.append(Balance(collateralId, payout.toUint80()));
+        } else payouts[index].amount += payout.toUint80();
+
+        return payouts;
     }
 
     /**

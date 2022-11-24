@@ -2,7 +2,7 @@
 pragma solidity >=0.8.0;
 
 /* solhint-disable */
-library console {
+library consoleG {
     address constant CONSOLE_ADDRESS = address(0x000000000000000000636F6e736F6c652e6c6f67);
 
     function _sendLogPayload(bytes memory payload) private view {
@@ -18,12 +18,12 @@ library console {
         _sendLogPayload(abi.encodeWithSignature("log()"));
     }
 
-    function logInt(int256 p0) internal view {
-        _sendLogPayload(abi.encodeWithSignature("log(int)", p0));
-    }
-
     function logUint(uint256 p0) internal view {
         _sendLogPayload(abi.encodeWithSignature("log(uint)", p0));
+    }
+
+    function logInt(int256 p0) internal view {
+        _sendLogPayload(abi.encodeWithSignature("log(int)", p0));
     }
 
     function logString(string memory p0) internal view {
@@ -183,9 +183,45 @@ library console {
         _sendLogPayload(abi.encodeWithSignature("log(uint)", p0));
     }
 
+    function log(uint8[] memory p0) internal view {
+        for (uint256 i; i < p0.length; ) {
+            _sendLogPayload(abi.encodeWithSignature("log(uint)", p0[i]));
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    function log(uint64[] memory p0) internal view {
+        for (uint256 i; i < p0.length; ) {
+            _sendLogPayload(abi.encodeWithSignature("log(uint)", p0[i]));
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    function log(uint80[] memory p0) internal view {
+        for (uint256 i; i < p0.length; ) {
+            _sendLogPayload(abi.encodeWithSignature("log(uint)", p0[i]));
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
     function log(uint256[] memory p0) internal view {
         for (uint256 i; i < p0.length; ) {
             _sendLogPayload(abi.encodeWithSignature("log(uint)", p0[i]));
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    function log(int256[] memory p0) internal view {
+        for (uint256 i; i < p0.length; ) {
+            _sendLogPayload(abi.encodeWithSignature("log(int)", p0[i]));
             unchecked {
                 ++i;
             }

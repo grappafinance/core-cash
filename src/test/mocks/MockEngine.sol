@@ -5,8 +5,10 @@ pragma solidity ^0.8.0;
 
 import {IMarginEngine} from "../../interfaces/IMarginEngine.sol";
 import {BaseEngine} from "../../core/engines/BaseEngine.sol";
+import {DebitSpread} from "../../core/engines/mixins/DebitSpread.sol";
 import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin/token/ERC20/utils/SafeERC20.sol";
+import {ReentrancyGuard} from "solmate/utils/ReentrancyGuard.sol";
 
 import "../../config/enums.sol";
 import "../../config/types.sol";
@@ -16,10 +18,11 @@ import "../../config/errors.sol";
  * @title   MockEngine
  * @notice  Implement execute to test all flow in BaseEngine
  */
-contract MockEngine is BaseEngine {
+contract MockEngine is BaseEngine, DebitSpread, ReentrancyGuard {
     bool public isAboveWater;
 
     uint80 public mockPayout;
+    uint8 private mockPayoutCollatId;
 
     constructor(address _grappa, address _option) BaseEngine(_grappa, _option) {}
 
@@ -31,10 +34,14 @@ contract MockEngine is BaseEngine {
         mockPayout = _payout;
     }
 
+    function setPayoutCollatId(uint8 _id) external {
+        mockPayoutCollatId = _id;
+    }
+
     function _getAccountPayout(
         address /*subAccount*/
-    ) internal view override returns (uint80) {
-        return mockPayout;
+    ) internal view override returns (uint8, uint80) {
+        return (mockPayoutCollatId, mockPayout);
     }
 
     /**
@@ -44,11 +51,13 @@ contract MockEngine is BaseEngine {
     function execute(address _subAccount, ActionArgs[] calldata actions) public virtual nonReentrant {
         _assertCallerHasAccess(_subAccount);
 
-        // update the account memory and do external calls on the flight
+        // update the account and do external calls on the flight
         for (uint256 i; i < actions.length; ) {
             if (actions[i].action == ActionType.AddCollateral) _addCollateral(_subAccount, actions[i].data);
             else if (actions[i].action == ActionType.RemoveCollateral) _removeCollateral(_subAccount, actions[i].data);
             else if (actions[i].action == ActionType.MintShort) _mintOption(_subAccount, actions[i].data);
+            else if (actions[i].action == ActionType.MintShortIntoAccount)
+                _mintOptionIntoAccount(_subAccount, actions[i].data);
             else if (actions[i].action == ActionType.BurnShort) _burnOption(_subAccount, actions[i].data);
             else if (actions[i].action == ActionType.MergeOptionToken) _merge(_subAccount, actions[i].data);
             else if (actions[i].action == ActionType.SplitOptionToken) _split(_subAccount, actions[i].data);
@@ -58,7 +67,7 @@ contract MockEngine is BaseEngine {
 
             // increase i without checking overflow
             unchecked {
-                i++;
+                ++i;
             }
         }
         if (!_isAccountAboveWater(_subAccount)) revert BM_AccountUnderwater();
@@ -68,15 +77,5 @@ contract MockEngine is BaseEngine {
         address /*_subAccount*/
     ) internal view override returns (bool) {
         return isAboveWater;
-    }
-
-    function onERC1155Received(
-        address,
-        address,
-        uint256,
-        uint256,
-        bytes calldata
-    ) external virtual returns (bytes4) {
-        return this.onERC1155Received.selector;
     }
 }

@@ -7,7 +7,7 @@ import {FullMarginFixture} from "../../engine-integrations/full-margin/FullMargi
 import "../../../config/types.sol";
 import "../../../config/errors.sol";
 
-contract AdvancedMarginEngineAccessTest is FullMarginFixture {
+contract FullMarginEngineAccessTest is FullMarginFixture {
     uint256 private depositAmount = 100 * 1e6;
 
     address private subAccountIdToModify;
@@ -19,7 +19,7 @@ contract AdvancedMarginEngineAccessTest is FullMarginFixture {
         subAccountIdToModify = address(uint160(alice) ^ uint160(1));
     }
 
-    function testTransferAMAccount() public {
+    function testTransferFMAccount() public {
         vm.startPrank(alice);
         engine.transferAccount(subAccountIdToModify, address(this));
         vm.stopPrank();
@@ -38,7 +38,7 @@ contract AdvancedMarginEngineAccessTest is FullMarginFixture {
         _assertCanAccessAccount(address(this), true);
 
         vm.startPrank(alice);
-        vm.expectRevert(AM_AccountIsNotEmpty.selector);
+        vm.expectRevert(FM_AccountIsNotEmpty.selector);
         engine.transferAccount(subAccountIdToModify, address(this));
         vm.stopPrank();
     }

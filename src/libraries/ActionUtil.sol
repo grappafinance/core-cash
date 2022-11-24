@@ -6,6 +6,7 @@ import "../config/types.sol";
 
 /**
  * @title libraries to encode action arguments
+ * @dev   only used in tests
  */
 library ActionUtil {
     /**
@@ -38,6 +39,22 @@ library ActionUtil {
     }
 
     /**
+     * @param collateralId id of collateral
+     * @param amount amount of collateral to remove
+     * @param recipient address to receive removed collateral
+     */
+    function createTransferCollateralAction(
+        uint8 collateralId,
+        uint256 amount,
+        address recipient
+    ) internal pure returns (ActionArgs memory action) {
+        action = ActionArgs({
+            action: ActionType.TransferCollateral,
+            data: abi.encode(uint80(amount), recipient, collateralId)
+        });
+    }
+
+    /**
      * @param tokenId option token id to mint
      * @param amount amount of token to mint (6 decimals)
      * @param recipient address to receive minted option
@@ -48,6 +65,48 @@ library ActionUtil {
         address recipient
     ) internal pure returns (ActionArgs memory action) {
         action = ActionArgs({action: ActionType.MintShort, data: abi.encode(tokenId, recipient, uint64(amount))});
+    }
+
+    /**
+     * @param tokenId option token id to mint
+     * @param amount amount of token to mint (6 decimals)
+     * @param subAccount sub account to receive minted option
+     */
+    function createMintIntoAccountAction(
+        uint256 tokenId,
+        uint256 amount,
+        address subAccount
+    ) internal pure returns (ActionArgs memory action) {
+        action = ActionArgs({
+            action: ActionType.MintShortIntoAccount,
+            data: abi.encode(tokenId, subAccount, uint64(amount))
+        });
+    }
+
+    /**
+     * @param tokenId option token id to mint
+     * @param amount amount of token to mint (6 decimals)
+     * @param recipient account to receive minted option
+     */
+    function createTranferLongAction(
+        uint256 tokenId,
+        uint256 amount,
+        address recipient
+    ) internal pure returns (ActionArgs memory action) {
+        action = ActionArgs({action: ActionType.TransferLong, data: abi.encode(tokenId, recipient, uint64(amount))});
+    }
+
+    /**
+     * @param tokenId option token id to mint
+     * @param amount amount of token to mint (6 decimals)
+     * @param recipient account to receive minted option
+     */
+    function createTranferShortAction(
+        uint256 tokenId,
+        uint256 amount,
+        address recipient
+    ) internal pure returns (ActionArgs memory action) {
+        action = ActionArgs({action: ActionType.TransferShort, data: abi.encode(tokenId, recipient, uint64(amount))});
     }
 
     /**
@@ -125,5 +184,49 @@ library ActionUtil {
      */
     function createSettleAction() internal pure returns (ActionArgs memory action) {
         action = ActionArgs({action: ActionType.SettleAccount, data: abi.encode(0)});
+    }
+
+    function concat(ActionArgs[] memory x, ActionArgs[] memory v) internal pure returns (ActionArgs[] memory y) {
+        y = new ActionArgs[](x.length + v.length);
+        uint256 z;
+        uint256 i;
+        for (i; i < x.length; ) {
+            y[z] = x[i];
+            unchecked {
+                ++z;
+                ++i;
+            }
+        }
+        for (i = 0; i < v.length; ) {
+            y[z] = v[i];
+            unchecked {
+                ++z;
+                ++i;
+            }
+        }
+    }
+
+    function append(ActionArgs[] memory x, ActionArgs memory v) internal pure returns (ActionArgs[] memory y) {
+        y = new ActionArgs[](x.length + 1);
+        uint256 i;
+        for (i; i < x.length; ) {
+            y[i] = x[i];
+            unchecked {
+                ++i;
+            }
+        }
+        y[i] = v;
+    }
+
+    function append(BatchExecute[] memory x, BatchExecute memory v) internal pure returns (BatchExecute[] memory y) {
+        y = new BatchExecute[](x.length + 1);
+        uint256 i;
+        for (i; i < x.length; ) {
+            y[i] = x[i];
+            unchecked {
+                ++i;
+            }
+        }
+        y[i] = v;
     }
 }

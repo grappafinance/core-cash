@@ -5,13 +5,15 @@ import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import "../../../libraries/TokenIdUtil.sol";
 import "../../../libraries/ProductIdUtil.sol";
 
-import "../../../config/types.sol";
 import "../../../config/constants.sol";
-import "../../../config/errors.sol";
+
+// Full margin types
+import "./types.sol";
+import "./errors.sol";
 
 /**
  * @title FullMarginLib
- * @dev   This library is in charge of updating the simple account memory struct and do validations
+ * @dev   This library is in charge of updating the simple account struct and do validations
  */
 library FullMarginLib {
     using TokenIdUtil for uint256;

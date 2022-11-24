@@ -6,6 +6,7 @@ import "forge-std/Test.sol";
 
 import {OptionToken} from "../../core/OptionToken.sol";
 import {Grappa} from "../../core/Grappa.sol";
+import {OptionTokenDescriptor} from "../../core/OptionTokenDescriptor.sol";
 import "../../libraries/TokenIdUtil.sol";
 import "../../libraries/ProductIdUtil.sol";
 import "../../config/errors.sol";
@@ -14,19 +15,30 @@ contract OptionTokenTest is Test {
     OptionToken public option;
 
     address public grappa;
+    address public nftDescriptor;
 
     function setUp() public {
         grappa = address(new Grappa(address(0)));
-        option = new OptionToken(grappa);
+
+        nftDescriptor = address(new OptionTokenDescriptor());
+
+        option = new OptionToken(grappa, nftDescriptor);
     }
 
     function testCannotMint() public {
-        vm.expectRevert(OT_Not_Authorized_Engine.selector);
-        option.mint(address(this), 0, 1000_000_000);
+        uint8 engineId = 1;
+
+        // put in valid tokenId
+        uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
+        uint256 expiry = block.timestamp + 1 days;
+        uint256 tokenId = TokenIdUtil.getTokenId(TokenType.CALL_SPREAD, productId, expiry, 20, 40);
+
+        vm.expectRevert(GP_Not_Authorized_Engine.selector);
+        option.mint(address(this), tokenId, 1000_000_000);
     }
 
     function testCannotBurn() public {
-        vm.expectRevert(OT_Not_Authorized_Engine.selector);
+        vm.expectRevert(GP_Not_Authorized_Engine.selector);
         option.burn(address(this), 0, 1000_000_000);
     }
 
@@ -53,7 +65,7 @@ contract OptionTokenTest is Test {
         uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
         uint256 tokenId = TokenIdUtil.getTokenId(TokenType.CALL_SPREAD, productId, expiry, 40, 20);
 
-        vm.expectRevert(OT_BadStrikes.selector);
+        vm.expectRevert(GP_BadStrikes.selector);
         option.mint(address(this), tokenId, 1);
     }
 
@@ -70,7 +82,7 @@ contract OptionTokenTest is Test {
         uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
         uint256 tokenId = TokenIdUtil.getTokenId(TokenType.PUT_SPREAD, productId, expiry, 20, 40);
 
-        vm.expectRevert(OT_BadStrikes.selector);
+        vm.expectRevert(GP_BadStrikes.selector);
         option.mint(address(this), tokenId, 1);
     }
 
@@ -87,7 +99,7 @@ contract OptionTokenTest is Test {
         uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
         uint256 tokenId = TokenIdUtil.getTokenId(TokenType.CALL, productId, expiry, 20, 40);
 
-        vm.expectRevert(OT_BadStrikes.selector);
+        vm.expectRevert(GP_BadStrikes.selector);
         option.mint(address(this), tokenId, 1);
     }
 
@@ -104,12 +116,13 @@ contract OptionTokenTest is Test {
         uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
         uint256 tokenId = TokenIdUtil.getTokenId(TokenType.PUT, productId, expiry, 20, 40);
 
-        vm.expectRevert(OT_BadStrikes.selector);
+        vm.expectRevert(GP_BadStrikes.selector);
         option.mint(address(this), tokenId, 1);
     }
 
     function testGetUrl() public {
-        string memory uri = option.uri(0);
-        assertEq(uri, "https://grappa.maybe");
+        assertEq(option.uri(0), "https://grappa.finance/token/0");
+
+        assertEq(option.uri(200), "https://grappa.finance/token/200");
     }
 }

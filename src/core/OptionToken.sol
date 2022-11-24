@@ -7,6 +7,7 @@ import {ERC1155} from "solmate/tokens/ERC1155.sol";
 // interfaces
 import {IOptionToken} from "../interfaces/IOptionToken.sol";
 import {IGrappa} from "../interfaces/IGrappa.sol";
+import {IOptionTokenDescriptor} from "../interfaces/IOptionTokenDescriptor.sol";
 
 import {TokenIdUtil} from "../libraries/TokenIdUtil.sol";
 import {ProductIdUtil} from "../libraries/ProductIdUtil.sol";
@@ -25,18 +26,21 @@ import "../config/errors.sol";
 contract OptionToken is ERC1155, IOptionToken {
     ///@dev grappa serve as the registry
     IGrappa public immutable grappa;
+    IOptionTokenDescriptor public immutable descriptor;
 
-    constructor(address _grappa) {
+    constructor(address _grappa, address _descriptor) {
         // solhint-disable-next-line reason-string
         if (_grappa == address(0)) revert();
         grappa = IGrappa(_grappa);
+
+        descriptor = IOptionTokenDescriptor(_descriptor);
     }
 
-    // @todo: update function
-    function uri(
-        uint256 /*id*/
-    ) public pure override returns (string memory) {
-        return "https://grappa.maybe";
+    /**
+     *  @dev return string as defined in token descriptor
+     **/
+    function uri(uint256 id) public view override returns (string memory) {
+        return descriptor.tokenURI(id);
     }
 
     /**
@@ -50,7 +54,8 @@ contract OptionToken is ERC1155, IOptionToken {
         uint256 _tokenId,
         uint256 _amount
     ) external override {
-        _checkAccessAndTokenId(_tokenId);
+        grappa.checkEngineAccessAndTokenId(_tokenId, msg.sender);
+
         _mint(_recipient, _tokenId, _amount, "");
     }
 
@@ -65,7 +70,8 @@ contract OptionToken is ERC1155, IOptionToken {
         uint256 _tokenId,
         uint256 _amount
     ) external override {
-        _checkAccess(_tokenId);
+        grappa.checkEngineAccess(_tokenId, msg.sender);
+
         _burn(_from, _tokenId, _amount);
     }
 
@@ -85,7 +91,7 @@ contract OptionToken is ERC1155, IOptionToken {
     }
 
     /**
-     * @dev burn batch of option token from an address. Can only be called by grappa
+     * @dev burn batch of option token from an address. Can only be called by grappa, used for settlement
      * @param _from         account to burn from
      * @param _ids          tokenId to burn
      * @param _amounts      amount to burn
@@ -104,32 +110,5 @@ contract OptionToken is ERC1155, IOptionToken {
      */
     function _checkIsGrappa() internal view {
         if (msg.sender != address(grappa)) revert NoAccess();
-    }
-
-    function _checkAccess(uint256 _tokenId) internal view {
-        (, uint40 productId, , , ) = TokenIdUtil.parseTokenId(_tokenId);
-        (, uint8 engineId, , , ) = ProductIdUtil.parseProductId(productId);
-        if (msg.sender != grappa.engines(engineId)) revert OT_Not_Authorized_Engine();
-    }
-
-    /**
-     * @dev check if msg.sender is eligible for burning or minting certain token
-     */
-    function _checkAccessAndTokenId(uint256 _tokenId) internal view {
-        (TokenType optionType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) = TokenIdUtil
-            .parseTokenId(_tokenId);
-        (, uint8 engineId, , , ) = ProductIdUtil.parseProductId(productId);
-        if (msg.sender != grappa.engines(engineId)) revert OT_Not_Authorized_Engine();
-
-        // check option type and strikes
-        // check that vanilla options doesnt have a shortStrike argument
-        if ((optionType == TokenType.CALL || optionType == TokenType.PUT) && (shortStrike != 0)) revert OT_BadStrikes();
-
-        // check that you cannot mint a "credit spread" token
-        if (optionType == TokenType.CALL_SPREAD && (shortStrike < longStrike)) revert OT_BadStrikes();
-        if (optionType == TokenType.PUT_SPREAD && (shortStrike > longStrike)) revert OT_BadStrikes();
-
-        // check expiry
-        if (expiry <= block.timestamp) revert OT_InvalidExpiry();
     }
 }

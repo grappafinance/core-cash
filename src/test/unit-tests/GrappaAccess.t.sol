@@ -7,7 +7,7 @@ import {FullMarginFixture} from "../engine-integrations/full-margin/FullMarginFi
 import "../../config/types.sol";
 import "../../config/errors.sol";
 
-contract AdvancedMarginEngineAccessTest is FullMarginFixture {
+contract GrappaAccessTest is FullMarginFixture {
     uint256 private depositAmount = 100 * 1e6;
 
     address private subAccountIdToModify;
@@ -21,6 +21,26 @@ contract AdvancedMarginEngineAccessTest is FullMarginFixture {
 
     function testCannotUpdateRandomAccount() public {
         _assertCanAccessAccount(subAccountIdToModify, false);
+    }
+
+    function testAliceCanGrantAccessToMaxSubAccount() public {
+        // alice grant access to this contract
+        vm.startPrank(alice);
+        engine.setAccountAccess(address(this), 1);
+        vm.stopPrank();
+
+        // we can update the account now
+        _assertCanAccessAccount(address(uint160(alice) ^ uint160(255)), true);
+    }
+
+    function testAliceCannotGrantAccessToMaxSubAccountPlusOne() public {
+        // alice grant access to this contract
+        vm.startPrank(alice);
+        engine.setAccountAccess(address(this), 1);
+        vm.stopPrank();
+
+        // we can update the account now
+        _assertCanAccessAccount(address(uint160(alice) ^ uint160(256)), false);
     }
 
     function testAliceCanGrantAccess() public {

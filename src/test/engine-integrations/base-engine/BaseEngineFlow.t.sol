@@ -13,7 +13,7 @@ import "../../../config/errors.sol";
 contract BaseEngineFlow is BaseEngineSetup {
     address public random = address(0xaabb);
 
-    event AccountSettled(address subAccount, uint256 payout);
+    event AccountSettled(address subAccount, Balance[] payouts);
 
     function setUp() public {
         usdc.mint(address(this), 10000 * 1e6);
@@ -106,6 +106,22 @@ contract BaseEngineFlow is BaseEngineSetup {
         engine.execute(address(this), actions);
 
         assertEq(option.balanceOf(address(this), tokenId), amount);
+    }
+
+    function testMintIntoAccountActionShouldMintOptionIntoAccount() public {
+        uint256 expiry = block.timestamp + 1 days;
+
+        uint256 strikePrice = 4000 * UNIT;
+        uint256 amount = 1 * UNIT;
+
+        uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
+
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createMintIntoAccountAction(tokenId, address(this), amount);
+        engine.execute(address(this), actions);
+
+        assertEq(option.balanceOf(address(this), tokenId), 0);
+        assertEq(option.balanceOf(address(engine), tokenId), amount);
     }
 
     function testBurnActionShouldBurnOption() public {
@@ -206,7 +222,7 @@ contract BaseEngineFlow is BaseEngineSetup {
 
         // execute add long
         ActionArgs[] memory actions = new ActionArgs[](1);
-        actions[0] = createAddLongAction(tokenId, address(0), amount);
+        actions[0] = createAddLongAction(tokenId, amount, address(0));
 
         vm.expectRevert(BM_InvalidFromAddress.selector);
         engine.execute(address(this), actions);
@@ -228,7 +244,7 @@ contract BaseEngineFlow is BaseEngineSetup {
 
         // add long
         ActionArgs[] memory actions = new ActionArgs[](1);
-        actions[0] = createAddLongAction(tokenId, address(this), amount);
+        actions[0] = createAddLongAction(tokenId, amount, address(this));
         engine.execute(address(this), actions);
 
         assertEq(option.balanceOf(address(this), tokenId), 0);
@@ -252,7 +268,7 @@ contract BaseEngineFlow is BaseEngineSetup {
 
         // add long
         ActionArgs[] memory actions = new ActionArgs[](1);
-        actions[0] = createRemoveLongAction(tokenId, address(this), amount);
+        actions[0] = createRemoveLongAction(tokenId, amount, address(this));
         engine.execute(address(this), actions);
 
         assertEq(option.balanceOf(address(this), tokenId), amount);
@@ -262,13 +278,17 @@ contract BaseEngineFlow is BaseEngineSetup {
     function testSettlementShouldEmitEvent() public {
         uint80 amount = 100 * 1e6;
         engine.setPayout(amount);
+        engine.setPayoutCollatId(usdcId);
 
         // execute merge
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSettleAction();
 
+        Balance[] memory balances = new Balance[](1);
+        balances[0] = Balance(usdcId, amount);
+
         vm.expectEmit(false, false, false, true, address(engine));
-        emit AccountSettled(address(this), amount);
+        emit AccountSettled(address(this), balances);
         engine.execute(address(this), actions);
     }
 }
