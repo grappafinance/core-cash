@@ -31,7 +31,7 @@ contract Deploy is Script, Utilities {
         // deploy and register Oracles
         deployOracles(grappa);
 
-        // Todo: transfer ownership to Grappa multisig and hasnote accordingly.
+        // Todo: transfer ownership to Grappa multisig and Hashnote accordingly.
         vm.stopBroadcast();
     }
 
