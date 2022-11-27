@@ -67,12 +67,11 @@ library AdvancedMarginMath {
      * @param _params specific product parameters
      * @return minCollatValueInStrike minimum collateral in strike (USD) value. with {BASE_UNIT} decimals
      */
-    function getMinCollateralInStrike(
-        AdvancedMarginDetail memory _account,
-        uint256 _spot,
-        uint256 _vol,
-        ProductMarginParams memory _params
-    ) internal view returns (uint256 minCollatValueInStrike) {
+    function getMinCollateralInStrike(AdvancedMarginDetail memory _account, uint256 _spot, uint256 _vol, ProductMarginParams memory _params)
+        internal
+        view
+        returns (uint256 minCollatValueInStrike)
+    {
         // don't need collateral
         if (_account.putAmount == 0 && _account.callAmount == 0) return 0;
 
@@ -125,14 +124,8 @@ library AdvancedMarginMath {
         if (_account.longCallStrike != 0 && _account.longCallStrike < _account.shortCallStrike) return 0;
 
         // it's a simple short call position
-        uint256 minCollateralShortCall = getMinCollateralForShortCall(
-            _account.callAmount,
-            _account.shortCallStrike,
-            _account.expiry,
-            _spot,
-            _vol,
-            params
-        );
+        uint256 minCollateralShortCall =
+            getMinCollateralForShortCall(_account.callAmount, _account.shortCallStrike, _account.expiry, _spot, _vol, params);
         if (_account.longCallStrike == 0) return minCollateralShortCall;
 
         // we calculate the max loss of spread, dominated in strke asset (usually USD)
@@ -152,14 +145,8 @@ library AdvancedMarginMath {
         if (_account.longPutStrike > _account.shortPutStrike) return 0;
 
         // long is not sufficient to cap loss for short, result is the same as
-        uint256 minCollateralShortPut = getMinCollateralForShortPut(
-            _account.putAmount,
-            _account.shortPutStrike,
-            _account.expiry,
-            _spot,
-            _vol,
-            params
-        );
+        uint256 minCollateralShortPut =
+            getMinCollateralForShortPut(_account.putAmount, _account.shortPutStrike, _account.expiry, _spot, _vol, params);
 
         if (_account.longPutStrike == 0) return minCollateralShortPut;
 
@@ -181,7 +168,8 @@ library AdvancedMarginMath {
      *                                  k
      *
      * @return collateral denominated in strike asset, with 6 decimals
-     **/
+     *
+     */
     function getMinCollateralForShortCall(
         uint256 _shortAmount,
         uint256 _strike,
@@ -224,7 +212,8 @@ library AdvancedMarginMath {
      *                                  s
      *
      * @return collateral denominated in strike asset, with 6 decimals
-     **/
+     *
+     */
     function getMinCollateralForShortPut(
         uint256 _shortAmount,
         uint256 _strike,
@@ -278,10 +267,8 @@ library AdvancedMarginMath {
             if (timeToExpiry > params.dUpper) return uint256(params.rUpper);
             if (timeToExpiry < params.dLower) return uint256(params.rLower);
 
-            return
-                uint256(params.rLower) +
-                ((timeToExpiry.sqrt() - params.sqrtDLower) * (params.rUpper - params.rLower)) /
-                (params.sqrtDUpper - params.sqrtDLower);
+            return uint256(params.rLower)
+                + ((timeToExpiry.sqrt() - params.sqrtDLower) * (params.rUpper - params.rLower)) / (params.sqrtDUpper - params.sqrtDLower);
         }
     }
 

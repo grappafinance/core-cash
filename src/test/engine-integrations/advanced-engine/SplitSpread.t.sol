@@ -42,8 +42,8 @@ contract TestSplitCallSpread is AdvancedFixture {
         engine.execute(address(this), actions);
 
         // check result
-        (uint256 shortCallId, , , , , ) = engine.marginAccounts(address(this));
-        (TokenType tokenType, , , uint64 longStrike, uint64 shortStrike) = parseTokenId(shortCallId);
+        (uint256 shortCallId,,,,,) = engine.marginAccounts(address(this));
+        (TokenType tokenType,,, uint64 longStrike, uint64 shortStrike) = parseTokenId(shortCallId);
 
         assertEq(uint8(tokenType), uint8(TokenType.CALL));
         assertEq(longStrike, strikePriceLow);
@@ -106,8 +106,8 @@ contract TestSplitPutSpread is AdvancedFixture {
         engine.execute(address(this), actions);
 
         // check result
-        (, uint256 shortPutId, , , , ) = engine.marginAccounts(address(this));
-        (TokenType tokenType, , , uint64 longStrike, uint64 shortStrike) = parseTokenId(shortPutId);
+        (, uint256 shortPutId,,,,) = engine.marginAccounts(address(this));
+        (TokenType tokenType,,, uint64 longStrike, uint64 shortStrike) = parseTokenId(shortPutId);
 
         assertEq(uint8(tokenType), uint8(TokenType.PUT));
         assertEq(longStrike, strikePriceHigh);

@@ -8,8 +8,9 @@ enum TokenType {
     CALL_SPREAD
 }
 
-enum ActionType {
-    // actions on single subAccount
+enum ActionType
+// actions on single subAccount
+{
     AddCollateral,
     RemoveCollateral,
     MintShort,

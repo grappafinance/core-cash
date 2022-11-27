@@ -28,7 +28,7 @@ contract TestAddCollateral_CM is CrossMarginFixture {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         engine.execute(address(this), actions);
-        (, , Balance[] memory _collaters) = engine.marginAccounts(address(this));
+        (,, Balance[] memory _collaters) = engine.marginAccounts(address(this));
 
         assertEq(_collaters[0].collateralId, usdcId);
         assertEq(_collaters[0].amount, depositAmount);
@@ -107,7 +107,7 @@ contract TestAddCollateral_CM is CrossMarginFixture {
 
         engine.execute(address(this), actions);
 
-        (, , Balance[] memory _collaterals) = engine.marginAccounts(address(this));
+        (,, Balance[] memory _collaterals) = engine.marginAccounts(address(this));
 
         assertEq(_collaterals.length, 2);
         assertEq(_collaterals[0].collateralId, usdcId);

@@ -35,9 +35,9 @@ import "./errors.sol";
  * @title   FullMarginEngine
  * @author  @antoncoding
  * @notice  Fully collateralized margin engine
-            Users can deposit collateral into FullMargin and mint optionTokens (debt) out of it.
-            Interacts with OptionToken to mint / burn
-            Interacts with grappa to fetch registered asset info
+ *             Users can deposit collateral into FullMargin and mint optionTokens (debt) out of it.
+ *             Interacts with OptionToken to mint / burn
+ *             Interacts with grappa to fetch registered asset info
  */
 contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyGuard {
     using FullMarginLib for FullMarginAccount;
@@ -65,7 +65,7 @@ contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyG
         _assertCallerHasAccess(_subAccount);
 
         // update the account state and do external calls on the flight
-        for (uint256 i; i < actions.length; ) {
+        for (uint256 i; i < actions.length;) {
             if (actions[i].action == ActionType.AddCollateral) _addCollateral(_subAccount, actions[i].data);
             else if (actions[i].action == ActionType.RemoveCollateral) _removeCollateral(_subAccount, actions[i].data);
             else if (actions[i].action == ActionType.MintShort) _mintOption(_subAccount, actions[i].data);
@@ -90,11 +90,7 @@ contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyG
      * @param _recipient receiber
      * @param _amount amount
      */
-    function payCashValue(
-        address _asset,
-        address _recipient,
-        uint256 _amount
-    ) public override(BaseEngine, IMarginEngine) {
+    function payCashValue(address _asset, address _recipient, uint256 _amount) public override (BaseEngine, IMarginEngine) {
         BaseEngine.payCashValue(_asset, _recipient, _amount);
     }
 
@@ -124,56 +120,33 @@ contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyG
         delete marginAccounts[_subAccount];
     }
 
-    /** ========================================================= **
+    /**
+     * ========================================================= **
      *               Override Sate changing functions             *
-     ** ========================================================= **/
+     * ========================================================= *
+     */
 
-    function _addCollateralToAccount(
-        address _subAccount,
-        uint8 collateralId,
-        uint80 amount
-    ) internal override {
+    function _addCollateralToAccount(address _subAccount, uint8 collateralId, uint80 amount) internal override {
         marginAccounts[_subAccount].addCollateral(collateralId, amount);
     }
 
-    function _removeCollateralFromAccount(
-        address _subAccount,
-        uint8 collateralId,
-        uint80 amount
-    ) internal override {
+    function _removeCollateralFromAccount(address _subAccount, uint8 collateralId, uint80 amount) internal override {
         marginAccounts[_subAccount].removeCollateral(collateralId, amount);
     }
 
-    function _increaseShortInAccount(
-        address _subAccount,
-        uint256 tokenId,
-        uint64 amount
-    ) internal override {
+    function _increaseShortInAccount(address _subAccount, uint256 tokenId, uint64 amount) internal override {
         marginAccounts[_subAccount].mintOption(tokenId, amount);
     }
 
-    function _decreaseShortInAccount(
-        address _subAccount,
-        uint256 tokenId,
-        uint64 amount
-    ) internal override {
+    function _decreaseShortInAccount(address _subAccount, uint256 tokenId, uint64 amount) internal override {
         marginAccounts[_subAccount].burnOption(tokenId, amount);
     }
 
-    function _mergeLongIntoSpread(
-        address _subAccount,
-        uint256 shortTokenId,
-        uint256 longTokenId,
-        uint64 amount
-    ) internal override {
+    function _mergeLongIntoSpread(address _subAccount, uint256 shortTokenId, uint256 longTokenId, uint64 amount) internal override {
         marginAccounts[_subAccount].merge(shortTokenId, longTokenId, amount);
     }
 
-    function _splitSpreadInAccount(
-        address _subAccount,
-        uint256 spreadId,
-        uint64 amount
-    ) internal override {
+    function _splitSpreadInAccount(address _subAccount, uint256 spreadId, uint64 amount) internal override {
         marginAccounts[_subAccount].split(spreadId, amount);
     }
 
@@ -181,9 +154,11 @@ contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyG
         marginAccounts[_subAccount].settleAtExpiry(payout);
     }
 
-    /** ========================================================= **
-                    Override view functions for BaseEngine
-     ** ========================================================= **/
+    /**
+     * ========================================================= **
+     *                 Override view functions for BaseEngine
+     * ========================================================= *
+     */
 
     /**
      * @dev return whether if an account is healthy.
@@ -204,13 +179,15 @@ contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyG
     function _getAccountPayout(address _subAccount) internal view override returns (uint8, uint80) {
         FullMarginAccount memory account = marginAccounts[_subAccount];
         uint8 collatId = account.collateralId;
-        (, , uint256 payout) = grappa.getPayout(account.tokenId, account.shortAmount);
+        (,, uint256 payout) = grappa.getPayout(account.tokenId, account.shortAmount);
         return (collatId, payout.toUint80());
     }
 
-    /** ========================================================= **
-                            Internal Functions
-     ** ========================================================= **/
+    /**
+     * ========================================================= **
+     *                         Internal Functions
+     * ========================================================= *
+     */
 
     function _getMinCollateral(FullMarginAccount memory account) internal view returns (uint256) {
         FullMarginDetail memory detail = _getAccountDetail(account);
@@ -220,16 +197,10 @@ contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyG
     /**
      * @notice  convert Account struct from storage to in-memory detail struct
      */
-    function _getAccountDetail(FullMarginAccount memory account)
-        internal
-        view
-        returns (FullMarginDetail memory detail)
-    {
-        (TokenType tokenType, uint40 productId, , uint64 longStrike, uint64 shortStrike) = account
-            .tokenId
-            .parseTokenId();
+    function _getAccountDetail(FullMarginAccount memory account) internal view returns (FullMarginDetail memory detail) {
+        (TokenType tokenType, uint40 productId,, uint64 longStrike, uint64 shortStrike) = account.tokenId.parseTokenId();
 
-        (, , , uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(productId);
+        (,,, uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(productId);
 
         bool collateralizedWithStrike = collateralId == strikeId;
 

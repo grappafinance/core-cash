@@ -60,18 +60,22 @@ abstract contract BaseEngine {
 
     event AccountSettled(address subAccount, Balance[] payouts);
 
-    /** ========================================================= **
-                            External Functions
-     ** ========================================================= **/
+    /**
+     * ========================================================= **
+     *                         External Functions
+     * ========================================================= *
+     */
 
     constructor(address _grappa, address _optionToken) {
         grappa = IGrappa(_grappa);
         optionToken = IOptionToken(_optionToken);
     }
 
-    /** ========================================================= **
-                            External Functions
-     ** ========================================================= **/
+    /**
+     * ========================================================= **
+     *                         External Functions
+     * ========================================================= *
+     */
 
     /**
      * @notice  grant or revoke an account access to all your sub-accounts
@@ -106,42 +110,28 @@ abstract contract BaseEngine {
      * @param _recipient receiber
      * @param _amount amount
      */
-    function payCashValue(
-        address _asset,
-        address _recipient,
-        uint256 _amount
-    ) public virtual {
+    function payCashValue(address _asset, address _recipient, uint256 _amount) public virtual {
         if (msg.sender != address(grappa)) revert NoAccess();
         if (_recipient != address(this)) IERC20(_asset).safeTransfer(_recipient, _amount);
     }
 
-    function onERC1155Received(
-        address,
-        address,
-        uint256,
-        uint256,
-        bytes calldata
-    ) external virtual returns (bytes4) {
+    function onERC1155Received(address, address, uint256, uint256, bytes calldata) external virtual returns (bytes4) {
         return this.onERC1155Received.selector;
     }
 
-    function onERC1155BatchReceived(
-        address,
-        address,
-        uint256[] memory,
-        uint256[] memory,
-        bytes memory
-    ) external virtual returns (bytes4) {
+    function onERC1155BatchReceived(address, address, uint256[] memory, uint256[] memory, bytes memory) external virtual returns (bytes4) {
         return this.onERC1155BatchReceived.selector;
     }
 
-    /** ========================================================= **
-                   Internal Functions For Each Action
-     ** ========================================================= **/
+    /**
+     * ========================================================= **
+     *                Internal Functions For Each Action
+     * ========================================================= *
+     */
 
     /**
      * @dev pull token from user, increase collateral in account storage
-            the collateral has to be provided by either caller, or the primary owner of subaccount
+     *         the collateral has to be provided by either caller, or the primary owner of subaccount
      */
     function _addCollateral(address _subAccount, bytes calldata _data) internal virtual {
         // decode parameters
@@ -152,7 +142,7 @@ abstract contract BaseEngine {
         // update the account in state
         _addCollateralToAccount(_subAccount, collateralId, amount);
 
-        (address collateral, ) = grappa.assets(collateralId);
+        (address collateral,) = grappa.assets(collateralId);
 
         emit CollateralAdded(_subAccount, collateral, amount);
 
@@ -170,7 +160,7 @@ abstract contract BaseEngine {
         // update the account in state
         _removeCollateralFromAccount(_subAccount, collateralId, amount);
 
-        (address collateral, ) = grappa.assets(collateralId);
+        (address collateral,) = grappa.assets(collateralId);
 
         emit CollateralRemoved(_subAccount, collateral, amount);
 
@@ -220,7 +210,7 @@ abstract contract BaseEngine {
 
     /**
      * @dev burn option token from user, decrease short position (debt) in storage
-            the option has to be provided by either caller, or the primary owner of subaccount
+     *         the option has to be provided by either caller, or the primary owner of subaccount
      * @param _data bytes data to decode
      */
     function _burnOption(address _subAccount, bytes calldata _data) internal virtual {
@@ -342,50 +332,30 @@ abstract contract BaseEngine {
         emit AccountSettled(_subAccount, balances);
     }
 
-    /** ========================================================= **
-                   State changing functions to override
-     ** ========================================================= **/
-    function _addCollateralToAccount(
-        address _subAccount,
-        uint8 collateralId,
-        uint80 amount
-    ) internal virtual {}
+    /**
+     * ========================================================= **
+     *                State changing functions to override
+     * ========================================================= *
+     */
+    function _addCollateralToAccount(address _subAccount, uint8 collateralId, uint80 amount) internal virtual {}
 
-    function _removeCollateralFromAccount(
-        address _subAccount,
-        uint8 collateralId,
-        uint80 amount
-    ) internal virtual {}
+    function _removeCollateralFromAccount(address _subAccount, uint8 collateralId, uint80 amount) internal virtual {}
 
-    function _increaseShortInAccount(
-        address _subAccount,
-        uint256 tokenId,
-        uint64 amount
-    ) internal virtual {}
+    function _increaseShortInAccount(address _subAccount, uint256 tokenId, uint64 amount) internal virtual {}
 
-    function _decreaseShortInAccount(
-        address _subAccount,
-        uint256 tokenId,
-        uint64 amount
-    ) internal virtual {}
+    function _decreaseShortInAccount(address _subAccount, uint256 tokenId, uint64 amount) internal virtual {}
 
-    function _increaseLongInAccount(
-        address _subAccount,
-        uint256 tokenId,
-        uint64 amount
-    ) internal virtual {}
+    function _increaseLongInAccount(address _subAccount, uint256 tokenId, uint64 amount) internal virtual {}
 
-    function _decreaseLongInAccount(
-        address _subAccount,
-        uint256 tokenId,
-        uint64 amount
-    ) internal virtual {}
+    function _decreaseLongInAccount(address _subAccount, uint256 tokenId, uint64 amount) internal virtual {}
 
     function _settleAccount(address _subAccount, uint80 payout) internal virtual {}
 
-    /** ========================================================= **
-                   View functions to override
-     ** ========================================================= **/
+    /**
+     * ========================================================= **
+     *                View functions to override
+     * ========================================================= *
+     */
 
     /**
      * @notice [MUST Implement] return amount of collateral that should be reserved to payout long positions
@@ -407,9 +377,11 @@ abstract contract BaseEngine {
      */
     function _verifyLongTokenIdToAdd(uint256 tokenId) internal view virtual {}
 
-    /** ========================================================= **
-                   Internal view functions
-     ** ========================================================= **/
+    /**
+     * ========================================================= **
+     *                Internal view functions
+     * ========================================================= *
+     */
 
     /**
      * @notice revert if the msg.sender is not authorized to access an subAccount id

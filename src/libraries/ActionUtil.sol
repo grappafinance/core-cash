@@ -14,11 +14,7 @@ library ActionUtil {
      * @param amount amount of collateral to deposit
      * @param from address to pull asset from
      */
-    function createAddCollateralAction(
-        uint8 collateralId,
-        uint256 amount,
-        address from
-    ) internal pure returns (ActionArgs memory action) {
+    function createAddCollateralAction(uint8 collateralId, uint256 amount, address from) internal pure returns (ActionArgs memory action) {
         action = ActionArgs({action: ActionType.AddCollateral, data: abi.encode(from, uint80(amount), collateralId)});
     }
 
@@ -27,15 +23,12 @@ library ActionUtil {
      * @param amount amount of collateral to remove
      * @param recipient address to receive removed collateral
      */
-    function createRemoveCollateralAction(
-        uint8 collateralId,
-        uint256 amount,
-        address recipient
-    ) internal pure returns (ActionArgs memory action) {
-        action = ActionArgs({
-            action: ActionType.RemoveCollateral,
-            data: abi.encode(uint80(amount), recipient, collateralId)
-        });
+    function createRemoveCollateralAction(uint8 collateralId, uint256 amount, address recipient)
+        internal
+        pure
+        returns (ActionArgs memory action)
+    {
+        action = ActionArgs({action: ActionType.RemoveCollateral, data: abi.encode(uint80(amount), recipient, collateralId)});
     }
 
     /**
@@ -43,15 +36,12 @@ library ActionUtil {
      * @param amount amount of collateral to remove
      * @param recipient address to receive removed collateral
      */
-    function createTransferCollateralAction(
-        uint8 collateralId,
-        uint256 amount,
-        address recipient
-    ) internal pure returns (ActionArgs memory action) {
-        action = ActionArgs({
-            action: ActionType.TransferCollateral,
-            data: abi.encode(uint80(amount), recipient, collateralId)
-        });
+    function createTransferCollateralAction(uint8 collateralId, uint256 amount, address recipient)
+        internal
+        pure
+        returns (ActionArgs memory action)
+    {
+        action = ActionArgs({action: ActionType.TransferCollateral, data: abi.encode(uint80(amount), recipient, collateralId)});
     }
 
     /**
@@ -59,11 +49,7 @@ library ActionUtil {
      * @param amount amount of token to mint (6 decimals)
      * @param recipient address to receive minted option
      */
-    function createMintAction(
-        uint256 tokenId,
-        uint256 amount,
-        address recipient
-    ) internal pure returns (ActionArgs memory action) {
+    function createMintAction(uint256 tokenId, uint256 amount, address recipient) internal pure returns (ActionArgs memory action) {
         action = ActionArgs({action: ActionType.MintShort, data: abi.encode(tokenId, recipient, uint64(amount))});
     }
 
@@ -72,15 +58,12 @@ library ActionUtil {
      * @param amount amount of token to mint (6 decimals)
      * @param subAccount sub account to receive minted option
      */
-    function createMintIntoAccountAction(
-        uint256 tokenId,
-        uint256 amount,
-        address subAccount
-    ) internal pure returns (ActionArgs memory action) {
-        action = ActionArgs({
-            action: ActionType.MintShortIntoAccount,
-            data: abi.encode(tokenId, subAccount, uint64(amount))
-        });
+    function createMintIntoAccountAction(uint256 tokenId, uint256 amount, address subAccount)
+        internal
+        pure
+        returns (ActionArgs memory action)
+    {
+        action = ActionArgs({action: ActionType.MintShortIntoAccount, data: abi.encode(tokenId, subAccount, uint64(amount))});
     }
 
     /**
@@ -88,11 +71,7 @@ library ActionUtil {
      * @param amount amount of token to mint (6 decimals)
      * @param recipient account to receive minted option
      */
-    function createTranferLongAction(
-        uint256 tokenId,
-        uint256 amount,
-        address recipient
-    ) internal pure returns (ActionArgs memory action) {
+    function createTranferLongAction(uint256 tokenId, uint256 amount, address recipient) internal pure returns (ActionArgs memory action) {
         action = ActionArgs({action: ActionType.TransferLong, data: abi.encode(tokenId, recipient, uint64(amount))});
     }
 
@@ -101,11 +80,11 @@ library ActionUtil {
      * @param amount amount of token to mint (6 decimals)
      * @param recipient account to receive minted option
      */
-    function createTranferShortAction(
-        uint256 tokenId,
-        uint256 amount,
-        address recipient
-    ) internal pure returns (ActionArgs memory action) {
+    function createTranferShortAction(uint256 tokenId, uint256 amount, address recipient)
+        internal
+        pure
+        returns (ActionArgs memory action)
+    {
         action = ActionArgs({action: ActionType.TransferShort, data: abi.encode(tokenId, recipient, uint64(amount))});
     }
 
@@ -114,11 +93,7 @@ library ActionUtil {
      * @param amount amount of token to burn (6 decimals)
      * @param from address to burn option token from
      */
-    function createBurnAction(
-        uint256 tokenId,
-        uint256 amount,
-        address from
-    ) internal pure returns (ActionArgs memory action) {
+    function createBurnAction(uint256 tokenId, uint256 amount, address from) internal pure returns (ActionArgs memory action) {
         action = ActionArgs({action: ActionType.BurnShort, data: abi.encode(tokenId, from, uint64(amount))});
     }
 
@@ -128,12 +103,11 @@ library ActionUtil {
      * @param amount amount to merge
      * @param from which address to burn the incoming option from.
      */
-    function createMergeAction(
-        uint256 tokenId,
-        uint256 shortId,
-        uint256 amount,
-        address from
-    ) internal pure returns (ActionArgs memory action) {
+    function createMergeAction(uint256 tokenId, uint256 shortId, uint256 amount, address from)
+        internal
+        pure
+        returns (ActionArgs memory action)
+    {
         action = ActionArgs({action: ActionType.MergeOptionToken, data: abi.encode(tokenId, shortId, from, amount)});
     }
 
@@ -142,15 +116,8 @@ library ActionUtil {
      * @param amount amount to split
      * @param recipient address to receive the "splited" long option token.
      */
-    function createSplitAction(
-        uint256 spreadId,
-        uint256 amount,
-        address recipient
-    ) internal pure returns (ActionArgs memory action) {
-        action = ActionArgs({
-            action: ActionType.SplitOptionToken,
-            data: abi.encode(spreadId, uint64(amount), recipient)
-        });
+    function createSplitAction(uint256 spreadId, uint256 amount, address recipient) internal pure returns (ActionArgs memory action) {
+        action = ActionArgs({action: ActionType.SplitOptionToken, data: abi.encode(spreadId, uint64(amount), recipient)});
     }
 
     /**
@@ -158,11 +125,7 @@ library ActionUtil {
      * @param amount amount to add
      * @param from address to pull the token from
      */
-    function createAddLongAction(
-        uint256 tokenId,
-        uint256 amount,
-        address from
-    ) internal pure returns (ActionArgs memory action) {
+    function createAddLongAction(uint256 tokenId, uint256 amount, address from) internal pure returns (ActionArgs memory action) {
         action = ActionArgs({action: ActionType.AddLong, data: abi.encode(tokenId, uint64(amount), from)});
     }
 
@@ -171,11 +134,7 @@ library ActionUtil {
      * @param amount amount to remove
      * @param recipient address to receive the removed option
      */
-    function createRemoveLongAction(
-        uint256 tokenId,
-        uint256 amount,
-        address recipient
-    ) internal pure returns (ActionArgs memory action) {
+    function createRemoveLongAction(uint256 tokenId, uint256 amount, address recipient) internal pure returns (ActionArgs memory action) {
         action = ActionArgs({action: ActionType.RemoveLong, data: abi.encode(tokenId, uint64(amount), recipient)});
     }
 
@@ -190,14 +149,14 @@ library ActionUtil {
         y = new ActionArgs[](x.length + v.length);
         uint256 z;
         uint256 i;
-        for (i; i < x.length; ) {
+        for (i; i < x.length;) {
             y[z] = x[i];
             unchecked {
                 ++z;
                 ++i;
             }
         }
-        for (i = 0; i < v.length; ) {
+        for (i = 0; i < v.length;) {
             y[z] = v[i];
             unchecked {
                 ++z;
@@ -209,7 +168,7 @@ library ActionUtil {
     function append(ActionArgs[] memory x, ActionArgs memory v) internal pure returns (ActionArgs[] memory y) {
         y = new ActionArgs[](x.length + 1);
         uint256 i;
-        for (i; i < x.length; ) {
+        for (i; i < x.length;) {
             y[i] = x[i];
             unchecked {
                 ++i;
@@ -221,7 +180,7 @@ library ActionUtil {
     function append(BatchExecute[] memory x, BatchExecute memory v) internal pure returns (BatchExecute[] memory y) {
         y = new BatchExecute[](x.length + 1);
         uint256 i;
-        for (i; i < x.length; ) {
+        for (i; i < x.length;) {
             y[i] = x[i];
             unchecked {
                 ++i;

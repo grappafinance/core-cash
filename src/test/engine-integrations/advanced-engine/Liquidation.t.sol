@@ -99,8 +99,7 @@ contract TestLiquidateCall is AdvancedFixture {
         assertEq(optionBalanceBefore - optionBalanceAfter, amount);
 
         //margin account should be reset
-        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAmount, uint8 collateralId) = engine
-            .marginAccounts(accountId);
+        (uint256 shortCallId,, uint64 shortCallAmount,, uint80 collateralAmount, uint8 collateralId) = engine.marginAccounts(accountId);
 
         assertEq(shortCallId, 0);
         assertEq(shortCallAmount, 0);
@@ -200,8 +199,7 @@ contract TestLiquidatePut is AdvancedFixture {
         assertEq(optionBalanceBefore - optionBalanceAfter, amount);
 
         //margin account should be reset
-        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAmount, uint8 collateralId) = engine
-            .marginAccounts(accountId);
+        (uint256 shortCallId,, uint64 shortCallAmount,, uint80 collateralAmount, uint8 collateralId) = engine.marginAccounts(accountId);
 
         assertEq(shortCallId, 0);
         assertEq(shortCallAmount, 0);

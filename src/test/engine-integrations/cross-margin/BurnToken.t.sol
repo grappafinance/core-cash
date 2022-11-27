@@ -44,7 +44,7 @@ contract TestBurnOption_CM is CrossMarginFixture {
 
         // action
         engine.execute(address(this), actions);
-        (Position[] memory shorts, , ) = engine.marginAccounts(address(this));
+        (Position[] memory shorts,,) = engine.marginAccounts(address(this));
 
         // check result
         assertEq(shorts.length, 0);

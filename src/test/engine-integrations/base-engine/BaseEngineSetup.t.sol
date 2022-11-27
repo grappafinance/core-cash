@@ -75,22 +75,10 @@ abstract contract BaseEngineSetup is Test, ActionHelper, Utilities {
         oracleId = grappa.registerOracle(address(oracle));
 
         productId = grappa.getProductId(address(oracle), address(engine), address(weth), address(usdc), address(usdc));
-        productIdEthCollat = grappa.getProductId(
-            address(oracle),
-            address(engine),
-            address(weth),
-            address(usdc),
-            address(weth)
-        );
+        productIdEthCollat = grappa.getProductId(address(oracle), address(engine), address(weth), address(usdc), address(weth));
     }
 
-    function onERC1155Received(
-        address,
-        address,
-        uint256,
-        uint256,
-        bytes calldata
-    ) external virtual returns (bytes4) {
+    function onERC1155Received(address, address, uint256, uint256, bytes calldata) external virtual returns (bytes4) {
         return this.onERC1155Received.selector;
     }
 }

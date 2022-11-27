@@ -65,8 +65,7 @@ contract GrappaRegistry is Test {
 
         uint40 product = grappa.getProductId(address(0), address(0), address(weth), address(0), address(weth));
 
-        (, , address underlying, , address strike, , address collateral, uint8 collatDecimals) = grappa
-            .getDetailFromProductId(product);
+        (,, address underlying,, address strike,, address collateral, uint8 collatDecimals) = grappa.getDetailFromProductId(product);
 
         assertEq(underlying, address(weth));
 
@@ -86,8 +85,8 @@ contract GrappaRegistry is Test {
         uint40 product = grappa.getProductId(address(0), address(0), address(weth), address(0), address(weth));
         uint256 token = grappa.getTokenId(TokenType.CALL, product, expiryTimestamp, strikePrice, 0);
 
-        (TokenType tokenType, uint40 productId, uint256 expiry, uint256 longStrike, uint256 shortStrike) = grappa
-            .getDetailFromTokenId(token);
+        (TokenType tokenType, uint40 productId, uint256 expiry, uint256 longStrike, uint256 shortStrike) =
+            grappa.getDetailFromTokenId(token);
 
         assertEq(uint8(tokenType), uint8(TokenType.CALL));
         assertEq(productId, product);
@@ -139,7 +138,7 @@ contract RegisterEngineTest is Test {
 
         uint40 product = grappa.getProductId(address(0), address(engine1), address(0), address(0), address(0));
 
-        (, address engine, , , , , , ) = grappa.getDetailFromProductId(product);
+        (, address engine,,,,,,) = grappa.getDetailFromProductId(product);
 
         assertEq(engine, engine1);
     }
@@ -189,7 +188,7 @@ contract RegisterOracleTest is Test {
 
         uint40 product = grappa.getProductId(address(oracle), address(0), address(0), address(0), address(0));
 
-        (address oracle_, , , , , , , ) = grappa.getDetailFromProductId(product);
+        (address oracle_,,,,,,,) = grappa.getDetailFromProductId(product);
 
         assertEq(oracle_, oracle);
     }

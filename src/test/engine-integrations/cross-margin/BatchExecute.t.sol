@@ -57,8 +57,7 @@ contract TestBatchExecute_CM is CrossMarginFixture {
 
         engine.batchExecute(batch);
 
-        (Position[] memory aliceShorts, Position[] memory aliceLongs, Balance[] memory aliceCollaters) = engine
-            .marginAccounts(alice);
+        (Position[] memory aliceShorts, Position[] memory aliceLongs, Balance[] memory aliceCollaters) = engine.marginAccounts(alice);
 
         assertEq(aliceShorts.length, 1);
         assertEq(aliceShorts[0].tokenId, tokenId);
@@ -72,8 +71,7 @@ contract TestBatchExecute_CM is CrossMarginFixture {
         assertEq(aliceCollaters[0].collateralId, wethId);
         assertEq(aliceCollaters[0].amount, depositAmount);
 
-        (Position[] memory selfShorts, Position[] memory selfLongs, Balance[] memory selfCollaters) = engine
-            .marginAccounts(address(this));
+        (Position[] memory selfShorts, Position[] memory selfLongs, Balance[] memory selfCollaters) = engine.marginAccounts(address(this));
 
         assertEq(selfShorts.length, 1);
         assertEq(selfShorts[0].tokenId, tokenId2);
@@ -103,8 +101,7 @@ contract TestBatchExecute_CM is CrossMarginFixture {
 
         engine.batchExecute(batch);
 
-        (Position[] memory aliceShorts, Position[] memory aliceLongs, Balance[] memory aliceCollaters) = engine
-            .marginAccounts(alice);
+        (Position[] memory aliceShorts, Position[] memory aliceLongs, Balance[] memory aliceCollaters) = engine.marginAccounts(alice);
 
         assertEq(aliceShorts.length, 1);
         assertEq(aliceShorts[0].tokenId, tokenId);
@@ -118,8 +115,7 @@ contract TestBatchExecute_CM is CrossMarginFixture {
         assertEq(aliceCollaters[0].collateralId, wethId);
         assertEq(aliceCollaters[0].amount, depositAmount);
 
-        (Position[] memory selfShorts, Position[] memory selfLongs, Balance[] memory selfCollaters) = engine
-            .marginAccounts(address(this));
+        (Position[] memory selfShorts, Position[] memory selfLongs, Balance[] memory selfCollaters) = engine.marginAccounts(address(this));
 
         assertEq(selfShorts.length, 1);
         assertEq(selfShorts[0].tokenId, tokenId);
@@ -162,8 +158,7 @@ contract TestBatchExecute_CM is CrossMarginFixture {
 
         engine.batchExecute(batch);
 
-        (Position[] memory aliceShorts, Position[] memory aliceLongs, Balance[] memory aliceCollaters) = engine
-            .marginAccounts(alice);
+        (Position[] memory aliceShorts, Position[] memory aliceLongs, Balance[] memory aliceCollaters) = engine.marginAccounts(alice);
 
         assertEq(aliceShorts.length, 1);
         assertEq(aliceShorts[0].tokenId, c2100);
@@ -177,8 +172,7 @@ contract TestBatchExecute_CM is CrossMarginFixture {
         assertEq(aliceCollaters[0].collateralId, wethId);
         assertEq(aliceCollaters[0].amount, requiredCollateral);
 
-        (Position[] memory selfShorts, Position[] memory selfLongs, Balance[] memory selfCollaters) = engine
-            .marginAccounts(address(this));
+        (Position[] memory selfShorts, Position[] memory selfLongs, Balance[] memory selfCollaters) = engine.marginAccounts(address(this));
 
         assertEq(selfShorts.length, 1);
         assertEq(selfShorts[0].tokenId, c2101);

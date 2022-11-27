@@ -8,19 +8,21 @@ on:
       - master
 
 jobs:
-  lint:
+  checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: recursive
-      - uses: actions/setup-node@v3
-      - name: Install dev dependencies
-        run: yarn
-
-      - name: Run lint check
-        run: npm run lint:check
-  test:
+      - name: Install Foundry
+        uses: onbjerg/foundry-toolchain@v1
+        with:
+          version: nightly
+      - name: Run forge fmt
+        run: forge fmt --check
+      - name: Check snapshot
+        run: forge snapshot --check
+  build-and-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

@@ -25,14 +25,7 @@ contract Deploy is Script, Utilities {
     }
 
     /// @dev the script currently only work with new deployer account (nonce = 0)
-    function deploy()
-        public
-        returns (
-            Grappa grappa,
-            address optionToken,
-            address advancedMarginEngine
-        )
-    {
+    function deploy() public returns (Grappa grappa, address optionToken, address advancedMarginEngine) {
         uint256 nonce = vm.getNonce(msg.sender);
         console.log("nonce", nonce);
 
@@ -55,9 +48,7 @@ contract Deploy is Script, Utilities {
 
         address volOracle = address(new VolOracle()); // nonce: 3
 
-        advancedMarginEngine = address(
-            new AdvancedMarginEngine(address(grappa), volOracle, address(optionToken))
-        ); // nonce: 5
+        advancedMarginEngine = address(new AdvancedMarginEngine(address(grappa), volOracle, address(optionToken))); // nonce: 5
         console.log("advancedMarginEngine", advancedMarginEngine);
 
         // setup
@@ -65,7 +56,7 @@ contract Deploy is Script, Utilities {
         console.log("advancedMargin engine registered, id:", engineId1);
 
         // setup oracle
-        address oracle = address(new ChainlinkOracle()); 
+        address oracle = address(new ChainlinkOracle());
 
         uint8 oracleId1 = Grappa(grappa).registerOracle(oracle);
         console.log("chainlink oracle registered, id:", oracleId1);

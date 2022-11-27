@@ -23,13 +23,7 @@ library ProductIdUtil {
     function parseProductId(uint40 _productId)
         internal
         pure
-        returns (
-            uint8 oracleId,
-            uint8 engineId,
-            uint8 underlyingId,
-            uint8 strikeId,
-            uint8 collateralId
-        )
+        returns (uint8 oracleId, uint8 engineId, uint8 underlyingId, uint8 strikeId, uint8 collateralId)
     {
         // solhint-disable-next-line no-inline-assembly
         assembly {
@@ -56,20 +50,14 @@ library ProductIdUtil {
      * @param strikeId      strike id
      * @param collateralId  collateral id
      */
-    function getProductId(
-        uint8 oracleId,
-        uint8 engineId,
-        uint8 underlyingId,
-        uint8 strikeId,
-        uint8 collateralId
-    ) internal pure returns (uint40 id) {
+    function getProductId(uint8 oracleId, uint8 engineId, uint8 underlyingId, uint8 strikeId, uint8 collateralId)
+        internal
+        pure
+        returns (uint40 id)
+    {
         unchecked {
-            id =
-                (uint40(oracleId) << 32) +
-                (uint40(engineId) << 24) +
-                (uint40(underlyingId) << 16) +
-                (uint40(strikeId) << 8) +
-                (uint40(collateralId));
+            id = (uint40(oracleId) << 32) + (uint40(engineId) << 24) + (uint40(underlyingId) << 16) + (uint40(strikeId) << 8)
+                + (uint40(collateralId));
         }
     }
 }

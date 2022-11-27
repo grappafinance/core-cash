@@ -51,10 +51,7 @@ library FullMarginMath {
                 } else {
                     // ex: 2000-4000 call spread with eth collateral
                     unchecked {
-                        unitAmount = (_account.longStrike - _account.shortStrike).mulDivUp(
-                            _account.shortAmount,
-                            _account.longStrike
-                        );
+                        unitAmount = (_account.longStrike - _account.shortStrike).mulDivUp(_account.shortAmount, _account.longStrike);
                     }
                 }
             }

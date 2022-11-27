@@ -35,11 +35,11 @@ import "../../../config/errors.sol";
  * @title   AdvancedMarginEngine
  * @author  @antoncoding
  * @notice  AdvancedMarginEngine is in charge of maintaining margin requirement for partial collateralized options
-            Please see AdvancedMarginMath.sol for detailed partial collat calculation
-            Interacts with OptionToken to mint / burn
-            Interacts with grappa to fetch registered asset info
-            Interacts with Oracle to read spot
-            Interacts with VolOracle to read vol
+ *             Please see AdvancedMarginMath.sol for detailed partial collat calculation
+ *             Interacts with OptionToken to mint / burn
+ *             Interacts with grappa to fetch registered asset info
+ *             Interacts with Oracle to read spot
+ *             Interacts with VolOracle to read vol
  */
 contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable, ReentrancyGuard {
     using AdvancedMarginMath for AdvancedMarginDetail;
@@ -63,11 +63,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
     ///@dev mapping of productId to AdvancedMargin Parameters
     mapping(uint40 => ProductMarginParams) public productParams;
 
-    constructor(
-        address _grappa,
-        address _volOracle,
-        address _optionToken
-    ) BaseEngine(_grappa, _optionToken) {
+    constructor(address _grappa, address _volOracle, address _optionToken) BaseEngine(_grappa, _optionToken) {
         volOracle = IVolOracle(_volOracle);
     }
 
@@ -75,14 +71,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
                                 Events
     //////////////////////////////////////////////////////////////*/
 
-    event ProductConfigurationUpdated(
-        uint40 productId,
-        uint32 dUpper,
-        uint32 dLower,
-        uint32 rUpper,
-        uint32 rLower,
-        uint32 volMul
-    );
+    event ProductConfigurationUpdated(uint40 productId, uint32 dUpper, uint32 dLower, uint32 rUpper, uint32 rLower, uint32 volMul);
 
     /*///////////////////////////////////////////////////////////////
                         External Functions
@@ -92,7 +81,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
         _assertCallerHasAccess(_subAccount);
 
         // update the account storage and do external calls on the flight
-        for (uint256 i; i < actions.length; ) {
+        for (uint256 i; i < actions.length;) {
             if (actions[i].action == ActionType.AddCollateral) _addCollateral(_subAccount, actions[i].data);
             else if (actions[i].action == ActionType.RemoveCollateral) _removeCollateral(_subAccount, actions[i].data);
             else if (actions[i].action == ActionType.MintShort) _mintOption(_subAccount, actions[i].data);
@@ -135,11 +124,11 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
      * @param repayCallAmount amount of call to burn
      * @param repayPutAmount amounts of put to burn
      */
-    function liquidate(
-        address _subAccount,
-        uint256 repayCallAmount,
-        uint256 repayPutAmount
-    ) external nonReentrant returns (address collateral, uint80 collateralToPay) {
+    function liquidate(address _subAccount, uint256 repayCallAmount, uint256 repayPutAmount)
+        external
+        nonReentrant
+        returns (address collateral, uint80 collateralToPay)
+    {
         AdvancedMarginAccount memory account = marginAccounts[_subAccount];
         if (_isAccountAboveWater(_subAccount)) revert AM_AccountIsHealthy();
 
@@ -187,7 +176,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
             collateralToPay = ((account.collateralAmount * portionBPS) / BPS).toUint80();
         }
 
-        (collateral, ) = grappa.assets(account.collateralId);
+        (collateral,) = grappa.assets(account.collateralId);
 
         // if liquidator is trying to remove more collateral than owned, this line will revert
         marginAccounts[_subAccount].removeCollateral(account.collateralId, collateralToPay);
@@ -210,11 +199,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
         delete marginAccounts[_subAccount];
     }
 
-    function payCashValue(
-        address _asset,
-        address _recipient,
-        uint256 _amount
-    ) public override(BaseEngine, IMarginEngine) {
+    function payCashValue(address _asset, address _recipient, uint256 _amount) public override (BaseEngine, IMarginEngine) {
         BaseEngine.payCashValue(_asset, _recipient, _amount);
     }
 
@@ -249,56 +234,33 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
         emit ProductConfigurationUpdated(_productId, _dUpper, _dLower, _rUpper, _rLower, _volMultiplier);
     }
 
-    /** ========================================================= **
+    /**
+     * ========================================================= **
      *               Override Sate changing functions             *
-     ** ========================================================= **/
+     * ========================================================= *
+     */
 
-    function _addCollateralToAccount(
-        address _subAccount,
-        uint8 collateralId,
-        uint80 amount
-    ) internal override {
+    function _addCollateralToAccount(address _subAccount, uint8 collateralId, uint80 amount) internal override {
         marginAccounts[_subAccount].addCollateral(collateralId, amount);
     }
 
-    function _removeCollateralFromAccount(
-        address _subAccount,
-        uint8 collateralId,
-        uint80 amount
-    ) internal override {
+    function _removeCollateralFromAccount(address _subAccount, uint8 collateralId, uint80 amount) internal override {
         marginAccounts[_subAccount].removeCollateral(collateralId, amount);
     }
 
-    function _increaseShortInAccount(
-        address _subAccount,
-        uint256 tokenId,
-        uint64 amount
-    ) internal override {
+    function _increaseShortInAccount(address _subAccount, uint256 tokenId, uint64 amount) internal override {
         marginAccounts[_subAccount].mintOption(tokenId, amount);
     }
 
-    function _decreaseShortInAccount(
-        address _subAccount,
-        uint256 tokenId,
-        uint64 amount
-    ) internal override {
+    function _decreaseShortInAccount(address _subAccount, uint256 tokenId, uint64 amount) internal override {
         marginAccounts[_subAccount].burnOption(tokenId, amount);
     }
 
-    function _mergeLongIntoSpread(
-        address _subAccount,
-        uint256 shortTokenId,
-        uint256 longTokenId,
-        uint64 amount
-    ) internal override {
+    function _mergeLongIntoSpread(address _subAccount, uint256 shortTokenId, uint256 longTokenId, uint64 amount) internal override {
         marginAccounts[_subAccount].merge(shortTokenId, longTokenId, amount);
     }
 
-    function _splitSpreadInAccount(
-        address _subAccount,
-        uint256 spreadId,
-        uint64 amount
-    ) internal override {
+    function _splitSpreadInAccount(address _subAccount, uint256 spreadId, uint64 amount) internal override {
         marginAccounts[_subAccount].split(spreadId, amount);
     }
 
@@ -306,9 +268,11 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
         marginAccounts[_subAccount].settleAtExpiry(payout);
     }
 
-    /** ========================================================= **
-                            Override view functions
-     ** ========================================================= **/
+    /**
+     * ========================================================= **
+     *                         Override view functions
+     * ========================================================= *
+     */
 
     /**
      * @dev return whether if an account is healthy.
@@ -331,15 +295,17 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
         (uint256 callPayout, uint256 putPayout) = (0, 0);
         AdvancedMarginAccount memory account = marginAccounts[_subAccount];
         uint8 collatId = account.collateralId;
-        if (account.shortCallAmount > 0)
-            (, , callPayout) = grappa.getPayout(account.shortCallId, account.shortCallAmount);
-        if (account.shortPutAmount > 0) (, , putPayout) = grappa.getPayout(account.shortPutId, account.shortPutAmount);
+        if (account.shortCallAmount > 0) (,, callPayout) = grappa.getPayout(account.shortCallId, account.shortCallAmount);
+
+        if (account.shortPutAmount > 0) (,, putPayout) = grappa.getPayout(account.shortPutId, account.shortPutAmount);
         return (collatId, (callPayout + putPayout).toUint80());
     }
 
-    /** ========================================================= **
-                            Internal view functions
-     ** ========================================================= **/
+    /**
+     * ========================================================= **
+     *                         Internal view functions
+     * ========================================================= *
+     */
 
     /**
      * @notice get minimum collateral needed for a margin account
@@ -360,18 +326,14 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
 
         // need to pass in collateral/strike price. Pass in 0 if collateral is strike to save gas.
         uint256 collateralStrikePrice = 0;
-        if (product.collateral == product.underlying) collateralStrikePrice = spotPrice;
-        else if (product.collateral != product.strike) {
+        if (product.collateral == product.underlying) {
+            collateralStrikePrice = spotPrice;
+        } else if (product.collateral != product.strike) {
             collateralStrikePrice = IOracle(product.oracle).getSpotPrice(product.collateral, product.strike);
         }
 
-        uint256 minCollateralInUnit = detail.getMinCollateral(
-            product,
-            spotPrice,
-            collateralStrikePrice,
-            vol,
-            productParams[detail.productId]
-        );
+        uint256 minCollateralInUnit =
+            detail.getMinCollateral(product, spotPrice, collateralStrikePrice, vol, productParams[detail.productId]);
 
         minCollateral = minCollateralInUnit.convertDecimals(UNIT_DECIMALS, product.collateralDecimals);
     }
@@ -379,11 +341,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
     /**
      * @notice  convert Account struct from storage to in-memory detail struct
      */
-    function _getAccountDetail(AdvancedMarginAccount memory account)
-        internal
-        pure
-        returns (AdvancedMarginDetail memory detail)
-    {
+    function _getAccountDetail(AdvancedMarginAccount memory account) internal pure returns (AdvancedMarginDetail memory detail) {
         detail = AdvancedMarginDetail({
             putAmount: account.shortPutAmount,
             callAmount: account.shortCallAmount,
@@ -398,7 +356,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
 
         // if it contains a call
         if (account.shortCallId != 0) {
-            (, , , uint64 longStrike, uint64 shortStrike) = TokenIdUtil.parseTokenId(account.shortCallId);
+            (,,, uint64 longStrike, uint64 shortStrike) = TokenIdUtil.parseTokenId(account.shortCallId);
             // the short position of the account is the long of the minted optionToken
             detail.shortCallStrike = longStrike;
             detail.longCallStrike = shortStrike;
@@ -406,7 +364,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
 
         // if it contains a put
         if (account.shortPutId != 0) {
-            (, , , uint64 longStrike, uint64 shortStrike) = TokenIdUtil.parseTokenId(account.shortPutId);
+            (,,, uint64 longStrike, uint64 shortStrike) = TokenIdUtil.parseTokenId(account.shortPutId);
 
             // the short position of the account is the long of the minted optionToken
             detail.shortPutStrike = longStrike;
@@ -417,7 +375,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
         // use the OR operator, so as long as one of shortPutId or shortCallId is non-zero, got reflected here
         uint256 commonId = account.shortPutId | account.shortCallId;
 
-        (, uint40 productId, uint64 expiry, , ) = TokenIdUtil.parseTokenId(commonId);
+        (, uint40 productId, uint64 expiry,,) = TokenIdUtil.parseTokenId(commonId);
         detail.productId = productId;
         detail.expiry = expiry;
     }
@@ -426,8 +384,8 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
      * @dev get a struct that stores all relevent token addresses, along with collateral asset decimals
      */
     function _getProductDetails(uint40 _productId) internal view returns (ProductDetails memory info) {
-        (address oracle, , address underlying, , address strike, , address collateral, uint8 collatDecimals) = grappa
-            .getDetailFromProductId(_productId);
+        (address oracle,, address underlying,, address strike,, address collateral, uint8 collatDecimals) =
+            grappa.getDetailFromProductId(_productId);
         info.oracle = oracle;
         info.underlying = underlying;
         info.strike = strike;

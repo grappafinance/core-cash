@@ -26,7 +26,7 @@ contract TestAddCollateral_FM is FullMarginFixture {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         engine.execute(address(this), actions);
-        (, , uint8 _collateralId, uint80 _collateralAmount) = engine.marginAccounts(address(this));
+        (,, uint8 _collateralId, uint80 _collateralAmount) = engine.marginAccounts(address(this));
 
         assertEq(_collateralId, usdcId);
         assertEq(_collateralAmount, depositAmount);

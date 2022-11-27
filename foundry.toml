@@ -12,3 +12,8 @@ gas_reports = [
   "AdvancedMarginEngine",
   "ChainlinkOracle"
 ]
+
+[fmt]
+line_length=140
+tab_width=4
+func_attrs_with_params_multiline=false

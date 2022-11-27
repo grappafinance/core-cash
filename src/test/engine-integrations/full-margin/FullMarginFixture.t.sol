@@ -80,20 +80,8 @@ abstract contract FullMarginFixture is Test, ActionHelper, Utilities {
 
         oracleId = grappa.registerOracle(address(oracle));
 
-        pidUsdcCollat = grappa.getProductId(
-            address(oracle),
-            address(engine),
-            address(weth),
-            address(usdc),
-            address(usdc)
-        );
-        pidEthCollat = grappa.getProductId(
-            address(oracle),
-            address(engine),
-            address(weth),
-            address(usdc),
-            address(weth)
-        );
+        pidUsdcCollat = grappa.getProductId(address(oracle), address(engine), address(weth), address(usdc), address(usdc));
+        pidEthCollat = grappa.getProductId(address(oracle), address(engine), address(weth), address(usdc), address(weth));
 
         charlie = address(0xcccc);
         vm.label(charlie, "Charlie");
@@ -112,22 +100,11 @@ abstract contract FullMarginFixture is Test, ActionHelper, Utilities {
         usdc.mint(charlie, 1000_000_000 * 1e6);
     }
 
-    function onERC1155Received(
-        address,
-        address,
-        uint256,
-        uint256,
-        bytes calldata
-    ) external virtual returns (bytes4) {
+    function onERC1155Received(address, address, uint256, uint256, bytes calldata) external virtual returns (bytes4) {
         return this.onERC1155Received.selector;
     }
 
-    function mintOptionFor(
-        address _recipient,
-        uint256 _tokenId,
-        uint40 _productId,
-        uint256 _amount
-    ) internal {
+    function mintOptionFor(address _recipient, uint256 _tokenId, uint40 _productId, uint256 _amount) internal {
         address anon = address(0x42424242);
 
         vm.startPrank(anon);

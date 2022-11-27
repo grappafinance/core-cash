@@ -55,7 +55,7 @@ contract Permissioned is CrossMarginFixture {
 
         engine.execute(address(this), actions);
 
-        (, , Balance[] memory collaterals) = engine.marginAccounts(address(this));
+        (,, Balance[] memory collaterals) = engine.marginAccounts(address(this));
         assertEq(collaterals.length, 1);
     }
 
