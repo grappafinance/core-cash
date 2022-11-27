@@ -71,7 +71,9 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
                                 Events
     //////////////////////////////////////////////////////////////*/
 
-    event ProductConfigurationUpdated(uint40 productId, uint32 dUpper, uint32 dLower, uint32 rUpper, uint32 rLower, uint32 volMul);
+    event ProductConfigurationUpdated(
+        uint40 productId, uint32 dUpper, uint32 dLower, uint32 rUpper, uint32 rLower, uint32 volMul
+    );
 
     /*///////////////////////////////////////////////////////////////
                         External Functions
@@ -256,7 +258,10 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
         marginAccounts[_subAccount].burnOption(tokenId, amount);
     }
 
-    function _mergeLongIntoSpread(address _subAccount, uint256 shortTokenId, uint256 longTokenId, uint64 amount) internal override {
+    function _mergeLongIntoSpread(address _subAccount, uint256 shortTokenId, uint256 longTokenId, uint64 amount)
+        internal
+        override
+    {
         marginAccounts[_subAccount].merge(shortTokenId, longTokenId, amount);
     }
 
@@ -295,7 +300,9 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
         (uint256 callPayout, uint256 putPayout) = (0, 0);
         AdvancedMarginAccount memory account = marginAccounts[_subAccount];
         uint8 collatId = account.collateralId;
-        if (account.shortCallAmount > 0) (,, callPayout) = grappa.getPayout(account.shortCallId, account.shortCallAmount);
+        if (account.shortCallAmount > 0) {
+            (,, callPayout) = grappa.getPayout(account.shortCallId, account.shortCallAmount);
+        }
 
         if (account.shortPutAmount > 0) (,, putPayout) = grappa.getPayout(account.shortPutId, account.shortPutAmount);
         return (collatId, (callPayout + putPayout).toUint80());

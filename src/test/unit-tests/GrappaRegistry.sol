@@ -65,7 +65,8 @@ contract GrappaRegistry is Test {
 
         uint40 product = grappa.getProductId(address(0), address(0), address(weth), address(0), address(weth));
 
-        (,, address underlying,, address strike,, address collateral, uint8 collatDecimals) = grappa.getDetailFromProductId(product);
+        (,, address underlying,, address strike,, address collateral, uint8 collatDecimals) =
+            grappa.getDetailFromProductId(product);
 
         assertEq(underlying, address(weth));
 

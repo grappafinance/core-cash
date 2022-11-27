@@ -37,7 +37,8 @@ abstract contract DebitSpread is BaseEngine {
      */
     function _merge(address _subAccount, bytes calldata _data) internal virtual {
         // decode parameters
-        (uint256 longTokenId, uint256 shortTokenId, address from, uint64 amount) = abi.decode(_data, (uint256, uint256, address, uint64));
+        (uint256 longTokenId, uint256 shortTokenId, address from, uint64 amount) =
+            abi.decode(_data, (uint256, uint256, address, uint64));
 
         // token being burn must come from caller or the primary account for this subAccount
         if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert BM_InvalidFromAddress();
@@ -77,7 +78,10 @@ abstract contract DebitSpread is BaseEngine {
      * ========================================================= *
      */
 
-    function _mergeLongIntoSpread(address _subAccount, uint256 shortTokenId, uint256 longTokenId, uint64 amount) internal virtual {}
+    function _mergeLongIntoSpread(address _subAccount, uint256 shortTokenId, uint256 longTokenId, uint64 amount)
+        internal
+        virtual
+    {}
 
     function _splitSpreadInAccount(address _subAccount, uint256 spreadId, uint64 amount) internal virtual {}
 

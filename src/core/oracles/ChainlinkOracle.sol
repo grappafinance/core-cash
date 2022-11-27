@@ -71,7 +71,11 @@ contract ChainlinkOracle is IOracle, Ownable {
      * @param _expiry expiry timestamp
      * @return price with 6 decimals
      */
-    function getPriceAtExpiry(address _base, address _quote, uint256 _expiry) external view returns (uint256 price, bool isFinalized) {
+    function getPriceAtExpiry(address _base, address _quote, uint256 _expiry)
+        external
+        view
+        returns (uint256 price, bool isFinalized)
+    {
         ExpiryPrice memory data = expiryPrices[_base][_quote][_expiry];
         if (data.reportAt == 0) revert OC_PriceNotReported();
 
@@ -90,7 +94,9 @@ contract ChainlinkOracle is IOracle, Ownable {
      * @notice report expiry price and write to storage
      * @dev anyone can call this function and freeze the expiry price
      */
-    function reportExpiryPrice(address _base, address _quote, uint256 _expiry, uint80 _baseRoundId, uint80 _quoteRoundId) external {
+    function reportExpiryPrice(address _base, address _quote, uint256 _expiry, uint80 _baseRoundId, uint80 _quoteRoundId)
+        external
+    {
         if (_expiry > block.timestamp) revert OC_CannotReportForFuture();
         if (expiryPrices[_base][_quote][_expiry].reportAt != 0) revert OC_PriceReported();
 

@@ -45,8 +45,8 @@ library TokenIdUtil {
         returns (uint256 tokenId)
     {
         unchecked {
-            tokenId = (uint256(tokenType) << 232) + (uint256(productId) << 192) + (uint256(expiry) << 128) + (uint256(longStrike) << 64)
-                + uint256(shortStrike);
+            tokenId = (uint256(tokenType) << 232) + (uint256(productId) << 192) + (uint256(expiry) << 128)
+                + (uint256(longStrike) << 64) + uint256(shortStrike);
         }
     }
 

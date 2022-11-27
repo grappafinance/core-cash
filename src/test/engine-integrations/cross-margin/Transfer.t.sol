@@ -63,7 +63,8 @@ contract TestTransfer_CM is CrossMarginFixture {
         actions[2] = createTranferShortAction(c4000, alice, amount);
         engine.execute(address(this), actions);
 
-        (Position[] memory aliceShorts, Position[] memory aliceLongs, Balance[] memory aliceCollaterals) = engine.marginAccounts(alice);
+        (Position[] memory aliceShorts, Position[] memory aliceLongs, Balance[] memory aliceCollaterals) =
+            engine.marginAccounts(alice);
 
         assertEq(aliceCollaterals.length, 1);
         assertEq(aliceCollaterals[0].collateralId, wethId);
@@ -79,7 +80,8 @@ contract TestTransfer_CM is CrossMarginFixture {
         assertEq(aliceShorts[1].tokenId, c4000);
         assertEq(aliceShorts[1].amount, amount);
 
-        (Position[] memory selfShorts, Position[] memory selfLongs, Balance[] memory selfCollaterals) = engine.marginAccounts(address(this));
+        (Position[] memory selfShorts, Position[] memory selfLongs, Balance[] memory selfCollaterals) =
+            engine.marginAccounts(address(this));
 
         assertEq(selfCollaterals.length, 0);
         assertEq(selfShorts.length, 0);

@@ -67,11 +67,12 @@ library AdvancedMarginMath {
      * @param _params specific product parameters
      * @return minCollatValueInStrike minimum collateral in strike (USD) value. with {BASE_UNIT} decimals
      */
-    function getMinCollateralInStrike(AdvancedMarginDetail memory _account, uint256 _spot, uint256 _vol, ProductMarginParams memory _params)
-        internal
-        view
-        returns (uint256 minCollatValueInStrike)
-    {
+    function getMinCollateralInStrike(
+        AdvancedMarginDetail memory _account,
+        uint256 _spot,
+        uint256 _vol,
+        ProductMarginParams memory _params
+    ) internal view returns (uint256 minCollatValueInStrike) {
         // don't need collateral
         if (_account.putAmount == 0 && _account.callAmount == 0) return 0;
 
@@ -268,7 +269,8 @@ library AdvancedMarginMath {
             if (timeToExpiry < params.dLower) return uint256(params.rLower);
 
             return uint256(params.rLower)
-                + ((timeToExpiry.sqrt() - params.sqrtDLower) * (params.rUpper - params.rLower)) / (params.sqrtDUpper - params.sqrtDLower);
+                + ((timeToExpiry.sqrt() - params.sqrtDLower) * (params.rUpper - params.rLower))
+                    / (params.sqrtDUpper - params.sqrtDLower);
         }
     }
 

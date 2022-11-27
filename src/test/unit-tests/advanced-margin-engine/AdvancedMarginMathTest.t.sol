@@ -34,7 +34,8 @@ contract AdvancedMarginMathTest is Test {
 
         // spot decrease, min collateral also decrease
         spot = 2500 * base;
-        uint256 minCollat2 = AdvancedMarginMath.getMinCollateralForShortCall(amount, strike, expiry, spot, vol, getDefaultConfig());
+        uint256 minCollat2 =
+            AdvancedMarginMath.getMinCollateralForShortCall(amount, strike, expiry, spot, vol, getDefaultConfig());
         assertEq(minCollat2, 281785714); // 281 USD
     }
 
@@ -44,12 +45,14 @@ contract AdvancedMarginMathTest is Test {
         uint256 strike = 3000 * base;
         uint256 expiry = today + 21 days;
 
-        uint256 minCollat = AdvancedMarginMath.getMinCollateralForShortCall(amount, strike, expiry, spot, UNIT, getDefaultConfig());
+        uint256 minCollat =
+            AdvancedMarginMath.getMinCollateralForShortCall(amount, strike, expiry, spot, UNIT, getDefaultConfig());
         assertEq(minCollat, 973400000); // 1224 USD
 
         // spot increase, min collateral also increase
         spot = 4000 * base;
-        uint256 minCollat2 = AdvancedMarginMath.getMinCollateralForShortCall(amount, strike, expiry, spot, UNIT, getDefaultConfig());
+        uint256 minCollat2 =
+            AdvancedMarginMath.getMinCollateralForShortCall(amount, strike, expiry, spot, UNIT, getDefaultConfig());
         assertEq(minCollat2, 1473400000); // 1473.5 USD
     }
 

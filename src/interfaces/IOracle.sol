@@ -18,7 +18,10 @@ interface IOracle {
      *
      * @return price with 6 decimals
      */
-    function getPriceAtExpiry(address _base, address _quote, uint256 _expiry) external view returns (uint256 price, bool isFinalized);
+    function getPriceAtExpiry(address _base, address _quote, uint256 _expiry)
+        external
+        view
+        returns (uint256 price, bool isFinalized);
 
     /**
      * @dev return the maximum dispute period for the oracle

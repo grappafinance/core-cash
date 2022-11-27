@@ -140,7 +140,8 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
             uint8 collateralDecimals
         )
     {
-        (uint8 oracleId, uint8 engineId, uint8 underlyingId, uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(_productId);
+        (uint8 oracleId, uint8 engineId, uint8 underlyingId, uint8 strikeId, uint8 collateralId) =
+            ProductIdUtil.parseProductId(_productId);
         AssetDetail memory underlyingDetail = assets[underlyingId];
         AssetDetail memory strikeDetail = assets[strikeId];
         AssetDetail memory collateralDetail = assets[collateralId];
@@ -283,7 +284,11 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      * @return payout amount paid
      *
      */
-    function getPayout(uint256 _tokenId, uint64 _amount) public view returns (address engine, address collateral, uint256 payout) {
+    function getPayout(uint256 _tokenId, uint64 _amount)
+        public
+        view
+        returns (address engine, address collateral, uint256 payout)
+    {
         uint256 payoutPerOption;
         (engine, collateral, payoutPerOption) = _getPayoutPerToken(_tokenId);
         payout = payoutPerOption * _amount;
@@ -301,7 +306,11 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      * @return payouts amounts paid
      *
      */
-    function batchGetPayouts(uint256[] memory _tokenIds, uint256[] memory _amounts) external view returns (Balance[] memory payouts) {
+    function batchGetPayouts(uint256[] memory _tokenIds, uint256[] memory _amounts)
+        external
+        view
+        returns (Balance[] memory payouts)
+    {
         for (uint256 i; i < _tokenIds.length;) {
             (,, uint256 payout) = getPayout(_tokenIds[i], _amounts[i].toUint64());
 
@@ -434,7 +443,8 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      *
      */
     function _getPayoutPerToken(uint256 _tokenId) internal view returns (address, address, uint256 payoutPerOption) {
-        (TokenType tokenType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) = TokenIdUtil.parseTokenId(_tokenId);
+        (TokenType tokenType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) =
+            TokenIdUtil.parseTokenId(_tokenId);
 
         if (block.timestamp < expiry) revert GP_NotExpired();
 
@@ -476,7 +486,11 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      * @param collateralId new collateralId
      * @param payout new payout
      */
-    function _addToPayouts(Balance[] memory payouts, uint8 collateralId, uint256 payout) internal pure returns (Balance[] memory) {
+    function _addToPayouts(Balance[] memory payouts, uint8 collateralId, uint256 payout)
+        internal
+        pure
+        returns (Balance[] memory)
+    {
         if (payout == 0) return payouts;
 
         (bool found, uint256 index) = payouts.indexOf(collateralId);
@@ -496,7 +510,11 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      * @param _quote quote asset (USD is base asset while requesting ETH / USD)
      * @param _expiry expiry timestamp
      */
-    function _getSettlementPrice(address _oracle, address _base, address _quote, uint256 _expiry) internal view returns (uint256) {
+    function _getSettlementPrice(address _oracle, address _base, address _quote, uint256 _expiry)
+        internal
+        view
+        returns (uint256)
+    {
         (uint256 price, bool isFinalized) = IOracle(_oracle).getPriceAtExpiry(_base, _quote, _expiry);
         if (!isFinalized) revert GP_PriceNotFinalized();
         return price;

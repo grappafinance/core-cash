@@ -119,10 +119,15 @@ library CrossMarginMath {
      * @return numeraireNeeded with {numeraire asset's} decimals
      * @return underlyingNeeded with {underlying asset's} decimals
      */
-    function getMinCollateral(CrossMarginDetail memory _detail) public pure returns (uint256 numeraireNeeded, uint256 underlyingNeeded) {
+    function getMinCollateral(CrossMarginDetail memory _detail)
+        public
+        pure
+        returns (uint256 numeraireNeeded, uint256 underlyingNeeded)
+    {
         _verifyInputs(_detail);
 
-        (uint256[] memory strikes, int256 syntheticUnderlyingWeight, uint256[] memory pois, int256[] memory payouts) = _baseSetup(_detail);
+        (uint256[] memory strikes, int256 syntheticUnderlyingWeight, uint256[] memory pois, int256[] memory payouts) =
+            _baseSetup(_detail);
 
         (numeraireNeeded, underlyingNeeded) =
             _calcCollateralNeeds(_detail.putStrikes, _detail.putWeights, _detail.callStrikes.length > 0, pois, payouts);
@@ -314,7 +319,8 @@ library CrossMarginMath {
             }
         }
 
-        payouts = payouts.add(pois.subEachBy(spotPrice).eachMulDivDown(syntheticUnderlyingWeight, sUNIT)).addEachBy(intrinsicValue);
+        payouts =
+            payouts.add(pois.subEachBy(spotPrice).eachMulDivDown(syntheticUnderlyingWeight, sUNIT)).addEachBy(intrinsicValue);
     }
 
     /**
@@ -364,7 +370,11 @@ library CrossMarginMath {
      * @param putWeights number of put options at a coorisponding strike
      * @return numeraireNeeded amount of numeraire asset needed
      */
-    function _getNumeraireNeeded(uint256[] memory putStrikes, int256[] memory putWeights) internal pure returns (uint256 numeraireNeeded) {
+    function _getNumeraireNeeded(uint256[] memory putStrikes, int256[] memory putWeights)
+        internal
+        pure
+        returns (uint256 numeraireNeeded)
+    {
         int256 tmpNumeraireNeeded = putStrikes.dot(putWeights) / sUNIT;
 
         numeraireNeeded = tmpNumeraireNeeded < sZERO ? uint256(-tmpNumeraireNeeded) : ZERO;
@@ -461,7 +471,11 @@ library CrossMarginMath {
      * @param weights number of options at each strike
      * @return putPayouts payouts for a put options at a coorisponding strike
      */
-    function _calcPutPayouts(uint256[] memory strikes, int256[] memory weights) internal pure returns (int256[] memory putPayouts) {
+    function _calcPutPayouts(uint256[] memory strikes, int256[] memory weights)
+        internal
+        pure
+        returns (int256[] memory putPayouts)
+    {
         putPayouts = new int256[](strikes.length);
 
         for (uint256 i; i < strikes.length;) {

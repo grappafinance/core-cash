@@ -8,7 +8,9 @@ import "../../../config/constants.sol";
 import "../../../core/engines/advanced-margin/AdvancedMarginEngine.sol";
 
 contract OwnerConfiguration is AdvancedFixture {
-    event ProductConfigurationUpdated(uint40 productId, uint32 dUpper, uint32 dLower, uint32 rUpper, uint32 rLower, uint32 volMul);
+    event ProductConfigurationUpdated(
+        uint40 productId, uint32 dUpper, uint32 dLower, uint32 rUpper, uint32 rLower, uint32 volMul
+    );
 
     function testSettingConfigUpdateState() public {
         uint32 dUpper = 1000_000; // 11.57 days, 1000^2
@@ -20,8 +22,15 @@ contract OwnerConfiguration is AdvancedFixture {
         engine.setProductMarginConfig(productId, dUpper, dLower, rUpper, rLower, volMultiplier);
 
         // test effect
-        (uint32 _dUpper, uint32 _dLower, uint32 _sqrtDupper, uint32 _sqrtDLower, uint32 _rUpper, uint32 _rLower, uint32 _volMultiplier) =
-            engine.productParams(productId);
+        (
+            uint32 _dUpper,
+            uint32 _dLower,
+            uint32 _sqrtDupper,
+            uint32 _sqrtDLower,
+            uint32 _rUpper,
+            uint32 _rLower,
+            uint32 _volMultiplier
+        ) = engine.productParams(productId);
 
         assertEq(_dUpper, dUpper);
         assertEq(_dLower, dLower);

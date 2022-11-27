@@ -30,7 +30,10 @@ interface IGrappa {
 
     function oracles(uint8 _id) external view returns (address oracle);
 
-    function getPayout(uint256 tokenId, uint64 amount) external view returns (address engine, address collateral, uint256 payout);
+    function getPayout(uint256 tokenId, uint64 amount)
+        external
+        view
+        returns (address engine, address collateral, uint256 payout);
 
     /**
      * @notice burn option token and get out cash value at expiry

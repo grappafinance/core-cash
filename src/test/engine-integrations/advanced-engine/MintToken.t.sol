@@ -38,7 +38,8 @@ contract TestMintVanillaOption is AdvancedFixture {
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
         engine.execute(address(this), actions);
-        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount,,) = engine.marginAccounts(address(this));
+        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount,,) =
+            engine.marginAccounts(address(this));
 
         assertEq(shortCallId, tokenId);
         assertEq(shortPutId, 0);
@@ -60,7 +61,8 @@ contract TestMintVanillaOption is AdvancedFixture {
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
         engine.execute(address(this), actions);
-        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount,,) = engine.marginAccounts(address(this));
+        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount,,) =
+            engine.marginAccounts(address(this));
 
         assertEq(shortCallId, tokenId);
         assertEq(shortPutId, 0);
@@ -75,7 +77,8 @@ contract TestMintVanillaOption is AdvancedFixture {
         wbtc.approve(address(engine), type(uint256).max);
         // register wbtc in the system
         uint8 wbtcId = grappa.registerAsset(address(wbtc));
-        uint40 productIdBtcCollat = grappa.getProductId(address(oracle), address(engine), address(weth), address(usdc), address(wbtc));
+        uint40 productIdBtcCollat =
+            grappa.getProductId(address(oracle), address(engine), address(weth), address(usdc), address(wbtc));
         engine.setProductMarginConfig(productIdBtcCollat, 180 days, 1 days, 7000, 1000, 10000);
         oracle.setSpotPrice(address(wbtc), 40_000 * UNIT); // 10x price of eth
 
@@ -161,7 +164,8 @@ contract TestMintVanillaOption is AdvancedFixture {
         actions[1] = createMintAction(tokenId, address(this), amount);
         engine.execute(address(this), actions);
 
-        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount,,) = engine.marginAccounts(address(this));
+        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount,,) =
+            engine.marginAccounts(address(this));
 
         assertEq(shortCallId, tokenId);
         assertEq(shortPutId, 0);
@@ -181,7 +185,8 @@ contract TestMintVanillaOption is AdvancedFixture {
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
         engine.execute(address(this), actions);
-        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount,,) = engine.marginAccounts(address(this));
+        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount,,) =
+            engine.marginAccounts(address(this));
 
         assertEq(shortCallId, 0);
         assertEq(shortPutId, tokenId);
@@ -241,7 +246,8 @@ contract TestMintVanillaOption is AdvancedFixture {
         actions[2] = createMintAction(putId, address(this), amount);
         engine.execute(address(this), actions);
 
-        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount,,) = engine.marginAccounts(address(this));
+        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount,,) =
+            engine.marginAccounts(address(this));
 
         assertEq(shortCallId, callId);
         assertEq(shortPutId, putId);
@@ -265,7 +271,8 @@ contract TestMintVanillaOption is AdvancedFixture {
         actions[2] = createMintAction(putId, address(this), amount);
         engine.execute(address(this), actions);
 
-        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount,,) = engine.marginAccounts(address(this));
+        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount,,) =
+            engine.marginAccounts(address(this));
 
         assertEq(shortCallId, callId);
         assertEq(shortPutId, putId);

@@ -11,7 +11,11 @@ library AccountUtil {
     using TokenIdUtil for uint192;
     using TokenIdUtil for uint256;
 
-    function append(CrossMarginDetail[] memory x, CrossMarginDetail memory v) internal pure returns (CrossMarginDetail[] memory y) {
+    function append(CrossMarginDetail[] memory x, CrossMarginDetail memory v)
+        internal
+        pure
+        returns (CrossMarginDetail[] memory y)
+    {
         y = new CrossMarginDetail[](x.length + 1);
         uint256 i;
         for (i; i < x.length;) {

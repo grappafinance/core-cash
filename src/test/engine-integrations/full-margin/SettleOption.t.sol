@@ -95,7 +95,8 @@ contract TestSettleCoveredCall_FM is FullMarginFixture {
         engine.execute(address(this), actions);
 
         //margin account should be reset
-        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) = engine.marginAccounts(address(this));
+        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) =
+            engine.marginAccounts(address(this));
 
         assertEq(shortId, 0);
         assertEq(shortAmount, 0);
@@ -118,7 +119,8 @@ contract TestSettleCoveredCall_FM is FullMarginFixture {
         engine.execute(address(this), actions);
 
         // margin account should be reset
-        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) = engine.marginAccounts(address(this));
+        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) =
+            engine.marginAccounts(address(this));
 
         assertEq(shortId, 0);
         assertEq(shortAmount, 0);
@@ -207,7 +209,8 @@ contract TestSettlePut_FM is FullMarginFixture {
         engine.execute(address(this), actions);
 
         //margin account should be reset
-        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) = engine.marginAccounts(address(this));
+        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) =
+            engine.marginAccounts(address(this));
 
         assertEq(shortId, 0);
         assertEq(shortAmount, 0);
@@ -230,7 +233,8 @@ contract TestSettlePut_FM is FullMarginFixture {
         engine.execute(address(this), actions);
 
         // margin account should be reset
-        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) = engine.marginAccounts(address(this));
+        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) =
+            engine.marginAccounts(address(this));
 
         assertEq(shortId, 0);
         assertEq(shortAmount, 0);
@@ -338,7 +342,8 @@ contract TestSettleCallSpread_FM is FullMarginFixture {
         engine.execute(address(this), actions);
 
         //margin account should be reset
-        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) = engine.marginAccounts(address(this));
+        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) =
+            engine.marginAccounts(address(this));
 
         assertEq(shortId, 0);
         assertEq(shortAmount, 0);
@@ -361,7 +366,8 @@ contract TestSettleCallSpread_FM is FullMarginFixture {
         engine.execute(address(this), actions);
 
         // margin account should be reset
-        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) = engine.marginAccounts(address(this));
+        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) =
+            engine.marginAccounts(address(this));
 
         assertEq(shortId, 0);
         assertEq(shortAmount, 0);
@@ -473,7 +479,8 @@ contract TestSettleCallStrikeSpread_FM is FullMarginFixture {
         engine.execute(address(this), actions);
 
         // margin account should be reset
-        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) = engine.marginAccounts(address(this));
+        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) =
+            engine.marginAccounts(address(this));
 
         assertEq(shortId, 0);
         assertEq(shortAmount, 0);
@@ -582,7 +589,8 @@ contract TestSettlePutSpread_FM is FullMarginFixture {
         engine.execute(address(this), actions);
 
         //margin account should be reset
-        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) = engine.marginAccounts(address(this));
+        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) =
+            engine.marginAccounts(address(this));
 
         assertEq(shortId, 0);
         assertEq(shortAmount, 0);
@@ -606,7 +614,8 @@ contract TestSettlePutSpread_FM is FullMarginFixture {
         engine.execute(address(this), actions);
 
         //margin account should be reset
-        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) = engine.marginAccounts(address(this));
+        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) =
+            engine.marginAccounts(address(this));
 
         assertEq(shortId, 0);
         assertEq(shortAmount, 0);

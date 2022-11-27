@@ -14,7 +14,11 @@ library ActionUtil {
      * @param amount amount of collateral to deposit
      * @param from address to pull asset from
      */
-    function createAddCollateralAction(uint8 collateralId, uint256 amount, address from) internal pure returns (ActionArgs memory action) {
+    function createAddCollateralAction(uint8 collateralId, uint256 amount, address from)
+        internal
+        pure
+        returns (ActionArgs memory action)
+    {
         action = ActionArgs({action: ActionType.AddCollateral, data: abi.encode(from, uint80(amount), collateralId)});
     }
 
@@ -49,7 +53,11 @@ library ActionUtil {
      * @param amount amount of token to mint (6 decimals)
      * @param recipient address to receive minted option
      */
-    function createMintAction(uint256 tokenId, uint256 amount, address recipient) internal pure returns (ActionArgs memory action) {
+    function createMintAction(uint256 tokenId, uint256 amount, address recipient)
+        internal
+        pure
+        returns (ActionArgs memory action)
+    {
         action = ActionArgs({action: ActionType.MintShort, data: abi.encode(tokenId, recipient, uint64(amount))});
     }
 
@@ -71,7 +79,11 @@ library ActionUtil {
      * @param amount amount of token to mint (6 decimals)
      * @param recipient account to receive minted option
      */
-    function createTranferLongAction(uint256 tokenId, uint256 amount, address recipient) internal pure returns (ActionArgs memory action) {
+    function createTranferLongAction(uint256 tokenId, uint256 amount, address recipient)
+        internal
+        pure
+        returns (ActionArgs memory action)
+    {
         action = ActionArgs({action: ActionType.TransferLong, data: abi.encode(tokenId, recipient, uint64(amount))});
     }
 
@@ -116,7 +128,11 @@ library ActionUtil {
      * @param amount amount to split
      * @param recipient address to receive the "splited" long option token.
      */
-    function createSplitAction(uint256 spreadId, uint256 amount, address recipient) internal pure returns (ActionArgs memory action) {
+    function createSplitAction(uint256 spreadId, uint256 amount, address recipient)
+        internal
+        pure
+        returns (ActionArgs memory action)
+    {
         action = ActionArgs({action: ActionType.SplitOptionToken, data: abi.encode(spreadId, uint64(amount), recipient)});
     }
 
@@ -125,7 +141,11 @@ library ActionUtil {
      * @param amount amount to add
      * @param from address to pull the token from
      */
-    function createAddLongAction(uint256 tokenId, uint256 amount, address from) internal pure returns (ActionArgs memory action) {
+    function createAddLongAction(uint256 tokenId, uint256 amount, address from)
+        internal
+        pure
+        returns (ActionArgs memory action)
+    {
         action = ActionArgs({action: ActionType.AddLong, data: abi.encode(tokenId, uint64(amount), from)});
     }
 
@@ -134,7 +154,11 @@ library ActionUtil {
      * @param amount amount to remove
      * @param recipient address to receive the removed option
      */
-    function createRemoveLongAction(uint256 tokenId, uint256 amount, address recipient) internal pure returns (ActionArgs memory action) {
+    function createRemoveLongAction(uint256 tokenId, uint256 amount, address recipient)
+        internal
+        pure
+        returns (ActionArgs memory action)
+    {
         action = ActionArgs({action: ActionType.RemoveLong, data: abi.encode(tokenId, uint64(amount), recipient)});
     }
 

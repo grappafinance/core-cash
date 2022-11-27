@@ -119,7 +119,11 @@ abstract contract BaseEngine {
         return this.onERC1155Received.selector;
     }
 
-    function onERC1155BatchReceived(address, address, uint256[] memory, uint256[] memory, bytes memory) external virtual returns (bytes4) {
+    function onERC1155BatchReceived(address, address, uint256[] memory, uint256[] memory, bytes memory)
+        external
+        virtual
+        returns (bytes4)
+    {
         return this.onERC1155BatchReceived.selector;
     }
 
