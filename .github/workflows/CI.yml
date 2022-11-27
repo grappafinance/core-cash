@@ -8,7 +8,7 @@ on:
       - master
 
 jobs:
-  checks:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -20,8 +20,6 @@ jobs:
           version: nightly
       - name: Run forge fmt
         run: forge fmt --check
-      - name: Check snapshot
-        run: forge snapshot --check
   build-and-test:
     runs-on: ubuntu-latest
     steps:
