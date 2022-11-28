@@ -30,9 +30,11 @@ contract PreviewCollateralReqBase is CrossMarginFixture {
         balances = engine.previewMinCollateral(shorts, longs);
     }
 
-    function _convertPositions(
-        OptionPosition[] memory positions
-    ) internal view returns (Position[] memory shorts, Position[] memory longs) {
+    function _convertPositions(OptionPosition[] memory positions)
+        internal
+        view
+        returns (Position[] memory shorts, Position[] memory longs)
+    {
         for (uint256 i = 0; i < positions.length; i++) {
             OptionPosition memory position = positions[i];
 
@@ -147,21 +149,24 @@ contract TestPreviewMinCollateral_CMM is PreviewCollateralReqBase {
     }
 
     function testPreviewMinCollateralCallsPut4() public {
-        OptionPosition[] memory positions = new OptionPosition[](7);
+        oracle.setSpotPrice(address(weth), 19000 * UNIT);
+
+        OptionPosition[] memory positions = new OptionPosition[](6);
 
         positions[0] = OptionPosition(TokenType.CALL, 21000 * UNIT, -1 * sUNIT);
         positions[1] = OptionPosition(TokenType.CALL, 22000 * UNIT, -8 * sUNIT);
         positions[2] = OptionPosition(TokenType.CALL, 25000 * UNIT, 16 * sUNIT);
         positions[3] = OptionPosition(TokenType.CALL, 26000 * UNIT, -8 * sUNIT);
-        positions[4] = OptionPosition(TokenType.CALL, 27000 * UNIT, -1 * sUNIT);
-        positions[5] = OptionPosition(TokenType.PUT, 17000 * UNIT, 1 * sUNIT);
-        positions[6] = OptionPosition(TokenType.PUT, 18000 * UNIT, -1 * sUNIT);
+        positions[4] = OptionPosition(TokenType.PUT, 17000 * UNIT, -1 * sUNIT);
+        positions[5] = OptionPosition(TokenType.PUT, 18000 * UNIT, 1 * sUNIT);
 
         Balance[] memory balances = _previewMinCollateral(positions);
 
-        assertEq(balances.length, 1);
-        assertEq(balances[0].collateralId, wethId);
-        assertEq(balances[0].amount, 2 * 1e18);
+        assertEq(balances.length, 2);
+        assertEq(balances[0].collateralId, usdcId);
+        assertEq(balances[0].amount, 3000 * 1e6);
+        assertEq(balances[1].collateralId, wethId);
+        assertEq(balances[1].amount, 1 * 1e18);
     }
 
     function testPreviewMinCollateralShortStrangle() public {
