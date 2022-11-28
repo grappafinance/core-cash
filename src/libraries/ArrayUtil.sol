@@ -57,18 +57,26 @@ library ArrayUtil {
      */
     function max(int256[] memory x) internal pure returns (int256 m) {
         m = x[0];
-        for (uint256 i; i < x.length; i++) {
+         for (uint256 i; i < x.length;) {
             if (x[i] > m) {
                 m = x[i];
+            }
+
+            unchecked {
+                ++i;
             }
         }
     }
 
     function max(uint256[] memory x) internal pure returns (uint256 m) {
         m = x[0];
-        for (uint256 i; i < x.length; i++) {
+        for (uint256 i; i < x.length;) {
             if (x[i] > m) {
                 m = x[i];
+            }
+
+            unchecked {
+                ++i;
             }
         }
     }
@@ -79,9 +87,13 @@ library ArrayUtil {
      */
     function maximum(int256[] memory x, int256 z) internal pure returns (int256[] memory y) {
         y = new int256[](x.length);
-        for (uint256 i; i < x.length; i++) {
+        for (uint256 i; i < x.length;) {
             if (x[i] > z) y[i] = x[i];
             else y[i] = z;
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -105,9 +117,9 @@ library ArrayUtil {
         if (z >= x.length) return x;
         y = new uint256[](x.length - 1);
         for (uint256 i; i < x.length; ) {
+            unchecked {
             if (i < z) y[i] = x[i];
             else if (i > z) y[i - 1] = x[i];
-            unchecked {
                 ++i;
             }
         }
@@ -121,9 +133,9 @@ library ArrayUtil {
         if (z >= x.length) return x;
         y = new int256[](x.length - 1);
         for (uint256 i; i < x.length; ) {
+        unchecked {
             if (i < z) y[i] = x[i];
             else if (i > z) y[i - 1] = x[i];
-            unchecked {
                 ++i;
             }
         }
@@ -229,26 +241,22 @@ library ArrayUtil {
         if (left == right) return;
         int256 i = left;
         int256 j = right;
-        uint256 pivot = arr[uint256(left + (right - left) / 2)];
+        unchecked{
+            uint256 pivot = arr[uint256(left + (right - left) / 2)];
         while (i <= j) {
             while (arr[uint256(i)] < pivot) {
-                unchecked {
                     ++i;
-                }
             }
             while (pivot < arr[uint256(j)]) {
-                unchecked {
                     --j;
-                }
             }
             if (i <= j) {
                 (arr[uint256(i)], arr[uint256(j)]) = (arr[uint256(j)], arr[uint256(i)]);
-                unchecked {
                     ++i;
                     --j;
-                }
             }
         }
+    }
         if (left < j) quickSort(arr, left, j);
         if (i < right) quickSort(arr, i, right);
     }
@@ -265,8 +273,8 @@ library ArrayUtil {
         if (left == right) return;
         int256 i = left;
         int256 j = right;
-        uint256 pivot = arr[uint256(left + (right - left) / 2)];
         unchecked {
+            uint256 pivot = arr[uint256(left + (right - left) / 2)];
             while (i <= j) {
                 while (arr[uint256(i)] < pivot) {
                     ++i;
@@ -319,26 +327,25 @@ library ArrayUtil {
         if (left == right) return;
         int256 i = left;
         int256 j = right;
+        unchecked {
         int256 pivot = arr[uint256(left + (right - left) / 2)];
+
         while (i <= j) {
             while (arr[uint256(i)] < pivot) {
-                unchecked {
                     ++i;
-                }
             }
             while (pivot < arr[uint256(j)]) {
-                unchecked {
                     --j;
-                }
+
             }
             if (i <= j) {
                 (arr[uint256(i)], arr[uint256(j)]) = (arr[uint256(j)], arr[uint256(i)]);
-                unchecked {
                     ++i;
                     --j;
-                }
+
             }
         }
+    }
         if (left < j) quickSort(arr, left, j);
         if (i < right) quickSort(arr, i, right);
     }
@@ -353,27 +360,23 @@ library ArrayUtil {
         if (left == right) return;
         int256 i = left;
         int256 j = right;
-        int256 pivot = arr[uint256(left + (right - left) / 2)];
+        unchecked {
+            int256 pivot = arr[uint256(left + (right - left) / 2)];
         while (i <= j) {
             while (arr[uint256(i)] < pivot) {
-                unchecked {
                     ++i;
-                }
             }
             while (pivot < arr[uint256(j)]) {
-                unchecked {
                     --j;
-                }
             }
             if (i <= j) {
                 (arr[uint256(i)], arr[uint256(j)]) = (arr[uint256(j)], arr[uint256(i)]);
                 (indexArray[uint256(i)], indexArray[uint256(j)]) = (indexArray[uint256(j)], indexArray[uint256(i)]);
-                unchecked {
                     ++i;
                     --j;
-                }
             }
         }
+    }
         if (left < j) quickSort(arr, left, j, indexArray);
         if (i < right) quickSort(arr, i, right, indexArray);
     }
@@ -382,16 +385,24 @@ library ArrayUtil {
 
     function sortByIndexes(int256[] memory x, uint256[] memory z) internal pure returns (int256[] memory y) {
         y = new int256[](x.length);
-        for (uint256 i; i < x.length; i++) {
+        for (uint256 i; i < x.length;) {
             y[i] = x[z[i]];
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
     function append(bytes32[] memory x, bytes32 e) internal pure returns (bytes32[] memory y) {
         y = new bytes32[](x.length + 1);
         uint256 i;
-        for (i = 0; i < x.length; i++) {
+        for (i = 0; i < x.length;) {
             y[i] = x[i];
+
+            unchecked {
+                ++i;
+            }
         }
         y[i] = e;
     }
@@ -421,7 +432,9 @@ library ArrayUtil {
     }
 
     function concat(int256[] memory a, int256[] memory b) internal pure returns (int256[] memory y) {
-        y = new int256[](a.length + b.length);
+        unchecked{
+            y = new int256[](a.length + b.length);
+        }
         uint256 v;
         uint256 i;
         for (i; i < a.length; ) {
@@ -441,7 +454,9 @@ library ArrayUtil {
     }
 
     function concat(uint256[] memory a, uint256[] memory b) internal pure returns (uint256[] memory y) {
-        y = new uint256[](a.length + b.length);
+        unchecked {
+            y = new uint256[](a.length + b.length);
+        }
         uint256 v;
         uint256 i;
         for (i; i < a.length; ) {
@@ -464,8 +479,12 @@ library ArrayUtil {
     @dev this function modifies memory x IN PLACE. Fills x with value v
     */
     function fill(int256[] memory x, int256 v) internal pure {
-        for (uint256 i = 0; i < x.length; i++) {
+        for (uint256 i = 0; i < x.length;) {
             x[i] = v;
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -477,8 +496,12 @@ library ArrayUtil {
         uint256[] memory b,
         uint256 z
     ) internal pure {
-        for (uint256 i = 0; i < a.length; i++) {
+        for (uint256 i = 0; i < a.length;) {
             a[z + i] = b[i];
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -487,8 +510,11 @@ library ArrayUtil {
         int256[] memory b,
         uint256 z
     ) internal pure returns (int256[] memory) {
-        for (uint256 i = 0; i < a.length; i++) {
+        for (uint256 i = 0; i < a.length;) {
             a[z + i] = b[i];
+            unchecked {
+                ++i;
+            }
         }
         return a;
     }
@@ -542,29 +568,43 @@ library ArrayUtil {
 
     function subEachFrom(uint256[] memory x, uint256 z) internal pure returns (int256[] memory y) {
         y = new int256[](x.length);
-        for (uint256 i = 0; i < x.length; i++) {
+        for (uint256 i = 0; i < x.length;) {
             y[i] = z.toInt256() - x[i].toInt256();
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
     function subEachBy(uint256[] memory x, uint256 z) internal pure returns (int256[] memory y) {
         y = new int256[](x.length);
-        for (uint256 i = 0; i < x.length; i++) {
+        for (uint256 i = 0; i < x.length;) {
             y[i] = x[i].toInt256() - z.toInt256();
+            unchecked {
+                ++i;
+            }
         }
     }
 
     function addEachBy(int256[] memory x, int256 z) internal pure returns (int256[] memory y) {
         y = new int256[](x.length);
-        for (uint256 i = 0; i < x.length; i++) {
+        for (uint256 i = 0; i < x.length;) {
             y[i] = x[i] + z;
+            unchecked {
+                ++i;
+            }
         }
     }
 
     function add(int256[] memory a, int256[] memory b) internal pure returns (int256[] memory y) {
         y = new int256[](a.length);
-        for (uint256 i = 0; i < a.length; i++) {
+        for (uint256 i; i < a.length;) {
             y[i] = a[i] + b[i];
+
+            unchecked {
+                i++;
+            }
         }
     }
 
@@ -574,8 +614,12 @@ library ArrayUtil {
         int256 d
     ) internal pure returns (int256[] memory y) {
         y = new int256[](x.length);
-        for (uint256 i = 0; i < x.length; i++) {
+        for (uint256 i; i < x.length;) {
             y[i] = (x[i] * z) / d;
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -585,34 +629,54 @@ library ArrayUtil {
         int256 d
     ) internal pure returns (int256[] memory y) {
         y = new int256[](x.length);
-        for (uint256 i = 0; i < x.length; i++) {
+        for (uint256 i; i < x.length;) {
             y[i] = ((x[i] * z) / d) + 1;
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
     function eachMul(int256[] memory x, int256 z) internal pure returns (int256[] memory y) {
         y = new int256[](x.length);
-        for (uint256 i = 0; i < x.length; i++) {
+        for (uint256 i; i < x.length;) {
             y[i] = x[i] * z;
+
+            unchecked {
+                ++i;
+             }
         }
     }
 
     function eachDiv(int256[] memory x, int256 z) internal pure returns (int256[] memory y) {
         y = new int256[](x.length);
-        for (uint256 i = 0; i < x.length; i++) {
+        for (uint256 i; i < x.length;) {
             y[i] = x[i] / z;
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
     function dot(int256[] memory a, int256[] memory b) internal pure returns (int256 s) {
-        for (uint256 i = 0; i < a.length; i++) {
+        for (uint256 i; i < a.length;) {
             s += a[i] * b[i];
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
     function dot(uint256[] memory a, int256[] memory b) internal pure returns (int256 s) {
-        for (uint256 i = 0; i < a.length; i++) {
+        for (uint256 i; i < a.length;) {
             s += int256(a[i]) * b[i];
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -622,15 +686,23 @@ library ArrayUtil {
 
     function toInt256(uint256[] memory x) internal pure returns (int256[] memory y) {
         y = new int256[](x.length);
-        for (uint256 i = 0; i < x.length; i++) {
+        for (uint256 i; i < x.length;) {
             y[i] = x[i].toInt256();
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
     function toUint256(int256[] memory x) internal pure returns (uint256[] memory y) {
         y = new uint256[](x.length);
-        for (uint256 i = 0; i < x.length; i++) {
+        for (uint256 i; i < x.length;) {
             y[i] = x[i].toUint256();
+
+            unchecked {
+                ++i;
+            }
         }
     }
 }
