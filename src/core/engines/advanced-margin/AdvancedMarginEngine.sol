@@ -242,18 +242,17 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
         AdvancedMarginAccount storage accout = marginAccounts[_subAccount];
 
         if (accout.shortCallAmount > 0) {
-            (,, uint64 expiry,,) = TokenIdUtil.parseTokenId(accout.shortCallId);
+            (, , uint64 expiry, , ) = TokenIdUtil.parseTokenId(accout.shortCallId);
             if (expiry < block.timestamp) revert AM_ExpiredShortInAccount();
             // TODO: maybe settle here instead of reverting
         }
         if (accout.shortPutAmount > 0) {
-                        (,, uint64 expiry,,) = TokenIdUtil.parseTokenId(accout.shortPutId);
+            (, , uint64 expiry, , ) = TokenIdUtil.parseTokenId(accout.shortPutId);
             if (expiry < block.timestamp) revert AM_ExpiredShortInAccount();
             // TODO: maybe settle here instead of reverting
         }
 
         BaseEngine._removeCollateral(_subAccount, _data);
-
     }
 
     /** ========================================================= *
