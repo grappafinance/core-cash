@@ -143,19 +143,35 @@ contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyG
      * ========================================================= **
      */
 
-    function _addCollateralToAccount(address _subAccount, uint8 collateralId, uint80 amount) internal override {
+    function _addCollateralToAccount(
+        address _subAccount,
+        uint8 collateralId,
+        uint80 amount
+    ) internal override {
         marginAccounts[_subAccount].addCollateral(collateralId, amount);
     }
 
-    function _removeCollateralFromAccount(address _subAccount, uint8 collateralId, uint80 amount) internal override {
+    function _removeCollateralFromAccount(
+        address _subAccount,
+        uint8 collateralId,
+        uint80 amount
+    ) internal override {
         marginAccounts[_subAccount].removeCollateral(collateralId, amount);
     }
 
-    function _increaseShortInAccount(address _subAccount, uint256 tokenId, uint64 amount) internal override {
+    function _increaseShortInAccount(
+        address _subAccount,
+        uint256 tokenId,
+        uint64 amount
+    ) internal override {
         marginAccounts[_subAccount].mintOption(tokenId, amount);
     }
 
-    function _decreaseShortInAccount(address _subAccount, uint256 tokenId, uint64 amount) internal override {
+    function _decreaseShortInAccount(
+        address _subAccount,
+        uint256 tokenId,
+        uint64 amount
+    ) internal override {
         marginAccounts[_subAccount].burnOption(tokenId, amount);
     }
 
@@ -166,7 +182,11 @@ contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyG
         marginAccounts[_subAccount].merge(shortTokenId, longTokenId, amount);
     }
 
-    function _splitSpreadInAccount(address _subAccount, uint256 spreadId, uint64 amount) internal override {
+    function _splitSpreadInAccount(
+        address _subAccount,
+        uint256 spreadId,
+        uint64 amount
+    ) internal override {
         marginAccounts[_subAccount].split(spreadId, amount);
     }
 
@@ -218,12 +238,20 @@ contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyG
      * @notice  convert Account struct from storage to in-memory detail struct
      */
 <<<<<<< HEAD
+<<<<<<< HEAD
     function _getAccountDetail(FullMarginAccount memory account) internal view returns (FullMarginDetail memory detail) {
         (TokenType tokenType, uint40 productId,, uint64 longStrike, uint64 shortStrike) = account.tokenId.parseTokenId();
 =======
     function _getAccountDetail(
         FullMarginAccount memory account
     ) internal view returns (FullMarginDetail memory detail) {
+=======
+    function _getAccountDetail(FullMarginAccount memory account)
+        internal
+        view
+        returns (FullMarginDetail memory detail)
+    {
+>>>>>>> 9bb7e5f (chore: prettier)
         (TokenType tokenType, uint40 productId, , uint64 longStrike, uint64 shortStrike) = account
             .tokenId
             .parseTokenId();

@@ -63,7 +63,11 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
     ///@dev mapping of productId to AdvancedMargin Parameters
     mapping(uint40 => ProductMarginParams) public productParams;
 
-    constructor(address _grappa, address _volOracle, address _optionToken) BaseEngine(_grappa, _optionToken) {
+    constructor(
+        address _grappa,
+        address _volOracle,
+        address _optionToken
+    ) BaseEngine(_grappa, _optionToken) {
         volOracle = IVolOracle(_volOracle);
     }
 
@@ -260,19 +264,35 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
      * ========================================================== *
      */
 
-    function _addCollateralToAccount(address _subAccount, uint8 collateralId, uint80 amount) internal override {
+    function _addCollateralToAccount(
+        address _subAccount,
+        uint8 collateralId,
+        uint80 amount
+    ) internal override {
         marginAccounts[_subAccount].addCollateral(collateralId, amount);
     }
 
-    function _removeCollateralFromAccount(address _subAccount, uint8 collateralId, uint80 amount) internal override {
+    function _removeCollateralFromAccount(
+        address _subAccount,
+        uint8 collateralId,
+        uint80 amount
+    ) internal override {
         marginAccounts[_subAccount].removeCollateral(collateralId, amount);
     }
 
-    function _increaseShortInAccount(address _subAccount, uint256 tokenId, uint64 amount) internal override {
+    function _increaseShortInAccount(
+        address _subAccount,
+        uint256 tokenId,
+        uint64 amount
+    ) internal override {
         marginAccounts[_subAccount].mintOption(tokenId, amount);
     }
 
-    function _decreaseShortInAccount(address _subAccount, uint256 tokenId, uint64 amount) internal override {
+    function _decreaseShortInAccount(
+        address _subAccount,
+        uint256 tokenId,
+        uint64 amount
+    ) internal override {
         marginAccounts[_subAccount].burnOption(tokenId, amount);
     }
 
@@ -283,7 +303,11 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
         marginAccounts[_subAccount].merge(shortTokenId, longTokenId, amount);
     }
 
-    function _splitSpreadInAccount(address _subAccount, uint256 spreadId, uint64 amount) internal override {
+    function _splitSpreadInAccount(
+        address _subAccount,
+        uint256 spreadId,
+        uint64 amount
+    ) internal override {
         marginAccounts[_subAccount].split(spreadId, amount);
     }
 
@@ -366,7 +390,11 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
     /**
      * @notice  convert Account struct from storage to in-memory detail struct
      */
-    function _getAccountDetail(AdvancedMarginAccount memory account) internal pure returns (AdvancedMarginDetail memory detail) {
+    function _getAccountDetail(AdvancedMarginAccount memory account)
+        internal
+        pure
+        returns (AdvancedMarginDetail memory detail)
+    {
         detail = AdvancedMarginDetail({
             putAmount: account.shortPutAmount,
             callAmount: account.shortCallAmount,
