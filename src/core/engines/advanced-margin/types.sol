@@ -32,7 +32,7 @@ struct AdvancedMarginAccount {
  * @param longPutStrike     the strike of put the account is long, only present if account minted put spread
  * @param shortPutStrike    the strike of put the account is short, only present if account minted put (or call spread)
  * @param expiry            expiry of the call or put. if call and put have different expiry,
-                            they should not be able to be put into the same account
+ *                             they should not be able to be put into the same account
  * @param collateralAmount  amount of collateral in its native token decimal
  * @param productId         uint32 number representing the productId.
  */

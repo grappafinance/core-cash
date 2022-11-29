@@ -29,13 +29,7 @@ contract CrossEngineGenernal is CrossMarginFixture {
     }
 
     function testCannotCallAddLongWithNotAuthorizedEngine() public {
-        uint40 productId = grappa.getProductId(
-            address(oracle),
-            address(0),
-            address(weth),
-            address(usdc),
-            address(usdc)
-        );
+        uint40 productId = grappa.getProductId(address(oracle), address(0), address(weth), address(usdc), address(usdc));
 
         uint256 tokenId = getTokenId(TokenType.CALL, productId, block.timestamp + 1 days, 0, 0);
 

@@ -56,11 +56,7 @@ contract OptionTokenTest is Test {
         uint8 engineId = 1;
         uint256 expiry = block.timestamp + 1 days;
 
-        vm.mockCall(
-            grappa,
-            abi.encodeWithSelector(Grappa(grappa).engines.selector, engineId),
-            abi.encode(address(this))
-        );
+        vm.mockCall(grappa, abi.encodeWithSelector(Grappa(grappa).engines.selector, engineId), abi.encode(address(this)));
 
         uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
         uint256 tokenId = TokenIdUtil.getTokenId(TokenType.CALL_SPREAD, productId, expiry, 40, 20);
@@ -73,11 +69,7 @@ contract OptionTokenTest is Test {
         uint8 engineId = 1;
         uint256 expiry = block.timestamp + 1 days;
 
-        vm.mockCall(
-            grappa,
-            abi.encodeWithSelector(Grappa(grappa).engines.selector, engineId),
-            abi.encode(address(this))
-        );
+        vm.mockCall(grappa, abi.encodeWithSelector(Grappa(grappa).engines.selector, engineId), abi.encode(address(this)));
 
         uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
         uint256 tokenId = TokenIdUtil.getTokenId(TokenType.PUT_SPREAD, productId, expiry, 20, 40);
@@ -90,11 +82,7 @@ contract OptionTokenTest is Test {
         uint8 engineId = 1;
         uint256 expiry = block.timestamp + 1 days;
 
-        vm.mockCall(
-            grappa,
-            abi.encodeWithSelector(Grappa(grappa).engines.selector, engineId),
-            abi.encode(address(this))
-        );
+        vm.mockCall(grappa, abi.encodeWithSelector(Grappa(grappa).engines.selector, engineId), abi.encode(address(this)));
 
         uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
         uint256 tokenId = TokenIdUtil.getTokenId(TokenType.CALL, productId, expiry, 20, 40);
@@ -107,11 +95,7 @@ contract OptionTokenTest is Test {
         uint8 engineId = 1;
         uint256 expiry = block.timestamp + 1 days;
 
-        vm.mockCall(
-            grappa,
-            abi.encodeWithSelector(Grappa(grappa).engines.selector, engineId),
-            abi.encode(address(this))
-        );
+        vm.mockCall(grappa, abi.encodeWithSelector(Grappa(grappa).engines.selector, engineId), abi.encode(address(this)));
 
         uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
         uint256 tokenId = TokenIdUtil.getTokenId(TokenType.PUT, productId, expiry, 20, 40);

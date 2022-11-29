@@ -38,9 +38,7 @@ contract MockEngine is BaseEngine, DebitSpread, ReentrancyGuard {
         mockPayoutCollatId = _id;
     }
 
-    function _getAccountPayout(
-        address /*subAccount*/
-    ) internal view override returns (uint8, uint80) {
+    function _getAccountPayout(address /*subAccount*/ ) internal view override returns (uint8, uint80) {
         return (mockPayoutCollatId, mockPayout);
     }
 
@@ -52,18 +50,28 @@ contract MockEngine is BaseEngine, DebitSpread, ReentrancyGuard {
         _assertCallerHasAccess(_subAccount);
 
         // update the account and do external calls on the flight
-        for (uint256 i; i < actions.length; ) {
-            if (actions[i].action == ActionType.AddCollateral) _addCollateral(_subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.RemoveCollateral) _removeCollateral(_subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.MintShort) _mintOption(_subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.MintShortIntoAccount)
+        for (uint256 i; i < actions.length;) {
+            if (actions[i].action == ActionType.AddCollateral) {
+                _addCollateral(_subAccount, actions[i].data);
+            } else if (actions[i].action == ActionType.RemoveCollateral) {
+                _removeCollateral(_subAccount, actions[i].data);
+            } else if (actions[i].action == ActionType.MintShort) {
+                _mintOption(_subAccount, actions[i].data);
+            } else if (actions[i].action == ActionType.MintShortIntoAccount) {
                 _mintOptionIntoAccount(_subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.BurnShort) _burnOption(_subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.MergeOptionToken) _merge(_subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.SplitOptionToken) _split(_subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.SettleAccount) _settle(_subAccount);
-            else if (actions[i].action == ActionType.AddLong) _addOption(_subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.RemoveLong) _removeOption(_subAccount, actions[i].data);
+            } else if (actions[i].action == ActionType.BurnShort) {
+                _burnOption(_subAccount, actions[i].data);
+            } else if (actions[i].action == ActionType.MergeOptionToken) {
+                _merge(_subAccount, actions[i].data);
+            } else if (actions[i].action == ActionType.SplitOptionToken) {
+                _split(_subAccount, actions[i].data);
+            } else if (actions[i].action == ActionType.SettleAccount) {
+                _settle(_subAccount);
+            } else if (actions[i].action == ActionType.AddLong) {
+                _addOption(_subAccount, actions[i].data);
+            } else if (actions[i].action == ActionType.RemoveLong) {
+                _removeOption(_subAccount, actions[i].data);
+            }
 
             // increase i without checking overflow
             unchecked {
@@ -73,9 +81,7 @@ contract MockEngine is BaseEngine, DebitSpread, ReentrancyGuard {
         if (!_isAccountAboveWater(_subAccount)) revert BM_AccountUnderwater();
     }
 
-    function _isAccountAboveWater(
-        address /*_subAccount*/
-    ) internal view override returns (bool) {
+    function _isAccountAboveWater(address /*_subAccount*/ ) internal view override returns (bool) {
         return isAboveWater;
     }
 }

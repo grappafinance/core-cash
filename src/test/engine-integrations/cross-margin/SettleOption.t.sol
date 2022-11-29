@@ -65,7 +65,7 @@ contract TestSettleCoveredCall_CM is CrossMarginFixture {
         uint256 expiryPrice = 5000 * UNIT;
         oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
 
-        uint256 expectedPayout = ((uint64(expiryPrice) - strike) / 5000) * (10**(18 - UNIT_DECIMALS));
+        uint256 expectedPayout = ((uint64(expiryPrice) - strike) / 5000) * (10 ** (18 - UNIT_DECIMALS));
         uint256 wethBefore = weth.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
@@ -83,7 +83,7 @@ contract TestSettleCoveredCall_CM is CrossMarginFixture {
         // expires out the money
         oracle.setExpiryPrice(address(weth), address(usdc), strike - 1);
 
-        (, , Balance[] memory collateralsBefore) = engine.marginAccounts(address(this));
+        (,, Balance[] memory collateralsBefore) = engine.marginAccounts(address(this));
 
         // covered call, underlying and collateral are the same
         // uint256 uIndex = 0;
@@ -95,7 +95,7 @@ contract TestSettleCoveredCall_CM is CrossMarginFixture {
         engine.execute(address(this), actions);
 
         //margin account should be reset
-        (Position[] memory shorts, , Balance[] memory collateralsAfter) = engine.marginAccounts(address(this));
+        (Position[] memory shorts,, Balance[] memory collateralsAfter) = engine.marginAccounts(address(this));
 
         assertEq(shorts.length, 0);
         assertEq(collateralsAfter.length, collateralsBefore.length);
@@ -110,9 +110,9 @@ contract TestSettleCoveredCall_CM is CrossMarginFixture {
         uint256 expiryPrice = 5000 * UNIT;
         oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
 
-        uint256 expectedPayout = ((uint64(expiryPrice) - strike) / 5000) * (10**(18 - UNIT_DECIMALS));
+        uint256 expectedPayout = ((uint64(expiryPrice) - strike) / 5000) * (10 ** (18 - UNIT_DECIMALS));
 
-        (, , Balance[] memory collateralsBefore) = engine.marginAccounts(address(this));
+        (,, Balance[] memory collateralsBefore) = engine.marginAccounts(address(this));
 
         // covered call, underlying and collateral are the same
         // uint256 uIndex = 0;
@@ -124,7 +124,7 @@ contract TestSettleCoveredCall_CM is CrossMarginFixture {
         engine.execute(address(this), actions);
 
         // margin account should be reset
-        (Position[] memory shorts, , Balance[] memory collateralsAfter) = engine.marginAccounts(address(this));
+        (Position[] memory shorts,, Balance[] memory collateralsAfter) = engine.marginAccounts(address(this));
 
         assertEq(shorts.length, 0);
         assertEq(collateralsAfter.length, collateralsBefore.length);
@@ -148,7 +148,7 @@ contract TestSettleCoveredCall_CM is CrossMarginFixture {
         // expires out the money
         oracle.setExpiryPrice(address(weth), address(usdc), strike - 1);
 
-        (, , Balance[] memory collateralsBefore) = engine.marginAccounts(address(this));
+        (,, Balance[] memory collateralsBefore) = engine.marginAccounts(address(this));
 
         // covered call, underlying and collateral are the same
         // uint256 uIndex = 0;
@@ -160,7 +160,7 @@ contract TestSettleCoveredCall_CM is CrossMarginFixture {
         engine.execute(address(this), _actions);
 
         //margin account should be reset
-        (Position[] memory shorts, , Balance[] memory collateralsAfter) = engine.marginAccounts(address(this));
+        (Position[] memory shorts,, Balance[] memory collateralsAfter) = engine.marginAccounts(address(this));
 
         assertEq(shorts.length, 1);
         assertEq(shorts[0].tokenId, tokenId2);
@@ -186,7 +186,7 @@ contract TestSettleCoveredCall_CM is CrossMarginFixture {
         // expires out the money
         oracle.setExpiryPrice(address(weth), address(usdc), strike - 1);
 
-        (Position[] memory shortsBefore, , Balance[] memory collateralsBefore) = engine.marginAccounts(address(this));
+        (Position[] memory shortsBefore,, Balance[] memory collateralsBefore) = engine.marginAccounts(address(this));
 
         assertEq(shortsBefore.length, 2);
         assertEq(shortsBefore[0].tokenId, tokenId);
@@ -204,7 +204,7 @@ contract TestSettleCoveredCall_CM is CrossMarginFixture {
         engine.execute(address(this), _actions);
 
         //margin account should be reset
-        (Position[] memory shortsAfter, , Balance[] memory collateralsAfter) = engine.marginAccounts(address(this));
+        (Position[] memory shortsAfter,, Balance[] memory collateralsAfter) = engine.marginAccounts(address(this));
 
         assertEq(shortsAfter.length, 0);
 
@@ -295,7 +295,7 @@ contract TestSettleCollateralizedPut_CM is CrossMarginFixture {
         // expires out the money
         oracle.setExpiryPrice(address(weth), address(usdc), strike + 1);
 
-        (, , Balance[] memory collateralsBefore) = engine.marginAccounts(address(this));
+        (,, Balance[] memory collateralsBefore) = engine.marginAccounts(address(this));
 
         uint256 cIndex = 0;
 
@@ -305,7 +305,7 @@ contract TestSettleCollateralizedPut_CM is CrossMarginFixture {
         engine.execute(address(this), _actions);
 
         //margin account should be reset
-        (Position[] memory shorts, , Balance[] memory collateralsAfter) = engine.marginAccounts(address(this));
+        (Position[] memory shorts,, Balance[] memory collateralsAfter) = engine.marginAccounts(address(this));
 
         assertEq(shorts.length, 1);
         assertEq(shorts[0].tokenId, tokenId2);
@@ -324,7 +324,7 @@ contract TestSettleCollateralizedPut_CM is CrossMarginFixture {
 
         uint256 expectedPayout = strike - uint64(expiryPrice);
 
-        (, , Balance[] memory collateralsBefore) = engine.marginAccounts(address(this));
+        (,, Balance[] memory collateralsBefore) = engine.marginAccounts(address(this));
 
         uint256 cIndex = 0;
 
@@ -334,7 +334,7 @@ contract TestSettleCollateralizedPut_CM is CrossMarginFixture {
         engine.execute(address(this), actions);
 
         // margin account should be reset
-        (Position[] memory shorts, , Balance[] memory collateralsAfter) = engine.marginAccounts(address(this));
+        (Position[] memory shorts,, Balance[] memory collateralsAfter) = engine.marginAccounts(address(this));
 
         assertEq(shorts.length, 0);
         assertEq(collateralsAfter.length, collateralsBefore.length);

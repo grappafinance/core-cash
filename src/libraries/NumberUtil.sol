@@ -12,9 +12,7 @@ library NumberUtil {
             z := mul(x, y)
 
             // Equivalent to require(x == 0 || (x * y) / x == y)
-            if iszero(or(iszero(x), eq(div(z, x), y))) {
-                revert(0, 0)
-            }
+            if iszero(or(iszero(x), eq(div(z, x), y))) { revert(0, 0) }
         }
     }
 
@@ -27,11 +25,7 @@ library NumberUtil {
      *
      * @return newAmount number with toDecimals decimals
      */
-    function convertDecimals(
-        uint256 amount,
-        uint8 fromDecimals,
-        uint8 toDecimals
-    ) internal pure returns (uint256) {
+    function convertDecimals(uint256 amount, uint8 fromDecimals, uint8 toDecimals) internal pure returns (uint256) {
         if (fromDecimals == toDecimals) return amount;
 
         if (fromDecimals > toDecimals) {
@@ -39,14 +33,14 @@ library NumberUtil {
             unchecked {
                 diff = fromDecimals - toDecimals;
                 // div cannot underflow because diff 10**diff != 0
-                return amount / (10**diff);
+                return amount / (10 ** diff);
             }
         } else {
             uint8 diff;
             unchecked {
                 diff = toDecimals - fromDecimals;
             }
-            return amount * (10**diff);
+            return amount * (10 ** diff);
         }
     }
 }

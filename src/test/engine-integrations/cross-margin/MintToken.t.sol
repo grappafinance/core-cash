@@ -42,7 +42,7 @@ contract TestMint_CM is CrossMarginFixture {
         actions[1] = createMintAction(tokenId, address(this), amount);
         engine.execute(address(this), actions);
 
-        (Position[] memory shorts, , ) = engine.marginAccounts(address(this));
+        (Position[] memory shorts,,) = engine.marginAccounts(address(this));
 
         assertEq(shorts.length, 1);
         assertEq(shorts[0].tokenId, tokenId);
@@ -80,7 +80,7 @@ contract TestMint_CM is CrossMarginFixture {
         actions[1] = createMintAction(tokenId, address(this), amount);
         engine.execute(address(this), actions);
 
-        (Position[] memory shorts, , ) = engine.marginAccounts(address(this));
+        (Position[] memory shorts,,) = engine.marginAccounts(address(this));
 
         assertEq(shorts.length, 1);
         assertEq(shorts[0].tokenId, tokenId);
@@ -113,7 +113,7 @@ contract TestMint_CM is CrossMarginFixture {
 
         engine.execute(address(this), actions);
 
-        (Position[] memory shorts, , Balance[] memory collaterals) = engine.marginAccounts(address(this));
+        (Position[] memory shorts,, Balance[] memory collaterals) = engine.marginAccounts(address(this));
 
         assertEq(shorts.length, 2);
         assertEq(shorts[0].tokenId, callTokenId);

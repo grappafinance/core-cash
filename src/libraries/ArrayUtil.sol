@@ -15,7 +15,7 @@ library ArrayUtil {
      */
     function min(int256[] memory x) internal pure returns (int256 m) {
         m = x[0];
-        for (uint256 i; i < x.length; ) {
+        for (uint256 i; i < x.length;) {
             if (x[i] < m) {
                 m = x[i];
             }
@@ -27,7 +27,7 @@ library ArrayUtil {
 
     function min(uint256[] memory x) internal pure returns (uint256 m) {
         m = x[0];
-        for (uint256 i; i < x.length; ) {
+        for (uint256 i; i < x.length;) {
             if (x[i] < m) {
                 m = x[i];
             }
@@ -39,7 +39,7 @@ library ArrayUtil {
 
     function minMax(uint256[] memory x) internal pure returns (uint256 min_, uint256 max_) {
         (min_, max_) = (x[0], x[0]);
-        for (uint256 i; i < x.length; ) {
+        for (uint256 i; i < x.length;) {
             if (x[i] < min_) {
                 min_ = x[i];
             }
@@ -119,7 +119,7 @@ library ArrayUtil {
     function remove(uint256[] memory x, uint256 z) internal pure returns (uint256[] memory y) {
         if (z >= x.length) return x;
         y = new uint256[](x.length - 1);
-        for (uint256 i; i < x.length; ) {
+        for (uint256 i; i < x.length;) {
             if (i < z) y[i] = x[i];
             else if (i > z) y[i - 1] = x[i];
             unchecked {
@@ -135,7 +135,7 @@ library ArrayUtil {
     function remove(int256[] memory x, uint256 z) internal pure returns (int256[] memory y) {
         if (z >= x.length) return x;
         y = new int256[](x.length - 1);
-        for (uint256 i; i < x.length; ) {
+        for (uint256 i; i < x.length;) {
             if (i < z) y[i] = x[i];
             else if (i > z) y[i - 1] = x[i];
             unchecked {
@@ -150,7 +150,7 @@ library ArrayUtil {
      * @return index
      */
     function indexOf(int256[] memory x, int256 v) internal pure returns (bool, uint256) {
-        for (uint256 i; i < x.length; ) {
+        for (uint256 i; i < x.length;) {
             if (x[i] == v) {
                 return (true, i);
             }
@@ -162,7 +162,7 @@ library ArrayUtil {
     }
 
     function indexOf(bytes32[] memory x, bytes32 v) internal pure returns (bool, uint256) {
-        for (uint256 i; i < x.length; ) {
+        for (uint256 i; i < x.length;) {
             if (x[i] == v) {
                 return (true, i);
             }
@@ -174,7 +174,7 @@ library ArrayUtil {
     }
 
     function indexOf(uint256[] memory x, uint256 v) internal pure returns (bool, uint256) {
-        for (uint256 i; i < x.length; ) {
+        for (uint256 i; i < x.length;) {
             if (x[i] == v) {
                 return (true, i);
             }
@@ -190,7 +190,7 @@ library ArrayUtil {
      * @return s sum
      */
     function sum(int256[] memory x) internal pure returns (int256 s) {
-        for (uint256 i; i < x.length; ) {
+        for (uint256 i; i < x.length;) {
             s += x[i];
             unchecked {
                 ++i;
@@ -199,7 +199,7 @@ library ArrayUtil {
     }
 
     function sum(uint256[] memory x) internal pure returns (uint256 s) {
-        for (uint256 i; i < x.length; ) {
+        for (uint256 i; i < x.length;) {
             s += x[i];
             unchecked {
                 ++i;
@@ -214,7 +214,7 @@ library ArrayUtil {
     function argSort(uint256[] memory x) internal pure returns (uint256[] memory y, uint256[] memory ixArray) {
         ixArray = new uint256[](x.length);
         // fill in index array
-        for (uint256 i; i < x.length; ) {
+        for (uint256 i; i < x.length;) {
             ixArray[i] = i;
             unchecked {
                 ++i;
@@ -236,11 +236,7 @@ library ArrayUtil {
     /*
     @dev quicksort implementation, sorts arr input IN PLACE
     */
-    function quickSort(
-        uint256[] memory arr,
-        int256 left,
-        int256 right
-    ) internal pure {
+    function quickSort(uint256[] memory arr, int256 left, int256 right) internal pure {
         if (left == right) return;
         int256 i = left;
         int256 j = right;
@@ -271,12 +267,7 @@ library ArrayUtil {
     /*
     @dev quicksort implementation with indexes, sorts input arr and indexArray IN PLACE
     */
-    function quickSort(
-        uint256[] memory arr,
-        int256 left,
-        int256 right,
-        uint256[] memory indexArray
-    ) internal pure {
+    function quickSort(uint256[] memory arr, int256 left, int256 right, uint256[] memory indexArray) internal pure {
         if (left == right) return;
         int256 i = left;
         int256 j = right;
@@ -301,12 +292,14 @@ library ArrayUtil {
         }
     }
 
-    /*****  sort functions for int ****/
+    /**
+     *  sort functions for int ***
+     */
 
     function argSort(int256[] memory x) internal pure returns (int256[] memory y, uint256[] memory ixArray) {
         ixArray = new uint256[](x.length);
         // fill in index array
-        for (uint256 i; i < x.length; ) {
+        for (uint256 i; i < x.length;) {
             ixArray[i] = i;
             unchecked {
                 ++i;
@@ -326,11 +319,7 @@ library ArrayUtil {
     }
 
     // quicksort implementation, sorts arr in place
-    function quickSort(
-        int256[] memory arr,
-        int256 left,
-        int256 right
-    ) internal pure {
+    function quickSort(int256[] memory arr, int256 left, int256 right) internal pure {
         if (left == right) return;
         int256 i = left;
         int256 j = right;
@@ -359,12 +348,7 @@ library ArrayUtil {
     }
 
     // quicksort implementation with indexes, sorts arr and indexArray in place
-    function quickSort(
-        int256[] memory arr,
-        int256 left,
-        int256 right,
-        uint256[] memory indexArray
-    ) internal pure {
+    function quickSort(int256[] memory arr, int256 left, int256 right, uint256[] memory indexArray) internal pure {
         if (left == right) return;
         int256 i = left;
         int256 j = right;
@@ -393,7 +377,9 @@ library ArrayUtil {
         if (i < right) quickSort(arr, i, right, indexArray);
     }
 
-    /************ End Sort Functions for Int *******/
+    /**
+     * End Sort Functions for Int ******
+     */
 
     function sortByIndexes(int256[] memory x, uint256[] memory z) internal pure returns (int256[] memory y) {
         y = new int256[](x.length);
@@ -414,7 +400,7 @@ library ArrayUtil {
     function append(int256[] memory x, int256 v) internal pure returns (int256[] memory y) {
         y = new int256[](x.length + 1);
         uint256 i;
-        for (i = 0; i < x.length; ) {
+        for (i = 0; i < x.length;) {
             y[i] = x[i];
             unchecked {
                 ++i;
@@ -426,7 +412,7 @@ library ArrayUtil {
     function append(uint256[] memory x, uint256 v) internal pure returns (uint256[] memory y) {
         y = new uint256[](x.length + 1);
         uint256 i;
-        for (i = 0; i < x.length; ) {
+        for (i = 0; i < x.length;) {
             y[i] = x[i];
             unchecked {
                 ++i;
@@ -439,14 +425,14 @@ library ArrayUtil {
         y = new int256[](a.length + b.length);
         uint256 v;
         uint256 i;
-        for (i; i < a.length; ) {
+        for (i; i < a.length;) {
             y[v] = a[i];
             unchecked {
                 ++i;
                 ++v;
             }
         }
-        for (i = 0; i < b.length; ) {
+        for (i = 0; i < b.length;) {
             y[v] = b[i];
             unchecked {
                 ++i;
@@ -459,14 +445,14 @@ library ArrayUtil {
         y = new uint256[](a.length + b.length);
         uint256 v;
         uint256 i;
-        for (i; i < a.length; ) {
+        for (i; i < a.length;) {
             y[v] = a[i];
             unchecked {
                 ++i;
                 ++v;
             }
         }
-        for (i = 0; i < b.length; ) {
+        for (i = 0; i < b.length;) {
             y[v] = b[i];
             unchecked {
                 ++i;
@@ -487,11 +473,7 @@ library ArrayUtil {
     /*
     @dev modifies memory a IN PLACE. Populates a starting at index z with values from b.
     */
-    function populate(
-        uint256[] memory a,
-        uint256[] memory b,
-        uint256 z
-    ) internal pure {
+    function populate(uint256[] memory a, uint256[] memory b, uint256 z) internal pure {
         for (uint256 i = 0; i < a.length; i++) {
             a[z + i] = b[i];
         }
@@ -500,11 +482,7 @@ library ArrayUtil {
     /*
     @dev modifies memory a IN PLACE. Populates a starting at index z with values from b.
     */
-    function populate(
-        int256[] memory a,
-        int256[] memory b,
-        uint256 z
-    ) internal pure {
+    function populate(int256[] memory a, int256[] memory b, uint256 z) internal pure {
         for (uint256 i = 0; i < a.length; i++) {
             a[z + i] = b[i];
         }
@@ -532,11 +510,7 @@ library ArrayUtil {
         }
     }
 
-    function slice(
-        int256[] memory x,
-        int256 _start,
-        int256 _end
-    ) internal pure returns (int256[] memory a) {
+    function slice(int256[] memory x, int256 _start, int256 _end) internal pure returns (int256[] memory a) {
         int256 len = x.length.toInt256();
         if (_start < 0) _start = len + _start;
         if (_end <= 0) _end = len + _end;
@@ -547,7 +521,7 @@ library ArrayUtil {
 
         a = new int256[](end - start);
         uint256 y = 0;
-        for (uint256 i = start; i < end; ) {
+        for (uint256 i = start; i < end;) {
             a[y] = x[i];
             unchecked {
                 ++i;
@@ -584,22 +558,14 @@ library ArrayUtil {
         }
     }
 
-    function eachMulDivDown(
-        int256[] memory x,
-        int256 z,
-        int256 d
-    ) internal pure returns (int256[] memory y) {
+    function eachMulDivDown(int256[] memory x, int256 z, int256 d) internal pure returns (int256[] memory y) {
         y = new int256[](x.length);
         for (uint256 i = 0; i < x.length; i++) {
             y[i] = (x[i] * z) / d;
         }
     }
 
-    function eachMulDivUp(
-        int256[] memory x,
-        int256 z,
-        int256 d
-    ) internal pure returns (int256[] memory y) {
+    function eachMulDivUp(int256[] memory x, int256 z, int256 d) internal pure returns (int256[] memory y) {
         y = new int256[](x.length);
         for (uint256 i = 0; i < x.length; i++) {
             y[i] = ((x[i] * z) / d) + 1;

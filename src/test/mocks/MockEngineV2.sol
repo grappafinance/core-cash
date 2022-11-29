@@ -20,10 +20,9 @@ contract MockEngineV2 is UUPSUpgradeable {
 
     /**
      * @dev future version that cannot be upgraded in the future
-     **/
-    function _authorizeUpgrade(
-        address /*newImplementation*/
-    ) internal pure override {
+     *
+     */
+    function _authorizeUpgrade(address /*newImplementation*/ ) internal pure override {
         revert("not upgrdable anymore");
     }
 }

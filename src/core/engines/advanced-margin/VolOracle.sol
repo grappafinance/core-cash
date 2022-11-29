@@ -28,7 +28,7 @@ contract VolOracle is IVolOracle, Ownable {
         address aggregatorAddr = aggregators[_asset];
         if (aggregatorAddr == address(0)) revert VO_AggregatorNotSet();
 
-        (, int256 answer, , , ) = IAggregatorV3(aggregatorAddr).latestRoundData();
+        (, int256 answer,,,) = IAggregatorV3(aggregatorAddr).latestRoundData();
         // todo: convert decimals
         vol = uint256(answer);
     }

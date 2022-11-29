@@ -39,8 +39,8 @@ contract ChainlinkOracleInternalTests is ChainlinkOracle, Test {
         // baseMulDecimals = UNIT_DECIMALS + int8(_quoteDecimals) - int8(_baseDecimals) < 0
         uint8 baseDecimals = uint8(18);
         uint8 quoteDecimals = uint8(8);
-        uint256 base = 3000 * (10**baseDecimals);
-        uint256 quote = 1 * (10**quoteDecimals);
+        uint256 base = 3000 * (10 ** baseDecimals);
+        uint256 quote = 1 * (10 ** quoteDecimals);
         uint256 price = _toPriceWithUnitDecimals(base, quote, baseDecimals, quoteDecimals);
 
         // should return base denominated in 1e6 (UNIT)
@@ -51,8 +51,8 @@ contract ChainlinkOracleInternalTests is ChainlinkOracle, Test {
         // baseMulDecimals = UNIT_DECIMALS + int8(_quoteDecimals) - int8(_baseDecimals) > 0
         uint8 baseDecimals = uint8(8);
         uint8 quoteDecimals = uint8(18);
-        uint256 base = 3000 * (10**baseDecimals);
-        uint256 quote = 1 * (10**quoteDecimals);
+        uint256 base = 3000 * (10 ** baseDecimals);
+        uint256 quote = 1 * (10 ** quoteDecimals);
         uint256 price = _toPriceWithUnitDecimals(base, quote, baseDecimals, quoteDecimals);
 
         // should return base denominated in 1e6 (UNIT)
@@ -63,8 +63,8 @@ contract ChainlinkOracleInternalTests is ChainlinkOracle, Test {
         // baseMulDecimals = UNIT_DECIMALS + int8(_quoteDecimals) - int8(_baseDecimals) == 0
         uint8 baseDecimals = uint8(6);
         uint8 quoteDecimals = uint8(12);
-        uint256 base = 3000 * (10**baseDecimals);
-        uint256 quote = 1 * (10**quoteDecimals);
+        uint256 base = 3000 * (10 ** baseDecimals);
+        uint256 quote = 1 * (10 ** quoteDecimals);
         uint256 price = _toPriceWithUnitDecimals(base, quote, baseDecimals, quoteDecimals);
 
         // should return base denominated in 1e6 (UNIT)
@@ -74,8 +74,8 @@ contract ChainlinkOracleInternalTests is ChainlinkOracle, Test {
     function testDecimalConversionDiffDecimalsFuzz(uint8 baseDecimals, uint8 quoteDecimals) public {
         vm.assume(baseDecimals < 20);
         vm.assume(quoteDecimals < 20);
-        uint256 base = 3000 * (10**baseDecimals);
-        uint256 quote = 1 * (10**quoteDecimals);
+        uint256 base = 3000 * (10 ** baseDecimals);
+        uint256 quote = 1 * (10 ** quoteDecimals);
         uint256 price = _toPriceWithUnitDecimals(base, quote, baseDecimals, quoteDecimals);
 
         // should return base denominated in 1e6 (UNIT)
@@ -183,7 +183,7 @@ contract ChainlinkOracleTest is Test {
         wethAggregator.setMockState(0, int256(4000 * aggregatorUint), block.timestamp);
         usdcAggregator.setMockState(0, int256(1 * aggregatorUint), block.timestamp);
 
-        usdAggregatorHighDecimals.setMockState(0, int256(1 * 10**24), block.timestamp);
+        usdAggregatorHighDecimals.setMockState(0, int256(1 * 10 ** 24), block.timestamp);
         usdAggregatorLowDecimals.setMockState(0, int256(1 * 10), block.timestamp);
     }
 
@@ -276,7 +276,7 @@ contract ChainlinkOracleTestWriteOracle is Test {
     function testCanReportPrice() public {
         oracle.reportExpiryPrice(weth, usdc, expiry, wethRoundIdToReport, usdcRoundIdToReport);
 
-        (uint256 price, ) = oracle.getPriceAtExpiry(weth, usdc, expiry);
+        (uint256 price,) = oracle.getPriceAtExpiry(weth, usdc, expiry);
         assertEq(price, 4000 * UNIT);
     }
 

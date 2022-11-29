@@ -44,13 +44,7 @@ contract MockChainlinkAggregator is IAggregatorV3 {
     function getRoundData(uint80 _roundId)
         external
         view
-        returns (
-            uint80 roundId,
-            int256 answer,
-            uint256 startedAt,
-            uint256 updatedAt,
-            uint80 answeredInRound
-        )
+        returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)
     {
         RoundData memory round = rounds[_roundId];
         return (_roundId, round.answer, round.timestamp, round.timestamp, _roundId);
@@ -59,31 +53,17 @@ contract MockChainlinkAggregator is IAggregatorV3 {
     function latestRoundData()
         external
         view
-        returns (
-            uint80 roundId,
-            int256 answer,
-            uint256 startedAt,
-            uint256 updatedAt,
-            uint80 answeredInRound
-        )
+        returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)
     {
         return (state.roundId, state.answer, state.timestamp, state.timestamp, state.roundId);
     }
 
-    function setMockState(
-        uint80 roundId,
-        int256 answer,
-        uint256 timestamp
-    ) external {
+    function setMockState(uint80 roundId, int256 answer, uint256 timestamp) external {
         // set unused filed to 1 to have more accurate approximation of gas cost of reading.
         state = MockState(roundId, int192(answer), uint64(timestamp));
     }
 
-    function setMockRound(
-        uint80 roundId,
-        int256 answer,
-        uint256 timestamp
-    ) external {
+    function setMockRound(uint80 roundId, int256 answer, uint256 timestamp) external {
         // set unused filed to 1 to have more accurate approximation of gas cost of reading.
         rounds[roundId] = RoundData(int192(answer), uint64(timestamp));
     }
