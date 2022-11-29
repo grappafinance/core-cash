@@ -23,7 +23,7 @@ contract Deploy is Script, Utilities {
         vm.startBroadcast();
 
         // Deploy core components
-        (Grappa grappa, ,address optionToken) = deployCore();
+        (Grappa grappa,, address optionToken) = deployCore();
 
         // deploy and register Cross Margin Engine
         deployCrossMarginEngine(grappa, optionToken);
@@ -35,13 +35,8 @@ contract Deploy is Script, Utilities {
         vm.stopBroadcast();
     }
 
-    /// @dev deploy core contracts: Upgradable Grappa, non-upgradable OptionToken with descriptor 
-    function deployCore() public returns (
-            Grappa grappa,
-            address optionDesciptor,
-            address optionToken
-        )
-    {
+    /// @dev deploy core contracts: Upgradable Grappa, non-upgradable OptionToken with descriptor
+    function deployCore() public returns (Grappa grappa, address optionDesciptor, address optionToken) {
         uint256 nonce = vm.getNonce(msg.sender);
         console.log("nonce", nonce);
         console.log("Deployer", msg.sender);
@@ -50,7 +45,7 @@ contract Deploy is Script, Utilities {
 
         // =================== Deploy Grappa (Upgradable) =============== //
         address optionTokenAddr = predictAddress(msg.sender, nonce + 4);
-        
+
         address implementation = address(new Grappa(optionTokenAddr)); // nonce
         console.log("grappa implementation\t\t", address(implementation));
         bytes memory data = abi.encode(Grappa.initialize.selector);
@@ -65,39 +60,34 @@ contract Deploy is Script, Utilities {
         optionDesciptor = address(new ERC1967Proxy(descriptorImpl, descriptorInitData)); // nonce + 3
         console.log("optionToken descriptor\t", optionDesciptor);
 
-
         // =============== Deploy OptionToken ================= //
 
         optionToken = address(new OptionToken(address(grappa), optionDesciptor)); // nonce + 4
         console.log("optionToken\t\t\t", optionToken);
 
         // revert if deployed contract is different than what we set in Grappa
-        assert(address(optionToken) == optionTokenAddr); 
+        assert(address(optionToken) == optionTokenAddr);
 
         console.log("\n---- Core deployment ended ----\n");
     }
 
-    function deployCrossMarginEngine(Grappa grappa, address optionToken)
-        public
-        returns (address crossMarginEngine)
-    {
-        
-        // ============ Deploy Cross Margin Engine (Upgradable) ============== // 
+    function deployCrossMarginEngine(Grappa grappa, address optionToken) public returns (address crossMarginEngine) {
+        // ============ Deploy Cross Margin Engine (Upgradable) ============== //
         address engineImplementation = address(new CrossMarginEngine(address(grappa), optionToken));
         bytes memory engineData = abi.encode(CrossMarginEngine.initialize.selector);
         crossMarginEngine = address(new ERC1967Proxy(engineImplementation, engineData));
 
         console.log("CrossMargin Engine: \t\t", crossMarginEngine);
 
-        // ============ Register Full Margin Engine ============== // 
+        // ============ Register Full Margin Engine ============== //
         {
-            uint engineId = grappa.registerEngine(crossMarginEngine);
+            uint256 engineId = grappa.registerEngine(crossMarginEngine);
             console.log("   -> Registered ID:", engineId);
         }
     }
 
     function deployOracles(Grappa grappa) public {
-        // ============ Deploy Chainlink Oracles ============== // 
+        // ============ Deploy Chainlink Oracles ============== //
         address clOracle = address(new ChainlinkOracle());
         address clOracleDisputable = address(new ChainlinkOracleDisputable());
 
