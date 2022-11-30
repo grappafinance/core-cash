@@ -278,8 +278,17 @@ library CrossMarginMath {
         weights = _detail.putWeights.concat(_detail.callWeights);
 
         // sorting strikes
-        uint256[] memory indexes;
-        (strikes, indexes) = strikes.argSort();
+        uint256[] memory indexes = new uint256[](strikes.length);
+        ArrayUtil.OrderedValue[] memory results = strikes.argSort();
+
+        for (uint256 i; i < results.length; ) {
+            strikes[i] = results[i].value;
+            indexes[i] = results[i].index;
+
+            unchecked {
+                ++i;
+            }
+        }
 
         // sorting weights based on strike sorted index
         weights = weights.sortByIndexes(indexes);

@@ -211,20 +211,20 @@ library ArrayUtil {
      * @dev put the min of last p elements in array at position p.
      */
 
-    function argSort(uint256[] memory x) internal pure returns (uint256[] memory y, uint256[] memory ixArray) {
-        ixArray = new uint256[](x.length);
+    function argSort(uint256[] memory x) internal pure returns (OrderedValue[] memory result) {
+        result = new OrderedValue[](x.length);
+
         // fill in index array
-        for (uint256 i; i < x.length;) {
-            ixArray[i] = i;
+        for (uint256 i; i < result.length; ) {
+            result[i] = OrderedValue(x[i], i);
+
             unchecked {
                 ++i;
             }
         }
-        // initialize copy of x
-        y = new uint256[](x.length);
-        populate(y, x, 0);
+
         // sort
-        quickSort(y, int256(0), int256(y.length - 1), ixArray);
+        quickSort(result, int256(0), int256(result.length - 1));
     }
 
     function sort(uint256[] memory x) internal pure returns (uint256[] memory y) {
@@ -264,52 +264,46 @@ library ArrayUtil {
         if (i < right) quickSort(arr, i, right);
     }
 
-    /*
-    @dev quicksort implementation with indexes, sorts input arr and indexArray IN PLACE
-    */
-    function quickSort(uint256[] memory arr, int256 left, int256 right, uint256[] memory indexArray) internal pure {
+    // quicksort implementation with indexes, sorts arr in place
+    function quickSort(OrderedValue[] memory arr, int256 left, int256 right) internal pure {
         if (left == right) return;
         int256 i = left;
         int256 j = right;
-        uint256 pivot = arr[uint256(left + (right - left) / 2)];
+        OrderedValue memory pivot = arr[uint256(left + (right - left) / 2)];
         unchecked {
             while (i <= j) {
-                while (arr[uint256(i)] < pivot) {
+                while (compare(arr[uint256(i)], pivot) < 0) {
                     ++i;
                 }
-                while (pivot < arr[uint256(j)]) {
+                while (compare(arr[uint256(j)], pivot) > 0) {
                     --j;
                 }
                 if (i <= j) {
                     (arr[uint256(i)], arr[uint256(j)]) = (arr[uint256(j)], arr[uint256(i)]);
-                    (indexArray[uint256(i)], indexArray[uint256(j)]) = (indexArray[uint256(j)], indexArray[uint256(i)]);
                     ++i;
                     --j;
                 }
             }
-            if (left < j) quickSort(arr, left, j, indexArray);
-            if (i < right) quickSort(arr, i, right, indexArray);
         }
+        if (left < j) quickSort(arr, left, j);
+        if (i < right) quickSort(arr, i, right);
     }
 
-    /**
-     *  sort functions for int ***
-     */
+    /*****  sort functions for int ****/
+    function argSort(int256[] memory x) internal pure returns (OrderedValueS[] memory result) {
+        result = new OrderedValueS[](x.length);
 
-    function argSort(int256[] memory x) internal pure returns (int256[] memory y, uint256[] memory ixArray) {
-        ixArray = new uint256[](x.length);
         // fill in index array
-        for (uint256 i; i < x.length;) {
-            ixArray[i] = i;
+        for (uint256 i; i < result.length; ) {
+            result[i] = OrderedValueS(x[i], i);
+
             unchecked {
                 ++i;
             }
         }
-        // initialize copy of x
-        y = new int256[](x.length);
-        populate(y, x, 0);
+
         // sort
-        quickSort(y, int256(0), int256(y.length - 1), ixArray);
+        quickSort(result, int256(0), int256(result.length - 1));
     }
 
     function sort(int256[] memory x) internal pure returns (int256[] memory y) {
@@ -347,39 +341,32 @@ library ArrayUtil {
         if (i < right) quickSort(arr, i, right);
     }
 
-    // quicksort implementation with indexes, sorts arr and indexArray in place
-    function quickSort(int256[] memory arr, int256 left, int256 right, uint256[] memory indexArray) internal pure {
+    // quicksort implementation with indexes, sorts arr in place
+    function quickSort(OrderedValueS[] memory arr, int256 left, int256 right) internal pure {
         if (left == right) return;
         int256 i = left;
         int256 j = right;
-        int256 pivot = arr[uint256(left + (right - left) / 2)];
-        while (i <= j) {
-            while (arr[uint256(i)] < pivot) {
-                unchecked {
+        OrderedValueS memory pivot = arr[uint256(left + (right - left) / 2)];
+        unchecked {
+            while (i <= j) {
+                while (compare(arr[uint256(i)], pivot) < 0) {
                     ++i;
                 }
-            }
-            while (pivot < arr[uint256(j)]) {
-                unchecked {
+                while (compare(arr[uint256(j)], pivot) > 0) {
                     --j;
                 }
-            }
-            if (i <= j) {
-                (arr[uint256(i)], arr[uint256(j)]) = (arr[uint256(j)], arr[uint256(i)]);
-                (indexArray[uint256(i)], indexArray[uint256(j)]) = (indexArray[uint256(j)], indexArray[uint256(i)]);
-                unchecked {
+                if (i <= j) {
+                    (arr[uint256(i)], arr[uint256(j)]) = (arr[uint256(j)], arr[uint256(i)]);
                     ++i;
                     --j;
                 }
             }
         }
-        if (left < j) quickSort(arr, left, j, indexArray);
-        if (i < right) quickSort(arr, i, right, indexArray);
+        if (left < j) quickSort(arr, left, j);
+        if (i < right) quickSort(arr, i, right);
     }
 
-    /**
-     * End Sort Functions for Int ******
-     */
+    /************ End Sort Functions for Int *******/
 
     function sortByIndexes(int256[] memory x, uint256[] memory z) internal pure returns (int256[] memory y) {
         y = new int256[](x.length);
@@ -615,4 +602,41 @@ library ArrayUtil {
             y[i] = x[i].toUint256();
         }
     }
+
+    struct OrderedValue {
+        uint256 value;
+        uint256 index;
+    }
+
+    struct OrderedValueS {
+        int256 value;
+        uint256 index;
+    }
+
+    function compare(OrderedValueS memory v1, OrderedValueS memory v2) internal pure returns (int256 result) {
+        if (v1.value < v2.value) return -1;
+
+        if (v1.value > v2.value) return 1;
+        else {
+            if (v1.index < v2.index) return -1;
+
+            if (v1.index > v2.index) return 1;
+        }
+
+        return 0;
+    }
+
+    function compare(OrderedValue memory v1, OrderedValue memory v2) internal pure returns (int256 result) {
+        if (v1.value < v2.value) return -1;
+
+        if (v1.value > v2.value) return 1;
+        else {
+            if (v1.index < v2.index) return -1;
+
+            if (v1.index > v2.index) return 1;
+        }
+
+        return 0;
+    }
+
 }

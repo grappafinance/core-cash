@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import {Test, stdError} from "forge-std/Test.sol";
 
-import {ArrayUtil} from "../../libraries/ArrayUtil.sol";
+import "../../libraries/ArrayUtil.sol";
 import "../../config/constants.sol";
 import "../../config/errors.sol";
 import "../../config/types.sol";
@@ -155,20 +155,20 @@ contract ArrayUtilTest is Test {
         array[3] = 500;
         array[4] = 300;
 
-        (uint256[] memory sorted, uint256[] memory indexes) = array.argSort();
-        assertEq(sorted.length, 5);
-        assertEq(sorted[0], 100);
-        assertEq(sorted[1], 200);
-        assertEq(sorted[2], 300);
-        assertEq(sorted[3], 400);
-        assertEq(sorted[4], 500);
+        ArrayUtil.OrderedValue[] memory results = array.argSort();
 
-        assertEq(indexes.length, 5);
-        assertEq(indexes[0], 2);
-        assertEq(indexes[1], 1);
-        assertEq(indexes[2], 4);
-        assertEq(indexes[3], 0);
-        assertEq(indexes[4], 3);
+        assertEq(results.length, 5);
+        assertEq(results[0].value, 100);
+        assertEq(results[1].value, 200);
+        assertEq(results[2].value, 300);
+        assertEq(results[3].value, 400);
+        assertEq(results[4].value, 500);
+
+        assertEq(results[0].index, 2);
+        assertEq(results[1].index, 1);
+        assertEq(results[2].index, 4);
+        assertEq(results[3].index, 0);
+        assertEq(results[4].index, 3);
     }
 
     function testArgSortDups() public {
@@ -179,20 +179,20 @@ contract ArrayUtilTest is Test {
         array[3] = 1;
         array[4] = 3;
 
-        (uint256[] memory sorted, uint256[] memory indexes) = array.argSort();
-        assertEq(sorted.length, 5);
-        assertEq(sorted[0], 1);
-        assertEq(sorted[1], 1);
-        assertEq(sorted[2], 1);
-        assertEq(sorted[3], 3);
-        assertEq(sorted[4], 4);
+        ArrayUtil.OrderedValue[] memory results = array.argSort();
 
-        assertEq(indexes.length, 5);
-        assertEq(indexes[0], 2);
-        assertEq(indexes[1], 3);
-        assertEq(indexes[2], 1);
-        assertEq(indexes[3], 4);
-        assertEq(indexes[4], 0);
+        assertEq(results.length, 5);
+        assertEq(results[0].value, 1);
+        assertEq(results[1].value, 1);
+        assertEq(results[2].value, 1);
+        assertEq(results[3].value, 3);
+        assertEq(results[4].value, 4);
+
+        assertEq(results[0].index, 1);
+        assertEq(results[1].index, 2);
+        assertEq(results[2].index, 3);
+        assertEq(results[3].index, 4);
+        assertEq(results[4].index, 0);
     }
 
     function testArgSortDupsInt() public {
@@ -204,21 +204,15 @@ contract ArrayUtilTest is Test {
         array[3] = -1;
         array[4] = 3;
 
-        (int256[] memory sorted, uint256[] memory indexes) = array.argSort();
-        assertEq(sorted.length, 5);
-        assertEq(sorted[0], -1);
-        assertEq(sorted[1], -1);
-        assertEq(sorted[2], -1);
-        assertEq(sorted[3], 3);
-        assertEq(sorted[4], 4);
+        ArrayUtil.OrderedValueS[] memory results = array.argSort();
 
-        assertEq(indexes.length, 5);
+        assertEq(results.length, 5);
+        assertEq(results[0].value, -1);
+        assertEq(results[1].value, -1);
+        assertEq(results[2].value, -1);
+        assertEq(results[3].value, 3);
+        assertEq(results[4].value, 4);
 
-        assertEq(indexes[0], 2);
-        assertEq(indexes[1], 3);
-        assertEq(indexes[2], 1);
-        assertEq(indexes[3], 4);
-        assertEq(indexes[4], 0);
     }
 
     function testArgSortDupsEvenItems() public {
@@ -230,23 +224,22 @@ contract ArrayUtilTest is Test {
         array[4] = 3;
         array[5] = 3;
 
-        (uint256[] memory sorted, uint256[] memory indexes) = array.argSort();
-        assertEq(sorted.length, 6);
-        assertEq(sorted[0], 1);
-        assertEq(sorted[1], 1);
-        assertEq(sorted[2], 1);
-        assertEq(sorted[3], 3);
-        assertEq(sorted[4], 3);
-        assertEq(sorted[5], 4);
+        ArrayUtil.OrderedValue[] memory results = array.argSort();
 
-        assertEq(indexes.length, 6);
+        assertEq(results.length, 6);
+        assertEq(results[0].value, 1);
+        assertEq(results[1].value, 1);
+        assertEq(results[2].value, 1);
+        assertEq(results[3].value, 3);
+        assertEq(results[4].value, 3);
+        assertEq(results[5].value, 4);
 
-        assertEq(indexes[0], 2);
-        assertEq(indexes[1], 3);
-        assertEq(indexes[2], 1);
-        assertEq(indexes[3], 4);
-        assertEq(indexes[4], 5);
-        assertEq(indexes[5], 0);
+        assertEq(results[0].index, 1);
+        assertEq(results[1].index, 2);
+        assertEq(results[2].index, 3);
+        assertEq(results[3].index, 4);
+        assertEq(results[4].index, 5);
+        assertEq(results[5].index, 0);
     }
 
     function testSortByIndexes() public {
@@ -264,7 +257,13 @@ contract ArrayUtilTest is Test {
         array2[3] = 500;
         array2[4] = 300;
 
-        (, uint256[] memory indexes) = array.argSort();
+        ArrayUtil.OrderedValue[] memory results = array.argSort();
+
+        uint256[] memory indexes = new uint256[](6);
+
+        for(uint256 i; i < results.length; i++){
+            indexes[i] = results[i].index;
+        }
 
         int256[] memory sortedByIndex = array2.sortByIndexes(indexes);
         assertEq(sortedByIndex.length, 5);
@@ -292,7 +291,13 @@ contract ArrayUtilTest is Test {
         array2[4] = 200;
         array2[5] = 300;
 
-        (, uint256[] memory indexes) = array.argSort();
+        ArrayUtil.OrderedValue[] memory results = array.argSort();
+
+        uint256[] memory indexes = new uint256[](6);
+
+        for(uint256 i; i < indexes.length; i++){
+            indexes[i] = results[i].index;
+        }
 
         int256[] memory sortedByIndex = array2.sortByIndexes(indexes);
         assertEq(sortedByIndex.length, 6);
@@ -302,5 +307,82 @@ contract ArrayUtilTest is Test {
         assertEq(sortedByIndex[3], 300);
         assertEq(sortedByIndex[4], 400);
         assertEq(sortedByIndex[5], 500);
+    }
+
+    function testGenLargeSort() public {
+        uint256[] memory array = new uint256[](10000);
+
+        for(uint256 i = 0; i < array.length; i++) {
+            array[i] = array.length - i - 1;
+        }
+
+        uint256[] memory sorted = array.sort();
+
+        assertEq(array.length, sorted.length);
+
+        for(uint256 i = 0; i < sorted.length; i++) {
+            assertEq(sorted[i], i);
+        }
+    }
+
+    function testGenLargeArgSort() public {
+        uint256[] memory array = new uint256[](10000);
+
+        for(uint256 i = 0; i < array.length; i++) {
+            array[i] = array.length - i - 1;
+        }
+
+        ArrayUtil.OrderedValue[] memory results = array.argSort();
+
+        assertEq(results.length, results.length);
+
+        for(uint256 i = 0; i < results.length; i++) {
+            assertEq(results[i].value, i);
+        }
+
+        for(uint256 i = 0; i < results.length; i++) {
+            assertEq(results[i].index, array.length - i - 1);
+        }
+    }
+
+
+    function testGenLargeArgSortSigned() public {
+        int256[] memory array = new int256[](10000);
+
+        for(uint256 i = 0; i < array.length; i++) {
+            array[i] = int256(array.length - i - 1);
+        }
+
+        ArrayUtil.OrderedValueS[] memory results = array.argSort();
+
+        assertEq(results.length, results.length);
+
+        for(uint256 i = 0; i < results.length; i++) {
+            assertEq(results[i].value, int256(i));
+        }
+
+        for(uint256 i = 0; i < results.length; i++) {
+            assertEq(results[i].index, array.length - i - 1);
+        }
+    }
+
+    function testGenLargeArgSortSignedNeg() public {
+        int256[] memory array = new int256[](10000);
+
+        for(uint256 i = 0; i < array.length; i++) {
+            array[i] = -int256(array.length - i - 1);
+        }
+
+        ArrayUtil.OrderedValueS[] memory results = array.argSort();
+
+        assertEq(results.length, results.length);
+
+        for(uint256 i = 0; i < results.length; i++) {
+            assertEq(results[i].value, -int256(array.length - i - 1));
+        }
+
+        for(uint256 i = 0; i < results.length; i++) {
+            assertEq(results[i].index, i);
+        }
     }
 }
