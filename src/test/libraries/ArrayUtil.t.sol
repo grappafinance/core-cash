@@ -186,9 +186,9 @@ contract ArrayUtilTest is Test {
         assertEq(sorted[4], 4);
 
         assertEq(indexes.length, 5);
-        assertEq(indexes[0], 2);
-        assertEq(indexes[1], 3);
-        assertEq(indexes[2], 1);
+        assertEq(indexes[0], 1);
+        assertEq(indexes[1], 2);
+        assertEq(indexes[2], 3);
         assertEq(indexes[3], 4);
         assertEq(indexes[4], 0);
     }
@@ -212,9 +212,9 @@ contract ArrayUtilTest is Test {
 
         assertEq(indexes.length, 5);
 
-        assertEq(indexes[0], 2);
-        assertEq(indexes[1], 3);
-        assertEq(indexes[2], 1);
+        assertEq(indexes[0], 1);
+        assertEq(indexes[1], 2);
+        assertEq(indexes[2], 3);
         assertEq(indexes[3], 4);
         assertEq(indexes[4], 0);
     }
@@ -238,10 +238,9 @@ contract ArrayUtilTest is Test {
         assertEq(sorted[5], 4);
 
         assertEq(indexes.length, 6);
-
-        assertEq(indexes[0], 2);
-        assertEq(indexes[1], 3);
-        assertEq(indexes[2], 1);
+        assertEq(indexes[0], 1);
+        assertEq(indexes[1], 2);
+        assertEq(indexes[2], 3);
         assertEq(indexes[3], 4);
         assertEq(indexes[4], 5);
         assertEq(indexes[5], 0);
@@ -300,5 +299,84 @@ contract ArrayUtilTest is Test {
         assertEq(sortedByIndex[3], 300);
         assertEq(sortedByIndex[4], 400);
         assertEq(sortedByIndex[5], 500);
+    }
+
+    function testGenLargeSort() public {
+        uint256[] memory array = new uint256[](10000);
+
+        for (uint256 i = 0; i < array.length; i++) {
+            array[i] = array.length - i - 1;
+        }
+
+        uint256[] memory sorted = array.sort();
+
+        assertEq(array.length, sorted.length);
+
+        for (uint256 i = 0; i < sorted.length; i++) {
+            assertEq(sorted[i], i);
+        }
+    }
+
+    function testGenLargeArgSort() public {
+        uint256[] memory array = new uint256[](10000);
+
+        for (uint256 i = 0; i < array.length; i++) {
+            array[i] = array.length - i - 1;
+        }
+
+        (uint256[] memory sorted, uint256[] memory ixArray) = array.argSort();
+
+        assertEq(array.length, sorted.length);
+        assertEq(array.length, ixArray.length);
+
+        for (uint256 i = 0; i < sorted.length; i++) {
+            assertEq(sorted[i], i);
+        }
+
+        for (uint256 i = 0; i < ixArray.length; i++) {
+            assertEq(ixArray[i], array.length - i - 1);
+        }
+    }
+
+    function testGenLargeArgSortSigned() public {
+        int256[] memory array = new int256[](10000);
+
+        for (uint256 i = 0; i < array.length; i++) {
+            array[i] = int256(array.length - i - 1);
+        }
+
+        (int256[] memory sorted, uint256[] memory ixArray) = array.argSort();
+
+        assertEq(array.length, sorted.length);
+        assertEq(array.length, ixArray.length);
+
+        for (uint256 i = 0; i < sorted.length; i++) {
+            assertEq(sorted[i], int256(i));
+        }
+
+        for (uint256 i = 0; i < ixArray.length; i++) {
+            assertEq(ixArray[i], array.length - i - 1);
+        }
+    }
+
+    function testGenLargeArgSortSignedNeg() public {
+        int256[] memory array = new int256[](10000);
+
+        for (uint256 i = 0; i < array.length; i++) {
+            array[i] = -int256(array.length - i - 1);
+        }
+
+        (int256[] memory sorted, uint256[] memory ixArray) = array.argSort();
+
+        assertEq(array.length, sorted.length);
+        assertEq(array.length, ixArray.length);
+
+        for (uint256 i = 0; i < sorted.length; i++) {
+            assertEq(sorted[i], -int256(array.length - i - 1));
+        }
+
+        for (uint256 i = 0; i < ixArray.length; i++) {
+            assertEq(ixArray[i], i);
+        }
     }
 }

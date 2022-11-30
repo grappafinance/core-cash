@@ -215,22 +215,31 @@ library ArrayUtil {
     /**
      * @dev put the min of last p elements in array at position p.
      */
-
     function argSort(uint256[] memory x) internal pure returns (uint256[] memory y, uint256[] memory ixArray) {
         ixArray = new uint256[](x.length);
-        // fill in index array
-        for (uint256 i; i < x.length;) {
-            ixArray[i] = i;
 
+        // initialize copy of x
+        y = new uint256[](x.length);
+
+        // fill in index array
+        for (uint256 i; i < y.length;) {
+            ixArray[i] = i;
+            y[i] = valueToKey(x[i], i, 6);
             unchecked {
                 ++i;
             }
         }
-        // initialize copy of x
-        y = new uint256[](x.length);
-        populate(y, x, 0);
+
         // sort
         quickSort(y, int256(0), int256(y.length - 1), ixArray);
+
+        // remove the appended key
+        for (uint256 i; i < y.length;) {
+            y[i] = keyToValue(y[i], 6);
+            unchecked {
+                ++i;
+            }
+        }
     }
 
     function sort(uint256[] memory x) internal pure returns (uint256[] memory y) {
@@ -239,9 +248,9 @@ library ArrayUtil {
         quickSort(y, int256(0), int256(y.length - 1));
     }
 
-    /*
-    @dev quicksort implementation, sorts arr input IN PLACE
-    */
+    /**
+     * @dev quicksort implementation, sorts arr input IN PLACE
+     */
     function quickSort(uint256[] memory arr, int256 left, int256 right) internal pure {
         if (left == right) return;
         int256 i = left;
@@ -266,9 +275,9 @@ library ArrayUtil {
         if (i < right) quickSort(arr, i, right);
     }
 
-    /*
-    @dev quicksort implementation with indexes, sorts input arr and indexArray IN PLACE
-    */
+    /**
+     * @dev quicksort implementation with indexes, sorts input arr and indexArray IN PLACE
+     */
     function quickSort(uint256[] memory arr, int256 left, int256 right, uint256[] memory indexArray) internal pure {
         if (left == right) return;
         int256 i = left;
@@ -295,24 +304,33 @@ library ArrayUtil {
     }
 
     /**
-     *  sort functions for int ***
+     * @dev sort functions for int
      */
-
     function argSort(int256[] memory x) internal pure returns (int256[] memory y, uint256[] memory ixArray) {
         ixArray = new uint256[](x.length);
-        // fill in index array
-        for (uint256 i; i < x.length;) {
-            ixArray[i] = i;
 
+        // initialize copy of x
+        y = new int256[](x.length);
+
+        // fill in index array
+        for (uint256 i; i < y.length;) {
+            ixArray[i] = i;
+            y[i] = valueToKey(x[i], i, 6);
             unchecked {
                 ++i;
             }
         }
-        // initialize copy of x
-        y = new int256[](x.length);
-        populate(y, x, 0);
+
         // sort
         quickSort(y, int256(0), int256(y.length - 1), ixArray);
+
+        // remove the appended key
+        for (uint256 i; i < y.length;) {
+            y[i] = keyToValue(y[i], 6);
+            unchecked {
+                ++i;
+            }
+        }
     }
 
     function sort(int256[] memory x) internal pure returns (int256[] memory y) {
@@ -684,6 +702,51 @@ library ArrayUtil {
             unchecked {
                 ++i;
             }
+        }
+    }
+
+    /**
+     * @notice generates a key by concatenating two indexes price | index^decimals
+     * @param value the value to store
+     * @param key some index. The value of this key must never exceed the decimals
+     */
+    function valueToKey(uint256 value, uint256 index, uint256 decimals) internal pure returns (uint256 key) {
+        return value * 10 ** decimals + index;
+    }
+
+    /**
+     * @notice turns a key back into the underlying value
+     * @param key the previously generated key
+     * @param decimals the decimals used to generate the key originally
+     * @return value the value associated with the key
+     */
+    function keyToValue(uint256 key, uint256 decimals) internal pure returns (uint256 value) {
+        return key / 10 ** decimals;
+    }
+
+    /**
+     * @notice turns a key back into the underlying value
+     * @param key the previously generated key
+     * @param decimals the decimals used to generate the key originally
+     * @return value the value associated with the key
+     */
+    function keyToValue(int256 key, uint256 decimals) internal pure returns (int256 value) {
+        return key / int256(10 ** decimals);
+    }
+
+    /**
+     * @notice generates a key by concatenating two indexes price | index^decimals - 1
+     * @param value the value to store
+     * @param key some index. The value of this key must never exceed the decimals - 1.
+     */
+    function valueToKey(int256 value, uint256 index, uint256 decimals) internal pure returns (int256 key) {
+        int256 unit = int256(10 ** decimals);
+        int256 idx = int256(index);
+
+        if (value < 0) {
+            return value * unit - (unit - idx - 1);
+        } else {
+            return value * unit + idx;
         }
     }
 }
