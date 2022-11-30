@@ -30,6 +30,10 @@ jobs:
         uses: onbjerg/foundry-toolchain@v1
         with:
           version: nightly
+      
+      - name: Run deployment script
+        run: forge script script/deploy-launch.sol
+
       - name: Run tests
         run: forge test --gas-report
 
