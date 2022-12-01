@@ -31,6 +31,7 @@ import "../../../config/enums.sol";
 import "../../../config/constants.sol";
 import "../../../config/errors.sol";
 
+import "forge-std/console.sol";
 /**
  * @title   AdvancedMarginEngine
  * @author  @antoncoding
@@ -240,20 +241,23 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
         emit ProductConfigurationUpdated(_productId, _dUpper, _dLower, _rUpper, _rLower, _volMultiplier);
     }
 
+    /**
+     * @dev override _removeCollateral in BaseEngine to handle cases when user tries to settle 
+     *      a vault with expired short.
+     
+     */
     function _removeCollateral(address _subAccount, bytes calldata _data) internal override {
         // check if there is an expired short still in the account, if there is then collateral cant be removed
         // until the position is settled
         AdvancedMarginAccount storage accout = marginAccounts[_subAccount];
 
         if (accout.shortCallAmount > 0) {
-            (, , uint64 expiry, , ) = TokenIdUtil.parseTokenId(accout.shortCallId);
-            if (expiry < block.timestamp) revert AM_ExpiredShortInAccount();
-            // TODO: maybe settle here instead of reverting
+            (,, uint64 expiry,,) = TokenIdUtil.parseTokenId(accout.shortCallId);
+            if (expiry <= block.timestamp) revert AM_ExpiredShortInAccount();
         }
         if (accout.shortPutAmount > 0) {
-            (, , uint64 expiry, , ) = TokenIdUtil.parseTokenId(accout.shortPutId);
-            if (expiry < block.timestamp) revert AM_ExpiredShortInAccount();
-            // TODO: maybe settle here instead of reverting
+            (,, uint64 expiry,,) = TokenIdUtil.parseTokenId(accout.shortPutId);
+            if (expiry <= block.timestamp) revert AM_ExpiredShortInAccount();
         }
 
         BaseEngine._removeCollateral(_subAccount, _data);

@@ -120,6 +120,22 @@ contract TestSettleCall is AdvancedFixture {
         assertEq(collateralBefore - collateralAfter, expectedPayout);
         assertEq(collateralIdAfter, collateralIdBefore);
     }
+
+    function testCannotRemoveCollateralBeforeSettleExpiredShort() public {
+        uint depostedAmount = 1000 * 1e6;
+        
+        // expires in the money
+        uint256 expiryPrice = 3000 * UNIT;
+        oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
+
+        // settle marginaccount
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        actions[0] = createRemoveCollateralAction(depostedAmount, usdcId, address(this));
+        actions[1] = createSettleAction();
+
+        vm.expectRevert(AM_ExpiredShortInAccount.selector);
+        engine.execute(address(this), actions);
+    }
 }
 
 contract TestSettleCoveredCall is AdvancedFixture {
@@ -347,6 +363,22 @@ contract TestSettlePut is AdvancedFixture {
         assertEq(shortPutAmount, 0);
         assertEq(collateralBefore - collateralAfter, expectedPayout);
         assertEq(collateralIdAfter, collateralIdBefore);
+    }
+
+    function testCannotRemoveCollateralBeforeSettleExpiredShort() public {
+        uint depostedAmount = 1000 * 1e6;
+        
+        // expires in the money
+        uint256 expiryPrice = 1200 * UNIT;
+        oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
+
+        // settle marginaccount
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        actions[0] = createRemoveCollateralAction(depostedAmount, usdcId, address(this));
+        actions[1] = createSettleAction();
+
+        vm.expectRevert(AM_ExpiredShortInAccount.selector);
+        engine.execute(address(this), actions);
     }
 }
 

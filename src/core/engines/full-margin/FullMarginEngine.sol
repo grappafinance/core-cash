@@ -121,26 +121,9 @@ contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyG
     }
 
     /**
-     * @dev push token to user, decrease collateral in storage
-     * @param _data bytes data to decode
-     */
-    function _removeCollateral(address _subAccount, bytes calldata _data) internal override {
-        FullMarginAccount storage account = marginAccounts[_subAccount];
-
-        // check if there is an expired short still in the account, if there is then collateral cant be removed
-        // until the position is settled
-        if (account.shortAmount > 0) {
-            (, , uint64 expiry, , ) = TokenIdUtil.parseTokenId(account.tokenId);
-            if (expiry < block.timestamp) revert FM_ExpiredShortInAccount();
-            // todo: maybe settle insteaed of revert
-        }
-
-        BaseEngine._removeCollateral(_subAccount, _data);
-    }
-
-    /** ========================================================= **
-     *               Override Sate changing functions             *
-     * ========================================================= **
+     * ========================================================= *
+     *               Override Sate changing functions            *
+     * ========================================================= *
      */
 
     function _addCollateralToAccount(
