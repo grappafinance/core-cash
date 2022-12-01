@@ -7,7 +7,7 @@ import {stdError} from "forge-std/Test.sol";
 
 import "../../../config/enums.sol";
 import "../../../config/types.sol";
-// import "../../../config/constants.sol";
+import "../../../config/constants.sol";
 import "../../../config/errors.sol";
 
 // solhint-disable-next-line contract-name-camelcase
@@ -66,5 +66,67 @@ contract TestRemoveCollateral_FM is FullMarginFixture {
 
         vm.expectRevert(stdError.arithmeticError);
         engine.execute(address(this), actions);
+    }
+
+    function testCannotRemoveCollateralBeforeSettleExpiredShort() public {
+        // add short into the vault
+        uint256 expiry = block.timestamp + 2 hours;
+        uint256 strike = 2500 * UNIT;
+        uint256 strikeHigher = 3000 * UNIT;
+
+        uint256 tokenId = getTokenId(TokenType.CALL_SPREAD, pidUsdcCollat, expiry, strike, strikeHigher);
+
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createMintAction(tokenId, address(this), UNIT);
+
+        // mint option
+        engine.execute(address(this), actions);
+
+        // expire option
+        vm.warp(expiry);
+
+        // expires in the money
+        uint256 expiryPrice = 2800 * UNIT;
+        oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
+
+        // remove all collateral and settle
+        ActionArgs[] memory actions2 = new ActionArgs[](2);
+        actions2[0] = createRemoveCollateralAction(depositAmount, usdcId, address(this));
+        actions2[1] = createSettleAction();
+
+        // if user is trying to remove collateral before settlement
+        // the tx will revert because the vault has insufficient collateral to cover payout
+        vm.expectRevert(stdError.arithmeticError);
+        engine.execute(address(this), actions2);
+    }
+
+    function testCannotRemoveMoreCollateralThanPayoutAfterExpiry() public {
+        // add short into the vault
+        uint256 expiry = block.timestamp + 2 hours;
+        uint256 strike = 2500 * UNIT;
+        uint256 strikeHigher = 3000 * UNIT;
+
+        uint256 tokenId = getTokenId(TokenType.CALL_SPREAD, pidUsdcCollat, expiry, strike, strikeHigher);
+
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createMintAction(tokenId, address(this), UNIT);
+
+        // mint option
+        engine.execute(address(this), actions);
+
+        // expire option
+        vm.warp(expiry);
+
+        // expires in the money
+        uint256 expiryPrice = 2800 * UNIT;
+        oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
+
+        
+        ActionArgs[] memory actions2 = new ActionArgs[](1);
+        actions2[0] = createRemoveCollateralAction(depositAmount, usdcId, address(this));
+
+        // if user remove more collateral than needed to reserve for payout, reverts
+        vm.expectRevert(BM_AccountUnderwater.selector);
+        engine.execute(address(this), actions2);
     }
 }
