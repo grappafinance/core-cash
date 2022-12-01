@@ -121,7 +121,6 @@ contract TestRemoveCollateral_FM is FullMarginFixture {
         uint256 expiryPrice = 2800 * UNIT;
         oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
 
-        
         ActionArgs[] memory actions2 = new ActionArgs[](1);
         actions2[0] = createRemoveCollateralAction(depositAmount, usdcId, address(this));
 
