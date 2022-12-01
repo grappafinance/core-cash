@@ -42,6 +42,7 @@ import "forge-std/console.sol";
  *             Interacts with Oracle to read spot
  *             Interacts with VolOracle to read vol
  */
+
 contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable, ReentrancyGuard {
     using AdvancedMarginMath for AdvancedMarginDetail;
     using AdvancedMarginLib for AdvancedMarginAccount;
@@ -242,9 +243,8 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
     }
 
     /**
-     * @dev override _removeCollateral in BaseEngine to handle cases when user tries to settle 
+     * @dev override _removeCollateral in BaseEngine to handle cases when user tries to settle
      *      a vault with expired short.
-     
      */
     function _removeCollateral(address _subAccount, bytes calldata _data) internal override {
         // check if there is an expired short still in the account, if there is then collateral cant be removed

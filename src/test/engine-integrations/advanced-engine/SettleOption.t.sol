@@ -122,8 +122,8 @@ contract TestSettleCall is AdvancedFixture {
     }
 
     function testCannotRemoveCollateralBeforeSettleExpiredShort() public {
-        uint depostedAmount = 1000 * 1e6;
-        
+        uint256 depostedAmount = 1000 * 1e6;
+
         // expires in the money
         uint256 expiryPrice = 3000 * UNIT;
         oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
@@ -366,8 +366,8 @@ contract TestSettlePut is AdvancedFixture {
     }
 
     function testCannotRemoveCollateralBeforeSettleExpiredShort() public {
-        uint depostedAmount = 1000 * 1e6;
-        
+        uint256 depostedAmount = 1000 * 1e6;
+
         // expires in the money
         uint256 expiryPrice = 1200 * UNIT;
         oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
