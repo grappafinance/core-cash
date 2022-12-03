@@ -254,8 +254,8 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
         if (accout.shortCallAmount > 0) {
             (,, uint64 expiry,,) = TokenIdUtil.parseTokenId(accout.shortCallId);
             if (expiry <= block.timestamp) revert AM_ExpiredShortInAccount();
-        }
-        if (accout.shortPutAmount > 0) {
+        } else if (accout.shortPutAmount > 0) {
+            // if the account has both calls and puts, they must have the same expiry
             (,, uint64 expiry,,) = TokenIdUtil.parseTokenId(accout.shortPutId);
             if (expiry <= block.timestamp) revert AM_ExpiredShortInAccount();
         }

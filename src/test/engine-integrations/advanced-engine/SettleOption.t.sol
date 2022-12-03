@@ -807,6 +807,92 @@ contract TestSettlePutSpread is AdvancedFixture {
     }
 }
 
+contract TestSettleShortCondor is AdvancedFixture {
+    uint256 public expiry;
+
+    uint64 private amount = uint64(1 * UNIT);
+    uint256 private callSpreadTokenId;
+    uint64 private lowerCallStrike;
+    uint64 private higherCallStrike;
+
+    uint256 private putSpreadTokenId;
+    uint64 private lowerPutStrike;
+    uint64 private higherPutStrike;
+
+    function setUp() public {
+        usdc.mint(address(this), 1000_000 * 1e6);
+        usdc.approve(address(engine), type(uint256).max);
+
+        expiry = block.timestamp + 14 days;
+
+        oracle.setSpotPrice(address(weth), 3000 * UNIT);
+
+        // mint option
+        uint256 depositAmount = 200 * 1e6;
+
+        lowerCallStrike = uint64(1800 * UNIT);
+        higherCallStrike = uint64(2000 * UNIT);
+
+        higherPutStrike = uint64(1200 * UNIT);
+        lowerPutStrike = uint64(1000 * UNIT);
+        
+
+        callSpreadTokenId = getTokenId(TokenType.CALL_SPREAD, productId, expiry, lowerCallStrike, higherCallStrike);
+        putSpreadTokenId = getTokenId(TokenType.PUT_SPREAD, productId, expiry, higherPutStrike, lowerPutStrike);
+
+        ActionArgs[] memory actions = new ActionArgs[](3);
+        actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
+        // give optoin to alice
+        actions[1] = createMintAction(callSpreadTokenId, alice, amount);
+        actions[2] = createMintAction(putSpreadTokenId, alice, amount);
+
+        // mint option
+        engine.execute(address(this), actions);
+
+        // expire option
+        vm.warp(expiry);
+    }
+
+    function testLongShouldGetNothingIfExpiresOTM() public {
+        // expires out the money (price within the range 1200 - 1800)
+        uint256 expiryPrice = 1500 * UNIT;
+        oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
+        uint256 usdcBefore = usdc.balanceOf(alice);        
+
+        grappa.settleOption(alice, callSpreadTokenId, amount);
+        grappa.settleOption(alice, putSpreadTokenId, amount);
+
+        uint256 usdcAfter = usdc.balanceOf(alice);
+
+        assertEq(usdcBefore, usdcAfter);
+    }
+
+    // settling sell side
+    function testSellerCanClearDebtIfExpiresOTM() public {
+        // expires out the money
+        uint256 expiryPrice = 1500 * UNIT;
+        oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
+
+        (,,,, uint80 collateralBefore, uint8 collateralIdBefore) = engine.marginAccounts(address(this));
+
+        // settle marginaccount
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createSettleAction();
+        engine.execute(address(this), actions);
+
+        //margin account should be reset
+        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) =
+            engine.marginAccounts(address(this));
+
+        assertEq(shortPutId, 0);
+        assertEq(shortCallId, 0);
+        assertEq(shortPutAmount, 0);
+        assertEq(shortCallAmount, 0);
+        assertEq(collateralAfter, collateralBefore);
+        assertEq(collateralIdAfter, collateralIdBefore);
+    }
+}
+
 contract TestSettleBTCCollateralizedCall is AdvancedFixture {
     uint256 public expiry;
 
