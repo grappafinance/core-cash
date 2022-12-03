@@ -41,6 +41,7 @@ import "../../../config/errors.sol";
  *             Interacts with Oracle to read spot
  *             Interacts with VolOracle to read vol
  */
+
 contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable, ReentrancyGuard {
     using AdvancedMarginMath for AdvancedMarginDetail;
     using AdvancedMarginLib for AdvancedMarginAccount;
@@ -237,9 +238,36 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
     }
 
     /**
-     * ========================================================= **
-     *               Override Sate changing functions             *
+     * ======================================================== *
+     *               Override Base Engine functions             *
+     * ======================================================== *
+     */
+
+    /**
+     * @notice override _removeCollateral in BaseEngine to handle settlement with expired short positions.
+     * @dev if the account has both calls and puts, they must have the same expiry
+     *      so we can skip put expiry check if we already check call
+     */
+    function _removeCollateral(address _subAccount, bytes calldata _data) internal override {
+        // check if there is an expired short still in the account, if there is then collateral cant be removed
+        // until the position is settled
+        AdvancedMarginAccount storage accout = marginAccounts[_subAccount];
+
+        if (accout.shortCallAmount > 0) {
+            (,, uint64 expiry,,) = TokenIdUtil.parseTokenId(accout.shortCallId);
+            if (expiry <= block.timestamp) revert AM_ExpiredShortInAccount();
+        } else if (accout.shortPutAmount > 0) {
+            (,, uint64 expiry,,) = TokenIdUtil.parseTokenId(accout.shortPutId);
+            if (expiry <= block.timestamp) revert AM_ExpiredShortInAccount();
+        }
+
+        BaseEngine._removeCollateral(_subAccount, _data);
+    }
+
+    /**
      * ========================================================= *
+     *               Override Sate changing functions             *
+     * ========================================================== *
      */
 
     function _addCollateralToAccount(address _subAccount, uint8 collateralId, uint80 amount) internal override {

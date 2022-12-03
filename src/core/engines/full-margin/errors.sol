@@ -33,3 +33,6 @@ error FM_CollateraliMisMatch();
 
 /// @dev cannot override a non-empty subaccount id
 error FM_AccountIsNotEmpty();
+
+/// @dev cannot remove collateral because there are expired longs
+error FM_ExpiredShortInAccount();

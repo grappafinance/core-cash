@@ -35,6 +35,9 @@ error AM_AccountIsNotEmpty();
 /// @dev amounts to repay in liquidation are not valid. Missing call, put or not proportional to the amount in subaccount.
 error AM_WrongRepayAmounts();
 
+/// @dev cannot remove collateral because there are expired longs
+error AM_ExpiredShortInAccount();
+
 // Vol Oracle
 
 /// @dev cannot re-set aggregator
