@@ -835,7 +835,6 @@ contract TestSettleShortCondor is AdvancedFixture {
 
         higherPutStrike = uint64(1200 * UNIT);
         lowerPutStrike = uint64(1000 * UNIT);
-        
 
         callSpreadTokenId = getTokenId(TokenType.CALL_SPREAD, productId, expiry, lowerCallStrike, higherCallStrike);
         putSpreadTokenId = getTokenId(TokenType.PUT_SPREAD, productId, expiry, higherPutStrike, lowerPutStrike);
@@ -857,7 +856,7 @@ contract TestSettleShortCondor is AdvancedFixture {
         // expires out the money (price within the range 1200 - 1800)
         uint256 expiryPrice = 1500 * UNIT;
         oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
-        uint256 usdcBefore = usdc.balanceOf(alice);        
+        uint256 usdcBefore = usdc.balanceOf(alice);
 
         grappa.settleOption(alice, callSpreadTokenId, amount);
         grappa.settleOption(alice, putSpreadTokenId, amount);
@@ -881,8 +880,14 @@ contract TestSettleShortCondor is AdvancedFixture {
         engine.execute(address(this), actions);
 
         //margin account should be reset
-        (uint256 shortCallId, uint256 shortPutId, uint64 shortCallAmount, uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) =
-            engine.marginAccounts(address(this));
+        (
+            uint256 shortCallId,
+            uint256 shortPutId,
+            uint64 shortCallAmount,
+            uint64 shortPutAmount,
+            uint80 collateralAfter,
+            uint8 collateralIdAfter
+        ) = engine.marginAccounts(address(this));
 
         assertEq(shortPutId, 0);
         assertEq(shortCallId, 0);
