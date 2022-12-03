@@ -53,6 +53,34 @@ contract TestRemoveCollateral_AM is AdvancedFixture {
         engine.execute(address(this), actions);
     }
 
+    function testCanRemoveExtraCollateralBeforeSettlement() public {
+        // add short into the vault
+        uint256 expiry = block.timestamp + 2 hours;
+        uint256 strikeHigher = 1200 * UNIT;
+        uint256 strikeLower = 1000 * UNIT;
+
+        uint256 tokenId = getTokenId(TokenType.PUT_SPREAD, productId, expiry, strikeHigher, strikeLower);
+
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createMintAction(tokenId, address(this), UNIT);
+
+        // mint option: create short position
+        engine.execute(address(this), actions);
+
+        // test remove collateral
+        uint256 collateralNeeded = (200 * UNIT);
+        uint256 amountToRemove = depositAmount - collateralNeeded;
+
+        ActionArgs[] memory actions2 = new ActionArgs[](1);
+        actions2[0] = createRemoveCollateralAction(amountToRemove, usdcId, address(this));
+
+        // remove collateral
+        engine.execute(address(this), actions2);
+
+        (,,,, uint80 collateralAmount,) = engine.marginAccounts(address(this));
+        assertEq(collateralAmount, collateralNeeded);
+    }
+
     function testCannotRemoveCollateralBeforeSettleExpiredShort() public {
         // add short into the vault
         uint256 expiry = block.timestamp + 2 hours;
