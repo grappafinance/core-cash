@@ -39,7 +39,7 @@ contract CrossMarginEngineAccessTest is CrossMarginFixture {
         // can access subaccount!
         _assertCanAccessAccount(address(this), true);
 
-        (, , Balance[] memory collaterals) = engine.marginAccounts(address(this));
+        (,, Balance[] memory collaterals) = engine.marginAccounts(address(this));
 
         assertEq(collaterals.length, 1);
         assertEq(collaterals[0].collateralId, usdcId);

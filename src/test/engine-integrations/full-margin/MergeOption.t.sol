@@ -48,8 +48,8 @@ contract TestMergeOption_FM is FullMarginFixture {
         engine.execute(address(this), actions);
 
         // check result
-        (uint256 shortId, , , ) = engine.marginAccounts(address(this));
-        (TokenType newType, , , uint64 longStrike, uint64 shortStrike) = parseTokenId(shortId);
+        (uint256 shortId,,,) = engine.marginAccounts(address(this));
+        (TokenType newType,,, uint64 longStrike, uint64 shortStrike) = parseTokenId(shortId);
 
         assertEq(uint8(newType), uint8(TokenType.CALL_SPREAD));
         assertTrue(shortId != newTokenId);

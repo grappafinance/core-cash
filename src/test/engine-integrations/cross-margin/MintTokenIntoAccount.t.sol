@@ -42,7 +42,7 @@ contract TestMintIntoAccount_CM is CrossMarginFixture {
         actions[1] = createMintIntoAccountAction(tokenId, address(this), amount);
         engine.execute(address(this), actions);
 
-        (Position[] memory shorts, Position[] memory longs, ) = engine.marginAccounts(address(this));
+        (Position[] memory shorts, Position[] memory longs,) = engine.marginAccounts(address(this));
 
         assertEq(shorts.length, 1);
         assertEq(shorts[0].tokenId, tokenId);

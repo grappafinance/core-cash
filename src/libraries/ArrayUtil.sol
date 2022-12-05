@@ -19,7 +19,6 @@ library ArrayUtil {
             if (x[i] < m) {
                 m = x[i];
             }
-
             unchecked {
                 ++i;
             }
@@ -32,7 +31,6 @@ library ArrayUtil {
             if (x[i] < m) {
                 m = x[i];
             }
-
             unchecked {
                 ++i;
             }
@@ -48,7 +46,6 @@ library ArrayUtil {
             if (x[i] > max_) {
                 max_ = x[i];
             }
-
             unchecked {
                 ++i;
             }

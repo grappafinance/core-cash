@@ -7,13 +7,9 @@ import {TokenIdUtil} from "../../libraries/TokenIdUtil.sol";
 import "../../config/enums.sol";
 
 contract TokenIdUtilTest is Test {
-    function testTokenIdHigherThan0(
-        uint8 tokenType,
-        uint40 productId,
-        uint64 expiry,
-        uint64 longStrike,
-        uint64 shortStrike
-    ) public {
+    function testTokenIdHigherThan0(uint8 tokenType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike)
+        public
+    {
         vm.assume(tokenType < 4);
         vm.assume(productId > 0);
 
@@ -33,8 +29,8 @@ contract TokenIdUtilTest is Test {
         vm.assume(productId > 0);
 
         uint256 id = TokenIdUtil.formatTokenId(TokenType(tokenType), productId, expiry, longStrike, shortStrike);
-        (TokenType _tokenType, uint40 _productId, uint64 _expiry, uint64 _longStrike, uint64 _shortStrike) = TokenIdUtil
-            .parseTokenId(id);
+        (TokenType _tokenType, uint40 _productId, uint64 _expiry, uint64 _longStrike, uint64 _shortStrike) =
+            TokenIdUtil.parseTokenId(id);
 
         assertEq(uint8(tokenType), uint8(_tokenType));
         assertEq(productId, _productId);
@@ -54,8 +50,8 @@ contract TokenIdUtilTest is Test {
         vm.assume(productId > 0);
 
         uint256 id = TokenIdUtil.getTokenId(TokenType(tokenType), productId, expiry, longStrike, shortStrike);
-        (TokenType _tokenType, uint40 _productId, uint64 _expiry, uint64 _longStrike, uint64 _shortStrike) = TokenIdUtil
-            .parseTokenId(id);
+        (TokenType _tokenType, uint40 _productId, uint64 _expiry, uint64 _longStrike, uint64 _shortStrike) =
+            TokenIdUtil.parseTokenId(id);
 
         assertEq(tokenType, uint8(_tokenType));
         assertEq(productId, _productId);

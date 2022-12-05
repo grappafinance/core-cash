@@ -41,7 +41,7 @@ contract TestBurnCall is AdvancedFixture {
 
         // action
         engine.execute(address(this), actions);
-        (uint256 shortCallId, , uint64 shortCallAmount, , , ) = engine.marginAccounts(address(this));
+        (uint256 shortCallId,, uint64 shortCallAmount,,,) = engine.marginAccounts(address(this));
 
         // check result
         assertEq(shortCallId, 0);

@@ -80,7 +80,7 @@ contract TestSettleCall is AdvancedFixture {
         // expires out the money
         oracle.setExpiryPrice(address(weth), address(usdc), strike - 1);
 
-        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = engine.marginAccounts(address(this));
+        (,,,, uint80 collateralBefore, uint8 collateralIdBefore) = engine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -88,8 +88,8 @@ contract TestSettleCall is AdvancedFixture {
         engine.execute(address(this), actions);
 
         //margin account should be reset
-        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAfter, uint8 collateralIdAfter) = engine
-            .marginAccounts(address(this));
+        (uint256 shortCallId,, uint64 shortCallAmount,, uint80 collateralAfter, uint8 collateralIdAfter) =
+            engine.marginAccounts(address(this));
 
         assertEq(shortCallId, 0);
         assertEq(shortCallAmount, 0);
@@ -104,7 +104,7 @@ contract TestSettleCall is AdvancedFixture {
 
         uint256 expectedPayout = expiryPrice - strike;
 
-        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = engine.marginAccounts(address(this));
+        (,,,, uint80 collateralBefore, uint8 collateralIdBefore) = engine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -112,8 +112,8 @@ contract TestSettleCall is AdvancedFixture {
         engine.execute(address(this), actions);
 
         // margin account should be reset
-        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAfter, uint8 collateralIdAfter) = engine
-            .marginAccounts(address(this));
+        (uint256 shortCallId,, uint64 shortCallAmount,, uint80 collateralAfter, uint8 collateralIdAfter) =
+            engine.marginAccounts(address(this));
 
         assertEq(shortCallId, 0);
         assertEq(shortCallAmount, 0);
@@ -176,7 +176,7 @@ contract TestSettleCoveredCall is AdvancedFixture {
         uint256 expiryPrice = 5000 * UNIT;
         oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
 
-        uint256 expectedPayout = ((uint64(expiryPrice) - strike) / 5000) * (10**(18 - UNIT_DECIMALS));
+        uint256 expectedPayout = ((uint64(expiryPrice) - strike) / 5000) * (10 ** (18 - UNIT_DECIMALS));
         uint256 wethBefore = weth.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
@@ -194,7 +194,7 @@ contract TestSettleCoveredCall is AdvancedFixture {
         // expires out the money
         oracle.setExpiryPrice(address(weth), address(usdc), strike - 1);
 
-        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = engine.marginAccounts(address(this));
+        (,,,, uint80 collateralBefore, uint8 collateralIdBefore) = engine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -202,8 +202,8 @@ contract TestSettleCoveredCall is AdvancedFixture {
         engine.execute(address(this), actions);
 
         //margin account should be reset
-        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAfter, uint8 collateralIdAfter) = engine
-            .marginAccounts(address(this));
+        (uint256 shortCallId,, uint64 shortCallAmount,, uint80 collateralAfter, uint8 collateralIdAfter) =
+            engine.marginAccounts(address(this));
 
         assertEq(shortCallId, 0);
         assertEq(shortCallAmount, 0);
@@ -216,9 +216,9 @@ contract TestSettleCoveredCall is AdvancedFixture {
         uint256 expiryPrice = 5000 * UNIT;
         oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
 
-        uint256 expectedPayout = ((uint64(expiryPrice) - strike) / 5000) * (10**(18 - UNIT_DECIMALS));
+        uint256 expectedPayout = ((uint64(expiryPrice) - strike) / 5000) * (10 ** (18 - UNIT_DECIMALS));
 
-        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = engine.marginAccounts(address(this));
+        (,,,, uint80 collateralBefore, uint8 collateralIdBefore) = engine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -226,8 +226,8 @@ contract TestSettleCoveredCall is AdvancedFixture {
         engine.execute(address(this), actions);
 
         // margin account should be reset
-        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAfter, uint8 collateralIdAfter) = engine
-            .marginAccounts(address(this));
+        (uint256 shortCallId,, uint64 shortCallAmount,, uint80 collateralAfter, uint8 collateralIdAfter) =
+            engine.marginAccounts(address(this));
 
         assertEq(shortCallId, 0);
         assertEq(shortCallAmount, 0);
@@ -308,7 +308,7 @@ contract TestSettlePut is AdvancedFixture {
         // expires out the money
         oracle.setExpiryPrice(address(weth), address(usdc), strike + 1);
 
-        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = engine.marginAccounts(address(this));
+        (,,,, uint80 collateralBefore, uint8 collateralIdBefore) = engine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -316,8 +316,8 @@ contract TestSettlePut is AdvancedFixture {
         engine.execute(address(this), actions);
 
         //margin account should be reset
-        (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = engine
-            .marginAccounts(address(this));
+        (, uint256 shortPutId,, uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) =
+            engine.marginAccounts(address(this));
 
         assertEq(shortPutId, 0);
         assertEq(shortPutAmount, 0);
@@ -332,7 +332,7 @@ contract TestSettlePut is AdvancedFixture {
 
         uint256 expectedPayout = strike - uint64(expiryPrice);
 
-        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = engine.marginAccounts(address(this));
+        (,,,, uint80 collateralBefore, uint8 collateralIdBefore) = engine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -340,8 +340,8 @@ contract TestSettlePut is AdvancedFixture {
         engine.execute(address(this), actions);
 
         // margin account should be reset
-        (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = engine
-            .marginAccounts(address(this));
+        (, uint256 shortPutId,, uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) =
+            engine.marginAccounts(address(this));
 
         assertEq(shortPutId, 0);
         assertEq(shortPutAmount, 0);
@@ -403,7 +403,7 @@ contract TestSettleETHCollateralizedPut is AdvancedFixture {
         uint256 expiryPrice = 1600 * UNIT;
         oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
 
-        uint256 expectedPayout = ((strike - uint64(expiryPrice)) / 1600) * (10**(18 - UNIT_DECIMALS));
+        uint256 expectedPayout = ((strike - uint64(expiryPrice)) / 1600) * (10 ** (18 - UNIT_DECIMALS));
         uint256 wethBefore = weth.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
@@ -419,7 +419,7 @@ contract TestSettleETHCollateralizedPut is AdvancedFixture {
         // expires out the money
         oracle.setExpiryPrice(address(weth), address(usdc), strike + 1);
 
-        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = engine.marginAccounts(address(this));
+        (,,,, uint80 collateralBefore, uint8 collateralIdBefore) = engine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -427,8 +427,8 @@ contract TestSettleETHCollateralizedPut is AdvancedFixture {
         engine.execute(address(this), actions);
 
         //margin account should be reset
-        (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = engine
-            .marginAccounts(address(this));
+        (, uint256 shortPutId,, uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) =
+            engine.marginAccounts(address(this));
 
         assertEq(shortPutId, 0);
         assertEq(shortPutAmount, 0);
@@ -441,9 +441,9 @@ contract TestSettleETHCollateralizedPut is AdvancedFixture {
         uint256 expiryPrice = 1600 * UNIT;
         oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
 
-        uint256 expectedPayout = ((strike - uint64(expiryPrice)) / 1600) * (10**(18 - UNIT_DECIMALS));
+        uint256 expectedPayout = ((strike - uint64(expiryPrice)) / 1600) * (10 ** (18 - UNIT_DECIMALS));
 
-        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = engine.marginAccounts(address(this));
+        (,,,, uint80 collateralBefore, uint8 collateralIdBefore) = engine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -451,8 +451,8 @@ contract TestSettleETHCollateralizedPut is AdvancedFixture {
         engine.execute(address(this), actions);
 
         // margin account should be reset
-        (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = engine
-            .marginAccounts(address(this));
+        (, uint256 shortPutId,, uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) =
+            engine.marginAccounts(address(this));
 
         assertEq(shortPutId, 0);
         assertEq(shortPutAmount, 0);
@@ -551,7 +551,7 @@ contract TestSettleCallSpread is AdvancedFixture {
         // expires out the money
         oracle.setExpiryPrice(address(weth), address(usdc), longStrike);
 
-        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = engine.marginAccounts(address(this));
+        (,,,, uint80 collateralBefore, uint8 collateralIdBefore) = engine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -559,8 +559,8 @@ contract TestSettleCallSpread is AdvancedFixture {
         engine.execute(address(this), actions);
 
         //margin account should be reset
-        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAfter, uint8 collateralIdAfter) = engine
-            .marginAccounts(address(this));
+        (uint256 shortCallId,, uint64 shortCallAmount,, uint80 collateralAfter, uint8 collateralIdAfter) =
+            engine.marginAccounts(address(this));
 
         assertEq(shortCallId, 0);
         assertEq(shortCallAmount, 0);
@@ -575,7 +575,7 @@ contract TestSettleCallSpread is AdvancedFixture {
 
         uint256 expectedPayout = (uint64(expiryPrice) - longStrike);
 
-        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = engine.marginAccounts(address(this));
+        (,,,, uint80 collateralBefore, uint8 collateralIdBefore) = engine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -583,8 +583,8 @@ contract TestSettleCallSpread is AdvancedFixture {
         engine.execute(address(this), actions);
 
         // margin account should be reset
-        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAfter, uint8 collateralIdAfter) = engine
-            .marginAccounts(address(this));
+        (uint256 shortCallId,, uint64 shortCallAmount,, uint80 collateralAfter, uint8 collateralIdAfter) =
+            engine.marginAccounts(address(this));
 
         assertEq(shortCallId, 0);
         assertEq(shortCallAmount, 0);
@@ -599,7 +599,7 @@ contract TestSettleCallSpread is AdvancedFixture {
 
         uint256 expectedPayout = (uint64(shortStrike) - longStrike);
 
-        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = engine.marginAccounts(address(this));
+        (,,,, uint80 collateralBefore, uint8 collateralIdBefore) = engine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -607,8 +607,8 @@ contract TestSettleCallSpread is AdvancedFixture {
         engine.execute(address(this), actions);
 
         // margin account should be reset
-        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAfter, uint8 collateralIdAfter) = engine
-            .marginAccounts(address(this));
+        (uint256 shortCallId,, uint64 shortCallAmount,, uint80 collateralAfter, uint8 collateralIdAfter) =
+            engine.marginAccounts(address(this));
 
         assertEq(shortCallId, 0);
         assertEq(shortCallAmount, 0);
@@ -708,7 +708,7 @@ contract TestSettlePutSpread is AdvancedFixture {
         // expires out the money
         oracle.setExpiryPrice(address(weth), address(usdc), longStrike);
 
-        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = engine.marginAccounts(address(this));
+        (,,,, uint80 collateralBefore, uint8 collateralIdBefore) = engine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -716,8 +716,8 @@ contract TestSettlePutSpread is AdvancedFixture {
         engine.execute(address(this), actions);
 
         //margin account should be reset
-        (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = engine
-            .marginAccounts(address(this));
+        (, uint256 shortPutId,, uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) =
+            engine.marginAccounts(address(this));
 
         assertEq(shortPutId, 0);
         assertEq(shortPutAmount, 0);
@@ -733,7 +733,7 @@ contract TestSettlePutSpread is AdvancedFixture {
 
         uint256 expectedPayout = longStrike - uint64(expiryPrice);
 
-        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = engine.marginAccounts(address(this));
+        (,,,, uint80 collateralBefore, uint8 collateralIdBefore) = engine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -741,8 +741,8 @@ contract TestSettlePutSpread is AdvancedFixture {
         engine.execute(address(this), actions);
 
         //margin account should be reset
-        (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = engine
-            .marginAccounts(address(this));
+        (, uint256 shortPutId,, uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) =
+            engine.marginAccounts(address(this));
 
         assertEq(shortPutId, 0);
         assertEq(shortPutAmount, 0);
@@ -757,7 +757,7 @@ contract TestSettlePutSpread is AdvancedFixture {
 
         uint256 expectedPayout = longStrike - uint64(shortStrike);
 
-        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = engine.marginAccounts(address(this));
+        (,,,, uint80 collateralBefore, uint8 collateralIdBefore) = engine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -765,8 +765,8 @@ contract TestSettlePutSpread is AdvancedFixture {
         engine.execute(address(this), actions);
 
         //margin account should be reset
-        (, uint256 shortPutId, , uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) = engine
-            .marginAccounts(address(this));
+        (, uint256 shortPutId,, uint64 shortPutAmount, uint80 collateralAfter, uint8 collateralIdAfter) =
+            engine.marginAccounts(address(this));
 
         assertEq(shortPutId, 0);
         assertEq(shortPutAmount, 0);
@@ -806,13 +806,7 @@ contract TestSettleBTCCollateralizedCall is AdvancedFixture {
 
         strike = uint64(4000 * UNIT);
 
-        wbtcBackedProductId = grappa.getProductId(
-            address(oracle),
-            address(engine),
-            address(weth),
-            address(usdc),
-            address(wbtc)
-        );
+        wbtcBackedProductId = grappa.getProductId(address(oracle), address(engine), address(weth), address(usdc), address(wbtc));
         wbtcbackedTokenId = getTokenId(TokenType.CALL, wbtcBackedProductId, expiry, strike, 0);
         engine.setProductMarginConfig(wbtcBackedProductId, 180 days, 1 days, 6400, 800, 10000);
 
@@ -858,7 +852,7 @@ contract TestSettleBTCCollateralizedCall is AdvancedFixture {
 
         uint256 expectedPayout = ((uint64(expiryPrice) - strike) * 1e8) / mockedWbtcPrice;
 
-        (, , , , uint80 collateralBefore, uint8 collateralIdBefore) = engine.marginAccounts(address(this));
+        (,,,, uint80 collateralBefore, uint8 collateralIdBefore) = engine.marginAccounts(address(this));
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -866,8 +860,8 @@ contract TestSettleBTCCollateralizedCall is AdvancedFixture {
         engine.execute(address(this), actions);
 
         //margin account should be reset
-        (uint256 shortCallId, , uint64 shortCallAmount, , uint80 collateralAfter, uint8 collateralIdAfter) = engine
-            .marginAccounts(address(this));
+        (uint256 shortCallId,, uint64 shortCallAmount,, uint80 collateralAfter, uint8 collateralIdAfter) =
+            engine.marginAccounts(address(this));
 
         assertEq(shortCallId, 0);
         assertEq(shortCallAmount, 0);

@@ -22,13 +22,11 @@ import "../config/errors.sol";
  *  * ------------------- | ------------------- | ---------------- | -------------------- *
  */
 library TokenIdUtil {
-    function getTokenId(
-        TokenType tokenType,
-        uint40 productId,
-        uint256 expiry,
-        uint256 longStrike,
-        uint256 shortStrike
-    ) internal pure returns (uint256 tokenId) {
+    function getTokenId(TokenType tokenType, uint40 productId, uint256 expiry, uint256 longStrike, uint256 shortStrike)
+        internal
+        pure
+        returns (uint256 tokenId)
+    {
         tokenId = formatTokenId(tokenType, productId, uint64(expiry), uint64(longStrike), uint64(shortStrike));
     }
 
@@ -41,20 +39,14 @@ library TokenIdUtil {
      * @param shortStrike strike price of the short (upper bond for call and lower bond for put) if this is a spread. 6 decimals
      * @return tokenId token id
      */
-    function formatTokenId(
-        TokenType tokenType,
-        uint40 productId,
-        uint64 expiry,
-        uint64 longStrike,
-        uint64 shortStrike
-    ) internal pure returns (uint256 tokenId) {
+    function formatTokenId(TokenType tokenType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike)
+        internal
+        pure
+        returns (uint256 tokenId)
+    {
         unchecked {
-            tokenId =
-                (uint256(tokenType) << 232) +
-                (uint256(productId) << 192) +
-                (uint256(expiry) << 128) +
-                (uint256(longStrike) << 64) +
-                uint256(shortStrike);
+            tokenId = (uint256(tokenType) << 232) + (uint256(productId) << 192) + (uint256(expiry) << 128)
+                + (uint256(longStrike) << 64) + uint256(shortStrike);
         }
     }
 
@@ -66,18 +58,13 @@ library TokenIdUtil {
      * @param longStrike strike price of the long option, with 6 decimals
      * @return tokenId token id
      */
-    function formatShortTokenId(
-        TokenType tokenType,
-        uint40 productId,
-        uint64 expiry,
-        uint64 longStrike
-    ) internal pure returns (uint192 tokenId) {
+    function formatShortTokenId(TokenType tokenType, uint40 productId, uint64 expiry, uint64 longStrike)
+        internal
+        pure
+        returns (uint192 tokenId)
+    {
         unchecked {
-            tokenId =
-                (uint192(tokenType) << 168) +
-                (uint192(productId) << 128) +
-                (uint192(expiry) << 64) +
-                uint192(longStrike);
+            tokenId = (uint192(tokenType) << 168) + (uint192(productId) << 128) + (uint192(expiry) << 64) + uint192(longStrike);
         }
     }
 
@@ -94,13 +81,7 @@ library TokenIdUtil {
     function parseTokenId(uint256 tokenId)
         internal
         pure
-        returns (
-            TokenType tokenType,
-            uint40 productId,
-            uint64 expiry,
-            uint64 longStrike,
-            uint64 shortStrike
-        )
+        returns (TokenType tokenType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike)
     {
         // solhint-disable-next-line no-inline-assembly
         assembly {
@@ -152,12 +133,7 @@ library TokenIdUtil {
     function parseShortTokenId(uint192 tokenId)
         internal
         pure
-        returns (
-            TokenType tokenType,
-            uint40 productId,
-            uint64 expiry,
-            uint64 longStrike
-        )
+        returns (TokenType tokenType, uint40 productId, uint64 expiry, uint64 longStrike)
     {
         // solhint-disable-next-line no-inline-assembly
         assembly {

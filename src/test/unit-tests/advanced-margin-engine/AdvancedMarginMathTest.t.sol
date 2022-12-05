@@ -12,7 +12,7 @@ import "../../../core/engines/advanced-margin/types.sol";
 /**
  * Test if the formula is working properly for min collateral calculation:
  * Desmos file with same parameter can be found here:
-            https://www.desmos.com/calculator/mx6le8msfo
+ *             https://www.desmos.com/calculator/mx6le8msfo
  */
 contract AdvancedMarginMathTest is Test {
     uint256 public constant base = UNIT;
@@ -29,26 +29,13 @@ contract AdvancedMarginMathTest is Test {
         uint256 expiry = today + 21 days;
         uint256 vol = UNIT;
 
-        uint256 minCollat = AdvancedMarginMath.getMinCollateralForShortCall(
-            amount,
-            strike,
-            expiry,
-            spot,
-            vol,
-            getDefaultConfig()
-        );
+        uint256 minCollat = AdvancedMarginMath.getMinCollateralForShortCall(amount, strike, expiry, spot, vol, getDefaultConfig());
         assertEq(minCollat, 405771428); // 405 USD
 
         // spot decrease, min collateral also decrease
         spot = 2500 * base;
-        uint256 minCollat2 = AdvancedMarginMath.getMinCollateralForShortCall(
-            amount,
-            strike,
-            expiry,
-            spot,
-            vol,
-            getDefaultConfig()
-        );
+        uint256 minCollat2 =
+            AdvancedMarginMath.getMinCollateralForShortCall(amount, strike, expiry, spot, vol, getDefaultConfig());
         assertEq(minCollat2, 281785714); // 281 USD
     }
 
@@ -58,26 +45,14 @@ contract AdvancedMarginMathTest is Test {
         uint256 strike = 3000 * base;
         uint256 expiry = today + 21 days;
 
-        uint256 minCollat = AdvancedMarginMath.getMinCollateralForShortCall(
-            amount,
-            strike,
-            expiry,
-            spot,
-            UNIT,
-            getDefaultConfig()
-        );
+        uint256 minCollat =
+            AdvancedMarginMath.getMinCollateralForShortCall(amount, strike, expiry, spot, UNIT, getDefaultConfig());
         assertEq(minCollat, 973400000); // 1224 USD
 
         // spot increase, min collateral also increase
         spot = 4000 * base;
-        uint256 minCollat2 = AdvancedMarginMath.getMinCollateralForShortCall(
-            amount,
-            strike,
-            expiry,
-            spot,
-            UNIT,
-            getDefaultConfig()
-        );
+        uint256 minCollat2 =
+            AdvancedMarginMath.getMinCollateralForShortCall(amount, strike, expiry, spot, UNIT, getDefaultConfig());
         assertEq(minCollat2, 1473400000); // 1473.5 USD
     }
 
@@ -88,26 +63,12 @@ contract AdvancedMarginMathTest is Test {
         uint256 expiry = today + 21 days;
         uint256 vol = UNIT;
 
-        uint256 minCollat = AdvancedMarginMath.getMinCollateralForShortPut(
-            amount,
-            strike,
-            expiry,
-            spot,
-            vol,
-            getDefaultConfig()
-        );
+        uint256 minCollat = AdvancedMarginMath.getMinCollateralForShortPut(amount, strike, expiry, spot, vol, getDefaultConfig());
         assertEq(minCollat, 405771428); // ~406 USD
 
         // increasing spot price, the min collateral stay the same
         spot = 4000 * base;
-        uint256 minCollat2 = AdvancedMarginMath.getMinCollateralForShortPut(
-            amount,
-            strike,
-            expiry,
-            spot,
-            vol,
-            getDefaultConfig()
-        );
+        uint256 minCollat2 = AdvancedMarginMath.getMinCollateralForShortPut(amount, strike, expiry, spot, vol, getDefaultConfig());
         assertEq(minCollat2, 355050000); // 355 USD
     }
 
@@ -161,15 +122,14 @@ contract AdvancedMarginMathTest is Test {
     }
 
     function getDefaultConfig() internal pure returns (ProductMarginParams memory config) {
-        return
-            ProductMarginParams({
-                dUpper: 180 days,
-                dLower: 1 days,
-                sqrtDUpper: 3944, // (86400*180).sqrt()
-                sqrtDLower: 293, // 86400.sqrt()
-                rUpper: 3500, // 35%
-                rLower: 800, // 8%
-                volMultiplier: 10000 // 100%
-            });
+        return ProductMarginParams({
+            dUpper: 180 days,
+            dLower: 1 days,
+            sqrtDUpper: 3944, // (86400*180).sqrt()
+            sqrtDLower: 293, // 86400.sqrt()
+            rUpper: 3500, // 35%
+            rLower: 800, // 8%
+            volMultiplier: 10000 // 100%
+        });
     }
 }

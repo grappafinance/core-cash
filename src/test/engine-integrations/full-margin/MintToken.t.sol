@@ -39,7 +39,7 @@ contract TestMint_FM is FullMarginFixture {
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
         engine.execute(address(this), actions);
-        (uint256 shortId, uint64 shortAmount, , ) = engine.marginAccounts(address(this));
+        (uint256 shortId, uint64 shortAmount,,) = engine.marginAccounts(address(this));
 
         assertEq(shortId, tokenId);
         assertEq(shortAmount, amount);
@@ -101,7 +101,7 @@ contract TestMint_FM is FullMarginFixture {
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
         engine.execute(address(this), actions);
-        (uint256 shortId, uint64 shortAmount, , ) = engine.marginAccounts(address(this));
+        (uint256 shortId, uint64 shortAmount,,) = engine.marginAccounts(address(this));
 
         assertEq(shortId, tokenId);
         assertEq(shortAmount, amount);
@@ -151,7 +151,7 @@ contract TestMint_FM is FullMarginFixture {
         actions[1] = createMintAction(tokenId, address(this), amount);
         engine.execute(address(this), actions);
 
-        (uint256 shortId, uint64 shortAmount, , ) = engine.marginAccounts(address(this));
+        (uint256 shortId, uint64 shortAmount,,) = engine.marginAccounts(address(this));
 
         assertEq(shortId, tokenId);
         assertEq(shortAmount, amount);

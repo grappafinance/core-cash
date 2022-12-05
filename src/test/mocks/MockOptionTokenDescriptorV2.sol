@@ -21,10 +21,9 @@ contract MockTokenDescriptorV2 is UUPSUpgradeable {
 
     /**
      * @dev Upgradable by the owner.
-     **/
-    function _authorizeUpgrade(
-        address /*newImplementation*/
-    ) internal pure override {
+     *
+     */
+    function _authorizeUpgrade(address /*newImplementation*/ ) internal pure override {
         revert("not upgradable anymore");
     }
 }

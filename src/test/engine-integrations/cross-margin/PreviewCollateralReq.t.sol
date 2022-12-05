@@ -214,13 +214,13 @@ contract TestpreviewMinCollateral_CMM is CrossMarginFixture {
         for (uint256 i = 0; i < positions.length; i++) {
             OptionPosition memory position = positions[i];
 
-            uint256 tokenId = TokenType.CALL == position.tokenType
-                ? _callTokenId(position.strike)
-                : _putTokenId(position.strike);
+            uint256 tokenId = TokenType.CALL == position.tokenType ? _callTokenId(position.strike) : _putTokenId(position.strike);
 
-            if (position.amount < 0)
+            if (position.amount < 0) {
                 shorts = AccountUtil.append(shorts, Position(tokenId, uint64(uint256(-position.amount))));
-            else longs = AccountUtil.append(longs, Position(tokenId, uint64(uint256(position.amount))));
+            } else {
+                longs = AccountUtil.append(longs, Position(tokenId, uint64(uint256(position.amount))));
+            }
         }
     }
 

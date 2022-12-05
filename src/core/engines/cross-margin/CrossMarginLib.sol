@@ -39,27 +39,21 @@ library CrossMarginLib {
 
     ///@dev Increase the collateral in the account
     ///@param account CrossMarginAccount storage that will be updated
-    function addCollateral(
-        CrossMarginAccount storage account,
-        uint8 collateralId,
-        uint80 amount
-    ) public {
+    function addCollateral(CrossMarginAccount storage account, uint8 collateralId, uint80 amount) public {
         if (amount == 0) return;
 
         (bool found, uint256 index) = account.collaterals.indexOf(collateralId);
 
         if (!found) {
             account.collaterals.push(Balance(collateralId, amount));
-        } else account.collaterals[index].amount += amount;
+        } else {
+            account.collaterals[index].amount += amount;
+        }
     }
 
     ///@dev Reduce the collateral in the account
     ///@param account CrossMarginAccount storage that will be updated
-    function removeCollateral(
-        CrossMarginAccount storage account,
-        uint8 collateralId,
-        uint80 amount
-    ) public {
+    function removeCollateral(CrossMarginAccount storage account, uint8 collateralId, uint80 amount) public {
         Balance[] memory collaterals = account.collaterals;
 
         (bool found, uint256 index) = collaterals.indexOf(collateralId);
@@ -70,29 +64,28 @@ library CrossMarginLib {
 
         if (newAmount == 0) {
             account.collaterals.remove(index);
-        } else account.collaterals[index].amount = newAmount;
+        } else {
+            account.collaterals[index].amount = newAmount;
+        }
     }
 
     ///@dev Increase the amount of short call or put (debt) of the account
     ///@param account CrossMarginAccount storage that will be updated
-    function mintOption(
-        CrossMarginAccount storage account,
-        uint256 tokenId,
-        uint64 amount
-    ) external {
+    function mintOption(CrossMarginAccount storage account, uint256 tokenId, uint64 amount) external {
         if (amount == 0) return;
 
-        (TokenType optionType, uint40 productId, , , ) = tokenId.parseTokenId();
+        (TokenType optionType, uint40 productId,,,) = tokenId.parseTokenId();
 
         // assign collateralId or check collateral id is the same
-        (, , uint8 underlyingId, uint8 strikeId, uint8 collateralId) = productId.parseProductId();
+        (,, uint8 underlyingId, uint8 strikeId, uint8 collateralId) = productId.parseProductId();
 
         // engine only supports calls and puts
         if (optionType != TokenType.CALL && optionType != TokenType.PUT) revert CM_UnsupportedTokenType();
 
         // call can only collateralized by underlying
-        if ((optionType == TokenType.CALL) && underlyingId != collateralId)
+        if ((optionType == TokenType.CALL) && underlyingId != collateralId) {
             revert CM_CannotMintOptionWithThisCollateral();
+        }
 
         // put can only be collateralized by strike
         if ((optionType == TokenType.PUT) && strikeId != collateralId) revert CM_CannotMintOptionWithThisCollateral();
@@ -100,16 +93,14 @@ library CrossMarginLib {
         (bool found, uint256 index) = account.shorts.getPositions().indexOf(tokenId);
         if (!found) {
             account.shorts.pushPosition(Position(tokenId, amount));
-        } else account.shorts[index].amount += amount;
+        } else {
+            account.shorts[index].amount += amount;
+        }
     }
 
     ///@dev Remove the amount of short call or put (debt) of the account
     ///@param account CrossMarginAccount storage that will be updated in-place
-    function burnOption(
-        CrossMarginAccount storage account,
-        uint256 tokenId,
-        uint64 amount
-    ) external {
+    function burnOption(CrossMarginAccount storage account, uint256 tokenId, uint64 amount) external {
         (bool found, PositionOptim memory position, uint256 index) = account.shorts.find(tokenId.compress());
 
         if (!found) revert CM_InvalidToken();
@@ -117,32 +108,28 @@ library CrossMarginLib {
         uint64 newShortAmount = position.amount - amount;
         if (newShortAmount == 0) {
             account.shorts.removePositionAt(index);
-        } else account.shorts[index].amount = newShortAmount;
+        } else {
+            account.shorts[index].amount = newShortAmount;
+        }
     }
 
     ///@dev Increase the amount of long call or put (debt) of the account
     ///@param account CrossMarginAccount storage that will be updated
-    function addOption(
-        CrossMarginAccount storage account,
-        uint256 tokenId,
-        uint64 amount
-    ) external {
+    function addOption(CrossMarginAccount storage account, uint256 tokenId, uint64 amount) external {
         if (amount == 0) return;
 
         (bool found, uint256 index) = account.longs.indexOf(tokenId.compress());
 
         if (!found) {
             account.longs.pushPosition(Position(tokenId, amount));
-        } else account.longs[index].amount += amount;
+        } else {
+            account.longs[index].amount += amount;
+        }
     }
 
     ///@dev Remove the amount of long call or put held by the account
     ///@param account CrossMarginAccount storage that will be updated in-place
-    function removeOption(
-        CrossMarginAccount storage account,
-        uint256 tokenId,
-        uint64 amount
-    ) external {
+    function removeOption(CrossMarginAccount storage account, uint256 tokenId, uint64 amount) external {
         (bool found, PositionOptim memory position, uint256 index) = account.longs.find(tokenId.compress());
 
         if (!found) revert CM_InvalidToken();
@@ -150,7 +137,9 @@ library CrossMarginLib {
         uint64 newLongAmount = position.amount - amount;
         if (newLongAmount == 0) {
             account.longs.removePositionAt(index);
-        } else account.longs[index].amount = newLongAmount;
+        } else {
+            account.longs[index].amount = newLongAmount;
+        }
     }
 
     ///@dev Settles the accounts longs and shorts
@@ -168,10 +157,7 @@ library CrossMarginLib {
     ///@dev Settles the accounts longs, adding collateral to balances
     ///@param grappa interface to settle long options in a batch call
     ///@param account CrossMarginAccount memory that will be updated in-place
-    function _settleLongs(IGrappa grappa, CrossMarginAccount storage account)
-        public
-        returns (Balance[] memory payouts)
-    {
+    function _settleLongs(IGrappa grappa, CrossMarginAccount storage account) public returns (Balance[] memory payouts) {
         uint256 i;
         uint256[] memory tokenIds;
         uint256[] memory amounts;
@@ -194,7 +180,7 @@ library CrossMarginLib {
         if (tokenIds.length > 0) {
             payouts = grappa.batchSettleOptions(address(this), tokenIds, amounts);
 
-            for (i = 0; i < payouts.length; ) {
+            for (i = 0; i < payouts.length;) {
                 // add the collateral in the account storage.
                 addCollateral(account, payouts[i].collateralId, payouts[i].amount);
 
@@ -208,10 +194,7 @@ library CrossMarginLib {
     ///@dev Settles the accounts shorts, reserving collateral for ITM options
     ///@param grappa interface to get short option payouts in a batch call
     ///@param account CrossMarginAccount memory that will be updated in-place
-    function _settleShorts(IGrappa grappa, CrossMarginAccount storage account)
-        public
-        returns (Balance[] memory payouts)
-    {
+    function _settleShorts(IGrappa grappa, CrossMarginAccount storage account) public returns (Balance[] memory payouts) {
         uint256 i;
         uint256[] memory tokenIds;
         uint256[] memory amounts;
@@ -234,7 +217,7 @@ library CrossMarginLib {
         if (tokenIds.length > 0) {
             payouts = grappa.batchGetPayouts(tokenIds, amounts);
 
-            for (i = 0; i < payouts.length; ) {
+            for (i = 0; i < payouts.length;) {
                 // remove the collateral in the account storage.
                 removeCollateral(account, payouts[i].collateralId, payouts[i].amount);
 

@@ -18,18 +18,11 @@ contract MockOracle is IOracle {
         return disputePeriod;
     }
 
-    function getSpotPrice(
-        address _underlying,
-        address /*_strike*/
-    ) external view override returns (uint256) {
+    function getSpotPrice(address _underlying, address /*_strike*/ ) external view override returns (uint256) {
         return spotPrice[_underlying];
     }
 
-    function getPriceAtExpiry(
-        address base,
-        address quote,
-        uint256 /*_expiry*/
-    ) external view override returns (uint256, bool) {
+    function getPriceAtExpiry(address base, address quote, uint256 /*_expiry*/ ) external view override returns (uint256, bool) {
         MockPrice memory p = expiryPrice[base][quote];
         return (p.price, p.isFinalized);
     }
@@ -42,20 +35,11 @@ contract MockOracle is IOracle {
         spotPrice[_asset] = _mockedSpotPrice;
     }
 
-    function setExpiryPrice(
-        address base,
-        address quote,
-        uint256 _mockedExpiryPrice
-    ) external {
+    function setExpiryPrice(address base, address quote, uint256 _mockedExpiryPrice) external {
         expiryPrice[base][quote] = MockPrice(uint128(_mockedExpiryPrice), true);
     }
 
-    function setExpiryPriceWithFinality(
-        address base,
-        address quote,
-        uint256 _mockedExpiryPrice,
-        bool _isFinalized
-    ) external {
+    function setExpiryPriceWithFinality(address base, address quote, uint256 _mockedExpiryPrice, bool _isFinalized) external {
         expiryPrice[base][quote] = MockPrice(uint128(_mockedExpiryPrice), _isFinalized);
     }
 }
