@@ -25,7 +25,7 @@ contract PreviewCollateralReqBase is CrossMarginFixture {
         int256 amount;
     }
 
-    function _previewMinCollateral(OptionPosition[] memory postions) internal returns (Balance[] memory balances) {
+    function _previewMinCollateral(OptionPosition[] memory postions) internal view returns (Balance[] memory balances) {
         (Position[] memory shorts, Position[] memory longs) = _convertPositions(postions);
         balances = engine.previewMinCollateral(shorts, longs);
     }
@@ -221,7 +221,7 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
 
         assertEq(balances.length, 1);
         assertEq(balances[0].collateralId, wethId);
-        assertEq(balances[0].amount, ((1 * UNIT) / 22000) * 1e12);
+        assertEq(balances[0].amount, ((1 * UNIT) / 22000) * (10 ** (18 - UNIT_DECIMALS)));
     }
 
     function testMarginCallSpreadSameUnderlyingCollateralBiggerNumbers() public {
@@ -233,7 +233,7 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
 
         assertEq(balances.length, 1);
         assertEq(balances[0].collateralId, wethId);
-        assertEq(balances[0].amount, ((100000 * 1000 * UNIT) / 22000) * 1e12);
+        assertEq(balances[0].amount, ((100000 * 1000 * UNIT) / 22000) * (10 ** (18 - UNIT_DECIMALS)));
     }
 
     function testMarginBinaryCallOption() public {
