@@ -75,9 +75,13 @@ library ArrayUtil {
      */
     function max(int256[] memory x) internal pure returns (int256 m) {
         m = x[0];
-        for (uint256 i; i < x.length; i++) {
+        for (uint256 i; i < x.length;) {
             if (x[i] > m) {
                 m = x[i];
+            }
+
+            unchecked {
+                ++i;
             }
         }
     }
