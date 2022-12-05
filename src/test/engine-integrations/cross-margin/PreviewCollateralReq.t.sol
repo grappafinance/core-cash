@@ -16,14 +16,8 @@ import "../../../core/engines/cross-margin//AccountUtil.sol";
 
 import "../../utils/Console.sol";
 
-/**
- * test full margin calculation for complicated structure
- */
-// solhint-disable-next-line contract-name-camelcase
-contract TestpreviewMinCollateral_CMM is CrossMarginFixture {
+contract PreviewCollateralReqBase is CrossMarginFixture {
     uint256 public expiry;
-    uint256 public strikePrice;
-    int256 public amount;
 
     struct OptionPosition {
         TokenType tokenType;
@@ -31,177 +25,7 @@ contract TestpreviewMinCollateral_CMM is CrossMarginFixture {
         int256 amount;
     }
 
-    function setUp() public {
-        expiry = block.timestamp + 14 days;
-
-        strikePrice = 4000 * UNIT;
-        amount = 1 * sUNIT;
-
-        oracle.setSpotPrice(address(weth), 3000 * UNIT);
-    }
-
-    function testPreviewMinCollateralVanillaCall() public {
-        uint256 depositAmount = 1 * 1e18;
-
-        OptionPosition[] memory positions = new OptionPosition[](1);
-        positions[0] = OptionPosition(TokenType.CALL, strikePrice, -amount);
-
-        Balance[] memory balances = _previewMinCollateral(positions);
-
-        assertEq(balances.length, 1);
-        assertEq(balances[0].collateralId, wethId);
-        assertEq(balances[0].amount, depositAmount);
-    }
-
-    function testPreviewMinCollateralVanillaPut() public {
-        strikePrice = 2000 * UNIT;
-
-        uint256 depositAmount = 2000 * 1e6;
-
-        OptionPosition[] memory positions = new OptionPosition[](1);
-        positions[0] = OptionPosition(TokenType.PUT, strikePrice, -amount);
-
-        Balance[] memory balances = _previewMinCollateral(positions);
-
-        assertEq(balances.length, 1);
-        assertEq(balances[0].collateralId, usdcId);
-        assertEq(balances[0].amount, depositAmount);
-    }
-
-    // function testPreviewMinCollateralCallsPut1() public {
-    //     Position[] memory shorts;
-    //     Position[] memory longs;
-
-    //     shorts = new Position[](2);
-    //     shorts[0] = positionC(4000 * UNIT, amount);
-    //     shorts[1] = positionP(2000 * UNIT, amount);
-
-    //     longs = new Position[](0);
-
-    //     Balance[] memory balances = engine.previewMinCollateral(shorts, longs);
-
-    //     assertEq(balances.length, 2);
-    //     assertEq(balances[0].collateralId, usdcId);
-    //     assertEq(balances[0].amount, 2000 * 1e6);
-    //     assertEq(balances[1].collateralId, wethId);
-    //     assertEq(balances[1].amount, 1 * 1e18);
-    // }
-
-    // function testPreviewMinCollateralCallsPut2() public {
-    //     Position[] memory shorts;
-    //     Position[] memory longs;
-
-    //     uint256 c4000 = getTokenId(TokenType.CALL, pidEthCollat, expiry, 4000 * UNIT, 0);
-    //     uint256 c5000 = getTokenId(TokenType.CALL, pidEthCollat, expiry, 5000 * UNIT, 0);
-
-    //     uint256 p2000 = getTokenId(TokenType.PUT, pidUsdcCollat, expiry, 2000 * UNIT, 0);
-    //     uint256 p1000 = getTokenId(TokenType.PUT, pidUsdcCollat, expiry, 1000 * UNIT, 0);
-
-    //     shorts = new Position[](2);
-    //     shorts[0] = Position(c4000, uint64(amount));
-    //     shorts[1] = Position(p2000, uint64(amount));
-
-    //     longs = new Position[](2);
-    //     longs[0] = Position(c5000, uint64(amount));
-    //     longs[1] = Position(p1000, uint64(amount));
-
-    //     Balance[] memory balances = engine.previewMinCollateral(shorts, longs);
-
-    //     assertEq(balances.length, 1);
-    //     assertEq(balances[0].collateralId, usdcId);
-    //     assertEq(balances[0].amount, 1000 * 1e6);
-    // }
-
-    function testPreviewMinCollateralCallsPut3() public {
-        oracle.setSpotPrice(address(weth), 19000 * UNIT);
-
-        OptionPosition[] memory positions = new OptionPosition[](6);
-        positions[0] = OptionPosition(TokenType.PUT, 17000 * UNIT, -1 * sUNIT);
-        positions[1] = OptionPosition(TokenType.PUT, 18000 * UNIT, 1 * sUNIT);
-        positions[2] = OptionPosition(TokenType.CALL, 21000 * UNIT, -1 * sUNIT);
-        positions[3] = OptionPosition(TokenType.CALL, 22000 * UNIT, -8 * sUNIT);
-        positions[4] = OptionPosition(TokenType.CALL, 25000 * UNIT, 16 * sUNIT);
-        positions[5] = OptionPosition(TokenType.CALL, 26000 * UNIT, -6 * sUNIT);
-
-        Balance[] memory balances = _previewMinCollateral(positions);
-
-        assertEq(balances.length, 1);
-        assertEq(balances[0].collateralId, usdcId);
-        assertEq(balances[0].amount, 28000 * 1e6);
-    }
-
-    // function testPreviewMinCollateralCallsPut4() public {
-    //     Position[] memory shorts;
-    //     Position[] memory longs;
-
-    //     oracle.setSpotPrice(address(weth), 19000 * UNIT);
-
-    //     uint256 p17000 = getTokenId(TokenType.PUT, pidUsdcCollat, expiry, 17000 * UNIT, 0);
-    //     uint256 p18000 = getTokenId(TokenType.PUT, pidUsdcCollat, expiry, 18000 * UNIT, 0);
-
-    //     uint256 c21000 = getTokenId(TokenType.CALL, pidEthCollat, expiry, 21000 * UNIT, 0);
-    //     uint256 c22000 = getTokenId(TokenType.CALL, pidEthCollat, expiry, 22000 * UNIT, 0);
-    //     uint256 c25000 = getTokenId(TokenType.CALL, pidEthCollat, expiry, 25000 * UNIT, 0);
-    //     uint256 c26000 = getTokenId(TokenType.CALL, pidEthCollat, expiry, 26000 * UNIT, 0);
-    //     uint256 c27000 = getTokenId(TokenType.CALL, pidEthCollat, expiry, 27000 * UNIT, 0);
-
-    //     shorts = new Position[](5);
-    //     shorts[0] = Position(p18000, uint64(1 * UNIT));
-    //     shorts[1] = Position(c21000, uint64(1 * UNIT));
-    //     shorts[2] = Position(c22000, uint64(8 * UNIT));
-    //     shorts[3] = Position(c26000, uint64(8 * UNIT));
-    //     shorts[4] = Position(c27000, uint64(1 * UNIT));
-
-    //     longs = new Position[](2);
-    //     longs[0] = Position(p17000, uint64(1 * UNIT));
-    //     longs[1] = Position(c25000, uint64(16 * UNIT));
-
-    //     Balance[] memory balances = engine.previewMinCollateral(shorts, longs);
-
-    //     assertEq(balances.length, 1);
-    //     assertEq(balances[0].collateralId, wethId);
-    //     assertEq(balances[0].amount, 2 * 1e18);
-    // }
-
-    // function testPreviewMinCollateralShortStrangle() public {
-    //     Position[] memory shorts;
-    //     Position[] memory longs;
-
-    //     oracle.setSpotPrice(address(weth), 1800 * UNIT);
-
-    //     uint256 p1600 = getTokenId(TokenType.PUT, pidUsdcCollat, expiry, 1600 * UNIT, 0);
-    //     uint256 c1900 = getTokenId(TokenType.CALL, pidEthCollat, expiry, 1900 * UNIT, 0);
-
-    //     shorts = new Position[](2);
-    //     shorts[0] = Position(p1600, uint64(1 * UNIT));
-    //     shorts[1] = Position(c1900, uint64(1 * UNIT));
-
-    //     longs = new Position[](0);
-
-    //     Balance[] memory balances = engine.previewMinCollateral(shorts, longs);
-
-    //     assertEq(balances.length, 2);
-    //     assertEq(balances[0].collateralId, usdcId);
-    //     assertEq(balances[0].amount, 1600 * 1e6);
-    //     assertEq(balances[1].collateralId, wethId);
-    //     assertEq(balances[1].amount, 1 * 1e18);
-    // }
-
-    function testPreviewMinCollateralCallSpread() public {
-        uint256 depositAmount = 1 * 1e18;
-
-        OptionPosition[] memory positions = new OptionPosition[](2);
-        positions[0] = OptionPosition(TokenType.CALL, strikePrice / 2, -amount);
-        positions[1] = OptionPosition(TokenType.CALL, strikePrice, amount);
-
-        Balance[] memory balances = _previewMinCollateral(positions);
-
-        assertEq(balances.length, 1);
-        assertEq(balances[0].collateralId, wethId);
-        assertEq(balances[0].amount, depositAmount / 2);
-    }
-
-    function _previewMinCollateral(OptionPosition[] memory postions) internal returns (Balance[] memory balances) {
+    function _previewMinCollateral(OptionPosition[] memory postions) internal view returns (Balance[] memory balances) {
         (Position[] memory shorts, Position[] memory longs) = _convertPositions(postions);
         balances = engine.previewMinCollateral(shorts, longs);
     }
@@ -230,5 +54,408 @@ contract TestpreviewMinCollateral_CMM is CrossMarginFixture {
 
     function _putTokenId(uint256 _strikePrice) internal view returns (uint256 tokenId) {
         tokenId = getTokenId(TokenType.PUT, pidUsdcCollat, expiry, _strikePrice, 0);
+    }
+}
+
+contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
+    function setUp() public {
+        oracle.setSpotPrice(address(weth), 19000 * UNIT);
+    }
+
+    function testMarginRequirement1() public {
+        OptionPosition[] memory positions = new OptionPosition[](6);
+        positions[0] = OptionPosition(TokenType.CALL, 21000 * UNIT, -1 * sUNIT);
+        positions[1] = OptionPosition(TokenType.CALL, 22000 * UNIT, -8 * sUNIT);
+        positions[2] = OptionPosition(TokenType.CALL, 25000 * UNIT, 16 * sUNIT);
+        positions[3] = OptionPosition(TokenType.CALL, 26000 * UNIT, -6 * sUNIT);
+        positions[4] = OptionPosition(TokenType.PUT, 17000 * UNIT, -1 * sUNIT);
+        positions[5] = OptionPosition(TokenType.PUT, 18000 * UNIT, 1 * sUNIT);
+
+        Balance[] memory balances = _previewMinCollateral(positions);
+
+        assertEq(balances.length, 1);
+        assertEq(balances[0].collateralId, usdcId);
+        assertEq(balances[0].amount, 28000 * UNIT);
+    }
+
+    function testMarginRequirement2() public {
+        OptionPosition[] memory positions = new OptionPosition[](6);
+        positions[0] = OptionPosition(TokenType.CALL, 21000 * UNIT, -1 * sUNIT);
+        positions[1] = OptionPosition(TokenType.CALL, 22000 * UNIT, -8 * sUNIT);
+        positions[2] = OptionPosition(TokenType.CALL, 25000 * UNIT, 16 * sUNIT);
+        positions[3] = OptionPosition(TokenType.CALL, 26000 * UNIT, -7 * sUNIT);
+        positions[4] = OptionPosition(TokenType.PUT, 17000 * UNIT, -1 * sUNIT);
+        positions[5] = OptionPosition(TokenType.PUT, 18000 * UNIT, 1 * sUNIT);
+
+        Balance[] memory balances = _previewMinCollateral(positions);
+
+        assertEq(balances.length, 1);
+        assertEq(balances[0].collateralId, usdcId);
+        assertEq(balances[0].amount, 28000 * UNIT);
+    }
+
+    function testMarginRequirement3() public {
+        OptionPosition[] memory positions = new OptionPosition[](6);
+        positions[0] = OptionPosition(TokenType.CALL, 21000 * UNIT, -1 * sUNIT);
+        positions[1] = OptionPosition(TokenType.CALL, 22000 * UNIT, -8 * sUNIT);
+        positions[2] = OptionPosition(TokenType.CALL, 25000 * UNIT, 16 * sUNIT);
+        positions[3] = OptionPosition(TokenType.CALL, 26000 * UNIT, -8 * sUNIT);
+        positions[4] = OptionPosition(TokenType.PUT, 17000 * UNIT, -1 * sUNIT);
+        positions[5] = OptionPosition(TokenType.PUT, 18000 * UNIT, 1 * sUNIT);
+
+        Balance[] memory balances = _previewMinCollateral(positions);
+
+        assertEq(balances.length, 2);
+        assertEq(balances[0].collateralId, usdcId);
+        assertEq(balances[0].amount, 3000 * UNIT);
+        assertEq(balances[1].collateralId, wethId);
+        assertEq(balances[1].amount, 1 * 1e18);
+    }
+
+    function testMarginRequirement4() public {
+        OptionPosition[] memory positions = new OptionPosition[](6);
+        positions[0] = OptionPosition(TokenType.CALL, 21000 * UNIT, -1 * sUNIT);
+        positions[1] = OptionPosition(TokenType.CALL, 22000 * UNIT, -8 * sUNIT);
+        positions[2] = OptionPosition(TokenType.CALL, 25000 * UNIT, 16 * sUNIT);
+        positions[3] = OptionPosition(TokenType.CALL, 26000 * UNIT, -6 * sUNIT);
+        positions[4] = OptionPosition(TokenType.PUT, 17000 * UNIT, -3 * sUNIT);
+        positions[5] = OptionPosition(TokenType.PUT, 18000 * UNIT, 1 * sUNIT);
+
+        Balance[] memory balances = _previewMinCollateral(positions);
+
+        assertEq(balances.length, 1);
+        assertEq(balances[0].collateralId, usdcId);
+        assertEq(balances[0].amount, 33000 * UNIT);
+    }
+
+    function testMarginUnsortedStrikes() public {
+        OptionPosition[] memory positions = new OptionPosition[](6);
+        positions[0] = OptionPosition(TokenType.CALL, 22000 * UNIT, -8 * sUNIT);
+        positions[1] = OptionPosition(TokenType.CALL, 26000 * UNIT, -6 * sUNIT);
+        positions[2] = OptionPosition(TokenType.CALL, 21000 * UNIT, -1 * sUNIT);
+        positions[3] = OptionPosition(TokenType.CALL, 25000 * UNIT, 16 * sUNIT);
+        positions[4] = OptionPosition(TokenType.PUT, 18000 * UNIT, 1 * sUNIT);
+        positions[5] = OptionPosition(TokenType.PUT, 17000 * UNIT, -1 * sUNIT);
+
+        Balance[] memory balances = _previewMinCollateral(positions);
+
+        assertEq(balances.length, 1);
+        assertEq(balances[0].collateralId, usdcId);
+        assertEq(balances[0].amount, 28000 * UNIT);
+    }
+
+    function testMarginSimpleITMPut() public {
+        OptionPosition[] memory positions = new OptionPosition[](1);
+        positions[0] = OptionPosition(TokenType.PUT, 22000 * UNIT, -1 * sUNIT);
+
+        Balance[] memory balances = _previewMinCollateral(positions);
+
+        assertEq(balances.length, 1);
+        assertEq(balances[0].collateralId, usdcId);
+        assertEq(balances[0].amount, 22000 * UNIT);
+    }
+
+    function testMarginSimpleOTMPut() public {
+        oracle.setSpotPrice(address(weth), 15000 * UNIT);
+
+        OptionPosition[] memory positions = new OptionPosition[](1);
+        positions[0] = OptionPosition(TokenType.PUT, 15000 * UNIT, -1 * sUNIT);
+
+        Balance[] memory balances = _previewMinCollateral(positions);
+
+        assertEq(balances.length, 1);
+        assertEq(balances[0].collateralId, usdcId);
+        assertEq(balances[0].amount, 15000 * UNIT);
+    }
+
+    function testMarginSimpleITMCall() public {
+        OptionPosition[] memory positions = new OptionPosition[](1);
+        positions[0] = OptionPosition(TokenType.CALL, 15000 * UNIT, -1 * sUNIT);
+
+        Balance[] memory balances = _previewMinCollateral(positions);
+
+        assertEq(balances.length, 1);
+        assertEq(balances[0].collateralId, wethId);
+        assertEq(balances[0].amount, 1 * 1e18);
+    }
+
+    function testMarginSimpleOTMCall() public {
+        OptionPosition[] memory positions = new OptionPosition[](1);
+        positions[0] = OptionPosition(TokenType.CALL, 22000 * UNIT, -1 * sUNIT);
+
+        Balance[] memory balances = _previewMinCollateral(positions);
+
+        assertEq(balances.length, 1);
+        assertEq(balances[0].collateralId, wethId);
+        assertEq(balances[0].amount, 1 * 1e18);
+    }
+
+    function testMarginLongBinaryPut() public {
+        OptionPosition[] memory positions = new OptionPosition[](2);
+        positions[0] = OptionPosition(TokenType.PUT, 17999_999999, -1 * sUNIT);
+        positions[1] = OptionPosition(TokenType.PUT, 18000 * UNIT, 1 * sUNIT);
+
+        Balance[] memory balances = _previewMinCollateral(positions);
+
+        assertEq(balances.length, 0);
+    }
+
+    function testMarginShortBinaryPut() public {
+        OptionPosition[] memory positions = new OptionPosition[](2);
+        positions[0] = OptionPosition(TokenType.PUT, 17999_999999, 1 * sUNIT);
+        positions[1] = OptionPosition(TokenType.PUT, 18000 * UNIT, -1 * sUNIT);
+
+        Balance[] memory balances = _previewMinCollateral(positions);
+
+        assertEq(balances.length, 1);
+        assertEq(balances[0].collateralId, usdcId);
+        assertEq(balances[0].amount, 1);
+    }
+
+    function testMarginCallSpreadSameUnderlyingCollateral() public {
+        OptionPosition[] memory positions = new OptionPosition[](2);
+        positions[0] = OptionPosition(TokenType.CALL, 21999 * UNIT, -1 * sUNIT);
+        positions[1] = OptionPosition(TokenType.CALL, 22000 * UNIT, 1 * sUNIT);
+
+        Balance[] memory balances = _previewMinCollateral(positions);
+
+        assertEq(balances.length, 1);
+        assertEq(balances[0].collateralId, wethId);
+        assertEq(balances[0].amount, ((1 * UNIT) / 22000) * (10 ** (18 - UNIT_DECIMALS)));
+    }
+
+    function testMarginCallSpreadSameUnderlyingCollateralBiggerNumbers() public {
+        OptionPosition[] memory positions = new OptionPosition[](2);
+        positions[0] = OptionPosition(TokenType.CALL, 21000 * UNIT, -100000 * sUNIT);
+        positions[1] = OptionPosition(TokenType.CALL, 22000 * UNIT, 100000 * sUNIT);
+
+        Balance[] memory balances = _previewMinCollateral(positions);
+
+        assertEq(balances.length, 1);
+        assertEq(balances[0].collateralId, wethId);
+        assertEq(balances[0].amount, ((100000 * 1000 * UNIT) / 22000) * (10 ** (18 - UNIT_DECIMALS)));
+    }
+
+    function testMarginBinaryCallOption() public {
+        OptionPosition[] memory positions = new OptionPosition[](2);
+        positions[0] = OptionPosition(TokenType.CALL, 21999_999999, 1 * sUNIT);
+        positions[1] = OptionPosition(TokenType.CALL, 22000 * UNIT, -1 * sUNIT);
+
+        Balance[] memory balances = _previewMinCollateral(positions);
+
+        assertEq(balances.length, 0);
+    }
+
+    function testConversion() public {
+        OptionPosition[] memory positions = new OptionPosition[](2);
+        positions[0] = OptionPosition(TokenType.CALL, 17000 * UNIT, -1 * sUNIT);
+        positions[1] = OptionPosition(TokenType.PUT, 17000 * UNIT, -1 * sUNIT);
+
+        Balance[] memory balances = _previewMinCollateral(positions);
+
+        assertEq(balances.length, 2);
+        assertEq(balances[0].collateralId, usdcId);
+        assertEq(balances[0].amount, 17000 * UNIT);
+        assertEq(balances[1].collateralId, wethId);
+        assertEq(balances[1].amount, 1 * 1e18);
+
+        positions[0] = OptionPosition(TokenType.CALL, 17000 * UNIT, -314 * sUNIT);
+
+        balances = _previewMinCollateral(positions);
+
+        assertEq(balances.length, 2);
+        assertEq(balances[0].collateralId, usdcId);
+        assertEq(balances[0].amount, 17000 * UNIT);
+        assertEq(balances[1].collateralId, wethId);
+        assertEq(balances[1].amount, 314 * 1e18);
+    }
+
+    function testMarginRequirementsVanillaCall() public {
+        OptionPosition[] memory positions = new OptionPosition[](1);
+        positions[0] = OptionPosition(TokenType.CALL, 21000 * UNIT, -1 * sUNIT);
+
+        Balance[] memory balances = _previewMinCollateral(positions);
+
+        assertEq(balances.length, 1);
+        assertEq(balances[0].collateralId, wethId);
+        assertEq(balances[0].amount, 1 * 1e18);
+    }
+
+    function testMarginRequirementsVanillaPut() public {
+        OptionPosition[] memory positions = new OptionPosition[](1);
+        positions[0] = OptionPosition(TokenType.PUT, 18000 * UNIT, -1 * sUNIT);
+
+        Balance[] memory balances = _previewMinCollateral(positions);
+
+        assertEq(balances.length, 1);
+        assertEq(balances[0].collateralId, usdcId);
+        assertEq(balances[0].amount, 18000 * UNIT);
+    }
+
+    function testShortStrangles() public {
+        OptionPosition[] memory positions = new OptionPosition[](2);
+
+        positions[0] = OptionPosition(TokenType.CALL, 20000 * UNIT, -1 * sUNIT);
+        positions[1] = OptionPosition(TokenType.PUT, 18000 * UNIT, -1 * sUNIT);
+
+        Balance[] memory balances = _previewMinCollateral(positions);
+
+        assertEq(balances.length, 2);
+        assertEq(balances[0].collateralId, usdcId);
+        assertEq(balances[0].amount, 18000 * UNIT);
+        assertEq(balances[1].collateralId, wethId);
+        assertEq(balances[1].amount, 1 * 1e18);
+    }
+
+    function testLongStrangles() public {
+        OptionPosition[] memory positions = new OptionPosition[](2);
+        positions[0] = OptionPosition(TokenType.CALL, 20000 * UNIT, 1 * sUNIT);
+        positions[1] = OptionPosition(TokenType.PUT, 18000 * UNIT, 1 * sUNIT);
+
+        Balance[] memory balances = _previewMinCollateral(positions);
+
+        assertEq(balances.length, 0);
+    }
+
+    function testStrangleSpread() public {
+        OptionPosition[] memory positions = new OptionPosition[](4);
+
+        positions[0] = OptionPosition(TokenType.CALL, 20000 * UNIT, -1 * sUNIT);
+        positions[1] = OptionPosition(TokenType.CALL, 21000 * UNIT, 1 * sUNIT);
+        positions[2] = OptionPosition(TokenType.PUT, 17000 * UNIT, -1 * sUNIT);
+        positions[3] = OptionPosition(TokenType.PUT, 18000 * UNIT, 1 * sUNIT);
+
+        Balance[] memory balances = _previewMinCollateral(positions);
+
+        assertEq(balances.length, 1);
+        assertEq(balances[0].collateralId, usdcId);
+        assertEq(balances[0].amount, 1000 * UNIT);
+    }
+
+    function testStrangleSpread2() public {
+        OptionPosition[] memory positions = new OptionPosition[](4);
+
+        positions[0] = OptionPosition(TokenType.CALL, 20000 * UNIT, -1 * sUNIT);
+        positions[1] = OptionPosition(TokenType.CALL, 21000 * UNIT, 1 * sUNIT);
+        positions[2] = OptionPosition(TokenType.PUT, 17000 * UNIT, 1 * sUNIT);
+        positions[3] = OptionPosition(TokenType.PUT, 18000 * UNIT, -1 * sUNIT);
+
+        Balance[] memory balances = _previewMinCollateral(positions);
+
+        assertEq(balances.length, 1);
+        assertEq(balances[0].collateralId, usdcId);
+        assertEq(balances[0].amount, 1000 * UNIT);
+    }
+
+    function testOneByTwoCall() public {
+        OptionPosition[] memory positions = new OptionPosition[](4);
+
+        positions[0] = OptionPosition(TokenType.CALL, 20000 * UNIT, 1 * sUNIT);
+        positions[1] = OptionPosition(TokenType.CALL, 21000 * UNIT, -2 * sUNIT);
+        positions[2] = OptionPosition(TokenType.PUT, 0, 0);
+        positions[3] = OptionPosition(TokenType.PUT, 0, 0);
+
+        Balance[] memory balances = _previewMinCollateral(positions);
+
+        assertEq(balances.length, 1);
+
+        assertEq(balances.length, 1);
+        assertEq(balances[0].collateralId, wethId);
+        assertEq(balances[0].amount, 1 * 1e18);
+    }
+
+    function testOneByTwoPut() public {
+        OptionPosition[] memory positions = new OptionPosition[](4);
+
+        positions[0] = OptionPosition(TokenType.CALL, 0, 0);
+        positions[1] = OptionPosition(TokenType.CALL, 0, 0);
+        positions[2] = OptionPosition(TokenType.PUT, 17000 * UNIT, -2 * sUNIT);
+        positions[3] = OptionPosition(TokenType.PUT, 18000 * UNIT, 1 * sUNIT);
+
+        Balance[] memory balances = _previewMinCollateral(positions);
+
+        assertEq(balances.length, 1);
+
+        assertEq(balances.length, 1);
+        assertEq(balances[0].collateralId, usdcId);
+        assertEq(balances[0].amount, 16000 * UNIT);
+    }
+
+    function testIronCondor() public {
+        OptionPosition[] memory positions = new OptionPosition[](4);
+
+        positions[0] = OptionPosition(TokenType.CALL, 20000 * UNIT, 1 * sUNIT);
+        positions[1] = OptionPosition(TokenType.CALL, 21000 * UNIT, -2 * sUNIT);
+        positions[2] = OptionPosition(TokenType.PUT, 17000 * UNIT, -2 * sUNIT);
+        positions[3] = OptionPosition(TokenType.PUT, 18000 * UNIT, 1 * sUNIT);
+
+        Balance[] memory balances = _previewMinCollateral(positions);
+
+        assertEq(balances.length, 2);
+        assertEq(balances[0].collateralId, usdcId);
+        assertEq(balances[0].amount, 16000 * UNIT);
+        assertEq(balances[1].collateralId, wethId);
+        assertEq(balances[1].amount, 1 * 1e18);
+    }
+
+    function testUpAndDown1() public {
+        OptionPosition[] memory positions = new OptionPosition[](2);
+        positions[0] = OptionPosition(TokenType.PUT, 17000 * UNIT, -18 * sUNIT);
+        positions[1] = OptionPosition(TokenType.PUT, 18000 * UNIT, 17 * sUNIT);
+
+        Balance[] memory balances = _previewMinCollateral(positions);
+
+        assertEq(balances.length, 0);
+    }
+
+    function testUpAndDown2() public {
+        OptionPosition[] memory positions = new OptionPosition[](2);
+        positions[0] = OptionPosition(TokenType.PUT, 17000 * UNIT, -18 * sUNIT);
+        positions[1] = OptionPosition(TokenType.PUT, 18000 * UNIT, 16 * sUNIT);
+
+        Balance[] memory balances = _previewMinCollateral(positions);
+
+        assertEq(balances.length, 1);
+        assertEq(balances[0].collateralId, usdcId);
+        assertEq(balances[0].amount, 18000 * UNIT);
+    }
+
+    function testUpAndDown3() public {
+        OptionPosition[] memory positions = new OptionPosition[](3);
+        positions[0] = OptionPosition(TokenType.CALL, 20000 * UNIT, 1 * sUNIT);
+        positions[1] = OptionPosition(TokenType.PUT, 17000 * UNIT, -18 * sUNIT);
+        positions[2] = OptionPosition(TokenType.PUT, 18000 * UNIT, 17 * sUNIT);
+
+        Balance[] memory balances = _previewMinCollateral(positions);
+
+        assertEq(balances.length, 0);
+    }
+
+    function testUpAndDown4() public {
+        OptionPosition[] memory positions = new OptionPosition[](4);
+        positions[0] = OptionPosition(TokenType.CALL, 20000 * UNIT, 1 * sUNIT);
+        positions[1] = OptionPosition(TokenType.CALL, 21000 * UNIT, -2 * sUNIT);
+        positions[2] = OptionPosition(TokenType.PUT, 17000 * UNIT, -18 * sUNIT);
+        positions[3] = OptionPosition(TokenType.PUT, 18000 * UNIT, 17 * sUNIT);
+
+        Balance[] memory balances = _previewMinCollateral(positions);
+
+        assertEq(balances.length, 1);
+        assertEq(balances[0].collateralId, wethId);
+        assertEq(balances[0].amount, 1 * 1e18);
+    }
+
+    function testPutGreaterThanCalls() public {
+        OptionPosition[] memory positions = new OptionPosition[](4);
+        positions[0] = OptionPosition(TokenType.CALL, 23000 * UNIT, 1 * sUNIT);
+        positions[1] = OptionPosition(TokenType.CALL, 22000 * UNIT, -1 * sUNIT);
+        positions[2] = OptionPosition(TokenType.PUT, 25000 * UNIT, -1 * sUNIT);
+        positions[3] = OptionPosition(TokenType.PUT, 10000 * UNIT, 1 * sUNIT);
+
+        Balance[] memory balances = _previewMinCollateral(positions);
+
+        assertEq(balances.length, 1);
+        assertEq(balances[0].collateralId, usdcId);
+        assertEq(balances[0].amount, 15000 * UNIT);
     }
 }
