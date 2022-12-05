@@ -458,18 +458,4 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
         assertEq(balances[0].collateralId, usdcId);
         assertEq(balances[0].amount, 15000 * UNIT);
     }
-
-    function testPutGreaterThanCallsDeepITM() public {
-        OptionPosition[] memory positions = new OptionPosition[](4);
-        positions[0] = OptionPosition(TokenType.CALL, 300 * UNIT, 1 * sUNIT);
-        positions[1] = OptionPosition(TokenType.CALL, 200 * UNIT, -1 * sUNIT);
-        positions[2] = OptionPosition(TokenType.PUT, 2500 * UNIT, -1 * sUNIT);
-        positions[3] = OptionPosition(TokenType.PUT, 100 * UNIT, 1 * sUNIT);
-
-        Balance[] memory balances = _previewMinCollateral(positions);
-
-        assertEq(balances.length, 1);
-        assertEq(balances[0].collateralId, usdcId);
-        assertEq(balances[0].amount, 2400 * UNIT);
-    }
 }
