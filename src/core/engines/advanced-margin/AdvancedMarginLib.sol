@@ -30,11 +30,7 @@ library AdvancedMarginLib {
 
     ///@dev Increase the collateral in the account
     ///@param account AdvancedMarginAccount storage that will be updated in-place
-    function addCollateral(
-        AdvancedMarginAccount storage account,
-        uint8 collateralId,
-        uint80 amount
-    ) internal {
+    function addCollateral(AdvancedMarginAccount storage account, uint8 collateralId, uint80 amount) internal {
         if (account.collateralId == 0) {
             account.collateralId = collateralId;
         } else {
@@ -45,11 +41,7 @@ library AdvancedMarginLib {
 
     ///@dev Reduce the collateral in the account
     ///@param account AdvancedMarginAccount storage that will be updated in-place
-    function removeCollateral(
-        AdvancedMarginAccount storage account,
-        uint8 collateralId,
-        uint80 amount
-    ) internal {
+    function removeCollateral(AdvancedMarginAccount storage account, uint8 collateralId, uint80 amount) internal {
         if (account.collateralId != collateralId) revert AM_WrongCollateralId();
         uint80 newAmount = account.collateralAmount - amount;
         account.collateralAmount = newAmount;
@@ -60,12 +52,8 @@ library AdvancedMarginLib {
 
     ///@dev Increase the amount of short call or put (debt) of the account
     ///@param account AdvancedMarginAccount storage that will be updated in-place
-    function mintOption(
-        AdvancedMarginAccount storage account,
-        uint256 tokenId,
-        uint64 amount
-    ) internal {
-        (TokenType optionType, uint40 productId, , , ) = tokenId.parseTokenId();
+    function mintOption(AdvancedMarginAccount storage account, uint256 tokenId, uint64 amount) internal {
+        (TokenType optionType, uint40 productId,,,) = tokenId.parseTokenId();
 
         // assign collateralId or check collateral id is the same
         uint8 collateralId = productId.getCollateralId();
@@ -90,11 +78,7 @@ library AdvancedMarginLib {
 
     ///@dev Remove the amount of short call or put (debt) of the account
     ///@param account AdvancedMarginAccount storage that will be updated in-place
-    function burnOption(
-        AdvancedMarginAccount storage account,
-        uint256 tokenId,
-        uint64 amount
-    ) internal {
+    function burnOption(AdvancedMarginAccount storage account, uint256 tokenId, uint64 amount) internal {
         TokenType optionType = tokenId.parseTokenType();
         if (optionType == TokenType.CALL || optionType == TokenType.CALL_SPREAD) {
             // burnning a call or call spread
@@ -116,14 +100,9 @@ library AdvancedMarginLib {
     ///@param longId token to be "added" into the account. This is expected to have the same time of the exisiting short type.
     ///               e.g: if the account currenly have short call, we can added another "call token" into the account
     ///               and convert the short position to a spread.
-    function merge(
-        AdvancedMarginAccount storage account,
-        uint256 shortId,
-        uint256 longId,
-        uint64 amount
-    ) internal {
+    function merge(AdvancedMarginAccount storage account, uint256 shortId, uint256 longId, uint64 amount) internal {
         // get token attribute for incoming token
-        (TokenType optionType, , , uint64 mergingStrike, ) = longId.parseTokenId();
+        (TokenType optionType,,, uint64 mergingStrike,) = longId.parseTokenId();
 
         if (optionType == TokenType.CALL) {
             if (account.shortCallId != shortId) revert AM_ShortDoesnotExist();
@@ -142,11 +121,7 @@ library AdvancedMarginLib {
     ///@dev split an accunt's spread position into short + 1 token
     ///@param account AdvancedMarginAccount storage that will be updated in-place
     ///@param spreadId id of spread to be parsed
-    function split(
-        AdvancedMarginAccount storage account,
-        uint256 spreadId,
-        uint64 amount
-    ) internal {
+    function split(AdvancedMarginAccount storage account, uint256 spreadId, uint64 amount) internal {
         // parse the passed in spread id
         TokenType spreadType = spreadId.parseTokenType();
 

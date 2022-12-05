@@ -39,17 +39,11 @@ import "../../../config/errors.sol";
  * @title   CrossMarginEngine
  * @author  @dsshap, @antoncoding
  * @notice  Fully collateralized margin engine
-            Users can deposit collateral into Cross Margin and mint optionTokens (debt) out of it.
-            Interacts with OptionToken to mint / burn
-            Interacts with grappa to fetch registered asset info
+ *             Users can deposit collateral into Cross Margin and mint optionTokens (debt) out of it.
+ *             Interacts with OptionToken to mint / burn
+ *             Interacts with grappa to fetch registered asset info
  */
-contract CrossMarginEngine is
-    BaseEngine,
-    IMarginEngine,
-    OwnableUpgradeable,
-    ReentrancyGuardUpgradeable,
-    UUPSUpgradeable
-{
+contract CrossMarginEngine is BaseEngine, IMarginEngine, OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
     using AccountUtil for Position[];
     using AccountUtil for PositionOptim[];
     using BalanceUtil for Balance[];
@@ -95,10 +89,9 @@ contract CrossMarginEngine is
 
     /**
      * @dev Upgradable by the owner.
-     **/
-    function _authorizeUpgrade(
-        address /*newImplementation*/
-    ) internal view override {
+     *
+     */
+    function _authorizeUpgrade(address /*newImplementation*/ ) internal view override {
         _checkOwner();
     }
 
@@ -125,7 +118,7 @@ contract CrossMarginEngine is
         _checkPermissioned(msg.sender);
 
         uint256 i;
-        for (i; i < batchActions.length; ) {
+        for (i; i < batchActions.length;) {
             address subAccount = batchActions[i].subAccount;
             ActionArgs[] calldata actions = batchActions[i].actions;
 
@@ -137,7 +130,7 @@ contract CrossMarginEngine is
             }
         }
 
-        for (i = 0; i < batchActions.length; ) {
+        for (i = 0; i < batchActions.length;) {
             if (!_isAccountAboveWater(batchActions[i].subAccount)) revert BM_AccountUnderwater();
 
             unchecked {
@@ -165,11 +158,7 @@ contract CrossMarginEngine is
      * @param _recipient receiver
      * @param _amount amount
      */
-    function payCashValue(
-        address _asset,
-        address _recipient,
-        uint256 _amount
-    ) public override(BaseEngine, IMarginEngine) {
+    function payCashValue(address _asset, address _recipient, uint256 _amount) public override (BaseEngine, IMarginEngine) {
         _checkPermissioned(_recipient);
 
         BaseEngine.payCashValue(_asset, _recipient, _amount);
@@ -206,11 +195,7 @@ contract CrossMarginEngine is
     function marginAccounts(address _subAccount)
         external
         view
-        returns (
-            Position[] memory shorts,
-            Position[] memory longs,
-            Balance[] memory collaterals
-        )
+        returns (Position[] memory shorts, Position[] memory longs, Balance[] memory collaterals)
     {
         CrossMarginAccount memory account = accounts[_subAccount];
 
@@ -223,11 +208,7 @@ contract CrossMarginEngine is
      * @param longs positions.
      * @return balances array of collaterals and amount
      */
-    function previewMinCollateral(Position[] memory shorts, Position[] memory longs)
-        external
-        view
-        returns (Balance[] memory)
-    {
+    function previewMinCollateral(Position[] memory shorts, Position[] memory longs) external view returns (Balance[] memory) {
         CrossMarginAccount memory account;
 
         account.shorts = shorts.getPositionOptims();
@@ -236,14 +217,16 @@ contract CrossMarginEngine is
         return _getMinCollateral(account);
     }
 
-    /** ========================================================= **
-                Override Internal Functions For Each Action
-     ** ========================================================= **/
+    /**
+     * ========================================================= **
+     *             Override Internal Functions For Each Action
+     * ========================================================= *
+     */
 
     /**
      * @notice  settle the margin account at expiry
      * @dev     override this function from BaseEngine
-                because we get the payout while updating the storage during settlement
+     *             because we get the payout while updating the storage during settlement
      * @dev     this update the account storage
      */
     function _settle(address _subAccount) internal override {
@@ -252,61 +235,41 @@ contract CrossMarginEngine is
         emit AccountSettled(_subAccount, shortPayouts);
     }
 
-    /** ========================================================= **
+    /**
+     * ========================================================= **
      *               Override Sate changing functions             *
-     ** ========================================================= **/
+     * ========================================================= *
+     */
 
-    function _addCollateralToAccount(
-        address _subAccount,
-        uint8 collateralId,
-        uint80 amount
-    ) internal override {
+    function _addCollateralToAccount(address _subAccount, uint8 collateralId, uint80 amount) internal override {
         accounts[_subAccount].addCollateral(collateralId, amount);
     }
 
-    function _removeCollateralFromAccount(
-        address _subAccount,
-        uint8 collateralId,
-        uint80 amount
-    ) internal override {
+    function _removeCollateralFromAccount(address _subAccount, uint8 collateralId, uint80 amount) internal override {
         accounts[_subAccount].removeCollateral(collateralId, amount);
     }
 
-    function _increaseShortInAccount(
-        address _subAccount,
-        uint256 tokenId,
-        uint64 amount
-    ) internal override {
+    function _increaseShortInAccount(address _subAccount, uint256 tokenId, uint64 amount) internal override {
         accounts[_subAccount].mintOption(tokenId, amount);
     }
 
-    function _decreaseShortInAccount(
-        address _subAccount,
-        uint256 tokenId,
-        uint64 amount
-    ) internal override {
+    function _decreaseShortInAccount(address _subAccount, uint256 tokenId, uint64 amount) internal override {
         accounts[_subAccount].burnOption(tokenId, amount);
     }
 
-    function _increaseLongInAccount(
-        address _subAccount,
-        uint256 tokenId,
-        uint64 amount
-    ) internal override {
+    function _increaseLongInAccount(address _subAccount, uint256 tokenId, uint64 amount) internal override {
         accounts[_subAccount].addOption(tokenId, amount);
     }
 
-    function _decreaseLongInAccount(
-        address _subAccount,
-        uint256 tokenId,
-        uint64 amount
-    ) internal override {
+    function _decreaseLongInAccount(address _subAccount, uint256 tokenId, uint64 amount) internal override {
         accounts[_subAccount].removeOption(tokenId, amount);
     }
 
-    /** ========================================================= **
-                    Override view functions for BaseEngine
-     ** ========================================================= **/
+    /**
+     * ========================================================= **
+     *                 Override view functions for BaseEngine
+     * ========================================================= *
+     */
 
     /**
      * @dev because we override _settle(), this function is not used
@@ -326,8 +289,8 @@ contract CrossMarginEngine is
 
         Balance[] memory minCollateralAmounts = _getMinCollateral(account);
 
-        for (uint256 i; i < minCollateralAmounts.length; ) {
-            (, Balance memory balance, ) = balances.find(minCollateralAmounts[i].collateralId);
+        for (uint256 i; i < minCollateralAmounts.length;) {
+            (, Balance memory balance,) = balances.find(minCollateralAmounts[i].collateralId);
 
             if (balance.amount < minCollateralAmounts[i].amount) return false;
 
@@ -344,22 +307,24 @@ contract CrossMarginEngine is
      * @param tokenId tokenId
      */
     function _verifyLongTokenIdToAdd(uint256 tokenId) internal view override {
-        (TokenType optionType, uint40 productId, uint64 expiry, , ) = tokenId.parseTokenId();
+        (TokenType optionType, uint40 productId, uint64 expiry,,) = tokenId.parseTokenId();
 
         // engine only supports calls and puts
         if (optionType != TokenType.CALL && optionType != TokenType.PUT) revert CM_UnsupportedTokenType();
 
         if (block.timestamp > expiry) revert CM_Option_Expired();
 
-        (, uint8 engineId, , , ) = productId.parseProductId();
+        (, uint8 engineId,,,) = productId.parseProductId();
 
         // in the future reference a whitelist of engines
         if (engineId != grappa.engineIds(address(this))) revert CM_Not_Authorized_Engine();
     }
 
-    /** ========================================================= **
-                            Internal Functions
-     ** ========================================================= **/
+    /**
+     * ========================================================= **
+     *                         Internal Functions
+     * ========================================================= *
+     */
 
     /**
      * @notice gets access status of an address
@@ -378,21 +343,32 @@ contract CrossMarginEngine is
         _assertCallerHasAccess(_subAccount);
 
         // update the account storage and do external calls on the flight
-        for (uint256 i; i < actions.length; ) {
-            if (actions[i].action == ActionType.AddCollateral) _addCollateral(_subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.RemoveCollateral) _removeCollateral(_subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.MintShort) _mintOption(_subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.MintShortIntoAccount)
+        for (uint256 i; i < actions.length;) {
+            if (actions[i].action == ActionType.AddCollateral) {
+                _addCollateral(_subAccount, actions[i].data);
+            } else if (actions[i].action == ActionType.RemoveCollateral) {
+                _removeCollateral(_subAccount, actions[i].data);
+            } else if (actions[i].action == ActionType.MintShort) {
+                _mintOption(_subAccount, actions[i].data);
+            } else if (actions[i].action == ActionType.MintShortIntoAccount) {
                 _mintOptionIntoAccount(_subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.BurnShort) _burnOption(_subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.TransferLong) _transferLong(_subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.TransferShort) _transferShort(_subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.TransferCollateral)
+            } else if (actions[i].action == ActionType.BurnShort) {
+                _burnOption(_subAccount, actions[i].data);
+            } else if (actions[i].action == ActionType.TransferLong) {
+                _transferLong(_subAccount, actions[i].data);
+            } else if (actions[i].action == ActionType.TransferShort) {
+                _transferShort(_subAccount, actions[i].data);
+            } else if (actions[i].action == ActionType.TransferCollateral) {
                 _transferCollateral(_subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.AddLong) _addOption(_subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.RemoveLong) _removeOption(_subAccount, actions[i].data);
-            else if (actions[i].action == ActionType.SettleAccount) _settle(_subAccount);
-            else revert CM_UnsupportedAction();
+            } else if (actions[i].action == ActionType.AddLong) {
+                _addOption(_subAccount, actions[i].data);
+            } else if (actions[i].action == ActionType.RemoveLong) {
+                _removeOption(_subAccount, actions[i].data);
+            } else if (actions[i].action == ActionType.SettleAccount) {
+                _settle(_subAccount);
+            } else {
+                revert CM_UnsupportedAction();
+            }
 
             // increase i without checking overflow
             unchecked {
@@ -405,11 +381,6 @@ contract CrossMarginEngine is
      * @dev get minimum collateral requirement for an account
      */
     function _getMinCollateral(CrossMarginAccount memory account) internal view returns (Balance[] memory) {
-        return
-            CrossMarginMath.getMinCollateralForPositions(
-                grappa,
-                account.shorts.getPositions(),
-                account.longs.getPositions()
-            );
+        return CrossMarginMath.getMinCollateralForPositions(grappa, account.shorts.getPositions(), account.longs.getPositions());
     }
 }

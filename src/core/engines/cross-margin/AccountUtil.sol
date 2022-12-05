@@ -18,7 +18,7 @@ library AccountUtil {
     {
         y = new CrossMarginDetail[](x.length + 1);
         uint256 i;
-        for (i; i < x.length; ) {
+        for (i; i < x.length;) {
             y[i] = x[i];
             unchecked {
                 ++i;
@@ -30,7 +30,7 @@ library AccountUtil {
     function append(Position[] memory x, Position memory v) internal pure returns (Position[] memory y) {
         y = new Position[](x.length + 1);
         uint256 i;
-        for (i; i < x.length; ) {
+        for (i; i < x.length;) {
             y[i] = x[i];
             unchecked {
                 ++i;
@@ -43,14 +43,14 @@ library AccountUtil {
         y = new Position[](a.length + b.length);
         uint256 v;
         uint256 i;
-        for (i; i < a.length; ) {
+        for (i; i < a.length;) {
             y[v] = a[i];
             unchecked {
                 ++i;
                 ++v;
             }
         }
-        for (i = 0; i < b.length; ) {
+        for (i = 0; i < b.length;) {
             y[v] = b[i];
             unchecked {
                 ++i;
@@ -60,16 +60,8 @@ library AccountUtil {
     }
 
     /// @dev currently unused
-    function find(Position[] memory x, uint256 v)
-        internal
-        pure
-        returns (
-            bool f,
-            Position memory p,
-            uint256 i
-        )
-    {
-        for (i; i < x.length; ) {
+    function find(Position[] memory x, uint256 v) internal pure returns (bool f, Position memory p, uint256 i) {
+        for (i; i < x.length;) {
             if (x[i].tokenId == v) {
                 p = x[i];
                 f = true;
@@ -81,16 +73,8 @@ library AccountUtil {
         }
     }
 
-    function find(PositionOptim[] memory x, uint192 v)
-        internal
-        pure
-        returns (
-            bool f,
-            PositionOptim memory p,
-            uint256 i
-        )
-    {
-        for (i; i < x.length; ) {
+    function find(PositionOptim[] memory x, uint192 v) internal pure returns (bool f, PositionOptim memory p, uint256 i) {
+        for (i; i < x.length;) {
             if (x[i].tokenId == v) {
                 p = x[i];
                 f = true;
@@ -103,7 +87,7 @@ library AccountUtil {
     }
 
     function indexOf(Position[] memory x, uint256 v) internal pure returns (bool f, uint256 i) {
-        for (i; i < x.length; ) {
+        for (i; i < x.length;) {
             if (x[i].tokenId == v) {
                 f = true;
                 break;
@@ -115,7 +99,7 @@ library AccountUtil {
     }
 
     function indexOf(PositionOptim[] memory x, uint192 v) internal pure returns (bool f, uint256 i) {
-        for (i; i < x.length; ) {
+        for (i; i < x.length;) {
             if (x[i].tokenId == v) {
                 f = true;
                 break;
@@ -127,7 +111,7 @@ library AccountUtil {
     }
 
     function sum(PositionOptim[] memory x) internal pure returns (uint64 s) {
-        for (uint256 i; i < x.length; ) {
+        for (uint256 i; i < x.length;) {
             s += x[i].amount;
             unchecked {
                 ++i;
@@ -137,7 +121,7 @@ library AccountUtil {
 
     function getPositions(PositionOptim[] memory x) internal pure returns (Position[] memory y) {
         y = new Position[](x.length);
-        for (uint256 i; i < x.length; ) {
+        for (uint256 i; i < x.length;) {
             y[i] = Position(x[i].tokenId.expand(), x[i].amount);
             unchecked {
                 ++i;
@@ -147,7 +131,7 @@ library AccountUtil {
 
     function getPositionOptims(Position[] memory x) internal pure returns (PositionOptim[] memory y) {
         y = new PositionOptim[](x.length);
-        for (uint256 i; i < x.length; ) {
+        for (uint256 i; i < x.length;) {
             y[i] = getPositionOptim(x[i]);
             unchecked {
                 ++i;

@@ -42,7 +42,7 @@ contract TestBurnOption_FM is FullMarginFixture {
 
         // action
         engine.execute(address(this), actions);
-        (uint256 shortId, uint64 shortAmount, , ) = engine.marginAccounts(address(this));
+        (uint256 shortId, uint64 shortAmount,,) = engine.marginAccounts(address(this));
 
         // check result
         assertEq(shortId, 0);

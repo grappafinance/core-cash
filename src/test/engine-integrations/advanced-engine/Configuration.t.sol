@@ -9,12 +9,7 @@ import "../../../core/engines/advanced-margin/AdvancedMarginEngine.sol";
 
 contract OwnerConfiguration is AdvancedFixture {
     event ProductConfigurationUpdated(
-        uint40 productId,
-        uint32 dUpper,
-        uint32 dLower,
-        uint32 rUpper,
-        uint32 rLower,
-        uint32 volMul
+        uint40 productId, uint32 dUpper, uint32 dLower, uint32 rUpper, uint32 rLower, uint32 volMul
     );
 
     function testSettingConfigUpdateState() public {

@@ -8,6 +8,16 @@ During this audit, the 2 main contracts `Grappa` and `OptionToken` are in scope,
 
 ![high level](./imgs/scope-audit-1.png)
 
+## Setups
+
+A exact script we will be using for the launch can be found in [`script/deploy-launch.sol`](../script/deploy-launch.sol), which includes the deployment of ALL and only the contract in scope. You can see how the contracts are setup, including proxies initialization and ownerships settings.
+
+Run the stimulation with following command:
+
+```shell
+ forge script script/deploy-launch.sol --private-key <KEY> --fork-url <RPC-ENDPOINT>
+```
+
 ## Attack surfaces
 
 ### Grappa

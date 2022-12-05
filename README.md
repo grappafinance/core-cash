@@ -82,10 +82,10 @@ forge coverage
 
 ### Deployment
 
-Simulate deployment
+Simulate deployment for launch
 
 ```shell
-forge script script/Deploy.sol --private-key <your PK> --fork-url <RPC-endpoint> 
+forge script script/deploy-launch.sol --private-key <your PK> --fork-url <RPC-endpoint> 
 ```
 
 ## Linting

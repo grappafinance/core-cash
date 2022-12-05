@@ -31,7 +31,7 @@ contract TestRemoveCollateral_FM is FullMarginFixture {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createRemoveCollateralAction(depositAmount, usdcId, address(this));
         engine.execute(address(this), actions);
-        (, , uint8 _collateralId, uint80 _collateralAmount) = engine.marginAccounts(address(this));
+        (,, uint8 _collateralId, uint80 _collateralAmount) = engine.marginAccounts(address(this));
 
         assertEq(_collateralId, 0);
         assertEq(_collateralAmount, 0);

@@ -78,7 +78,7 @@ contract TestPMRemoveCollateral_CM is CrossMarginFixture {
         uint256 balanceAfter = weth.balanceOf(address(this));
         assertEq(balanceAfter, balanceBefore + depositAmount);
 
-        (, , Balance[] memory _collaters) = engine.marginAccounts(address(this));
+        (,, Balance[] memory _collaters) = engine.marginAccounts(address(this));
         assertEq(_collaters.length, 0);
     }
 
@@ -114,7 +114,7 @@ contract TestPMRemoveCollateral_CM is CrossMarginFixture {
 
         assertEq(option.balanceOf(address(this), longId), 0);
 
-        uint256 underlyingRequired = (((strikeSpread * UNIT) / strikePrice) * (10**(18 - 6)));
+        uint256 underlyingRequired = (((strikeSpread * UNIT) / strikePrice) * (10 ** (18 - 6)));
 
         Balance[] memory balances = engine.getMinCollateral(address(this));
         assertEq(balances.length, 1);
@@ -131,7 +131,7 @@ contract TestPMRemoveCollateral_CM is CrossMarginFixture {
         uint256 expectedBalance = depositAmount - underlyingRequired;
         assertEq(balanceAfter, balanceBefore + expectedBalance);
 
-        (, , Balance[] memory _collaters) = engine.marginAccounts(address(this));
+        (,, Balance[] memory _collaters) = engine.marginAccounts(address(this));
         assertEq(_collaters.length, 1);
         assertEq(_collaters[0].collateralId, wethId);
         assertEq(_collaters[0].amount, underlyingRequired);
@@ -169,7 +169,7 @@ contract TestPMRemoveCollateral_CM is CrossMarginFixture {
 
         assertEq(option.balanceOf(address(this), tokenId2), 0);
 
-        uint256 strikeSpreadScaled = strikeSpread * (10**(6 - 6));
+        uint256 strikeSpreadScaled = strikeSpread * (10 ** (6 - 6));
 
         Balance[] memory balances = engine.getMinCollateral(address(this));
         assertEq(balances.length, 1);
@@ -186,7 +186,7 @@ contract TestPMRemoveCollateral_CM is CrossMarginFixture {
         uint256 expectedBalance = depositAmount - strikeSpreadScaled;
         assertEq(balanceAfter, balanceBefore + expectedBalance);
 
-        (, , Balance[] memory _collaters) = engine.marginAccounts(address(this));
+        (,, Balance[] memory _collaters) = engine.marginAccounts(address(this));
         assertEq(_collaters.length, 1);
         assertEq(_collaters[0].collateralId, usdcId);
         assertEq(_collaters[0].amount, strikeSpreadScaled);

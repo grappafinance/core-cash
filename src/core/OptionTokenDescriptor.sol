@@ -35,10 +35,8 @@ contract OptionTokenDescriptor is OwnableUpgradeable, UUPSUpgradeable, IOptionTo
 
     /**
      * @dev Upgradable by the owner.
-     **/
-    function _authorizeUpgrade(
-        address /*newImplementation*/
-    ) internal view override {
+     */
+    function _authorizeUpgrade(address /*newImplementation*/ ) internal view override {
         _checkOwner();
     }
 }
