@@ -3,8 +3,6 @@ pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
 
-import {ERC1967Proxy} from "openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
-
 import "../../mocks/MockERC20.sol";
 import "../../mocks/MockOracle.sol";
 import "../../mocks/MockChainlinkAggregator.sol";
@@ -13,6 +11,7 @@ import "../../mocks/MockEngine.sol";
 // import "../../../core/engines/.sol";
 import "../../../core/engines/advanced-margin/VolOracle.sol";
 import "../../../core/Grappa.sol";
+import "../../../core/GrappaProxy.sol";
 import "../../../core/OptionToken.sol";
 
 import "../../../config/enums.sol";
@@ -62,7 +61,7 @@ abstract contract BaseEngineSetup is Test, ActionHelper, Utilities {
 
         bytes memory data = abi.encode(Grappa.initialize.selector);
 
-        grappa = Grappa(address(new ERC1967Proxy(grappaImplementation, data))); // 6
+        grappa = Grappa(address(new GrappaProxy(grappaImplementation, data))); // 6
 
         engine = new MockEngine(address(grappa), address(option)); // nonce 7
 
