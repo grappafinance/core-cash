@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 // import test base and helpers.
 import "forge-std/Test.sol";
 
-
 import "../../../core/engines/cross-margin/CrossMarginEngine.sol";
 import "../../../core/engines/cross-margin/CrossMarginEngineProxy.sol";
 
