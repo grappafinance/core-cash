@@ -11,7 +11,9 @@ import "openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 import "../src/core/OptionToken.sol";
 import "../src/core/OptionTokenDescriptor.sol";
 import "../src/core/Grappa.sol";
+import "../src/core/GrappaProxy.sol";
 import "../src/core/engines/cross-margin/CrossMarginEngine.sol";
+import "../src/core/engines/cross-margin/CrossMarginEngineProxy.sol";
 
 import "../src/core/oracles/ChainlinkOracle.sol";
 import "../src/core/oracles/ChainlinkOracleDisputable.sol";
@@ -49,7 +51,7 @@ contract Deploy is Script, Utilities {
         address implementation = address(new Grappa(optionTokenAddr)); // nonce
         console.log("grappa implementation\t\t", address(implementation));
         bytes memory data = abi.encode(Grappa.initialize.selector);
-        grappa = Grappa(address(new ERC1967Proxy(implementation, data))); // nonce + 1
+        grappa = Grappa(address(new GrappaProxy(implementation, data))); // nonce + 1
 
         console.log("grappa proxy \t\t\t", address(grappa));
 
@@ -75,7 +77,7 @@ contract Deploy is Script, Utilities {
         // ============ Deploy Cross Margin Engine (Upgradable) ============== //
         address engineImplementation = address(new CrossMarginEngine(address(grappa), optionToken));
         bytes memory engineData = abi.encode(CrossMarginEngine.initialize.selector);
-        crossMarginEngine = address(new ERC1967Proxy(engineImplementation, engineData));
+        crossMarginEngine = address(new CrossMarginEngineProxy(engineImplementation, engineData));
 
         console.log("CrossMargin Engine: \t\t", crossMarginEngine);
 

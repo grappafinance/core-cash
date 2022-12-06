@@ -3,15 +3,15 @@ pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
 
-import {ERC1967Proxy} from "openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
-
 import "../../mocks/MockERC20.sol";
 import "../../mocks/MockOracle.sol";
 import "../../mocks/MockWhitelist.sol";
 import "../../mocks/MockChainlinkAggregator.sol";
 
 import "../../../core/engines/cross-margin/CrossMarginEngine.sol";
+import "../../../core/engines/cross-margin/CrossMarginEngineProxy.sol";
 import "../../../core/Grappa.sol";
+import "../../../core/GrappaProxy.sol";
 import "../../../core/OptionToken.sol";
 
 import "../../../config/enums.sol";
@@ -70,13 +70,13 @@ abstract contract CrossMarginFixture is Test, ActionHelper, Utilities {
 
         bytes memory grappaData = abi.encode(Grappa.initialize.selector);
 
-        grappa = Grappa(address(new ERC1967Proxy(grappaImplementation, grappaData))); // 6
+        grappa = Grappa(address(new GrappaProxy(grappaImplementation, grappaData))); // 6
 
         address engineImplementation = address(new CrossMarginEngine(address(grappa), address(option))); // nonce 7
 
         bytes memory engineData = abi.encode(CrossMarginEngine.initialize.selector);
 
-        engine = CrossMarginEngine(address(new ERC1967Proxy(engineImplementation, engineData))); // 8
+        engine = CrossMarginEngine(address(new CrossMarginEngineProxy(engineImplementation, engineData))); // 8
 
         whitelist = new MockWhitelist();
 

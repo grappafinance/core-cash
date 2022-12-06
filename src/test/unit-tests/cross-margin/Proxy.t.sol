@@ -4,9 +4,8 @@ pragma solidity ^0.8.0;
 // import test base and helpers.
 import "forge-std/Test.sol";
 
-import {ERC1967Proxy} from "openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
-
 import "../../../core/engines/cross-margin/CrossMarginEngine.sol";
+import "../../../core/engines/cross-margin/CrossMarginEngineProxy.sol";
 
 import {MockOracle} from "../../mocks/MockOracle.sol";
 import {MockEngineV2} from "../../mocks/MockEngineV2.sol";
@@ -26,7 +25,7 @@ contract EngineProxyTest is Test {
         implementation = new CrossMarginEngine(address(0), address(0));
         bytes memory data = abi.encode(CrossMarginEngine.initialize.selector);
 
-        engine = CrossMarginEngine(address(new ERC1967Proxy(address(implementation), data)));
+        engine = CrossMarginEngine(address(new CrossMarginEngineProxy(address(implementation), data)));
     }
 
     function testImplementationContractOwnerIsZero() public {

@@ -4,9 +4,8 @@ pragma solidity ^0.8.0;
 // import test base and helpers.
 import "forge-std/Test.sol";
 
-import {ERC1967Proxy} from "openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
-
 import {Grappa} from "../../core/Grappa.sol";
+import {GrappaProxy} from "../../core/GrappaProxy.sol";
 import {MockERC20} from "../mocks/MockERC20.sol";
 import {MockOracle} from "../mocks/MockOracle.sol";
 
@@ -30,7 +29,7 @@ contract GrappaProxyTest is Test {
         implementation = new Grappa(address(0));
         bytes memory data = abi.encode(Grappa.initialize.selector);
 
-        grappa = Grappa(address(new ERC1967Proxy(address(implementation), data)));
+        grappa = Grappa(address(new GrappaProxy(address(implementation), data)));
     }
 
     function testImplementationContractOwnerIsZero() public {
