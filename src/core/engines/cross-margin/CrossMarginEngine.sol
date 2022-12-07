@@ -81,6 +81,7 @@ contract CrossMarginEngine is BaseEngine, IMarginEngine, OwnableUpgradeable, Ree
 
     function initialize() external initializer {
         __Ownable_init();
+        __ReentrancyGuard_init_unchained();
     }
 
     /*///////////////////////////////////////////////////////////////

@@ -104,6 +104,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
 
     function initialize() external initializer {
         __Ownable_init();
+        __ReentrancyGuard_init_unchained();
     }
 
     /*///////////////////////////////////////////////////////////////
