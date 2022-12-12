@@ -134,4 +134,7 @@ abstract contract CrossMarginFixture is Test, ActionHelper, Utilities {
 
         vm.stopPrank();
     }
+
+    // place holder here so forge coverage won't pick it up
+    function test() public {}
 }

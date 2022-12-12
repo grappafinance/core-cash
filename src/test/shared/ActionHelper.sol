@@ -119,4 +119,7 @@ abstract contract ActionHelper {
     function createSettleAction() internal pure returns (ActionArgs memory action) {
         return ActionUtil.createSettleAction();
     }
+
+    // add a function prefixed with test here so forge coverage will ignore this file
+    function testForgeCoverageIgnoreThis() public {}
 }
