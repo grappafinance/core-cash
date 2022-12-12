@@ -8,43 +8,61 @@ import "../../config/constants.sol";
 import "../../config/errors.sol";
 import "../../config/types.sol";
 
+contract MoneynessLibTester {
+    function getCallCashValue(uint256 spot, uint256 strikePrice) external pure returns (uint256) {
+        uint256 result = MoneynessLib.getCallCashValue(spot, strikePrice);
+        return result;
+    }
+
+    function getPutCashValue(uint256 spot, uint256 strikePrice) external pure returns (uint256) {
+        uint256 result = MoneynessLib.getPutCashValue(spot, strikePrice);
+        return result;
+    }
+}
+
 /**
  * Basic tests
  */
 contract MoneynessLibTest is Test {
     uint256 public constant base = UNIT;
 
+    MoneynessLibTester tester;
+
+    function setUp() public {
+        tester = new MoneynessLibTester();
+    }
+
     function testCallCashValue() public {
         uint256 spot = 3000 * base;
         uint256 strike = 2900 * base;
-        uint256 cash = MoneynessLib.getCallCashValue(spot, strike);
+        uint256 cash = tester.getCallCashValue(spot, strike);
         assertEq(cash, 100 * base);
 
         // spot < strike
         spot = 2800 * base;
-        cash = MoneynessLib.getCallCashValue(spot, strike);
+        cash = tester.getCallCashValue(spot, strike);
         assertEq(cash, 0);
 
         // spot = strike
         spot = 2900 * base;
-        cash = MoneynessLib.getCallCashValue(spot, strike);
+        cash = tester.getCallCashValue(spot, strike);
         assertEq(cash, 0);
     }
 
     function testPutCashValue() public {
         uint256 spot = 3000 * base;
         uint256 strike = 2900 * base;
-        uint256 cash = MoneynessLib.getPutCashValue(spot, strike);
+        uint256 cash = tester.getPutCashValue(spot, strike);
         assertEq(cash, 0);
 
         // spot < strike
         spot = 2800 * base;
-        cash = MoneynessLib.getPutCashValue(spot, strike);
+        cash = tester.getPutCashValue(spot, strike);
         assertEq(cash, 100 * base);
 
         // spot = strike
         spot = 2900 * base;
-        cash = MoneynessLib.getPutCashValue(spot, strike);
+        cash = tester.getPutCashValue(spot, strike);
         assertEq(cash, 0);
     }
 }

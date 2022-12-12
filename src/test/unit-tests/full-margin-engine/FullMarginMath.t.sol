@@ -10,10 +10,27 @@ import "../../../config/errors.sol";
 import "../../../core/engines/full-margin/types.sol";
 
 /**
+ * @dev forge coverage only pick up coverage for internal libraries
+ *      when it's initiated with external calls
+ */
+contract FullMarginMathTester {
+    function getMinCollateral(FullMarginDetail calldata _detail) external pure returns (uint256) {
+        uint256 result = FullMarginMath.getMinCollateral(_detail);
+        return result;
+    }
+}
+
+/**
  * test full margin calculation for simple call
  */
 contract FullMarginMathTestCall is Test {
     using FullMarginMath for FullMarginDetail;
+
+    FullMarginMathTester tester;
+
+    function setUp() public {
+        tester = new FullMarginMathTester();
+    }
 
     function testMarginRequireCall() public {
         FullMarginDetail memory detail = FullMarginDetail({
@@ -26,7 +43,7 @@ contract FullMarginMathTestCall is Test {
             collateralizedWithStrike: false
         });
 
-        uint256 collat = detail.getMinCollateral();
+        uint256 collat = tester.getMinCollateral(detail);
         uint256 expectedRequirement = UNIT;
         assertEq(collat, expectedRequirement);
     }
@@ -43,7 +60,7 @@ contract FullMarginMathTestCall is Test {
             tokenType: TokenType.CALL
         });
 
-        uint256 collat = detail.getMinCollateral();
+        uint256 collat = tester.getMinCollateral(detail);
         uint256 expectedRequirement = shortAmount;
 
         assertEq(collat, expectedRequirement);
@@ -61,7 +78,7 @@ contract FullMarginMathTestCall is Test {
             tokenType: TokenType.CALL
         });
 
-        uint256 collat = detail.getMinCollateral();
+        uint256 collat = tester.getMinCollateral(detail);
         uint256 expectedRequirement = 5 * 1e18;
 
         assertEq(collat, expectedRequirement);
@@ -74,6 +91,12 @@ contract FullMarginMathTestCall is Test {
 contract FullMarginMathTestCallSpreadWithUnderlying is Test {
     using FullMarginMath for FullMarginDetail;
 
+    FullMarginMathTester tester;
+
+    function setUp() public {
+        tester = new FullMarginMathTester();
+    }
+
     function testMarginRequireCallCreditSpread() public {
         FullMarginDetail memory detail = FullMarginDetail({
             shortAmount: UNIT,
@@ -85,7 +108,7 @@ contract FullMarginMathTestCallSpreadWithUnderlying is Test {
             tokenType: TokenType.CALL_SPREAD
         });
 
-        uint256 collat = detail.getMinCollateral();
+        uint256 collat = tester.getMinCollateral(detail);
         uint256 expectedRequirement = UNIT / 2;
         assertEq(collat, expectedRequirement);
     }
@@ -102,7 +125,7 @@ contract FullMarginMathTestCallSpreadWithUnderlying is Test {
             tokenType: TokenType.CALL_SPREAD
         });
 
-        uint256 collat = detail.getMinCollateral();
+        uint256 collat = tester.getMinCollateral(detail);
         uint256 expectedRequirement = shortAmount / 2;
 
         assertEq(collat, expectedRequirement);
@@ -120,7 +143,7 @@ contract FullMarginMathTestCallSpreadWithUnderlying is Test {
             tokenType: TokenType.CALL_SPREAD
         });
 
-        uint256 collat = detail.getMinCollateral();
+        uint256 collat = tester.getMinCollateral(detail);
         uint256 expectedRequirement = (5 * 1e18) / 2;
 
         assertEq(collat, expectedRequirement);
@@ -137,7 +160,7 @@ contract FullMarginMathTestCallSpreadWithUnderlying is Test {
             tokenType: TokenType.CALL_SPREAD
         });
 
-        uint256 collat = detail.getMinCollateral();
+        uint256 collat = tester.getMinCollateral(detail);
         uint256 expectedRequirement = 0;
         assertEq(collat, expectedRequirement);
     }
@@ -148,6 +171,12 @@ contract FullMarginMathTestCallSpreadWithUnderlying is Test {
  */
 contract FullMarginMathTestCallSpreadWithStrike is Test {
     using FullMarginMath for FullMarginDetail;
+
+    FullMarginMathTester tester;
+
+    function setUp() public {
+        tester = new FullMarginMathTester();
+    }
 
     function testMarginRequireCallCreditSpread() public {
         FullMarginDetail memory detail = FullMarginDetail({
@@ -160,7 +189,7 @@ contract FullMarginMathTestCallSpreadWithStrike is Test {
             tokenType: TokenType.CALL_SPREAD
         });
 
-        uint256 collat = detail.getMinCollateral();
+        uint256 collat = tester.getMinCollateral(detail);
         uint256 expectedRequirement = (4000 - 2000) * UNIT;
         assertEq(collat, expectedRequirement);
     }
@@ -177,7 +206,7 @@ contract FullMarginMathTestCallSpreadWithStrike is Test {
             tokenType: TokenType.CALL_SPREAD
         });
 
-        uint256 collat = detail.getMinCollateral();
+        uint256 collat = tester.getMinCollateral(detail);
         uint256 expectedRequirement = shortAmount * (4000 - 2000);
 
         assertEq(collat, expectedRequirement);
@@ -195,7 +224,7 @@ contract FullMarginMathTestCallSpreadWithStrike is Test {
             tokenType: TokenType.CALL_SPREAD
         });
 
-        uint256 collat = detail.getMinCollateral();
+        uint256 collat = tester.getMinCollateral(detail);
         uint256 expectedRequirement = (3000 * 1e18) * 5;
 
         assertEq(collat, expectedRequirement);
@@ -212,7 +241,7 @@ contract FullMarginMathTestCallSpreadWithStrike is Test {
             tokenType: TokenType.CALL_SPREAD
         });
 
-        uint256 collat = detail.getMinCollateral();
+        uint256 collat = tester.getMinCollateral(detail);
         uint256 expectedRequirement = 0;
         assertEq(collat, expectedRequirement);
     }
@@ -223,6 +252,12 @@ contract FullMarginMathTestCallSpreadWithStrike is Test {
  */
 contract FullMarginMathTestPut is Test {
     using FullMarginMath for FullMarginDetail;
+
+    FullMarginMathTester tester;
+
+    function setUp() public {
+        tester = new FullMarginMathTester();
+    }
 
     function testMarginRequirePut() public {
         FullMarginDetail memory detail = FullMarginDetail({
@@ -235,7 +270,7 @@ contract FullMarginMathTestPut is Test {
             tokenType: TokenType.PUT
         });
 
-        uint256 collat = detail.getMinCollateral();
+        uint256 collat = tester.getMinCollateral(detail);
         uint256 expectedRequirement = 3000 * UNIT;
         assertEq(collat, expectedRequirement);
     }
@@ -252,7 +287,7 @@ contract FullMarginMathTestPut is Test {
             tokenType: TokenType.PUT
         });
 
-        uint256 collat = detail.getMinCollateral();
+        uint256 collat = tester.getMinCollateral(detail);
         uint256 expectedRequirement = shortAmount * 3000;
 
         assertEq(collat, expectedRequirement);
@@ -270,7 +305,7 @@ contract FullMarginMathTestPut is Test {
             tokenType: TokenType.PUT
         });
 
-        uint256 collat = detail.getMinCollateral();
+        uint256 collat = tester.getMinCollateral(detail);
         uint256 expectedRequirement = 5 * 3000 * 1e18;
 
         assertEq(collat, expectedRequirement);
@@ -283,6 +318,12 @@ contract FullMarginMathTestPut is Test {
 contract FullMarginMathTestPutSpread is Test {
     using FullMarginMath for FullMarginDetail;
 
+    FullMarginMathTester tester;
+
+    function setUp() public {
+        tester = new FullMarginMathTester();
+    }
+
     function testMarginRequirePutCreditSpread() public {
         FullMarginDetail memory detail = FullMarginDetail({
             shortAmount: UNIT,
@@ -294,7 +335,7 @@ contract FullMarginMathTestPutSpread is Test {
             tokenType: TokenType.PUT_SPREAD
         });
 
-        uint256 collat = detail.getMinCollateral();
+        uint256 collat = tester.getMinCollateral(detail);
         uint256 expectedRequirement = 1000 * UNIT;
         assertEq(collat, expectedRequirement);
     }
@@ -311,7 +352,7 @@ contract FullMarginMathTestPutSpread is Test {
             tokenType: TokenType.PUT_SPREAD
         });
 
-        uint256 collat = detail.getMinCollateral();
+        uint256 collat = tester.getMinCollateral(detail);
         uint256 expectedRequirement = shortAmount * 1000;
 
         assertEq(collat, expectedRequirement);
@@ -329,7 +370,7 @@ contract FullMarginMathTestPutSpread is Test {
             tokenType: TokenType.PUT_SPREAD
         });
 
-        uint256 collat = detail.getMinCollateral();
+        uint256 collat = tester.getMinCollateral(detail);
         uint256 expectedRequirement = (5 * 1e18) * 1000;
 
         assertEq(collat, expectedRequirement);
@@ -346,7 +387,7 @@ contract FullMarginMathTestPutSpread is Test {
             tokenType: TokenType.PUT_SPREAD
         });
 
-        uint256 collat = detail.getMinCollateral();
+        uint256 collat = tester.getMinCollateral(detail);
         uint256 expectedRequirement = 0;
         assertEq(collat, expectedRequirement);
     }
