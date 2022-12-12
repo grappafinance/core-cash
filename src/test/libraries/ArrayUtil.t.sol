@@ -8,8 +8,6 @@ import "../../config/constants.sol";
 import "../../config/errors.sol";
 import "../../config/types.sol";
 
-import "../../test/utils/Console.sol";
-
 /**
  * Basic tests
  */

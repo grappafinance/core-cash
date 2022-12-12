@@ -11,8 +11,6 @@ import "../../../config/errors.sol";
 
 import "../../../core/engines/cross-margin/types.sol";
 
-import "../../utils/Console.sol";
-
 // solhint-disable-next-line contract-name-camelcase
 contract TestPMSettleLongCallsCM is CrossMarginFixture {
     uint256 public expiry;

@@ -14,8 +14,6 @@ import "../../../config/errors.sol";
 import "../../../core/engines/cross-margin/types.sol";
 import "../../../core/engines/cross-margin//AccountUtil.sol";
 
-import "../../utils/Console.sol";
-
 contract PreviewCollateralReqBase is CrossMarginFixture {
     uint256 public expiry;
 
