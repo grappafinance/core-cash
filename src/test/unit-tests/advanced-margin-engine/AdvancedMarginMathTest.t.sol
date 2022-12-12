@@ -14,7 +14,6 @@ import "../../../config/types.sol";
  *      when it's initiated with external calls
  */
 contract AdvancedMarginMathTester {
-
     ///@dev call getMinCollateral and return
     function getMinCollateral(
         AdvancedMarginDetail memory _account,
@@ -38,14 +37,7 @@ contract AdvancedMarginMathTester {
         uint256 _vol,
         ProductMarginParams memory params
     ) external view returns (uint256) {
-        uint result = AdvancedMarginMath.getMinCollateralForShortCall(
-            _shortAmount,
-            _strike,
-            _expiry,
-            _spot,
-            _vol,
-            params
-        );
+        uint256 result = AdvancedMarginMath.getMinCollateralForShortCall(_shortAmount, _strike, _expiry, _spot, _vol, params);
         return result;
     }
 
@@ -58,17 +50,10 @@ contract AdvancedMarginMathTester {
         uint256 _vol,
         ProductMarginParams memory params
     ) external view returns (uint256) {
-        uint result = AdvancedMarginMath.getMinCollateralForShortPut(
-            _shortAmount,
-            _strike,
-            _expiry,
-            _spot,
-            _vol,
-            params
-        );
+        uint256 result = AdvancedMarginMath.getMinCollateralForShortPut(_shortAmount, _strike, _expiry, _spot, _vol, params);
         return result;
     }
-    
+
     function getTimeDecay(uint256 _expiry, ProductMarginParams memory params) external view returns (uint256) {
         uint256 result = AdvancedMarginMath.getTimeDecay(_expiry, params);
         return result;
