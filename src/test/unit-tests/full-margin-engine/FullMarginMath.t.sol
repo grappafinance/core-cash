@@ -18,6 +18,9 @@ contract FullMarginMathTester {
         uint256 result = FullMarginMath.getMinCollateral(_detail);
         return result;
     }
+
+    // add a function prefixed with test here so forge coverage will ignore this file
+    function testIgnoreTester() public {}
 }
 
 /**

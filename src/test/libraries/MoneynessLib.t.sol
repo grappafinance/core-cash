@@ -28,6 +28,9 @@ contract MoneynessLibTester {
         uint256 result = MoneynessLib.getCashValueDebitPutSpread(spot, longStrike, shortStrike);
         return result;
     }
+
+    // add a function prefixed with test here so forge coverage will ignore this file
+    function testIgnoreTester() public {}
 }
 
 /**

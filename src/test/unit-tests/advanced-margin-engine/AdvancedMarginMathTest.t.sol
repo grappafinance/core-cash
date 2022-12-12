@@ -58,6 +58,9 @@ contract AdvancedMarginMathTester {
         uint256 result = AdvancedMarginMath.getTimeDecay(_expiry, params);
         return result;
     }
+
+    // add a function prefixed with test here so forge coverage will ignore this file
+    function testIgnoreTester() public {}
 }
 
 /**
