@@ -18,6 +18,16 @@ contract MoneynessLibTester {
         uint256 result = MoneynessLib.getPutCashValue(spot, strikePrice);
         return result;
     }
+
+    function getCashValueDebitCallSpread(uint256 spot, uint256 longStrike, uint256 shortStrike) external pure returns (uint256) {
+        uint256 result = MoneynessLib.getCashValueDebitCallSpread(spot, longStrike, shortStrike);
+        return result;
+    }
+
+    function getCashValueDebitPutSpread(uint256 spot, uint256 longStrike, uint256 shortStrike) external pure returns (uint256) {
+        uint256 result = MoneynessLib.getCashValueDebitPutSpread(spot, longStrike, shortStrike);
+        return result;
+    }
 }
 
 /**
@@ -64,5 +74,63 @@ contract MoneynessLibTest is Test {
         spot = 2900 * base;
         cash = tester.getPutCashValue(spot, strike);
         assertEq(cash, 0);
+    }
+
+    function testCallSpreadCashValue() public {
+        uint256 spot = 3000 * base;
+        uint256 longStrike = 3200 * base;
+        uint256 shortStrike = 3400 * base;
+        uint256 cash = tester.getCashValueDebitCallSpread(spot, longStrike, shortStrike);
+        assertEq(cash, 0);
+
+        // spot is between 2 strikes
+        spot = 3300 * base;
+        cash = tester.getCashValueDebitCallSpread(spot, longStrike, shortStrike);
+        assertEq(cash, 100 * base);
+
+        // spot is higher than both, cash should be capped
+        spot = 4000 * base;
+        cash = tester.getCashValueDebitCallSpread(spot, longStrike, shortStrike);
+        assertEq(cash, 200 * base);
+    }
+
+    function testCallSpreadCashValueUnderflow() public {
+        // the function assume input to have longStrike < shortStrike
+        // if this is not the case, the result will be wrong
+        uint256 spot = 3600 * base;
+        uint256 longStrike = 3400 * base;
+        uint256 shortStrike = 3200 * base;
+        uint256 cash = tester.getCashValueDebitCallSpread(spot, longStrike, shortStrike);
+        // underflow
+        assertEq(cash, type(uint256).max - (200 * base) + 1);
+    }
+
+    function testPutSpreadCashValue() public {
+        uint256 spot = 3000 * base;
+        uint256 longStrike = 2800 * base;
+        uint256 shortStrike = 2600 * base;
+        uint256 cash = tester.getCashValueDebitPutSpread(spot, longStrike, shortStrike);
+        assertEq(cash, 0);
+
+        // spot is between 2 strikes
+        spot = 2700 * base;
+        cash = tester.getCashValueDebitPutSpread(spot, longStrike, shortStrike);
+        assertEq(cash, 100 * base);
+
+        // spot is lower than both, cash should be capped
+        spot = 2000 * base;
+        cash = tester.getCashValueDebitPutSpread(spot, longStrike, shortStrike);
+        assertEq(cash, 200 * base);
+    }
+
+    function testPutSpreadCashValueUnderflow() public {
+        // the function assume input to have longStrike > shortStrike
+        // if this is not the case, the result will be wrong
+        uint256 spot = 3000 * base;
+        uint256 longStrike = 3200 * base;
+        uint256 shortStrike = 3300 * base;
+        uint256 cash = tester.getCashValueDebitPutSpread(spot, longStrike, shortStrike);
+        // underflow
+        assertEq(cash, type(uint256).max - (100 * base) + 1);
     }
 }

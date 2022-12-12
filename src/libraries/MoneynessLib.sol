@@ -67,6 +67,7 @@ library MoneynessLib {
      * @param longStrike strike price of the short put
      */
     function getCashValueDebitPutSpread(uint256 spot, uint256 longStrike, uint256 shortStrike) internal pure returns (uint256) {
+        // assume long strike is higher than short strike.
         unchecked {
             if (spot < shortStrike) return longStrike - shortStrike;
             // expired itm, capped at (long - short)
