@@ -223,6 +223,7 @@ library AdvancedMarginMath {
         uint256 _vol,
         ProductMarginParams memory params
     ) internal view returns (uint256) {
+        // todo: revisit: when spot is zero, ask for full collateral? or small amount instead?
         unchecked {
             if (_spot == 0) return _strike.mul(_shortAmount) / UNIT;
         }

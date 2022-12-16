@@ -24,7 +24,7 @@ import {ActionHelper} from "../../shared/ActionHelper.sol";
 /**
  * helper contract for full margin integration test to inherit.
  */
-abstract contract FullMarginFixture is Test, ActionHelper, Utilities {
+contract FullMarginFixture is Test, ActionHelper, Utilities {
     FullMarginEngine internal engine;
     Grappa internal grappa;
     OptionToken internal option;
@@ -125,4 +125,7 @@ abstract contract FullMarginFixture is Test, ActionHelper, Utilities {
 
         vm.stopPrank();
     }
+
+    // place holder here so forge coverage won't pick it up
+    function test() public {}
 }

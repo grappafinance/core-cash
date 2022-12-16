@@ -80,4 +80,7 @@ abstract contract BaseEngineSetup is Test, ActionHelper, Utilities {
     function onERC1155Received(address, address, uint256, uint256, bytes calldata) external virtual returns (bytes4) {
         return this.onERC1155Received.selector;
     }
+
+    // add a function prefixed with test here so forge coverage will ignore this file
+    function test() public {}
 }

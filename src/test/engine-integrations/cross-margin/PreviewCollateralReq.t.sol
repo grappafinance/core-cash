@@ -14,8 +14,6 @@ import "../../../config/errors.sol";
 import "../../../core/engines/cross-margin/types.sol";
 import "../../../core/engines/cross-margin//AccountUtil.sol";
 
-import "../../utils/Console.sol";
-
 contract PreviewCollateralReqBase is CrossMarginFixture {
     uint256 public expiry;
 
@@ -55,6 +53,9 @@ contract PreviewCollateralReqBase is CrossMarginFixture {
     function _putTokenId(uint256 _strikePrice) internal view returns (uint256 tokenId) {
         tokenId = getTokenId(TokenType.PUT, pidUsdcCollat, expiry, _strikePrice, 0);
     }
+
+    // add a function prefixed with test here so forge coverage will ignore this file
+    function testIgnore() public {}
 }
 
 contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {

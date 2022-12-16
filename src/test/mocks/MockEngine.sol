@@ -84,4 +84,7 @@ contract MockEngine is BaseEngine, DebitSpread, ReentrancyGuard {
     function _isAccountAboveWater(address /*_subAccount*/ ) internal view override returns (bool) {
         return isAboveWater;
     }
+
+    // add a function prefixed with test here so forge coverage will ignore this file
+    function test() public {}
 }

@@ -67,4 +67,7 @@ contract MockChainlinkAggregator is IAggregatorV3 {
         // set unused filed to 1 to have more accurate approximation of gas cost of reading.
         rounds[roundId] = RoundData(int192(answer), uint64(timestamp));
     }
+
+    // add a function prefixed with test here so forge coverage will ignore this file
+    function test() public {}
 }

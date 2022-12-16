@@ -22,4 +22,7 @@ contract MockWhitelist is IWhitelist {
     function setSanctioned(address _subAccount, bool access) external {
         sactionedList[_subAccount] = access;
     }
+
+    // add a function prefixed with test here so forge coverage will ignore this file
+    function test() public {}
 }
