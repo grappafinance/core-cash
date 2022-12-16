@@ -52,11 +52,15 @@ contract DecimalMathTest is Test {
     }
 
     function testMul(uint256 x, uint256 y) public {
+        vm.assume(x < type(uint128).max);
+        vm.assume(y < type(uint128).max);
         assertEq(x * y, tester.mul(x, y));
     }
 
-    function testMulOverflow() public {
+    function testMulOverflowInUncheck() public {
         vm.expectRevert();
-        tester.mul(type(uint256).max, 5);
+        unchecked {
+            tester.mul(type(uint256).max, 5);
+        }
     }
 }

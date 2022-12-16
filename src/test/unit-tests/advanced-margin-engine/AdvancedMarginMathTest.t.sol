@@ -58,6 +58,16 @@ contract AdvancedMarginMathTester {
         uint256 result = AdvancedMarginMath.getTimeDecay(_expiry, params);
         return result;
     }
+
+    function getMinCollateralInStrike(
+        AdvancedMarginDetail memory _account,
+        uint256 _spot,
+        uint256 _vol,
+        ProductMarginParams memory _params
+    ) external view returns (uint256 minCollatValueInStrike) {
+        uint256 result = AdvancedMarginMath.getMinCollateralInStrike(_account, _spot, _vol, _params);
+        return result;
+    }
 }
 
 /**
@@ -171,6 +181,23 @@ contract AdvancedMarginMathTest is Test {
         uint256 expiry = today + 30 days;
         uint256 decay = tester.getTimeDecay(expiry, getDefaultConfig());
         assertEq(decay, 1773); // 17.73%
+    }
+
+    function testMinCollatInStrike() public {
+        // test only call
+        ProductMarginParams memory config = getDefaultConfig();
+        AdvancedMarginDetail memory emptyAcc = AdvancedMarginDetail({
+            callAmount: 0,
+            putAmount: 0,
+            longCallStrike: 0,
+            shortCallStrike: 0,
+            longPutStrike: 0,
+            shortPutStrike: 0,
+            expiry: 0,
+            collateralAmount: 0,
+            productId: 0
+        });
+        assertEq(tester.getMinCollateralInStrike(emptyAcc, 3000 * UNIT, 100 * UNIT, config), 0);
     }
 
     function getDefaultConfig() internal pure returns (ProductMarginParams memory config) {
