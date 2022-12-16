@@ -88,29 +88,44 @@ contract AdvancedMarginMathTest is Test {
     }
 
     function testMinCollateralOTMCall() public {
-        uint256 spot = 3000 * base;
+        uint256 spot = 3500 * base;
         uint256 amount = 1 * base;
-        uint256 strike = 3500 * base;
+        uint256 strike = 4000 * base;
         uint256 expiry = today + 21 days;
         uint256 vol = UNIT;
 
         uint256 minCollat = tester.getMinCollateralForShortCall(amount, strike, expiry, spot, vol, getDefaultConfig());
-        assertEq(minCollat, 405771428); // 405 USD
+        assertEq(minCollat, 483262500); // 483.2 USD
+
+        // get min collat in strike should return same answer
+        AdvancedMarginDetail memory acc = AdvancedMarginDetail({
+            callAmount: base,
+            putAmount: 0,
+            longCallStrike: 0,
+            shortCallStrike: strike,
+            longPutStrike: 0,
+            shortPutStrike: 0,
+            expiry: expiry,
+            collateralAmount: 0,
+            productId: 0
+        });
+        ProductMarginParams memory config = getDefaultConfig();
+        assertEq(tester.getMinCollateralInStrike(acc, spot, vol, config), 483262500);
 
         // spot decrease, min collateral also decrease
         spot = 2500 * base;
         uint256 minCollat2 = tester.getMinCollateralForShortCall(amount, strike, expiry, spot, vol, getDefaultConfig());
-        assertEq(minCollat2, 281785714); // 281 USD
+        assertEq(minCollat2, 246562500); // 246 USD
     }
 
     function testMinCollateralITMCall() public {
-        uint256 spot = 3500 * base;
+        uint256 spot = 3250 * base;
         uint256 amount = 1 * base;
         uint256 strike = 3000 * base;
         uint256 expiry = today + 21 days;
 
         uint256 minCollat = tester.getMinCollateralForShortCall(amount, strike, expiry, spot, UNIT, getDefaultConfig());
-        assertEq(minCollat, 973400000); // 1224 USD
+        assertEq(minCollat, 723400000); // 723 USD
 
         // spot increase, min collateral also increase
         spot = 4000 * base;
@@ -128,6 +143,21 @@ contract AdvancedMarginMathTest is Test {
         uint256 minCollat = tester.getMinCollateralForShortPut(amount, strike, expiry, spot, vol, getDefaultConfig());
         assertEq(minCollat, 405771428); // ~406 USD
 
+        // get min collat in strike should return same answer
+        AdvancedMarginDetail memory acc = AdvancedMarginDetail({
+            callAmount: 0,
+            putAmount: base,
+            longCallStrike: 0,
+            shortCallStrike: 0,
+            longPutStrike: 0,
+            shortPutStrike: strike,
+            expiry: expiry,
+            collateralAmount: 0,
+            productId: 0
+        });
+        ProductMarginParams memory config = getDefaultConfig();
+        assertEq(tester.getMinCollateralInStrike(acc, spot, vol, config), 405771428);
+
         // increasing spot price, the min collateral stay the same
         spot = 4000 * base;
         uint256 minCollat2 = tester.getMinCollateralForShortPut(amount, strike, expiry, spot, vol, getDefaultConfig());
@@ -135,7 +165,7 @@ contract AdvancedMarginMathTest is Test {
     }
 
     function testMinCollateralITMPut() public {
-        uint256 spot = 3000 * base;
+        uint256 spot = 3250 * base;
         uint256 amount = 1 * base;
         uint256 strike = 3500 * base;
         uint256 expiry = today + 21 days;
@@ -144,7 +174,7 @@ contract AdvancedMarginMathTest is Test {
         ProductMarginParams memory config = getDefaultConfig();
 
         uint256 minCollat = tester.getMinCollateralForShortPut(amount, strike, expiry, spot, vol, config);
-        assertEq(minCollat, 973400000); // 973 USD
+        assertEq(minCollat, 762850000); // 762 USD
 
         // decrease spot price, the min collateral increase
         spot = 2000 * base;
@@ -155,6 +185,60 @@ contract AdvancedMarginMathTest is Test {
         spot = 0;
         uint256 minCollat3 = tester.getMinCollateralForShortPut(amount, strike, expiry, spot, vol, config);
         assertEq(minCollat3, 3500000000); // 3500 USD
+    }
+
+    function testAccountShortStrangle() public {
+        uint256 spot = 3500 * base;
+        uint256 amount = 1 * base;
+        uint256 callStrike = 4000 * base;
+        uint256 putStrike = 3000 * base;
+        uint256 expiry = today + 21 days;
+        uint256 vol = UNIT;
+
+        // account holds a strangle (1 short call + 1 short put)
+        AdvancedMarginDetail memory acc = AdvancedMarginDetail({
+            callAmount: amount,
+            putAmount: amount,
+            longCallStrike: 0,
+            shortCallStrike: callStrike,
+            longPutStrike: 0,
+            shortPutStrike: putStrike,
+            expiry: expiry,
+            collateralAmount: 0,
+            productId: 0
+        });
+        ProductMarginParams memory config = getDefaultConfig();
+
+        // max of 483262500 and 405771428
+        assertEq(tester.getMinCollateralInStrike(acc, spot, vol, config), 483262500);
+    }
+
+    function testAccountDoubleShort() public {
+        // if an account has 2 options, but the strike cross
+        // the margin requirement is the sum of 2.
+        uint256 spot = 3250 * base;
+        uint256 amount = 1 * base;
+        uint256 callStrike = 3000 * base;
+        uint256 putStrike = 3500 * base;
+        uint256 expiry = today + 21 days;
+        uint256 vol = UNIT;
+
+        // account holds 1 short call + 1 short put (both ITM)
+        AdvancedMarginDetail memory acc = AdvancedMarginDetail({
+            callAmount: amount,
+            putAmount: amount,
+            longCallStrike: 0,
+            shortCallStrike: callStrike,
+            longPutStrike: 0,
+            shortPutStrike: putStrike,
+            expiry: expiry,
+            collateralAmount: 0,
+            productId: 0
+        });
+        ProductMarginParams memory config = getDefaultConfig();
+
+        // sum of 762850000 (put) and 723400000
+        assertEq(tester.getMinCollateralInStrike(acc, spot, vol, config), 723400000 + 762850000);
     }
 
     function testTimeDecayValueLowerBond() public {
@@ -183,8 +267,8 @@ contract AdvancedMarginMathTest is Test {
         assertEq(decay, 1773); // 17.73%
     }
 
-    function testMinCollatInStrike() public {
-        // test only call
+    function testMinCollatInStrikeOnEmptyAccount() public {
+        // test empty account
         ProductMarginParams memory config = getDefaultConfig();
         AdvancedMarginDetail memory emptyAcc = AdvancedMarginDetail({
             callAmount: 0,
@@ -197,7 +281,7 @@ contract AdvancedMarginMathTest is Test {
             collateralAmount: 0,
             productId: 0
         });
-        assertEq(tester.getMinCollateralInStrike(emptyAcc, 3000 * UNIT, 100 * UNIT, config), 0);
+        assertEq(tester.getMinCollateralInStrike(emptyAcc, 3000 * UNIT, UNIT, config), 0);
     }
 
     function getDefaultConfig() internal pure returns (ProductMarginParams memory config) {
