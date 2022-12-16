@@ -12,7 +12,7 @@
 
   <!-- reopen coverage badge again after foundry official launch coverage -->
   <a href="https://codecov.io/gh/antoncoding/grappa" >
-<img src="https://codecov.io/gh/antoncoding/grappa/branch/feat/bump-coverage/graph/badge.svg?token=G52EOD1X5B"/>
+<img src="https://codecov.io/gh/antoncoding/grappa/branch/master/graph/badge.svg?token=G52EOD1X5B"/>
 </a>
   <h5 align="center"> Don't waste your capital.</h5>
   
