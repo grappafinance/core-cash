@@ -187,6 +187,58 @@ contract AdvancedMarginMathTest is Test {
         assertEq(minCollat3, 3500000000); // 3500 USD
     }
 
+    function testFuzzMinCollateralCallSpreadShouldNotExceedMaxLoss(uint64 spot) public {
+        uint256 amount = 1 * base;
+        uint256 shortStrike = 3000 * base;
+        uint256 longStrike = 3200 * base;
+        uint256 expiry = today + 21 days;
+        uint256 vol = UNIT;
+
+        AdvancedMarginDetail memory acc = AdvancedMarginDetail({
+            callAmount: amount,
+            putAmount: 0,
+            longCallStrike: longStrike,
+            shortCallStrike: shortStrike,
+            longPutStrike: 0,
+            shortPutStrike: 0,
+            expiry: expiry,
+            collateralAmount: 0,
+            productId: 0
+        });
+        ProductMarginParams memory config = getDefaultConfig();
+
+        uint256 maxLoss = longStrike - shortStrike;
+        uint256 res = tester.getMinCollateralInStrike(acc, uint256(spot), vol, config);
+        assertEq(res <= maxLoss, true);
+    }
+
+    function testFuzzMinCollateralPutSpreadShouldNotExceedMaxLoss(uint64 spot) public {
+        // uint spot = 1000001;
+
+        uint256 amount = 1 * base;
+        uint256 shortStrike = 1800 * base;
+        uint256 longStrike = 1600 * base;
+        uint256 expiry = today + 21 days;
+        uint256 vol = UNIT;
+
+        AdvancedMarginDetail memory acc = AdvancedMarginDetail({
+            callAmount: 0,
+            putAmount: amount,
+            longCallStrike: 0,
+            shortCallStrike: 0,
+            longPutStrike: longStrike,
+            shortPutStrike: shortStrike,
+            expiry: expiry,
+            collateralAmount: 0,
+            productId: 0
+        });
+        ProductMarginParams memory config = getDefaultConfig();
+
+        uint256 maxLoss = shortStrike - longStrike;
+        uint256 res = tester.getMinCollateralInStrike(acc, uint256(spot), vol, config);
+        assertEq(res <= maxLoss, true);
+    }
+
     function testAccountShortStrangle() public {
         uint256 spot = 3500 * base;
         uint256 amount = 1 * base;
