@@ -175,6 +175,19 @@ contract AdvancedMarginMathTest is Test {
         assertEq(minCollat3, 3500000000); // 3500 USD
     }
 
+    function testMinCollateralSpotIsZero() public {
+        uint256 spot = 0;
+        uint256 amount = 1 * base;
+        uint256 strike = 3500 * base;
+        uint256 expiry = today + 21 days;
+        uint256 vol = UNIT;
+        ProductMarginParams memory config = getDefaultConfig();
+
+        // edge cases: when spot is zero, ask for full collateral.
+        uint256 minCollat = tester.getMinCollateralForShortPut(amount, strike, expiry, spot, vol, config);
+        assertEq(minCollat, strike);
+    }
+
     function testFuzzMinCollateralCallSpreadShouldNotExceedMaxLoss(uint64 spot) public {
         uint256 amount = 1 * base;
         uint256 shortStrike = 3000 * base;
@@ -309,6 +322,13 @@ contract AdvancedMarginMathTest is Test {
 
         vm.expectRevert(AM_NoConfig.selector);
         tester.getMinCollateralInStrike(acc, spot, vol, config);
+    }
+
+    function testTimeDecayIsZeroOnPassedTimestamp() public {
+        uint256 expiry = block.timestamp - 1;
+        ProductMarginParams memory config = getDefaultConfig();
+        uint256 decay = tester.getTimeDecay(expiry, config);
+        assertEq(decay, 0);
     }
 
     function testTimeDecayValueLowerBond() public {
