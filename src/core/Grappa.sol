@@ -419,7 +419,8 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      * @dev make sure that the tokenId make sense
      */
     function _isValidTokenIdToMint(uint256 _tokenId) internal view {
-        (TokenType optionType,, uint64 expiry, uint64 longStrike, uint64 shortStrike) = _tokenId.parseTokenId();
+        (TokenType optionType,, uint64 expiry, uint64 longStrike, uint64 shortStrike) = TokenIdUtil.parseTokenId(_tokenId);
+        
 
         // check option type and strikes
         // check that vanilla options doesnt have a shortStrike argument
