@@ -168,7 +168,7 @@ contract TestStructures_CMM is Test {
         });
 
         (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(numeraireNeeded, 3000 * UNIT);
+        assertEq(numeraireNeeded, 28000 * UNIT);
         assertEq(underlyingNeeded, 1 * UNIT);
     }
 

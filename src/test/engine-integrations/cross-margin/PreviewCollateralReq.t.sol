@@ -59,7 +59,7 @@ contract PreviewCollateralReqBase is CrossMarginFixture {
 
 contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
     function setUp() public {
-        oracle.setSpotPrice(address(weth), 19000 * UNIT);
+        oracle.setSpotPrice(address(weth), 17500 * UNIT);
     }
 
     function testMarginRequirement1() public {
@@ -107,7 +107,7 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
 
         assertEq(balances.length, 2);
         assertEq(balances[0].collateralId, usdcId);
-        assertEq(balances[0].amount, 3000 * UNIT);
+        assertEq(balances[0].amount, 28000 * UNIT);
         assertEq(balances[1].collateralId, wethId);
         assertEq(balances[1].amount, 1 * 1e18);
     }
@@ -406,6 +406,54 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
         Balance[] memory balances = _previewMinCollateral(positions);
 
         assertEq(balances.length, 0);
+    }
+
+    function testLongPutSpreadOTM() public {
+        OptionPosition[] memory positions = new OptionPosition[](2);
+        positions[0] = OptionPosition(TokenType.PUT, 17000 * UNIT, -1 * sUNIT);
+        positions[1] = OptionPosition(TokenType.PUT, 18000 * UNIT, 1 * sUNIT);
+
+        Balance[] memory balances = _previewMinCollateral(positions);
+
+        assertEq(balances.length, 0);
+    }
+
+    function testLongPutSpreadITM() public {
+        oracle.setSpotPrice(address(weth), 16000 * UNIT);
+
+        OptionPosition[] memory positions = new OptionPosition[](2);
+        positions[0] = OptionPosition(TokenType.PUT, 17000 * UNIT, -1 * sUNIT);
+        positions[1] = OptionPosition(TokenType.PUT, 18000 * UNIT, 1 * sUNIT);
+
+        Balance[] memory balances = _previewMinCollateral(positions);
+
+        assertEq(balances.length, 0);
+    }
+
+    function testShortPutSpreadOTM() public {
+        OptionPosition[] memory positions = new OptionPosition[](2);
+        positions[0] = OptionPosition(TokenType.PUT, 17000 * UNIT, 1 * sUNIT);
+        positions[1] = OptionPosition(TokenType.PUT, 18000 * UNIT, -1 * sUNIT);
+
+        Balance[] memory balances = _previewMinCollateral(positions);
+
+        assertEq(balances.length, 1);
+        assertEq(balances[0].collateralId, usdcId);
+        assertEq(balances[0].amount, 1000 * UNIT);
+    }
+
+    function testShortPutSpreadITM() public {
+        oracle.setSpotPrice(address(weth), 16000 * UNIT);
+
+        OptionPosition[] memory positions = new OptionPosition[](2);
+        positions[0] = OptionPosition(TokenType.PUT, 17000 * UNIT, 1 * sUNIT);
+        positions[1] = OptionPosition(TokenType.PUT, 18000 * UNIT, -1 * sUNIT);
+
+        Balance[] memory balances = _previewMinCollateral(positions);
+
+        assertEq(balances.length, 1);
+        assertEq(balances[0].collateralId, usdcId);
+        assertEq(balances[0].amount, 1000 * UNIT);
     }
 
     function testUpAndDown2() public {
