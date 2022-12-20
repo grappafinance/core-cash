@@ -112,16 +112,16 @@ library CrossMarginMath {
     {
         _verifyInputs(_detail);
 
-        (uint256[] memory strikes, int256[] memory payouts) = _getStrikesAndPayouts(_detail);
+        (uint256[] memory scenarios, int256[] memory payouts) = _getScenariosAndPayouts(_detail);
 
-        (numeraireNeeded, underlyingNeeded) = _getCollateralNeeds(_detail, strikes, payouts);
+        (numeraireNeeded, underlyingNeeded) = _getCollateralNeeds(_detail, scenarios, payouts);
 
         // if options collateralizied in underlying, forcing numeraire to be converted to underlying
         // only applied to calls since puts cannot be collateralized in underlying
         if (numeraireNeeded > ZERO && _detail.putStrikes.length == ZERO) {
             numeraireNeeded = ZERO;
 
-            underlyingNeeded = _convertCallNumeraireToUnderlying(strikes, payouts, underlyingNeeded);
+            underlyingNeeded = _convertCallNumeraireToUnderlying(scenarios, payouts, underlyingNeeded);
         } else {
             numeraireNeeded = NumberUtil.convertDecimals(numeraireNeeded, UNIT_DECIMALS, _detail.numeraireDecimals);
         }
@@ -158,34 +158,36 @@ library CrossMarginMath {
     /**
      * @notice setting up values needed to calculate margin requirements
      * @param _detail margin details
-     * @return strikes array of all the strikes
-     * @return payouts payouts for a given strike
+     * @return scenarios array of all the strikes
+     * @return payouts payouts for a given scenario
      */
-    function _getStrikesAndPayouts(CrossMarginDetail memory _detail)
+    function _getScenariosAndPayouts(CrossMarginDetail memory _detail)
         internal
         pure
-        returns (uint256[] memory strikes, int256[] memory payouts)
+        returns (uint256[] memory scenarios, int256[] memory payouts)
     {
         bool hasPuts = _detail.putStrikes.length > ZERO;
         bool hasCalls = _detail.callStrikes.length > ZERO;
 
-        strikes = _detail.putStrikes.concat(_detail.callStrikes).sort();
+        scenarios = _detail.putStrikes.concat(_detail.callStrikes).sort();
 
-        // payouts at each strike
-        payouts = new int256[](strikes.length);
+        // payouts at each scenario (strike)
+        payouts = new int256[](scenarios.length);
 
-        uint256 lastStrike;
+        uint256 lastScenario;
 
-        for (uint256 i; i < strikes.length;) {
-            // deduping strikes, leaving payout as zero
-            if (strikes[i] != lastStrike) {
-                if (hasPuts) payouts[i] = _detail.putStrikes.subEachBy(strikes[i]).maximum(sZERO).dot(_detail.putWeights) / sUNIT;
-
-                if (hasCalls) {
-                    payouts[i] += _detail.callStrikes.subEachFrom(strikes[i]).maximum(sZERO).dot(_detail.callWeights) / sUNIT;
+        for (uint256 i; i < scenarios.length;) {
+            // deduping scenarios, leaving payout as zero
+            if (scenarios[i] != lastScenario) {
+                if (hasPuts) {
+                    payouts[i] = _detail.putStrikes.subEachBy(scenarios[i]).maximum(sZERO).dot(_detail.putWeights) / sUNIT;
                 }
 
-                lastStrike = strikes[i];
+                if (hasCalls) {
+                    payouts[i] += _detail.callStrikes.subEachFrom(scenarios[i]).maximum(sZERO).dot(_detail.callWeights) / sUNIT;
+                }
+
+                lastScenario = scenarios[i];
             }
 
             unchecked {
@@ -198,12 +200,12 @@ library CrossMarginMath {
      * @notice get numeraire and underlying needed to fully collateralize
      * @dev calculates left side and right side of the payout profile
      * @param _detail margin details
-     * @param strikes of all the options
-     * @param payouts are the payouts at a given strike
+     * @param scenarios of all the options
+     * @param payouts are the payouts at a given scenario
      * @return numeraireNeeded with {numeraire asset's} decimals
      * @return underlyingNeeded with {underlying asset's} decimals
      */
-    function _getCollateralNeeds(CrossMarginDetail memory _detail, uint256[] memory strikes, int256[] memory payouts)
+    function _getCollateralNeeds(CrossMarginDetail memory _detail, uint256[] memory scenarios, int256[] memory payouts)
         internal
         pure
         returns (uint256 numeraireNeeded, uint256 underlyingNeeded)
@@ -221,13 +223,13 @@ library CrossMarginMath {
 
         // crediting the numeraire if underlying has a positive payout
         numeraireNeeded =
-            _getUnderlyingAdjustedNumeraireNeeded(strikes, minPayout, minPayoutIndex, numeraireNeeded, underlyingNeeded);
+            _getUnderlyingAdjustedNumeraireNeeded(scenarios, minPayout, minPayoutIndex, numeraireNeeded, underlyingNeeded);
     }
 
     /**
      * @notice calculates the amount of numeraire is needed for put options
      * @dev only called if there are put options, usually denominated in cash
-     * @param minPayout minimum payout across strikes
+     * @param minPayout minimum payout across scenarios
      * @param putStrikes put option strikes
      * @param putWeights number of put options at a coorisponding strike
      * @return numeraireNeeded amount of numeraire asset needed
@@ -259,15 +261,15 @@ library CrossMarginMath {
     /**
      * @notice crediting the numeraire if underlying has a positive payout
      * @dev checks if subAccount has positive underlying value, if it does then cash requirements can be lowered
-     * @param strikes of all the options
-     * @param minPayout minimum payout across strikes
-     * @param minPayoutIndex minimum payout across strikes index
+     * @param scenarios of all the options
+     * @param minPayout minimum payout across scenarios
+     * @param minPayoutIndex minimum payout across scenarios index
      * @param numeraireNeeded current numeraire needed
      * @param underlyingNeeded underlying needed
      * @return numeraireNeeded adjusted numerarie needed
      */
     function _getUnderlyingAdjustedNumeraireNeeded(
-        uint256[] memory strikes,
+        uint256[] memory scenarios,
         int256 minPayout,
         uint256 minPayoutIndex,
         uint256 numeraireNeeded,
@@ -277,12 +279,12 @@ library CrossMarginMath {
         minPayout = -minPayout;
 
         if (numeraireNeeded.toInt256() < minPayout) {
-            uint256 underlyingPayoutAtMinStrike = (strikes[minPayoutIndex] * underlyingNeeded) / UNIT;
+            uint256 underlyingPayoutAtMinStrike = (scenarios[minPayoutIndex] * underlyingNeeded) / UNIT;
 
             if (underlyingPayoutAtMinStrike.toInt256() > minPayout) {
                 numeraireNeeded = ZERO;
             } else {
-                // check directly above means minStrikePayout > underlyingPayoutAtMinStrike
+                // check directly above means minPayout > underlyingPayoutAtMinStrike
                 numeraireNeeded = uint256(minPayout) - underlyingPayoutAtMinStrike;
             }
         }
@@ -293,23 +295,23 @@ library CrossMarginMath {
     /**
      * @notice converts numerarie needed entirely in underlying
      * @dev only used if options collateralizied in underlying
-     * @param strikes of all the options
-     * @param payouts payouts at coorisponding strikes
+     * @param scenarios of all the options
+     * @param payouts payouts at coorisponding scenarios
      * @param underlyingNeeded current underlying needed
      * @return underlyingOnlyNeeded adjusted underlying needed
      */
-    function _convertCallNumeraireToUnderlying(uint256[] memory strikes, int256[] memory payouts, uint256 underlyingNeeded)
+    function _convertCallNumeraireToUnderlying(uint256[] memory scenarios, int256[] memory payouts, uint256 underlyingNeeded)
         internal
         pure
         returns (uint256 underlyingOnlyNeeded)
     {
-        int256 maxPayoutsOverStrikes;
-        int256[] memory payoutsOverStrikes = new int256[](strikes.length);
+        int256 maxPayoutsOverScenarios;
+        int256[] memory payoutsOverScenarios = new int256[](scenarios.length);
 
-        for (uint256 i; i < strikes.length;) {
-            payoutsOverStrikes[i] = (-payouts[i] * sUNIT) / int256(strikes[i]);
+        for (uint256 i; i < scenarios.length;) {
+            payoutsOverScenarios[i] = (-payouts[i] * sUNIT) / int256(scenarios[i]);
 
-            if (payoutsOverStrikes[i] > maxPayoutsOverStrikes) maxPayoutsOverStrikes = payoutsOverStrikes[i];
+            if (payoutsOverScenarios[i] > maxPayoutsOverScenarios) maxPayoutsOverScenarios = payoutsOverScenarios[i];
 
             unchecked {
                 ++i;
@@ -318,7 +320,7 @@ library CrossMarginMath {
 
         underlyingOnlyNeeded = underlyingNeeded;
 
-        if (maxPayoutsOverStrikes > sZERO) underlyingOnlyNeeded += uint256(maxPayoutsOverStrikes);
+        if (maxPayoutsOverScenarios > sZERO) underlyingOnlyNeeded += uint256(maxPayoutsOverScenarios);
     }
 
     /*///////////////////////////////////////////////////////////////
