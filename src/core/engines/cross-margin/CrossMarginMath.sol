@@ -23,8 +23,6 @@ import "../../../config/constants.sol";
 import "../../../config/enums.sol";
 import "../../../config/errors.sol";
 
-import "../../../test/utils/Console.sol";
-
 /**
  * @title   CrossMarginMath
  * @notice  this library is in charge of calculating the min collateral for a given cross margin account
