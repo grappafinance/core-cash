@@ -225,7 +225,7 @@ library CrossMarginMath {
     }
 
     /**
-     * @notice computes the slope to the left of the left most strike (put options)
+     * @notice calculates the amount of numeraire is needed for put options
      * @dev only called if there are put options, usually denominated in cash
      * @param minPayout minimum payout across strikes
      * @param putStrikes put option strikes
@@ -245,7 +245,7 @@ library CrossMarginMath {
     }
 
     /**
-     * @notice computes the slope to the right of the right most strike (call options), resulting in the delta hedge (underlying)
+     * @notice calculates the amount of underlying is needed for call options
      * @dev only called if there are call options
      * @param callWeights number of call options at a coorisponding strike
      * @return underlyingNeeded amount of underlying needed
