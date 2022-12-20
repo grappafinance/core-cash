@@ -112,16 +112,16 @@ library CrossMarginMath {
     {
         _verifyInputs(_detail);
 
-        (uint256[] memory pois, int256[] memory payouts) = _baseSetup(_detail);
+        (uint256[] memory pois, int256[] memory payouts) = _getPoisAndPayouts(_detail);
 
-        (numeraireNeeded, underlyingNeeded) = _calcCollateralNeeds(_detail, pois, payouts);
+        (numeraireNeeded, underlyingNeeded) = _getCollateralNeeds(_detail, pois, payouts);
 
         // if options collateralizied in underlying, forcing numeraire to be converted to underlying
         // only applied to calls since puts cannot be collateralized in underlying
         if (numeraireNeeded > ZERO && _detail.putStrikes.length == ZERO) {
             numeraireNeeded = ZERO;
 
-            underlyingNeeded = _convertCallCollateralToUnderlying(pois, payouts, underlyingNeeded);
+            underlyingNeeded = _convertCallNumeraireToUnderlying(pois, payouts, underlyingNeeded);
         } else {
             numeraireNeeded = NumberUtil.convertDecimals(numeraireNeeded, UNIT_DECIMALS, _detail.numeraireDecimals);
         }
@@ -161,7 +161,7 @@ library CrossMarginMath {
      * @return pois array of point-of-interests (aka strikes)
      * @return payouts payouts for a given poi position
      */
-    function _baseSetup(CrossMarginDetail memory _detail)
+    function _getPoisAndPayouts(CrossMarginDetail memory _detail)
         internal
         pure
         returns (uint256[] memory pois, int256[] memory payouts)
@@ -174,10 +174,18 @@ library CrossMarginMath {
         // payouts at each point-of-interest
         payouts = new int256[](pois.length);
 
-        for (uint256 i; i < pois.length;) {
-            if (hasPuts) payouts[i] = _detail.putStrikes.subEachBy(pois[i]).maximum(sZERO).dot(_detail.putWeights) / sUNIT;
+        uint256 lastStrike;
 
-            if (hasCalls) payouts[i] += _detail.callStrikes.subEachFrom(pois[i]).maximum(sZERO).dot(_detail.callWeights) / sUNIT;
+        for (uint256 i; i < pois.length;) {
+            if (pois[i] != lastStrike) {
+                if (hasPuts) payouts[i] = _detail.putStrikes.subEachBy(pois[i]).maximum(sZERO).dot(_detail.putWeights) / sUNIT;
+
+                if (hasCalls) {
+                    payouts[i] += _detail.callStrikes.subEachFrom(pois[i]).maximum(sZERO).dot(_detail.callWeights) / sUNIT;
+                }
+
+                lastStrike = pois[i];
+            }
 
             unchecked {
                 ++i;
@@ -194,7 +202,7 @@ library CrossMarginMath {
      * @return numeraireNeeded with {numeraire asset's} decimals
      * @return underlyingNeeded with {underlying asset's} decimals
      */
-    function _calcCollateralNeeds(CrossMarginDetail memory _detail, uint256[] memory pois, int256[] memory payouts)
+    function _getCollateralNeeds(CrossMarginDetail memory _detail, uint256[] memory pois, int256[] memory payouts)
         internal
         pure
         returns (uint256 numeraireNeeded, uint256 underlyingNeeded)
@@ -202,31 +210,32 @@ library CrossMarginMath {
         bool hasPuts = _detail.putStrikes.length > ZERO;
         bool hasCalls = _detail.callStrikes.length > ZERO;
 
+        (int256 minPayout, uint256 minPayoutIndex) = payouts.minWithIndex();
+
         // if put options exist, get amount of numeraire needed (left side of payout profile)
-        if (hasPuts) numeraireNeeded = _getNumeraireNeeded(payouts, _detail.putStrikes, _detail.putWeights);
+        if (hasPuts) numeraireNeeded = _getNumeraireNeeded(minPayout, _detail.putStrikes, _detail.putWeights);
 
         // if call options exist, get amount of underlying needed (right side of payout profile)
         if (hasCalls) underlyingNeeded = _getUnderlyingNeeded(_detail.callWeights);
 
         // crediting the numeraire if underlying has a positive payout
-        numeraireNeeded = _getUnderlyingAdjustedNumeraireNeeded(pois, payouts, numeraireNeeded, underlyingNeeded);
+        numeraireNeeded =
+            _getUnderlyingAdjustedNumeraireNeeded(pois, minPayout, minPayoutIndex, numeraireNeeded, underlyingNeeded);
     }
 
     /**
      * @notice computes the slope to the left of the left most strike (put options)
      * @dev only called if there are put options, usually denominated in cash
-     * @param payouts are the payouts at a given strike
+     * @param minPayout minimum payout across pois
      * @param putStrikes put option strikes
      * @param putWeights number of put options at a coorisponding strike
      * @return numeraireNeeded amount of numeraire asset needed
      */
-    function _getNumeraireNeeded(int256[] memory payouts, uint256[] memory putStrikes, int256[] memory putWeights)
+    function _getNumeraireNeeded(int256 minPayout, uint256[] memory putStrikes, int256[] memory putWeights)
         internal
         pure
         returns (uint256 numeraireNeeded)
     {
-        int256 minPayout = payouts.min();
-
         int256 _numeraireNeeded = putStrikes.dot(putWeights) / sUNIT;
 
         if (_numeraireNeeded > minPayout) _numeraireNeeded = minPayout;
@@ -250,29 +259,30 @@ library CrossMarginMath {
      * @notice crediting the numeraire if underlying has a positive payout
      * @dev checks if subAccount has positive underlying value, if it does then cash requirements can be lowered
      * @param pois option strikes
-     * @param payouts payouts at coorisponding pois
+     * @param minPayout minimum payout across pois
+     * @param minPayoutIndex minimum payout index
      * @param numeraireNeeded current numeraire needed
      * @param underlyingNeeded underlying needed
      * @return numeraireNeeded adjusted numerarie needed
      */
     function _getUnderlyingAdjustedNumeraireNeeded(
         uint256[] memory pois,
-        int256[] memory payouts,
+        int256 minPayout,
+        uint256 minPayoutIndex,
         uint256 numeraireNeeded,
         uint256 underlyingNeeded
     ) internal pure returns (uint256) {
-        (int256 minStrikePayout, uint256 index) = payouts.minWithIndex();
+        // negating to focus on negative payouts which require positive collateral
+        minPayout = -minPayout;
 
-        minStrikePayout = -minStrikePayout;
+        if (numeraireNeeded.toInt256() < minPayout) {
+            uint256 underlyingPayoutAtMinStrike = (pois[minPayoutIndex] * underlyingNeeded) / UNIT;
 
-        if (numeraireNeeded.toInt256() < minStrikePayout) {
-            uint256 underlyingPayoutAtMinStrike = (pois[index] * underlyingNeeded) / UNIT;
-
-            if (underlyingPayoutAtMinStrike.toInt256() > minStrikePayout) {
+            if (underlyingPayoutAtMinStrike.toInt256() > minPayout) {
                 numeraireNeeded = ZERO;
             } else {
                 // check directly above means minStrikePayout > underlyingPayoutAtMinStrike
-                numeraireNeeded = uint256(minStrikePayout) - underlyingPayoutAtMinStrike;
+                numeraireNeeded = uint256(minPayout) - underlyingPayoutAtMinStrike;
             }
         }
 
@@ -287,7 +297,7 @@ library CrossMarginMath {
      * @param underlyingNeeded current underlying needed
      * @return underlyingOnlyNeeded adjusted underlying needed
      */
-    function _convertCallCollateralToUnderlying(uint256[] memory pois, int256[] memory payouts, uint256 underlyingNeeded)
+    function _convertCallNumeraireToUnderlying(uint256[] memory pois, int256[] memory payouts, uint256 underlyingNeeded)
         internal
         pure
         returns (uint256 underlyingOnlyNeeded)
