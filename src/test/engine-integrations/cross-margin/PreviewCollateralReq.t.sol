@@ -58,7 +58,6 @@ contract PreviewCollateralReqBase is CrossMarginFixture {
 }
 
 contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
-
     function testMarginRequirement1() public {
         OptionPosition[] memory positions = new OptionPosition[](6);
         positions[0] = OptionPosition(TokenType.CALL, 21000 * UNIT, -1 * sUNIT);
