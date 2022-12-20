@@ -28,3 +28,19 @@ error CM_CannotMintOptionWithThisCollateral();
 
 /// @dev invalid tokenId specify to mint / burn actions
 error CM_InvalidToken();
+
+/* --------------------- *
+ *  Cross Margin Math Errors
+ * --------------------- */
+
+/// @dev invalid put length given strikes
+error CMM_InvalidPutLengths();
+
+/// @dev invalid call length given strikes
+error CMM_InvalidCallLengths();
+
+/// @dev invalid put length of zero
+error CMM_InvalidPutWeight();
+
+/// @dev invalid call length of zero
+error CMM_InvalidCallWeight();
