@@ -112,16 +112,16 @@ library CrossMarginMath {
     {
         _verifyInputs(_detail);
 
-        (uint256[] memory pois, int256[] memory payouts) = _getPoisAndPayouts(_detail);
+        (uint256[] memory strikes, int256[] memory payouts) = _getStrikesAndPayouts(_detail);
 
-        (numeraireNeeded, underlyingNeeded) = _getCollateralNeeds(_detail, pois, payouts);
+        (numeraireNeeded, underlyingNeeded) = _getCollateralNeeds(_detail, strikes, payouts);
 
         // if options collateralizied in underlying, forcing numeraire to be converted to underlying
         // only applied to calls since puts cannot be collateralized in underlying
         if (numeraireNeeded > ZERO && _detail.putStrikes.length == ZERO) {
             numeraireNeeded = ZERO;
 
-            underlyingNeeded = _convertCallNumeraireToUnderlying(pois, payouts, underlyingNeeded);
+            underlyingNeeded = _convertCallNumeraireToUnderlying(strikes, payouts, underlyingNeeded);
         } else {
             numeraireNeeded = NumberUtil.convertDecimals(numeraireNeeded, UNIT_DECIMALS, _detail.numeraireDecimals);
         }
@@ -158,33 +158,34 @@ library CrossMarginMath {
     /**
      * @notice setting up values needed to calculate margin requirements
      * @param _detail margin details
-     * @return pois array of point-of-interests (aka strikes)
-     * @return payouts payouts for a given poi position
+     * @return strikes array of all the strikes
+     * @return payouts payouts for a given strike
      */
-    function _getPoisAndPayouts(CrossMarginDetail memory _detail)
+    function _getStrikesAndPayouts(CrossMarginDetail memory _detail)
         internal
         pure
-        returns (uint256[] memory pois, int256[] memory payouts)
+        returns (uint256[] memory strikes, int256[] memory payouts)
     {
         bool hasPuts = _detail.putStrikes.length > ZERO;
         bool hasCalls = _detail.callStrikes.length > ZERO;
 
-        pois = _detail.putStrikes.concat(_detail.callStrikes).sort();
+        strikes = _detail.putStrikes.concat(_detail.callStrikes).sort();
 
-        // payouts at each point-of-interest
-        payouts = new int256[](pois.length);
+        // payouts at each strike
+        payouts = new int256[](strikes.length);
 
         uint256 lastStrike;
 
-        for (uint256 i; i < pois.length;) {
-            if (pois[i] != lastStrike) {
-                if (hasPuts) payouts[i] = _detail.putStrikes.subEachBy(pois[i]).maximum(sZERO).dot(_detail.putWeights) / sUNIT;
+        for (uint256 i; i < strikes.length;) {
+            // deduping strikes, leaving payout as zero
+            if (strikes[i] != lastStrike) {
+                if (hasPuts) payouts[i] = _detail.putStrikes.subEachBy(strikes[i]).maximum(sZERO).dot(_detail.putWeights) / sUNIT;
 
                 if (hasCalls) {
-                    payouts[i] += _detail.callStrikes.subEachFrom(pois[i]).maximum(sZERO).dot(_detail.callWeights) / sUNIT;
+                    payouts[i] += _detail.callStrikes.subEachFrom(strikes[i]).maximum(sZERO).dot(_detail.callWeights) / sUNIT;
                 }
 
-                lastStrike = pois[i];
+                lastStrike = strikes[i];
             }
 
             unchecked {
@@ -197,12 +198,12 @@ library CrossMarginMath {
      * @notice get numeraire and underlying needed to fully collateralize
      * @dev calculates left side and right side of the payout profile
      * @param _detail margin details
-     * @param pois are the strikes we are evaluating
+     * @param strikes of all the options
      * @param payouts are the payouts at a given strike
      * @return numeraireNeeded with {numeraire asset's} decimals
      * @return underlyingNeeded with {underlying asset's} decimals
      */
-    function _getCollateralNeeds(CrossMarginDetail memory _detail, uint256[] memory pois, int256[] memory payouts)
+    function _getCollateralNeeds(CrossMarginDetail memory _detail, uint256[] memory strikes, int256[] memory payouts)
         internal
         pure
         returns (uint256 numeraireNeeded, uint256 underlyingNeeded)
@@ -220,13 +221,13 @@ library CrossMarginMath {
 
         // crediting the numeraire if underlying has a positive payout
         numeraireNeeded =
-            _getUnderlyingAdjustedNumeraireNeeded(pois, minPayout, minPayoutIndex, numeraireNeeded, underlyingNeeded);
+            _getUnderlyingAdjustedNumeraireNeeded(strikes, minPayout, minPayoutIndex, numeraireNeeded, underlyingNeeded);
     }
 
     /**
      * @notice computes the slope to the left of the left most strike (put options)
      * @dev only called if there are put options, usually denominated in cash
-     * @param minPayout minimum payout across pois
+     * @param minPayout minimum payout across strikes
      * @param putStrikes put option strikes
      * @param putWeights number of put options at a coorisponding strike
      * @return numeraireNeeded amount of numeraire asset needed
@@ -258,15 +259,15 @@ library CrossMarginMath {
     /**
      * @notice crediting the numeraire if underlying has a positive payout
      * @dev checks if subAccount has positive underlying value, if it does then cash requirements can be lowered
-     * @param pois option strikes
-     * @param minPayout minimum payout across pois
-     * @param minPayoutIndex minimum payout index
+     * @param strikes of all the options
+     * @param minPayout minimum payout across strikes
+     * @param minPayoutIndex minimum payout across strikes index
      * @param numeraireNeeded current numeraire needed
      * @param underlyingNeeded underlying needed
      * @return numeraireNeeded adjusted numerarie needed
      */
     function _getUnderlyingAdjustedNumeraireNeeded(
-        uint256[] memory pois,
+        uint256[] memory strikes,
         int256 minPayout,
         uint256 minPayoutIndex,
         uint256 numeraireNeeded,
@@ -276,7 +277,7 @@ library CrossMarginMath {
         minPayout = -minPayout;
 
         if (numeraireNeeded.toInt256() < minPayout) {
-            uint256 underlyingPayoutAtMinStrike = (pois[minPayoutIndex] * underlyingNeeded) / UNIT;
+            uint256 underlyingPayoutAtMinStrike = (strikes[minPayoutIndex] * underlyingNeeded) / UNIT;
 
             if (underlyingPayoutAtMinStrike.toInt256() > minPayout) {
                 numeraireNeeded = ZERO;
@@ -292,23 +293,23 @@ library CrossMarginMath {
     /**
      * @notice converts numerarie needed entirely in underlying
      * @dev only used if options collateralizied in underlying
-     * @param pois option strikes
-     * @param payouts payouts at coorisponding pois
+     * @param strikes of all the options
+     * @param payouts payouts at coorisponding strikes
      * @param underlyingNeeded current underlying needed
      * @return underlyingOnlyNeeded adjusted underlying needed
      */
-    function _convertCallNumeraireToUnderlying(uint256[] memory pois, int256[] memory payouts, uint256 underlyingNeeded)
+    function _convertCallNumeraireToUnderlying(uint256[] memory strikes, int256[] memory payouts, uint256 underlyingNeeded)
         internal
         pure
         returns (uint256 underlyingOnlyNeeded)
     {
-        int256 maxPayoutsOverPoi;
-        int256[] memory payoutsOverPoi = new int256[](pois.length);
+        int256 maxPayoutsOverStrikes;
+        int256[] memory payoutsOverStrikes = new int256[](strikes.length);
 
-        for (uint256 i; i < pois.length;) {
-            payoutsOverPoi[i] = (-payouts[i] * sUNIT) / int256(pois[i]);
+        for (uint256 i; i < strikes.length;) {
+            payoutsOverStrikes[i] = (-payouts[i] * sUNIT) / int256(strikes[i]);
 
-            if (payoutsOverPoi[i] > maxPayoutsOverPoi) maxPayoutsOverPoi = payoutsOverPoi[i];
+            if (payoutsOverStrikes[i] > maxPayoutsOverStrikes) maxPayoutsOverStrikes = payoutsOverStrikes[i];
 
             unchecked {
                 ++i;
@@ -317,7 +318,7 @@ library CrossMarginMath {
 
         underlyingOnlyNeeded = underlyingNeeded;
 
-        if (maxPayoutsOverPoi > sZERO) underlyingOnlyNeeded += uint256(maxPayoutsOverPoi);
+        if (maxPayoutsOverStrikes > sZERO) underlyingOnlyNeeded += uint256(maxPayoutsOverStrikes);
     }
 
     /*///////////////////////////////////////////////////////////////
