@@ -331,7 +331,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      */
     function checkEngineAccess(uint256 _tokenId, address _engine) external view {
         // create check engine access
-        uint8 engineId = TokenIdUtil.parseEnginelId(_tokenId);
+        uint8 engineId = TokenIdUtil.parseEngineId(_tokenId);
         if (_engine != engines[engineId]) revert GP_Not_Authorized_Engine();
     }
 
@@ -345,7 +345,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         _isValidTokenIdToMint(_tokenId);
 
         //  check engine access
-        uint8 engineId = _tokenId.parseEnginelId();
+        uint8 engineId = _tokenId.parseEngineId();
         if (_engine != engines[engineId]) revert GP_Not_Authorized_Engine();
     }
 

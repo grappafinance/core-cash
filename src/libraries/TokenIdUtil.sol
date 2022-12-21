@@ -113,7 +113,7 @@ library TokenIdUtil {
      * @param tokenId token id
      * @return engineId
      */
-    function parseEnginelId(uint256 tokenId) internal pure returns (uint8 engineId) {
+    function parseEngineId(uint256 tokenId) internal pure returns (uint8 engineId) {
         // solhint-disable-next-line no-inline-assembly
         assembly {
             // collateralId is the last bits of productId
