@@ -41,7 +41,6 @@ struct CrossMarginDetail {
     uint8 underlyingDecimals;
     uint8 numeraireId;
     uint8 numeraireDecimals;
-    uint256 spotPrice;
     uint256 expiry;
 }
 

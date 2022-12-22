@@ -25,6 +25,20 @@ library ArrayUtil {
         }
     }
 
+    function minWithIndex(int256[] memory x) internal pure returns (int256 m, uint256 idx) {
+        m = x[0];
+        idx = 0;
+        for (uint256 i; i < x.length;) {
+            if (x[i] < m) {
+                m = x[i];
+                idx = i;
+            }
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
     function min(uint256[] memory x) internal pure returns (uint256 m) {
         m = x[0];
         for (uint256 i; i < x.length;) {

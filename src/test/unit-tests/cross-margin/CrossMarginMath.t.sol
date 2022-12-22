@@ -16,8 +16,6 @@ import "../../../core/engines/cross-margin/types.sol";
 contract TestStructures_CMM is Test {
     using CrossMarginMath for CrossMarginDetail;
 
-    uint256 private spotPrice;
-
     int256[] private putWeights;
     uint256[] private putStrikes;
 
@@ -44,8 +42,6 @@ contract TestStructures_CMM is Test {
         callStrikes[1] = 22000 * UNIT;
         callStrikes[2] = 25000 * UNIT;
         callStrikes[3] = 26000 * UNIT;
-
-        spotPrice = 19000 * UNIT;
     }
 
     function testVerifyInputs2() public {
@@ -60,10 +56,9 @@ contract TestStructures_CMM is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 1,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
-        vm.expectRevert(CrossMarginMath.CM_InvalidCallWeight.selector);
+        vm.expectRevert(CMM_InvalidCallWeight.selector);
         detail.getMinCollateral();
     }
 
@@ -82,10 +77,9 @@ contract TestStructures_CMM is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 1,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
-        vm.expectRevert(CrossMarginMath.CM_InvalidPutLengths.selector);
+        vm.expectRevert(CMM_InvalidPutLengths.selector);
         detail.getMinCollateral();
     }
 
@@ -104,10 +98,9 @@ contract TestStructures_CMM is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 1,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
-        vm.expectRevert(CrossMarginMath.CM_InvalidCallLengths.selector);
+        vm.expectRevert(CMM_InvalidCallLengths.selector);
         detail.getMinCollateral();
     }
 
@@ -121,7 +114,6 @@ contract TestStructures_CMM is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 1,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
 
@@ -142,7 +134,6 @@ contract TestStructures_CMM is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 1,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
 
@@ -163,12 +154,11 @@ contract TestStructures_CMM is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 1,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
 
         (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(numeraireNeeded, 3000 * UNIT);
+        assertEq(numeraireNeeded, 28000 * UNIT);
         assertEq(underlyingNeeded, 1 * UNIT);
     }
 
@@ -185,7 +175,6 @@ contract TestStructures_CMM is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 1,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
 
@@ -220,7 +209,6 @@ contract TestStructures_CMM is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 1,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
 
@@ -248,7 +236,6 @@ contract TestStructures_CMM is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 1,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
 
@@ -276,7 +263,6 @@ contract TestStructures_CMM is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 1,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
 
@@ -304,7 +290,6 @@ contract TestStructures_CMM is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 1,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
 
@@ -332,7 +317,6 @@ contract TestStructures_CMM is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 1,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
 
@@ -362,7 +346,6 @@ contract TestStructures_CMM is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 1,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
 
@@ -392,7 +375,6 @@ contract TestStructures_CMM is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 0,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
 
@@ -422,7 +404,6 @@ contract TestStructures_CMM is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 1,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
 
@@ -452,7 +433,6 @@ contract TestStructures_CMM is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 0,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
 
@@ -482,7 +462,6 @@ contract TestStructures_CMM is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 0,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
 
@@ -512,7 +491,6 @@ contract TestStructures_CMM is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 0,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
 
@@ -543,7 +521,6 @@ contract TestStructures_CMM is Test {
     //         underlyingDecimals: UNIT_DECIMALS,
     //         numeraireId: 1,
     //         numeraireDecimals: UNIT_DECIMALS,
-    //         spotPrice: spotPrice,
     //         expiry: 0
     //     });
 
@@ -574,7 +551,6 @@ contract TestStructures_CMM is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 1,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
 
@@ -592,7 +568,6 @@ contract TestStructures_CMM is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 1,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
 
@@ -605,8 +580,6 @@ contract TestStructures_CMM is Test {
 // solhint-disable-next-line contract-name-camelcase
 contract TestVanillaCall_CMM is Test {
     using CrossMarginMath for CrossMarginDetail;
-
-    uint256 private spotPrice;
 
     int256[] private putWeights;
     uint256[] private putStrikes;
@@ -623,8 +596,6 @@ contract TestVanillaCall_CMM is Test {
 
         callStrikes = new uint256[](1);
         callStrikes[0] = 21000 * UNIT;
-
-        spotPrice = 19000 * UNIT;
     }
 
     function testMarginRequirementVanillaCall1() public {
@@ -637,7 +608,6 @@ contract TestVanillaCall_CMM is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 0,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
 
@@ -650,8 +620,6 @@ contract TestVanillaCall_CMM is Test {
 // solhint-disable-next-line contract-name-camelcase
 contract TestVanillaPut_CMM is Test {
     using CrossMarginMath for CrossMarginDetail;
-
-    uint256 private spotPrice;
 
     int256[] private putWeights;
     uint256[] private putStrikes;
@@ -668,8 +636,6 @@ contract TestVanillaPut_CMM is Test {
 
         callWeights = new int256[](0);
         callStrikes = new uint256[](0);
-
-        spotPrice = 19000 * UNIT;
     }
 
     function testMarginRequirement1() public {
@@ -682,7 +648,6 @@ contract TestVanillaPut_CMM is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 1,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
 
@@ -694,8 +659,6 @@ contract TestVanillaPut_CMM is Test {
 
 contract TestStrangles is Test {
     using CrossMarginMath for CrossMarginDetail;
-
-    uint256 private spotPrice;
 
     int256[] private putWeights;
     uint256[] private putStrikes;
@@ -715,8 +678,6 @@ contract TestStrangles is Test {
 
         callStrikes = new uint256[](1);
         callStrikes[0] = 20000 * UNIT;
-
-        spotPrice = 19000 * UNIT;
     }
 
     function testShortStrangles() public {
@@ -729,7 +690,6 @@ contract TestStrangles is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 1,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
 
@@ -750,7 +710,6 @@ contract TestStrangles is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 1,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
 
@@ -785,7 +744,6 @@ contract TestStrangles is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 1,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
 
@@ -798,8 +756,6 @@ contract TestStrangles is Test {
 // solhint-disable-next-line contract-name-camelcase
 contract TestCornerCases_CMM is Test {
     using CrossMarginMath for CrossMarginDetail;
-
-    uint256 private spotPrice;
 
     int256[] private putWeights;
     uint256[] private putStrikes;
@@ -823,8 +779,6 @@ contract TestCornerCases_CMM is Test {
         callStrikes = new uint256[](2);
         callStrikes[0] = 20000 * UNIT;
         callStrikes[1] = 21000 * UNIT;
-
-        spotPrice = 19000 * UNIT;
     }
 
     function testOneByTwoCall() public {
@@ -839,7 +793,6 @@ contract TestCornerCases_CMM is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 0,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
 
@@ -860,7 +813,6 @@ contract TestCornerCases_CMM is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 1,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
 
@@ -881,10 +833,9 @@ contract TestCornerCases_CMM is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 1,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
-        vm.expectRevert(CrossMarginMath.CM_InvalidPutWeight.selector);
+        vm.expectRevert(CMM_InvalidPutWeight.selector);
         detail.getMinCollateral();
     }
 
@@ -900,7 +851,6 @@ contract TestCornerCases_CMM is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 1,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
 
@@ -919,7 +869,6 @@ contract TestCornerCases_CMM is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 1,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
 
@@ -943,7 +892,6 @@ contract TestCornerCases_CMM is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 1,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
 
@@ -967,7 +915,6 @@ contract TestCornerCases_CMM is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 1,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
 
@@ -994,7 +941,6 @@ contract TestCornerCases_CMM is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 1,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
 
@@ -1016,7 +962,6 @@ contract TestCornerCases_CMM is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 1,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
 
@@ -1047,7 +992,6 @@ contract TestCornerCases_CMM is Test {
             underlyingDecimals: UNIT_DECIMALS,
             numeraireId: 1,
             numeraireDecimals: UNIT_DECIMALS,
-            spotPrice: spotPrice,
             expiry: 0
         });
 
