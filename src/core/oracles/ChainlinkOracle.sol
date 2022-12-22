@@ -198,7 +198,7 @@ contract ChainlinkOracle is IOracle, Ownable {
         // it is not a stable asset: make sure timestamp of answer #(round + 1) is higher than expiry
         if (!aggregator.isStable) {
             (,,, uint256 nextRoundUpdatedAt,) = IAggregatorV3(address(aggregator.addr)).getRoundData(_roundId + 1);
-            if (nextRoundUpdatedAt < _expiry) revert CL_RoundIdTooSmall();
+            if (nextRoundUpdatedAt <= _expiry) revert CL_RoundIdTooSmall();
         }
 
         return (uint256(answer), aggregator.decimals);
