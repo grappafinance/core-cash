@@ -169,8 +169,6 @@ library ActionUtil {
         action = ActionArgs({action: ActionType.SettleAccount, data: abi.encode(0)});
     }
 
-
-
     function concat(ActionArgs[] memory x, ActionArgs[] memory v) internal pure returns (ActionArgs[] memory y) {
         y = new ActionArgs[](x.length + v.length);
         uint256 z;
