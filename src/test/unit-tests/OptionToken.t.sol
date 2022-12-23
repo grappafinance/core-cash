@@ -31,7 +31,7 @@ contract OptionTokenTest is Test {
         // put in valid tokenId
         uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
         uint256 expiry = block.timestamp + 1 days;
-        uint256 tokenId = TokenIdUtil.getTokenId(TokenType.CALL_SPREAD, productId, expiry, 20, 40);
+        uint256 tokenId = _getTokenId(TokenType.CALL_SPREAD, productId, expiry, 20, 40);
 
         vm.expectRevert(GP_Not_Authorized_Engine.selector);
         option.mint(address(this), tokenId, 1000_000_000);
@@ -59,7 +59,7 @@ contract OptionTokenTest is Test {
         vm.mockCall(grappa, abi.encodeWithSelector(Grappa(grappa).engines.selector, engineId), abi.encode(address(this)));
 
         uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
-        uint256 tokenId = TokenIdUtil.getTokenId(TokenType.CALL_SPREAD, productId, expiry, 40, 20);
+        uint256 tokenId = _getTokenId(TokenType.CALL_SPREAD, productId, expiry, 40, 20);
 
         vm.expectRevert(GP_BadStrikes.selector);
         option.mint(address(this), tokenId, 1);
@@ -72,7 +72,7 @@ contract OptionTokenTest is Test {
         vm.mockCall(grappa, abi.encodeWithSelector(Grappa(grappa).engines.selector, engineId), abi.encode(address(this)));
 
         uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
-        uint256 tokenId = TokenIdUtil.getTokenId(TokenType.PUT_SPREAD, productId, expiry, 20, 40);
+        uint256 tokenId = _getTokenId(TokenType.PUT_SPREAD, productId, expiry, 20, 40);
 
         vm.expectRevert(GP_BadStrikes.selector);
         option.mint(address(this), tokenId, 1);
@@ -85,7 +85,7 @@ contract OptionTokenTest is Test {
         vm.mockCall(grappa, abi.encodeWithSelector(Grappa(grappa).engines.selector, engineId), abi.encode(address(this)));
 
         uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
-        uint256 tokenId = TokenIdUtil.getTokenId(TokenType.CALL, productId, expiry, 20, 40);
+        uint256 tokenId = _getTokenId(TokenType.CALL, productId, expiry, 20, 40);
 
         vm.expectRevert(GP_BadStrikes.selector);
         option.mint(address(this), tokenId, 1);
@@ -98,7 +98,7 @@ contract OptionTokenTest is Test {
         vm.mockCall(grappa, abi.encodeWithSelector(Grappa(grappa).engines.selector, engineId), abi.encode(address(this)));
 
         uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
-        uint256 tokenId = TokenIdUtil.getTokenId(TokenType.PUT, productId, expiry, 20, 40);
+        uint256 tokenId = _getTokenId(TokenType.PUT, productId, expiry, 20, 40);
 
         vm.expectRevert(GP_BadStrikes.selector);
         option.mint(address(this), tokenId, 1);
@@ -108,5 +108,13 @@ contract OptionTokenTest is Test {
         assertEq(option.uri(0), "https://grappa.finance/token/0");
 
         assertEq(option.uri(200), "https://grappa.finance/token/200");
+    }
+
+    function _getTokenId(TokenType tokenType, uint40 product, uint256 expiry, uint256 longStrike, uint256 shortStrike)
+        internal
+        pure
+        returns (uint256)
+    {
+        return TokenIdUtil.formatTokenId(tokenType, product, uint64(expiry), uint64(longStrike), uint64(shortStrike));
     }
 }

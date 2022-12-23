@@ -6,6 +6,7 @@ import "forge-std/Test.sol";
 
 import {Grappa} from "../../core/Grappa.sol";
 import {GrappaProxy} from "../../core/GrappaProxy.sol";
+import {TokenIdUtil} from "../../libraries/TokenIdUtil.sol";
 import {MockERC20} from "../mocks/MockERC20.sol";
 import {MockOracle} from "../mocks/MockOracle.sol";
 
@@ -83,7 +84,7 @@ contract GrappaRegistry is Test {
         grappa.registerAsset(address(weth));
 
         uint40 product = grappa.getProductId(address(0), address(0), address(weth), address(0), address(weth));
-        uint256 token = grappa.getTokenId(TokenType.CALL, product, expiryTimestamp, strikePrice, 0);
+        uint256 token = TokenIdUtil.formatTokenId(TokenType.CALL, product, uint64(expiryTimestamp), uint64(strikePrice), 0);
 
         (TokenType tokenType, uint40 productId, uint256 expiry, uint256 longStrike, uint256 shortStrike) =
             grappa.getDetailFromTokenId(token);

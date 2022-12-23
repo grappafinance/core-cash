@@ -49,7 +49,8 @@ contract TokenIdUtilTest is Test {
         vm.assume(tokenType < 4);
         vm.assume(productId > 0);
 
-        uint256 id = TokenIdUtil.getTokenId(TokenType(tokenType), productId, expiry, longStrike, shortStrike);
+        uint256 id =
+            TokenIdUtil.formatTokenId(TokenType(tokenType), productId, uint64(expiry), uint64(longStrike), uint64(shortStrike));
         (TokenType _tokenType, uint40 _productId, uint64 _expiry, uint64 _longStrike, uint64 _shortStrike) =
             TokenIdUtil.parseTokenId(id);
 

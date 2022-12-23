@@ -22,14 +22,6 @@ import "../config/errors.sol";
  *  * ------------------- | ------------------- | ---------------- | -------------------- *
  */
 library TokenIdUtil {
-    function getTokenId(TokenType tokenType, uint40 productId, uint256 expiry, uint256 longStrike, uint256 shortStrike)
-        internal
-        pure
-        returns (uint256 tokenId)
-    {
-        tokenId = formatTokenId(tokenType, productId, uint64(expiry), uint64(longStrike), uint64(shortStrike));
-    }
-
     /**
      * @notice calculate ERC1155 token id for given option parameters. See table above for tokenId
      * @param tokenType TokenType enum

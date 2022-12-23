@@ -188,23 +188,6 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     }
 
     /**
-     * @notice    get token id from type, productId, expiry, strike
-     * @dev       function will still return even if some of the assets are not registered
-     * @param _tokenType TokenType enum
-     * @param _productId if of the product
-     * @param _expiry timestamp of option expiry
-     * @param _longStrike strike price of the long option, with 6 decimals
-     * @param _shortStrike strike price of the short (upper bond for call and lower bond for put) if this is a spread. 6 decimals
-     */
-    function getTokenId(TokenType _tokenType, uint40 _productId, uint256 _expiry, uint256 _longStrike, uint256 _shortStrike)
-        external
-        pure
-        returns (uint256 id)
-    {
-        id = TokenIdUtil.getTokenId(_tokenType, _productId, _expiry, _longStrike, _shortStrike);
-    }
-
-    /**
      * @notice burn option token and get out cash value at expiry
      *
      * @param _account  who to settle for
