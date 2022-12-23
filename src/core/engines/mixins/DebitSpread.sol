@@ -121,6 +121,6 @@ abstract contract DebitSpread is BaseEngine {
         if (spreadType != TokenType.CALL_SPREAD && spreadType != TokenType.PUT_SPREAD) revert BM_CanOnlySplitSpread();
 
         TokenType newType = spreadType == TokenType.CALL_SPREAD ? TokenType.CALL : TokenType.PUT;
-        longId = TokenIdUtil.formatTokenId(newType, productId, expiry, shortStrike, 0);
+        longId = TokenIdUtil.getTokenId(newType, productId, expiry, shortStrike, 0);
     }
 }
