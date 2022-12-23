@@ -1,0 +1,15 @@
+{
+  "goerli": {
+    "Grappa": "0x71947e72f71dF2Bcd1Cc474682A49dB5F8D170E9",
+    "GrappaProxy": "0x32076d5756edB4f1660946eeAA8d954e43141990",
+    "OptionTokenDescriptor": "0xC4c4f7F953224D9aFd3922eB112c17536B2BcC1e",
+    "OptionTokenDescriptorProxy": "0x390593819800fF163296EcEf3133A16fdaf9D1bC",
+    "OptionToken": "0x6694CB42C937C83677E01079a50468E33C2F7BfA",
+    "CrossMarginLib": "0x8a8A7dD3CC776ADfb5cA74D349925Bd94545d945",
+    "CrossMarginMath": "0x695e443EBC352E78F86D292978efDBB64ACAf137",
+    "CrossMarginEngine": "0x8304ffc5ea30ca3635af6c28acaae2910c2673d5",
+    "CrossMarginEngineProxy": "0xB985e279C4b4ef62dcD0A312a1D08c9EDAB6692e",
+    "ChainlinkOracle": "0xc735a97014AD3f313B5202DED8f6e4ffb2f37B69",
+    "ChainlinkOracleDisputable": "0xC3bD837BBc8c64691C306cEA05F2C4ac631fa809"
+  }
+}
