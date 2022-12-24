@@ -22,14 +22,6 @@ import "../config/errors.sol";
  *  * ------------------- | ------------------- | ---------------- | -------------------- *
  */
 library TokenIdUtil {
-    function getTokenId(TokenType tokenType, uint40 productId, uint256 expiry, uint256 longStrike, uint256 shortStrike)
-        internal
-        pure
-        returns (uint256 tokenId)
-    {
-        tokenId = formatTokenId(tokenType, productId, uint64(expiry), uint64(longStrike), uint64(shortStrike));
-    }
-
     /**
      * @notice calculate ERC1155 token id for given option parameters. See table above for tokenId
      * @param tokenType TokenType enum
@@ -39,7 +31,7 @@ library TokenIdUtil {
      * @param shortStrike strike price of the short (upper bond for call and lower bond for put) if this is a spread. 6 decimals
      * @return tokenId token id
      */
-    function formatTokenId(TokenType tokenType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike)
+    function getTokenId(TokenType tokenType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike)
         internal
         pure
         returns (uint256 tokenId)
@@ -47,24 +39,6 @@ library TokenIdUtil {
         unchecked {
             tokenId = (uint256(tokenType) << 232) + (uint256(productId) << 192) + (uint256(expiry) << 128)
                 + (uint256(longStrike) << 64) + uint256(shortStrike);
-        }
-    }
-
-    /**
-     * @notice calculate non-complaint ERC1155 token id for given option parameters. See table above for shorttokenId
-     * @param tokenType TokenType enum
-     * @param productId if of the product
-     * @param expiry timestamp of option expiry
-     * @param longStrike strike price of the long option, with 6 decimals
-     * @return tokenId token id
-     */
-    function formatShortTokenId(TokenType tokenType, uint40 productId, uint64 expiry, uint64 longStrike)
-        internal
-        pure
-        returns (uint192 tokenId)
-    {
-        unchecked {
-            tokenId = (uint192(tokenType) << 168) + (uint192(productId) << 128) + (uint192(expiry) << 64) + uint192(longStrike);
         }
     }
 

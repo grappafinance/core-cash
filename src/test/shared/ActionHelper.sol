@@ -13,7 +13,7 @@ abstract contract ActionHelper {
         pure
         returns (uint256 tokenId)
     {
-        tokenId = TokenIdUtil.formatTokenId(tokenType, productId, uint64(expiry), uint64(longStrike), uint64(shortStrike));
+        tokenId = TokenIdUtil.getTokenId(tokenType, productId, uint64(expiry), uint64(longStrike), uint64(shortStrike));
     }
 
     function parseTokenId(uint256 tokenId)

@@ -201,7 +201,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         pure
         returns (uint256 id)
     {
-        id = TokenIdUtil.getTokenId(_tokenType, _productId, _expiry, _longStrike, _shortStrike);
+        id = TokenIdUtil.getTokenId(_tokenType, _productId, uint64(_expiry), uint64(_longStrike), uint64(_shortStrike));
     }
 
     /**
