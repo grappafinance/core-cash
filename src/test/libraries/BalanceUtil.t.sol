@@ -9,6 +9,8 @@ import "../../config/errors.sol";
 import "../../config/types.sol";
 
 contract BalanceUtilTester {
+    Balance[] public balances;
+
     function append(Balance[] memory x, Balance memory v) external pure returns (Balance[] memory) {
         Balance[] memory result = BalanceUtil.append(x, v);
         return result;
@@ -24,9 +26,13 @@ contract BalanceUtilTester {
         return (f, i);
     }
 
-    // function remove(Balance[] storage x, uint256 y) external {
-    //     BalanceUtil.remove(x, y);
-    // }
+    function add(Balance memory b) external {
+        balances.push(b);
+    }
+
+    function remove(uint256 y) external {
+        BalanceUtil.remove(balances, y);
+    }
 
     function sum(Balance[] memory x) external pure returns (uint80) {
         uint80 result = BalanceUtil.sum(x);
@@ -105,6 +111,26 @@ contract BalanceUtilTest is Test {
         Balance[] memory defaultArr = _getDefaultBalanceArray();
         uint256 sum = tester.sum(defaultArr);
         assertEq(sum, 15_000_000);
+    }
+
+    function testRemoveStorage() public {
+        Balance memory b = Balance(1, 1000_000);
+        tester.add(b);
+        (uint8 id, uint80 amount) = tester.balances(0);
+        assertEq(id, 1);
+        assertEq(amount, 1000_000);
+
+        // remove non existant index: does not affect storage
+        tester.remove(1);
+        (uint8 idAfter, uint80 amountAfter) = tester.balances(0);
+        assertEq(idAfter, 1);
+        assertEq(amountAfter, 1000_000);
+
+        // remove index 0
+        tester.remove(0);
+        // cannot access this index
+        vm.expectRevert();
+        tester.balances(0);
     }
 
     function _getDefaultBalanceArray() internal pure returns (Balance[] memory) {

@@ -68,11 +68,11 @@ library BalanceUtil {
     /**
      * @dev remove index y from balance array
      * @param x balance array
-     * @param y collateral id remove
+     * @param i index to remove
      */
-    function remove(Balance[] storage x, uint256 y) internal {
-        if (y >= x.length) return;
-        x[y] = x[x.length - 1];
+    function remove(Balance[] storage x, uint256 i) internal {
+        if (i >= x.length) return;
+        x[i] = x[x.length - 1];
         x.pop();
     }
 
