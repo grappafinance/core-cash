@@ -98,15 +98,15 @@ abstract contract DebitSpread is BaseEngine {
      */
     function _verifyMergeTokenIds(uint256 longId, uint256 shortId) internal pure {
         // get token attribute for incoming token
-        (TokenType longType, SettlementType settlementType, uint40 productId, uint64 expiry, uint64 longStrike,) = longId.parseTokenId();
+        (DerivativeType longType, SettlementType settlementType, uint40 productId, uint64 expiry, uint64 longStrike,) = longId.parseTokenId();
 
         // token being added can only be call or put
-        if (longType != TokenType.CALL && longType != TokenType.PUT) revert BM_CannotMergeSpread();
+        if (longType != DerivativeType.CALL && longType != DerivativeType.PUT) revert BM_CannotMergeSpread();
 
-        (TokenType shortType, SettlementType settlementType_, uint40 productId_, uint64 expiry_, uint64 shortStrike,) = shortId.parseTokenId();
+        (DerivativeType shortType, SettlementType settlementType_, uint40 productId_, uint64 expiry_, uint64 shortStrike,) = shortId.parseTokenId();
 
         // check that the merging token (long) has the same property as existing short
-        if (shortType != longType) revert BM_MergeTokenTypeMismatch();
+        if (shortType != longType) revert BM_MergeDerivativeTypeMismatch();
         if (settlementType != settlementType_) revert BM_MergeSettlementTypeMismatch();
         if (productId_ != productId) revert BM_MergeProductMismatch();
         if (expiry_ != expiry) revert BM_MergeExpiryMismatch();
@@ -117,11 +117,11 @@ abstract contract DebitSpread is BaseEngine {
 
     function _verifySpreadIdAndGetLong(uint256 _spreadId) internal pure returns (uint256 longId) {
         // parse the passed in spread id
-        (TokenType spreadType, SettlementType settlementType, uint40 productId, uint64 expiry,, uint64 shortStrike) = _spreadId.parseTokenId();
+        (DerivativeType spreadType, SettlementType settlementType, uint40 productId, uint64 expiry,, uint64 shortStrike) = _spreadId.parseTokenId();
 
-        if (spreadType != TokenType.CALL_SPREAD && spreadType != TokenType.PUT_SPREAD) revert BM_CanOnlySplitSpread();
+        if (spreadType != DerivativeType.CALL_SPREAD && spreadType != DerivativeType.PUT_SPREAD) revert BM_CanOnlySplitSpread();
 
-        TokenType newType = spreadType == TokenType.CALL_SPREAD ? TokenType.CALL : TokenType.PUT;
+        DerivativeType newType = spreadType == DerivativeType.CALL_SPREAD ? DerivativeType.CALL : DerivativeType.PUT;
         longId = TokenIdUtil.getTokenId(newType, settlementType, productId, expiry, shortStrike, 0);
     }
 }

@@ -26,7 +26,7 @@ contract TestMergeOption is AdvancedFixture {
         oracle.setSpotPrice(address(weth), 3000 * UNIT);
 
         // mint a 3000 strike call first
-        existingTokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, strikePrice, 0);
+        existingTokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, productId, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
@@ -38,7 +38,7 @@ contract TestMergeOption is AdvancedFixture {
         // mint new call option for this address
 
         uint256 higherStrike = 5000 * UNIT;
-        uint256 newTokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, higherStrike, 0);
+        uint256 newTokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, productId, expiry, higherStrike, 0);
         mintOptionFor(address(this), newTokenId, productId, amount);
 
         // merge
@@ -48,9 +48,9 @@ contract TestMergeOption is AdvancedFixture {
 
         // check result
         (uint256 shortCallId,,,,,) = engine.marginAccounts(address(this));
-        (TokenType newType,,,, uint64 longStrike, uint64 shortStrike) = parseTokenId(shortCallId);
+        (DerivativeType newType,,,, uint64 longStrike, uint64 shortStrike) = parseTokenId(shortCallId);
 
-        assertEq(uint8(newType), uint8(TokenType.CALL_SPREAD));
+        assertEq(uint8(newType), uint8(DerivativeType.CALL_SPREAD));
         assertTrue(shortCallId != newTokenId);
         assertEq(longStrike, strikePrice);
         assertEq(shortStrike, higherStrike);
@@ -58,7 +58,7 @@ contract TestMergeOption is AdvancedFixture {
 
     function testCannotMergeWithWrongAmount() public {
         uint256 higherStrike = 5000 * UNIT;
-        uint256 newTokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, higherStrike, 0);
+        uint256 newTokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, productId, expiry, higherStrike, 0);
         mintOptionFor(address(this), newTokenId, productId, amount);
 
         // merge
@@ -72,13 +72,13 @@ contract TestMergeOption is AdvancedFixture {
 
     function testCannotMergeWithWrongShortId() public {
         uint256 higherStrike = 5000 * UNIT;
-        uint256 newTokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, higherStrike, 0);
+        uint256 newTokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, productId, expiry, higherStrike, 0);
         mintOptionFor(address(this), newTokenId, productId, amount);
 
         // merge
         ActionArgs[] memory actions = new ActionArgs[](1);
         // shortId should be existingTokenId
-        uint256 wrongShort = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, 2000 * UNIT, 0);
+        uint256 wrongShort = getTokenId(DerivativeType.CALL, SettlementType.CASH, productId, expiry, 2000 * UNIT, 0);
         actions[0] = createMergeAction(newTokenId, wrongShort, address(this), amount);
 
         vm.expectRevert(AM_ShortDoesnotExist.selector);
@@ -88,7 +88,7 @@ contract TestMergeOption is AdvancedFixture {
     function testCanMergeForAccountOwnerFromAuthorizedAccount() public {
         // mint new call option for "this" address
         uint256 higherStrike = 5000 * UNIT;
-        uint256 newTokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, higherStrike, 0);
+        uint256 newTokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, productId, expiry, higherStrike, 0);
         mintOptionFor(address(this), newTokenId, productId, amount);
 
         // authorize alice to change subaccount
@@ -112,7 +112,7 @@ contract TestMergeOption is AdvancedFixture {
 
     function testCannotMergeWithTokenFromOthers() public {
         uint256 higherStrike = 5000 * UNIT;
-        uint256 newTokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, higherStrike, 0);
+        uint256 newTokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, productId, expiry, higherStrike, 0);
 
         // merge
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -124,7 +124,7 @@ contract TestMergeOption is AdvancedFixture {
 
     function testCannotMergeWithTokenFromDiffExpiry() public {
         uint256 higherStrike = 4200 * UNIT;
-        uint256 newTokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry + 1, higherStrike, 0);
+        uint256 newTokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, productId, expiry + 1, higherStrike, 0);
         mintOptionFor(address(this), newTokenId, productId, amount);
 
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -135,7 +135,7 @@ contract TestMergeOption is AdvancedFixture {
     }
 
     function testCannotMergeWithTokenWithSameStrike() public {
-        uint256 newTokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, strikePrice, 0);
+        uint256 newTokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, productId, expiry, strikePrice, 0);
         mintOptionFor(address(this), newTokenId, productId, amount);
 
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -146,18 +146,18 @@ contract TestMergeOption is AdvancedFixture {
     }
 
     function testCannotMergeWithPut() public {
-        uint256 newTokenId = getTokenId(TokenType.PUT, SettlementType.CASH, productId, expiry, strikePrice, 0);
+        uint256 newTokenId = getTokenId(DerivativeType.PUT, SettlementType.CASH, productId, expiry, strikePrice, 0);
         mintOptionFor(address(this), newTokenId, productId, amount);
 
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createMergeAction(newTokenId, existingTokenId, address(this), amount);
 
-        vm.expectRevert(BM_MergeTokenTypeMismatch.selector);
+        vm.expectRevert(BM_MergeDerivativeTypeMismatch.selector);
         engine.execute(address(this), actions);
     }
 
     function testCannotMergeWithDiffProduct() public {
-        uint256 newTokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productIdEthCollat, expiry, strikePrice, 0);
+        uint256 newTokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, productIdEthCollat, expiry, strikePrice, 0);
         mintOptionFor(address(this), newTokenId, productIdEthCollat, amount);
 
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -170,7 +170,7 @@ contract TestMergeOption is AdvancedFixture {
     function testMergeIntoCreditSpreadCanRemoveCollateral() public {
         // mint new call option for this address
         uint256 higherStrike = 4200 * UNIT;
-        uint256 newTokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, higherStrike, 0);
+        uint256 newTokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, productId, expiry, higherStrike, 0);
         mintOptionFor(address(this), newTokenId, productId, amount);
 
         uint256 amountToRemove = depositAmount - (higherStrike - strikePrice);
@@ -186,7 +186,7 @@ contract TestMergeOption is AdvancedFixture {
     function testMergeIntoDebitSpreadCanRemoveAllCollateral() public {
         // mint new call option for this address
         uint256 lowerStrike = 3800 * UNIT;
-        uint256 newTokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, lowerStrike, 0);
+        uint256 newTokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, productId, expiry, lowerStrike, 0);
         mintOptionFor(address(this), newTokenId, productId, amount);
 
         ActionArgs[] memory actions = new ActionArgs[](2);

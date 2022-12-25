@@ -83,12 +83,12 @@ contract GrappaRegistry is Test {
         grappa.registerAsset(address(weth));
 
         uint40 product = grappa.getProductId(address(0), address(0), address(weth), address(0), address(weth));
-        uint256 token = grappa.getTokenId(TokenType.CALL, SettlementType.CASH, product, expiryTimestamp, strikePrice, 0);
+        uint256 token = grappa.getTokenId(DerivativeType.CALL, SettlementType.CASH, product, expiryTimestamp, strikePrice, 0);
 
-        (TokenType tokenType, SettlementType settlementType, uint40 productId, uint256 expiry, uint256 longStrike, uint256 shortStrike) =
+        (DerivativeType derivativeType, SettlementType settlementType, uint40 productId, uint256 expiry, uint256 longStrike, uint256 shortStrike) =
             grappa.getDetailFromTokenId(token);
 
-        assertEq(uint8(tokenType), uint8(TokenType.CALL));
+        assertEq(uint8(derivativeType), uint8(DerivativeType.CALL));
         assertEq(uint8(settlementType), uint8(SettlementType.CASH));
         assertEq(productId, product);
 

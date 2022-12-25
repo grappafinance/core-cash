@@ -39,7 +39,7 @@ contract FullMarginMathTestCall is Test {
             shortStrike: 3000 * UNIT,
             collateralAmount: 0,
             collateralDecimals: 6,
-            tokenType: TokenType.CALL,
+            derivativeType: DerivativeType.CALL,
             collateralizedWithStrike: false
         });
 
@@ -57,7 +57,7 @@ contract FullMarginMathTestCall is Test {
             collateralAmount: 0,
             collateralDecimals: 6,
             collateralizedWithStrike: false,
-            tokenType: TokenType.CALL
+            derivativeType: DerivativeType.CALL
         });
 
         uint256 collat = tester.getMinCollateral(detail);
@@ -75,7 +75,7 @@ contract FullMarginMathTestCall is Test {
             collateralAmount: 0,
             collateralDecimals: 18,
             collateralizedWithStrike: false,
-            tokenType: TokenType.CALL
+            derivativeType: DerivativeType.CALL
         });
 
         uint256 collat = tester.getMinCollateral(detail);
@@ -105,7 +105,7 @@ contract FullMarginMathTestCallSpreadWithUnderlying is Test {
             collateralAmount: 0,
             collateralDecimals: 6,
             collateralizedWithStrike: false,
-            tokenType: TokenType.CALL_SPREAD
+            derivativeType: DerivativeType.CALL_SPREAD
         });
 
         uint256 collat = tester.getMinCollateral(detail);
@@ -122,7 +122,7 @@ contract FullMarginMathTestCallSpreadWithUnderlying is Test {
             collateralAmount: 0,
             collateralDecimals: 6,
             collateralizedWithStrike: false,
-            tokenType: TokenType.CALL_SPREAD
+            derivativeType: DerivativeType.CALL_SPREAD
         });
 
         uint256 collat = tester.getMinCollateral(detail);
@@ -140,7 +140,7 @@ contract FullMarginMathTestCallSpreadWithUnderlying is Test {
             collateralAmount: 0,
             collateralDecimals: 18,
             collateralizedWithStrike: false,
-            tokenType: TokenType.CALL_SPREAD
+            derivativeType: DerivativeType.CALL_SPREAD
         });
 
         uint256 collat = tester.getMinCollateral(detail);
@@ -157,7 +157,7 @@ contract FullMarginMathTestCallSpreadWithUnderlying is Test {
             collateralAmount: 0,
             collateralDecimals: 6,
             collateralizedWithStrike: false,
-            tokenType: TokenType.CALL_SPREAD
+            derivativeType: DerivativeType.CALL_SPREAD
         });
 
         uint256 collat = tester.getMinCollateral(detail);
@@ -186,7 +186,7 @@ contract FullMarginMathTestCallSpreadWithStrike is Test {
             collateralAmount: 0,
             collateralDecimals: 6,
             collateralizedWithStrike: true,
-            tokenType: TokenType.CALL_SPREAD
+            derivativeType: DerivativeType.CALL_SPREAD
         });
 
         uint256 collat = tester.getMinCollateral(detail);
@@ -203,7 +203,7 @@ contract FullMarginMathTestCallSpreadWithStrike is Test {
             collateralAmount: 0,
             collateralDecimals: 6,
             collateralizedWithStrike: true,
-            tokenType: TokenType.CALL_SPREAD
+            derivativeType: DerivativeType.CALL_SPREAD
         });
 
         uint256 collat = tester.getMinCollateral(detail);
@@ -221,7 +221,7 @@ contract FullMarginMathTestCallSpreadWithStrike is Test {
             collateralAmount: 0,
             collateralDecimals: 18,
             collateralizedWithStrike: true,
-            tokenType: TokenType.CALL_SPREAD
+            derivativeType: DerivativeType.CALL_SPREAD
         });
 
         uint256 collat = tester.getMinCollateral(detail);
@@ -238,7 +238,7 @@ contract FullMarginMathTestCallSpreadWithStrike is Test {
             collateralAmount: 0,
             collateralDecimals: 6,
             collateralizedWithStrike: true,
-            tokenType: TokenType.CALL_SPREAD
+            derivativeType: DerivativeType.CALL_SPREAD
         });
 
         uint256 collat = tester.getMinCollateral(detail);
@@ -267,7 +267,7 @@ contract FullMarginMathTestPut is Test {
             collateralAmount: 0,
             collateralDecimals: 6,
             collateralizedWithStrike: true,
-            tokenType: TokenType.PUT
+            derivativeType: DerivativeType.PUT
         });
 
         uint256 collat = tester.getMinCollateral(detail);
@@ -284,7 +284,7 @@ contract FullMarginMathTestPut is Test {
             collateralAmount: 0,
             collateralDecimals: 6,
             collateralizedWithStrike: true,
-            tokenType: TokenType.PUT
+            derivativeType: DerivativeType.PUT
         });
 
         uint256 collat = tester.getMinCollateral(detail);
@@ -302,7 +302,7 @@ contract FullMarginMathTestPut is Test {
             collateralAmount: 0,
             collateralDecimals: 18,
             collateralizedWithStrike: true,
-            tokenType: TokenType.PUT
+            derivativeType: DerivativeType.PUT
         });
 
         uint256 collat = tester.getMinCollateral(detail);
@@ -332,7 +332,7 @@ contract FullMarginMathTestPutSpread is Test {
             collateralAmount: 0,
             collateralDecimals: 6,
             collateralizedWithStrike: true,
-            tokenType: TokenType.PUT_SPREAD
+            derivativeType: DerivativeType.PUT_SPREAD
         });
 
         uint256 collat = tester.getMinCollateral(detail);
@@ -349,7 +349,7 @@ contract FullMarginMathTestPutSpread is Test {
             collateralAmount: 0,
             collateralDecimals: 6,
             collateralizedWithStrike: true,
-            tokenType: TokenType.PUT_SPREAD
+            derivativeType: DerivativeType.PUT_SPREAD
         });
 
         uint256 collat = tester.getMinCollateral(detail);
@@ -367,7 +367,7 @@ contract FullMarginMathTestPutSpread is Test {
             collateralAmount: 0,
             collateralDecimals: 18,
             collateralizedWithStrike: true,
-            tokenType: TokenType.PUT_SPREAD
+            derivativeType: DerivativeType.PUT_SPREAD
         });
 
         uint256 collat = tester.getMinCollateral(detail);
@@ -384,7 +384,7 @@ contract FullMarginMathTestPutSpread is Test {
             collateralAmount: 0,
             collateralDecimals: 6,
             collateralizedWithStrike: true,
-            tokenType: TokenType.PUT_SPREAD
+            derivativeType: DerivativeType.PUT_SPREAD
         });
 
         uint256 collat = tester.getMinCollateral(detail);

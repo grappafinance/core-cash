@@ -58,7 +58,7 @@ error BM_CannotMergeSpread();
 error BM_CanOnlySplitSpread();
 
 /// @dev type of existing short token type doesn't match the incoming token type
-error BM_MergeTokenTypeMismatch();
+error BM_MergeDerivativeTypeMismatch();
 
 /// @dev type of existing short token type doesn't match the incoming token type
 error BM_MergeSettlementTypeMismatch();

@@ -35,7 +35,7 @@ contract TestMint_CM is CrossMarginFixture {
         uint256 strikePrice = 4000 * UNIT;
         uint256 amount = 1 * UNIT;
 
-        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, pidEthCollat, expiry, strikePrice, 0);
+        uint256 tokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, pidEthCollat, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
@@ -57,7 +57,7 @@ contract TestMint_CM is CrossMarginFixture {
         uint256 strikePrice = 4000 * UNIT;
         uint256 amount = 1 * UNIT;
 
-        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, pidUsdcCollat, expiry, strikePrice, 0);
+        uint256 tokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, pidUsdcCollat, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
@@ -73,7 +73,7 @@ contract TestMint_CM is CrossMarginFixture {
         uint256 strikePrice = 2000 * UNIT;
         uint256 amount = 1 * UNIT;
 
-        uint256 tokenId = getTokenId(TokenType.PUT, SettlementType.CASH, pidUsdcCollat, expiry, strikePrice, 0);
+        uint256 tokenId = getTokenId(DerivativeType.PUT, SettlementType.CASH, pidUsdcCollat, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
@@ -95,7 +95,7 @@ contract TestMint_CM is CrossMarginFixture {
         uint256 callStrikePrice = 4000 * UNIT;
         uint256 callAmount = 1 * UNIT;
 
-        uint256 callTokenId = getTokenId(TokenType.CALL, SettlementType.CASH, pidEthCollat, expiry, callStrikePrice, 0);
+        uint256 callTokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, pidEthCollat, expiry, callStrikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](4);
         actions[0] = createAddCollateralAction(wethId, address(this), callDepositAmount);
@@ -106,7 +106,7 @@ contract TestMint_CM is CrossMarginFixture {
         uint256 putStrikePrice = 2000 * UNIT;
         uint256 putAmount = 1 * UNIT;
 
-        uint256 putTokenId = getTokenId(TokenType.PUT, SettlementType.CASH, pidUsdcCollat, expiry, putStrikePrice, 0);
+        uint256 putTokenId = getTokenId(DerivativeType.PUT, SettlementType.CASH, pidUsdcCollat, expiry, putStrikePrice, 0);
 
         actions[2] = createAddCollateralAction(usdcId, address(this), putDepositAmount);
         actions[3] = createMintAction(putTokenId, address(this), putAmount);
@@ -135,7 +135,7 @@ contract TestMint_CM is CrossMarginFixture {
         uint256 strikePrice = 2000 * UNIT;
         uint256 amount = 1 * UNIT;
 
-        uint256 tokenId = getTokenId(TokenType.PUT, SettlementType.CASH, pidUsdcCollat, block.timestamp, strikePrice, 0);
+        uint256 tokenId = getTokenId(DerivativeType.PUT, SettlementType.CASH, pidUsdcCollat, block.timestamp, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createMintAction(tokenId, address(this), amount);
@@ -150,7 +150,7 @@ contract TestMint_CM is CrossMarginFixture {
         uint256 strikePrice = 4000 * UNIT;
         uint256 amount = 1 * UNIT;
 
-        uint256 tokenId = getTokenId(TokenType.PUT, SettlementType.CASH, pidEthCollat, expiry, strikePrice, 0);
+        uint256 tokenId = getTokenId(DerivativeType.PUT, SettlementType.CASH, pidEthCollat, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
@@ -166,7 +166,7 @@ contract TestMint_CM is CrossMarginFixture {
         uint256 strikePrice = 4000 * UNIT;
         uint256 amount = 1 * UNIT;
 
-        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, pidEthCollat, expiry, strikePrice, 0);
+        uint256 tokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, pidEthCollat, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
@@ -182,7 +182,7 @@ contract TestMint_CM is CrossMarginFixture {
         uint256 strikePrice = 2000 * UNIT;
         uint256 amount = 1 * UNIT;
 
-        uint256 tokenId = getTokenId(TokenType.PUT, SettlementType.CASH, pidUsdcCollat, expiry, strikePrice, 0);
+        uint256 tokenId = getTokenId(DerivativeType.PUT, SettlementType.CASH, pidUsdcCollat, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
@@ -196,7 +196,7 @@ contract TestMint_CM is CrossMarginFixture {
         uint256 strikePrice = 3000 * UNIT;
         uint256 amount = 1 * UNIT;
 
-        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, pidEthCollat, expiry, strikePrice, 0);
+        uint256 tokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, pidEthCollat, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createMintAction(tokenId, address(this), amount);
@@ -213,13 +213,13 @@ contract TestMint_CM is CrossMarginFixture {
 
         uint256 amount = 1 * UNIT;
 
-        uint256 tokenId = getTokenId(TokenType.CALL_SPREAD, SettlementType.CASH, pidUsdcCollat, expiry, longStrike, shortStrike);
+        uint256 tokenId = getTokenId(DerivativeType.CALL_SPREAD, SettlementType.CASH, pidUsdcCollat, expiry, longStrike, shortStrike);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
 
-        vm.expectRevert(CM_UnsupportedTokenType.selector);
+        vm.expectRevert(CM_UnsupportedDerivativeType.selector);
         engine.execute(address(this), actions);
     }
 
@@ -231,13 +231,13 @@ contract TestMint_CM is CrossMarginFixture {
 
         uint256 amount = 1 * UNIT;
 
-        uint256 tokenId = getTokenId(TokenType.PUT_SPREAD, SettlementType.CASH, pidUsdcCollat, expiry, longStrike, shortStrike);
+        uint256 tokenId = getTokenId(DerivativeType.PUT_SPREAD, SettlementType.CASH, pidUsdcCollat, expiry, longStrike, shortStrike);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
 
-        vm.expectRevert(CM_UnsupportedTokenType.selector);
+        vm.expectRevert(CM_UnsupportedDerivativeType.selector);
         engine.execute(address(this), actions);
     }
 }

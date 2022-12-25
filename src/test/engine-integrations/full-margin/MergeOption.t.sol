@@ -27,7 +27,7 @@ contract TestMergeOption_FM is FullMarginFixture {
         oracle.setSpotPrice(address(weth), 3000 * UNIT);
 
         // mint a 3000 strike call first
-        existingTokenId = getTokenId(TokenType.CALL, SettlementType.CASH, pidEthCollat, expiry, strikePrice, 0);
+        existingTokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, pidEthCollat, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
@@ -39,7 +39,7 @@ contract TestMergeOption_FM is FullMarginFixture {
         // mint new call option for this address
 
         uint256 higherStrike = 5000 * UNIT;
-        uint256 newTokenId = getTokenId(TokenType.CALL, SettlementType.CASH, pidEthCollat, expiry, higherStrike, 0);
+        uint256 newTokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, pidEthCollat, expiry, higherStrike, 0);
         mintOptionFor(address(this), newTokenId, pidEthCollat, amount);
 
         // merge
@@ -49,16 +49,16 @@ contract TestMergeOption_FM is FullMarginFixture {
 
         // check result
         (uint256 shortId,,,) = engine.marginAccounts(address(this));
-        (TokenType newType,,,, uint64 longStrike, uint64 shortStrike) = parseTokenId(shortId);
+        (DerivativeType newType,,,, uint64 longStrike, uint64 shortStrike) = parseTokenId(shortId);
 
-        assertEq(uint8(newType), uint8(TokenType.CALL_SPREAD));
+        assertEq(uint8(newType), uint8(DerivativeType.CALL_SPREAD));
         assertTrue(shortId != newTokenId);
         assertEq(longStrike, strikePrice);
         assertEq(shortStrike, higherStrike);
     }
 
     function testCannotMergeByAddingSpread() public {
-        uint256 spreadToAdd = getTokenId(TokenType.CALL_SPREAD, SettlementType.CASH, pidEthCollat, expiry, strikePrice, strikePrice + 1);
+        uint256 spreadToAdd = getTokenId(DerivativeType.CALL_SPREAD, SettlementType.CASH, pidEthCollat, expiry, strikePrice, strikePrice + 1);
 
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createMergeAction(spreadToAdd, existingTokenId, address(this), amount);
@@ -69,7 +69,7 @@ contract TestMergeOption_FM is FullMarginFixture {
 
     function testCannotMergeWithWrongAmount() public {
         uint256 higherStrike = 5000 * UNIT;
-        uint256 newTokenId = getTokenId(TokenType.CALL, SettlementType.CASH, pidEthCollat, expiry, higherStrike, 0);
+        uint256 newTokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, pidEthCollat, expiry, higherStrike, 0);
         uint256 wrongAmount = 2 * UNIT;
         mintOptionFor(address(this), newTokenId, pidEthCollat, wrongAmount);
 
@@ -83,13 +83,13 @@ contract TestMergeOption_FM is FullMarginFixture {
 
     function testCannotMergeWithWrongShortId() public {
         uint256 higherStrike = 5000 * UNIT;
-        uint256 newTokenId = getTokenId(TokenType.CALL, SettlementType.CASH, pidEthCollat, expiry, higherStrike, 0);
+        uint256 newTokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, pidEthCollat, expiry, higherStrike, 0);
         mintOptionFor(address(this), newTokenId, pidEthCollat, amount);
 
         // merge
         ActionArgs[] memory actions = new ActionArgs[](1);
         // shortId should be existingTokenId
-        uint256 wrongShort = getTokenId(TokenType.CALL, SettlementType.CASH, pidEthCollat, expiry, 2000 * UNIT, 0);
+        uint256 wrongShort = getTokenId(DerivativeType.CALL, SettlementType.CASH, pidEthCollat, expiry, 2000 * UNIT, 0);
         actions[0] = createMergeAction(newTokenId, wrongShort, address(this), amount);
 
         vm.expectRevert(FM_ShortDoesnotExist.selector);
@@ -99,7 +99,7 @@ contract TestMergeOption_FM is FullMarginFixture {
     function testMergeIntoCreditSpreadCanRemoveCollateral() public {
         // mint new call option for this address
         uint256 higherStrike = 5000 * UNIT;
-        uint256 newTokenId = getTokenId(TokenType.CALL, SettlementType.CASH, pidEthCollat, expiry, higherStrike, 0);
+        uint256 newTokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, pidEthCollat, expiry, higherStrike, 0);
         mintOptionFor(address(this), newTokenId, pidEthCollat, amount);
 
         uint256 newRequiredCollat = 0.2 ether;
@@ -116,7 +116,7 @@ contract TestMergeOption_FM is FullMarginFixture {
     function testMergeIntoDebitSpreadCanRemoveAllCollateral() public {
         // mint new call option for this address
         uint256 lowerStrike = 3800 * UNIT;
-        uint256 newTokenId = getTokenId(TokenType.CALL, SettlementType.CASH, pidEthCollat, expiry, lowerStrike, 0);
+        uint256 newTokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, pidEthCollat, expiry, lowerStrike, 0);
         mintOptionFor(address(this), newTokenId, pidEthCollat, amount);
 
         ActionArgs[] memory actions = new ActionArgs[](2);

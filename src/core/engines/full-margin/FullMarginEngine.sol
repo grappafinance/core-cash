@@ -201,7 +201,7 @@ contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyG
      * @notice  convert Account struct from storage to in-memory detail struct
      */
     function _getAccountDetail(FullMarginAccount memory account) internal view returns (FullMarginDetail memory detail) {
-        (TokenType tokenType,, uint40 productId,, uint64 longStrike, uint64 shortStrike) = account.tokenId.parseTokenId();
+        (DerivativeType derivativeType,, uint40 productId,, uint64 longStrike, uint64 shortStrike) = account.tokenId.parseTokenId();
 
         (,,, uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(productId);
 
@@ -216,7 +216,7 @@ contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyG
             collateralAmount: account.collateralAmount,
             collateralDecimals: collateralDecimals,
             collateralizedWithStrike: collateralizedWithStrike,
-            tokenType: tokenType
+            derivativeType: derivativeType
         });
     }
 }

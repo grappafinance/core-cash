@@ -53,7 +53,7 @@ library AdvancedMarginLib {
     ///@dev Increase the amount of short call or put (debt) of the account
     ///@param account AdvancedMarginAccount storage that will be updated in-place
     function mintOption(AdvancedMarginAccount storage account, uint256 tokenId, uint64 amount) internal {
-        (TokenType optionType,, uint40 productId,,,) = tokenId.parseTokenId();
+        (DerivativeType derivativeType,, uint40 productId,,,) = tokenId.parseTokenId();
 
         // assign collateralId or check collateral id is the same
         uint8 collateralId = productId.getCollateralId();
@@ -63,7 +63,7 @@ library AdvancedMarginLib {
             if (account.collateralId != collateralId) revert AM_InvalidToken();
         }
 
-        if (optionType == TokenType.CALL || optionType == TokenType.CALL_SPREAD) {
+        if (derivativeType == DerivativeType.CALL || derivativeType == DerivativeType.CALL_SPREAD) {
             // minting a short
             if (account.shortCallId == 0) account.shortCallId = tokenId;
             else if (account.shortCallId != tokenId) revert AM_InvalidToken();
@@ -79,8 +79,8 @@ library AdvancedMarginLib {
     ///@dev Remove the amount of short call or put (debt) of the account
     ///@param account AdvancedMarginAccount storage that will be updated in-place
     function burnOption(AdvancedMarginAccount storage account, uint256 tokenId, uint64 amount) internal {
-        TokenType optionType = tokenId.parseTokenType();
-        if (optionType == TokenType.CALL || optionType == TokenType.CALL_SPREAD) {
+        DerivativeType derivativeType = tokenId.parseDerivativeType();
+        if (derivativeType == DerivativeType.CALL || derivativeType == DerivativeType.CALL_SPREAD) {
             // burnning a call or call spread
             if (account.shortCallId != tokenId) revert AM_InvalidToken();
             account.shortCallAmount -= amount;
@@ -94,7 +94,7 @@ library AdvancedMarginLib {
     }
 
     ///@dev merge an OptionToken into the accunt, changing existing short to spread
-    ///@dev shortId and longId already have the same optionType, productId, expiry
+    ///@dev shortId and longId already have the same derivativeType, productId, expiry
     ///@param account AdvancedMarginAccount storage that will be updated in-place
     ///@param shortId existing short position to be converted into spread
     ///@param longId token to be "added" into the account. This is expected to have the same time of the exisiting short type.
@@ -102,9 +102,9 @@ library AdvancedMarginLib {
     ///               and convert the short position to a spread.
     function merge(AdvancedMarginAccount storage account, uint256 shortId, uint256 longId, uint64 amount) internal {
         // get token attribute for incoming token
-        (TokenType optionType,,,, uint64 mergingStrike,) = longId.parseTokenId();
+        (DerivativeType derivativeType,,,, uint64 mergingStrike,) = longId.parseTokenId();
 
-        if (optionType == TokenType.CALL) {
+        if (derivativeType == DerivativeType.CALL) {
             if (account.shortCallId != shortId) revert AM_ShortDoesnotExist();
             if (account.shortCallAmount != amount) revert AM_MergeAmountMisMatch();
             // adding the "strike of the adding token" to the "short strike" field of the existing "option token"
@@ -123,10 +123,10 @@ library AdvancedMarginLib {
     ///@param spreadId id of spread to be parsed
     function split(AdvancedMarginAccount storage account, uint256 spreadId, uint64 amount) internal {
         // parse the passed in spread id
-        TokenType spreadType = spreadId.parseTokenType();
+        DerivativeType spreadType = spreadId.parseDerivativeType();
 
         // check the existing short position
-        bool isSplitingCallSpread = spreadType == TokenType.CALL_SPREAD;
+        bool isSplitingCallSpread = spreadType == DerivativeType.CALL_SPREAD;
 
         uint256 spreadIdInAccount = isSplitingCallSpread ? account.shortCallId : account.shortPutId;
 
@@ -136,11 +136,11 @@ library AdvancedMarginLib {
         if (isSplitingCallSpread) {
             if (amount != account.shortCallAmount) revert AM_SplitAmountMisMatch();
 
-            // convert to call: remove the "short strike" and update "tokenType" field
+            // convert to call: remove the "short strike" and update "derivativeType" field
             account.shortCallId = TokenIdUtil.convertToVanillaId(spreadId);
         } else {
             if (amount != account.shortPutAmount) revert AM_SplitAmountMisMatch();
-            // convert to put: remove the "short strike" and update "tokenType" field
+            // convert to put: remove the "short strike" and update "derivativeType" field
             account.shortPutId = TokenIdUtil.convertToVanillaId(spreadId);
         }
     }

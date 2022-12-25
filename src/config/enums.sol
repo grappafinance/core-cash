@@ -6,7 +6,7 @@ enum SettlementType {
     PHYSICAL
 }
 
-enum TokenType {
+enum DerivativeType {
     PUT,
     PUT_SPREAD,
     CALL,

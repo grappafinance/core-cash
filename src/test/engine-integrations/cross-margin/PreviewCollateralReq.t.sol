@@ -18,7 +18,7 @@ contract PreviewCollateralReqBase is CrossMarginFixture {
     uint256 public expiry;
 
     struct OptionPosition {
-        TokenType tokenType;
+        DerivativeType derivativeType;
         uint256 strike;
         int256 amount;
     }
@@ -36,7 +36,7 @@ contract PreviewCollateralReqBase is CrossMarginFixture {
         for (uint256 i = 0; i < positions.length; i++) {
             OptionPosition memory position = positions[i];
 
-            uint256 tokenId = TokenType.CALL == position.tokenType ? _callTokenId(position.strike) : _putTokenId(position.strike);
+            uint256 tokenId = DerivativeType.CALL == position.derivativeType ? _callTokenId(position.strike) : _putTokenId(position.strike);
 
             if (position.amount < 0) {
                 shorts = AccountUtil.append(shorts, Position(tokenId, uint64(uint256(-position.amount))));
@@ -47,11 +47,11 @@ contract PreviewCollateralReqBase is CrossMarginFixture {
     }
 
     function _callTokenId(uint256 _strikePrice) internal view returns (uint256 tokenId) {
-        tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, pidEthCollat, expiry, _strikePrice, 0);
+        tokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, pidEthCollat, expiry, _strikePrice, 0);
     }
 
     function _putTokenId(uint256 _strikePrice) internal view returns (uint256 tokenId) {
-        tokenId = getTokenId(TokenType.PUT, SettlementType.CASH, pidUsdcCollat, expiry, _strikePrice, 0);
+        tokenId = getTokenId(DerivativeType.PUT, SettlementType.CASH, pidUsdcCollat, expiry, _strikePrice, 0);
     }
 
     // add a function prefixed with test here so forge coverage will ignore this file
@@ -61,12 +61,12 @@ contract PreviewCollateralReqBase is CrossMarginFixture {
 contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
     function testMarginRequirement1() public {
         OptionPosition[] memory positions = new OptionPosition[](6);
-        positions[0] = OptionPosition(TokenType.CALL, 21000 * UNIT, -1 * sUNIT);
-        positions[1] = OptionPosition(TokenType.CALL, 22000 * UNIT, -8 * sUNIT);
-        positions[2] = OptionPosition(TokenType.CALL, 25000 * UNIT, 16 * sUNIT);
-        positions[3] = OptionPosition(TokenType.CALL, 26000 * UNIT, -6 * sUNIT);
-        positions[4] = OptionPosition(TokenType.PUT, 17000 * UNIT, -1 * sUNIT);
-        positions[5] = OptionPosition(TokenType.PUT, 18000 * UNIT, 1 * sUNIT);
+        positions[0] = OptionPosition(DerivativeType.CALL, 21000 * UNIT, -1 * sUNIT);
+        positions[1] = OptionPosition(DerivativeType.CALL, 22000 * UNIT, -8 * sUNIT);
+        positions[2] = OptionPosition(DerivativeType.CALL, 25000 * UNIT, 16 * sUNIT);
+        positions[3] = OptionPosition(DerivativeType.CALL, 26000 * UNIT, -6 * sUNIT);
+        positions[4] = OptionPosition(DerivativeType.PUT, 17000 * UNIT, -1 * sUNIT);
+        positions[5] = OptionPosition(DerivativeType.PUT, 18000 * UNIT, 1 * sUNIT);
 
         Balance[] memory balances = _previewMinCollateral(positions);
 
@@ -77,12 +77,12 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
 
     function testMarginRequirement2() public {
         OptionPosition[] memory positions = new OptionPosition[](6);
-        positions[0] = OptionPosition(TokenType.CALL, 21000 * UNIT, -1 * sUNIT);
-        positions[1] = OptionPosition(TokenType.CALL, 22000 * UNIT, -8 * sUNIT);
-        positions[2] = OptionPosition(TokenType.CALL, 25000 * UNIT, 16 * sUNIT);
-        positions[3] = OptionPosition(TokenType.CALL, 26000 * UNIT, -7 * sUNIT);
-        positions[4] = OptionPosition(TokenType.PUT, 17000 * UNIT, -1 * sUNIT);
-        positions[5] = OptionPosition(TokenType.PUT, 18000 * UNIT, 1 * sUNIT);
+        positions[0] = OptionPosition(DerivativeType.CALL, 21000 * UNIT, -1 * sUNIT);
+        positions[1] = OptionPosition(DerivativeType.CALL, 22000 * UNIT, -8 * sUNIT);
+        positions[2] = OptionPosition(DerivativeType.CALL, 25000 * UNIT, 16 * sUNIT);
+        positions[3] = OptionPosition(DerivativeType.CALL, 26000 * UNIT, -7 * sUNIT);
+        positions[4] = OptionPosition(DerivativeType.PUT, 17000 * UNIT, -1 * sUNIT);
+        positions[5] = OptionPosition(DerivativeType.PUT, 18000 * UNIT, 1 * sUNIT);
 
         Balance[] memory balances = _previewMinCollateral(positions);
 
@@ -93,12 +93,12 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
 
     function testMarginRequirement3() public {
         OptionPosition[] memory positions = new OptionPosition[](6);
-        positions[0] = OptionPosition(TokenType.CALL, 21000 * UNIT, -1 * sUNIT);
-        positions[1] = OptionPosition(TokenType.CALL, 22000 * UNIT, -8 * sUNIT);
-        positions[2] = OptionPosition(TokenType.CALL, 25000 * UNIT, 16 * sUNIT);
-        positions[3] = OptionPosition(TokenType.CALL, 26000 * UNIT, -8 * sUNIT);
-        positions[4] = OptionPosition(TokenType.PUT, 17000 * UNIT, -1 * sUNIT);
-        positions[5] = OptionPosition(TokenType.PUT, 18000 * UNIT, 1 * sUNIT);
+        positions[0] = OptionPosition(DerivativeType.CALL, 21000 * UNIT, -1 * sUNIT);
+        positions[1] = OptionPosition(DerivativeType.CALL, 22000 * UNIT, -8 * sUNIT);
+        positions[2] = OptionPosition(DerivativeType.CALL, 25000 * UNIT, 16 * sUNIT);
+        positions[3] = OptionPosition(DerivativeType.CALL, 26000 * UNIT, -8 * sUNIT);
+        positions[4] = OptionPosition(DerivativeType.PUT, 17000 * UNIT, -1 * sUNIT);
+        positions[5] = OptionPosition(DerivativeType.PUT, 18000 * UNIT, 1 * sUNIT);
 
         Balance[] memory balances = _previewMinCollateral(positions);
 
@@ -111,12 +111,12 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
 
     function testMarginRequirement4() public {
         OptionPosition[] memory positions = new OptionPosition[](6);
-        positions[0] = OptionPosition(TokenType.CALL, 21000 * UNIT, -1 * sUNIT);
-        positions[1] = OptionPosition(TokenType.CALL, 22000 * UNIT, -8 * sUNIT);
-        positions[2] = OptionPosition(TokenType.CALL, 25000 * UNIT, 16 * sUNIT);
-        positions[3] = OptionPosition(TokenType.CALL, 26000 * UNIT, -6 * sUNIT);
-        positions[4] = OptionPosition(TokenType.PUT, 17000 * UNIT, -3 * sUNIT);
-        positions[5] = OptionPosition(TokenType.PUT, 18000 * UNIT, 1 * sUNIT);
+        positions[0] = OptionPosition(DerivativeType.CALL, 21000 * UNIT, -1 * sUNIT);
+        positions[1] = OptionPosition(DerivativeType.CALL, 22000 * UNIT, -8 * sUNIT);
+        positions[2] = OptionPosition(DerivativeType.CALL, 25000 * UNIT, 16 * sUNIT);
+        positions[3] = OptionPosition(DerivativeType.CALL, 26000 * UNIT, -6 * sUNIT);
+        positions[4] = OptionPosition(DerivativeType.PUT, 17000 * UNIT, -3 * sUNIT);
+        positions[5] = OptionPosition(DerivativeType.PUT, 18000 * UNIT, 1 * sUNIT);
 
         Balance[] memory balances = _previewMinCollateral(positions);
 
@@ -127,12 +127,12 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
 
     function testMarginUnsortedStrikes() public {
         OptionPosition[] memory positions = new OptionPosition[](6);
-        positions[0] = OptionPosition(TokenType.CALL, 22000 * UNIT, -8 * sUNIT);
-        positions[1] = OptionPosition(TokenType.CALL, 26000 * UNIT, -6 * sUNIT);
-        positions[2] = OptionPosition(TokenType.CALL, 21000 * UNIT, -1 * sUNIT);
-        positions[3] = OptionPosition(TokenType.CALL, 25000 * UNIT, 16 * sUNIT);
-        positions[4] = OptionPosition(TokenType.PUT, 18000 * UNIT, 1 * sUNIT);
-        positions[5] = OptionPosition(TokenType.PUT, 17000 * UNIT, -1 * sUNIT);
+        positions[0] = OptionPosition(DerivativeType.CALL, 22000 * UNIT, -8 * sUNIT);
+        positions[1] = OptionPosition(DerivativeType.CALL, 26000 * UNIT, -6 * sUNIT);
+        positions[2] = OptionPosition(DerivativeType.CALL, 21000 * UNIT, -1 * sUNIT);
+        positions[3] = OptionPosition(DerivativeType.CALL, 25000 * UNIT, 16 * sUNIT);
+        positions[4] = OptionPosition(DerivativeType.PUT, 18000 * UNIT, 1 * sUNIT);
+        positions[5] = OptionPosition(DerivativeType.PUT, 17000 * UNIT, -1 * sUNIT);
 
         Balance[] memory balances = _previewMinCollateral(positions);
 
@@ -143,7 +143,7 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
 
     function testMarginSimpleITMPut() public {
         OptionPosition[] memory positions = new OptionPosition[](1);
-        positions[0] = OptionPosition(TokenType.PUT, 22000 * UNIT, -1 * sUNIT);
+        positions[0] = OptionPosition(DerivativeType.PUT, 22000 * UNIT, -1 * sUNIT);
 
         Balance[] memory balances = _previewMinCollateral(positions);
 
@@ -154,7 +154,7 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
 
     function testMarginSimplePut() public {
         OptionPosition[] memory positions = new OptionPosition[](1);
-        positions[0] = OptionPosition(TokenType.PUT, 15000 * UNIT, -1 * sUNIT);
+        positions[0] = OptionPosition(DerivativeType.PUT, 15000 * UNIT, -1 * sUNIT);
 
         Balance[] memory balances = _previewMinCollateral(positions);
 
@@ -165,7 +165,7 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
 
     function testMarginSimpleITMCall() public {
         OptionPosition[] memory positions = new OptionPosition[](1);
-        positions[0] = OptionPosition(TokenType.CALL, 15000 * UNIT, -1 * sUNIT);
+        positions[0] = OptionPosition(DerivativeType.CALL, 15000 * UNIT, -1 * sUNIT);
 
         Balance[] memory balances = _previewMinCollateral(positions);
 
@@ -176,7 +176,7 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
 
     function testMarginSimpleOTMCall() public {
         OptionPosition[] memory positions = new OptionPosition[](1);
-        positions[0] = OptionPosition(TokenType.CALL, 22000 * UNIT, -1 * sUNIT);
+        positions[0] = OptionPosition(DerivativeType.CALL, 22000 * UNIT, -1 * sUNIT);
 
         Balance[] memory balances = _previewMinCollateral(positions);
 
@@ -187,8 +187,8 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
 
     function testMarginLongBinaryPut() public {
         OptionPosition[] memory positions = new OptionPosition[](2);
-        positions[0] = OptionPosition(TokenType.PUT, 17999_999999, -1 * sUNIT);
-        positions[1] = OptionPosition(TokenType.PUT, 18000 * UNIT, 1 * sUNIT);
+        positions[0] = OptionPosition(DerivativeType.PUT, 17999_999999, -1 * sUNIT);
+        positions[1] = OptionPosition(DerivativeType.PUT, 18000 * UNIT, 1 * sUNIT);
 
         Balance[] memory balances = _previewMinCollateral(positions);
 
@@ -197,8 +197,8 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
 
     function testMarginShortBinaryPut() public {
         OptionPosition[] memory positions = new OptionPosition[](2);
-        positions[0] = OptionPosition(TokenType.PUT, 17999_999999, 1 * sUNIT);
-        positions[1] = OptionPosition(TokenType.PUT, 18000 * UNIT, -1 * sUNIT);
+        positions[0] = OptionPosition(DerivativeType.PUT, 17999_999999, 1 * sUNIT);
+        positions[1] = OptionPosition(DerivativeType.PUT, 18000 * UNIT, -1 * sUNIT);
 
         Balance[] memory balances = _previewMinCollateral(positions);
 
@@ -209,8 +209,8 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
 
     function testMarginCallSpreadSameUnderlyingCollateral() public {
         OptionPosition[] memory positions = new OptionPosition[](2);
-        positions[0] = OptionPosition(TokenType.CALL, 21999 * UNIT, -1 * sUNIT);
-        positions[1] = OptionPosition(TokenType.CALL, 22000 * UNIT, 1 * sUNIT);
+        positions[0] = OptionPosition(DerivativeType.CALL, 21999 * UNIT, -1 * sUNIT);
+        positions[1] = OptionPosition(DerivativeType.CALL, 22000 * UNIT, 1 * sUNIT);
 
         Balance[] memory balances = _previewMinCollateral(positions);
 
@@ -221,8 +221,8 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
 
     function testMarginCallSpreadSameUnderlyingCollateralBiggerNumbers() public {
         OptionPosition[] memory positions = new OptionPosition[](2);
-        positions[0] = OptionPosition(TokenType.CALL, 21000 * UNIT, -100000 * sUNIT);
-        positions[1] = OptionPosition(TokenType.CALL, 22000 * UNIT, 100000 * sUNIT);
+        positions[0] = OptionPosition(DerivativeType.CALL, 21000 * UNIT, -100000 * sUNIT);
+        positions[1] = OptionPosition(DerivativeType.CALL, 22000 * UNIT, 100000 * sUNIT);
 
         Balance[] memory balances = _previewMinCollateral(positions);
 
@@ -233,8 +233,8 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
 
     function testMarginBinaryCallOption() public {
         OptionPosition[] memory positions = new OptionPosition[](2);
-        positions[0] = OptionPosition(TokenType.CALL, 21999_999999, 1 * sUNIT);
-        positions[1] = OptionPosition(TokenType.CALL, 22000 * UNIT, -1 * sUNIT);
+        positions[0] = OptionPosition(DerivativeType.CALL, 21999_999999, 1 * sUNIT);
+        positions[1] = OptionPosition(DerivativeType.CALL, 22000 * UNIT, -1 * sUNIT);
 
         Balance[] memory balances = _previewMinCollateral(positions);
 
@@ -243,8 +243,8 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
 
     function testConversion() public {
         OptionPosition[] memory positions = new OptionPosition[](2);
-        positions[0] = OptionPosition(TokenType.CALL, 17000 * UNIT, -1 * sUNIT);
-        positions[1] = OptionPosition(TokenType.PUT, 17000 * UNIT, -1 * sUNIT);
+        positions[0] = OptionPosition(DerivativeType.CALL, 17000 * UNIT, -1 * sUNIT);
+        positions[1] = OptionPosition(DerivativeType.PUT, 17000 * UNIT, -1 * sUNIT);
 
         Balance[] memory balances = _previewMinCollateral(positions);
 
@@ -254,7 +254,7 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
         assertEq(balances[1].collateralId, wethId);
         assertEq(balances[1].amount, 1 * 1e18);
 
-        positions[0] = OptionPosition(TokenType.CALL, 17000 * UNIT, -314 * sUNIT);
+        positions[0] = OptionPosition(DerivativeType.CALL, 17000 * UNIT, -314 * sUNIT);
 
         balances = _previewMinCollateral(positions);
 
@@ -267,7 +267,7 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
 
     function testMarginRequirementsVanillaCall() public {
         OptionPosition[] memory positions = new OptionPosition[](1);
-        positions[0] = OptionPosition(TokenType.CALL, 21000 * UNIT, -1 * sUNIT);
+        positions[0] = OptionPosition(DerivativeType.CALL, 21000 * UNIT, -1 * sUNIT);
 
         Balance[] memory balances = _previewMinCollateral(positions);
 
@@ -278,7 +278,7 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
 
     function testMarginRequirementsVanillaPut() public {
         OptionPosition[] memory positions = new OptionPosition[](1);
-        positions[0] = OptionPosition(TokenType.PUT, 18000 * UNIT, -1 * sUNIT);
+        positions[0] = OptionPosition(DerivativeType.PUT, 18000 * UNIT, -1 * sUNIT);
 
         Balance[] memory balances = _previewMinCollateral(positions);
 
@@ -290,8 +290,8 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
     function testShortStrangles() public {
         OptionPosition[] memory positions = new OptionPosition[](2);
 
-        positions[0] = OptionPosition(TokenType.CALL, 20000 * UNIT, -1 * sUNIT);
-        positions[1] = OptionPosition(TokenType.PUT, 18000 * UNIT, -1 * sUNIT);
+        positions[0] = OptionPosition(DerivativeType.CALL, 20000 * UNIT, -1 * sUNIT);
+        positions[1] = OptionPosition(DerivativeType.PUT, 18000 * UNIT, -1 * sUNIT);
 
         Balance[] memory balances = _previewMinCollateral(positions);
 
@@ -304,8 +304,8 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
 
     function testLongStrangles() public {
         OptionPosition[] memory positions = new OptionPosition[](2);
-        positions[0] = OptionPosition(TokenType.CALL, 20000 * UNIT, 1 * sUNIT);
-        positions[1] = OptionPosition(TokenType.PUT, 18000 * UNIT, 1 * sUNIT);
+        positions[0] = OptionPosition(DerivativeType.CALL, 20000 * UNIT, 1 * sUNIT);
+        positions[1] = OptionPosition(DerivativeType.PUT, 18000 * UNIT, 1 * sUNIT);
 
         Balance[] memory balances = _previewMinCollateral(positions);
 
@@ -315,10 +315,10 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
     function testStrangleSpread() public {
         OptionPosition[] memory positions = new OptionPosition[](4);
 
-        positions[0] = OptionPosition(TokenType.CALL, 20000 * UNIT, -1 * sUNIT);
-        positions[1] = OptionPosition(TokenType.CALL, 21000 * UNIT, 1 * sUNIT);
-        positions[2] = OptionPosition(TokenType.PUT, 17000 * UNIT, -1 * sUNIT);
-        positions[3] = OptionPosition(TokenType.PUT, 18000 * UNIT, 1 * sUNIT);
+        positions[0] = OptionPosition(DerivativeType.CALL, 20000 * UNIT, -1 * sUNIT);
+        positions[1] = OptionPosition(DerivativeType.CALL, 21000 * UNIT, 1 * sUNIT);
+        positions[2] = OptionPosition(DerivativeType.PUT, 17000 * UNIT, -1 * sUNIT);
+        positions[3] = OptionPosition(DerivativeType.PUT, 18000 * UNIT, 1 * sUNIT);
 
         Balance[] memory balances = _previewMinCollateral(positions);
 
@@ -330,10 +330,10 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
     function testStrangleSpread2() public {
         OptionPosition[] memory positions = new OptionPosition[](4);
 
-        positions[0] = OptionPosition(TokenType.CALL, 20000 * UNIT, -1 * sUNIT);
-        positions[1] = OptionPosition(TokenType.CALL, 21000 * UNIT, 1 * sUNIT);
-        positions[2] = OptionPosition(TokenType.PUT, 17000 * UNIT, 1 * sUNIT);
-        positions[3] = OptionPosition(TokenType.PUT, 18000 * UNIT, -1 * sUNIT);
+        positions[0] = OptionPosition(DerivativeType.CALL, 20000 * UNIT, -1 * sUNIT);
+        positions[1] = OptionPosition(DerivativeType.CALL, 21000 * UNIT, 1 * sUNIT);
+        positions[2] = OptionPosition(DerivativeType.PUT, 17000 * UNIT, 1 * sUNIT);
+        positions[3] = OptionPosition(DerivativeType.PUT, 18000 * UNIT, -1 * sUNIT);
 
         Balance[] memory balances = _previewMinCollateral(positions);
 
@@ -345,10 +345,10 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
     function testOneByTwoCall() public {
         OptionPosition[] memory positions = new OptionPosition[](4);
 
-        positions[0] = OptionPosition(TokenType.CALL, 20000 * UNIT, 1 * sUNIT);
-        positions[1] = OptionPosition(TokenType.CALL, 21000 * UNIT, -2 * sUNIT);
-        positions[2] = OptionPosition(TokenType.PUT, 0, 0);
-        positions[3] = OptionPosition(TokenType.PUT, 0, 0);
+        positions[0] = OptionPosition(DerivativeType.CALL, 20000 * UNIT, 1 * sUNIT);
+        positions[1] = OptionPosition(DerivativeType.CALL, 21000 * UNIT, -2 * sUNIT);
+        positions[2] = OptionPosition(DerivativeType.PUT, 0, 0);
+        positions[3] = OptionPosition(DerivativeType.PUT, 0, 0);
 
         Balance[] memory balances = _previewMinCollateral(positions);
 
@@ -362,10 +362,10 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
     function testOneByTwoPut() public {
         OptionPosition[] memory positions = new OptionPosition[](4);
 
-        positions[0] = OptionPosition(TokenType.CALL, 0, 0);
-        positions[1] = OptionPosition(TokenType.CALL, 0, 0);
-        positions[2] = OptionPosition(TokenType.PUT, 17000 * UNIT, -2 * sUNIT);
-        positions[3] = OptionPosition(TokenType.PUT, 18000 * UNIT, 1 * sUNIT);
+        positions[0] = OptionPosition(DerivativeType.CALL, 0, 0);
+        positions[1] = OptionPosition(DerivativeType.CALL, 0, 0);
+        positions[2] = OptionPosition(DerivativeType.PUT, 17000 * UNIT, -2 * sUNIT);
+        positions[3] = OptionPosition(DerivativeType.PUT, 18000 * UNIT, 1 * sUNIT);
 
         Balance[] memory balances = _previewMinCollateral(positions);
 
@@ -379,10 +379,10 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
     function testIronCondor() public {
         OptionPosition[] memory positions = new OptionPosition[](4);
 
-        positions[0] = OptionPosition(TokenType.CALL, 20000 * UNIT, 1 * sUNIT);
-        positions[1] = OptionPosition(TokenType.CALL, 21000 * UNIT, -2 * sUNIT);
-        positions[2] = OptionPosition(TokenType.PUT, 17000 * UNIT, -2 * sUNIT);
-        positions[3] = OptionPosition(TokenType.PUT, 18000 * UNIT, 1 * sUNIT);
+        positions[0] = OptionPosition(DerivativeType.CALL, 20000 * UNIT, 1 * sUNIT);
+        positions[1] = OptionPosition(DerivativeType.CALL, 21000 * UNIT, -2 * sUNIT);
+        positions[2] = OptionPosition(DerivativeType.PUT, 17000 * UNIT, -2 * sUNIT);
+        positions[3] = OptionPosition(DerivativeType.PUT, 18000 * UNIT, 1 * sUNIT);
 
         Balance[] memory balances = _previewMinCollateral(positions);
 
@@ -395,8 +395,8 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
 
     function testUpAndDown1() public {
         OptionPosition[] memory positions = new OptionPosition[](2);
-        positions[0] = OptionPosition(TokenType.PUT, 17000 * UNIT, -18 * sUNIT);
-        positions[1] = OptionPosition(TokenType.PUT, 18000 * UNIT, 17 * sUNIT);
+        positions[0] = OptionPosition(DerivativeType.PUT, 17000 * UNIT, -18 * sUNIT);
+        positions[1] = OptionPosition(DerivativeType.PUT, 18000 * UNIT, 17 * sUNIT);
 
         Balance[] memory balances = _previewMinCollateral(positions);
 
@@ -405,8 +405,8 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
 
     function testLongPutSpread() public {
         OptionPosition[] memory positions = new OptionPosition[](2);
-        positions[0] = OptionPosition(TokenType.PUT, 17000 * UNIT, -1 * sUNIT);
-        positions[1] = OptionPosition(TokenType.PUT, 18000 * UNIT, 1 * sUNIT);
+        positions[0] = OptionPosition(DerivativeType.PUT, 17000 * UNIT, -1 * sUNIT);
+        positions[1] = OptionPosition(DerivativeType.PUT, 18000 * UNIT, 1 * sUNIT);
 
         Balance[] memory balances = _previewMinCollateral(positions);
 
@@ -415,8 +415,8 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
 
     function testShortPutSpread() public {
         OptionPosition[] memory positions = new OptionPosition[](2);
-        positions[0] = OptionPosition(TokenType.PUT, 17000 * UNIT, 1 * sUNIT);
-        positions[1] = OptionPosition(TokenType.PUT, 18000 * UNIT, -1 * sUNIT);
+        positions[0] = OptionPosition(DerivativeType.PUT, 17000 * UNIT, 1 * sUNIT);
+        positions[1] = OptionPosition(DerivativeType.PUT, 18000 * UNIT, -1 * sUNIT);
 
         Balance[] memory balances = _previewMinCollateral(positions);
 
@@ -427,8 +427,8 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
 
     function testUpAndDown2() public {
         OptionPosition[] memory positions = new OptionPosition[](2);
-        positions[0] = OptionPosition(TokenType.PUT, 17000 * UNIT, -18 * sUNIT);
-        positions[1] = OptionPosition(TokenType.PUT, 18000 * UNIT, 16 * sUNIT);
+        positions[0] = OptionPosition(DerivativeType.PUT, 17000 * UNIT, -18 * sUNIT);
+        positions[1] = OptionPosition(DerivativeType.PUT, 18000 * UNIT, 16 * sUNIT);
 
         Balance[] memory balances = _previewMinCollateral(positions);
 
@@ -439,9 +439,9 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
 
     function testUpAndDown3() public {
         OptionPosition[] memory positions = new OptionPosition[](3);
-        positions[0] = OptionPosition(TokenType.CALL, 20000 * UNIT, 1 * sUNIT);
-        positions[1] = OptionPosition(TokenType.PUT, 17000 * UNIT, -18 * sUNIT);
-        positions[2] = OptionPosition(TokenType.PUT, 18000 * UNIT, 17 * sUNIT);
+        positions[0] = OptionPosition(DerivativeType.CALL, 20000 * UNIT, 1 * sUNIT);
+        positions[1] = OptionPosition(DerivativeType.PUT, 17000 * UNIT, -18 * sUNIT);
+        positions[2] = OptionPosition(DerivativeType.PUT, 18000 * UNIT, 17 * sUNIT);
 
         Balance[] memory balances = _previewMinCollateral(positions);
 
@@ -450,10 +450,10 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
 
     function testUpAndDown4() public {
         OptionPosition[] memory positions = new OptionPosition[](4);
-        positions[0] = OptionPosition(TokenType.CALL, 20000 * UNIT, 1 * sUNIT);
-        positions[1] = OptionPosition(TokenType.CALL, 21000 * UNIT, -2 * sUNIT);
-        positions[2] = OptionPosition(TokenType.PUT, 17000 * UNIT, -18 * sUNIT);
-        positions[3] = OptionPosition(TokenType.PUT, 18000 * UNIT, 17 * sUNIT);
+        positions[0] = OptionPosition(DerivativeType.CALL, 20000 * UNIT, 1 * sUNIT);
+        positions[1] = OptionPosition(DerivativeType.CALL, 21000 * UNIT, -2 * sUNIT);
+        positions[2] = OptionPosition(DerivativeType.PUT, 17000 * UNIT, -18 * sUNIT);
+        positions[3] = OptionPosition(DerivativeType.PUT, 18000 * UNIT, 17 * sUNIT);
 
         Balance[] memory balances = _previewMinCollateral(positions);
 
@@ -464,10 +464,10 @@ contract PreviewCollateralReq_CMM is PreviewCollateralReqBase {
 
     function testPutGreaterThanCalls() public {
         OptionPosition[] memory positions = new OptionPosition[](4);
-        positions[0] = OptionPosition(TokenType.CALL, 23000 * UNIT, 1 * sUNIT);
-        positions[1] = OptionPosition(TokenType.CALL, 22000 * UNIT, -1 * sUNIT);
-        positions[2] = OptionPosition(TokenType.PUT, 25000 * UNIT, -1 * sUNIT);
-        positions[3] = OptionPosition(TokenType.PUT, 10000 * UNIT, 1 * sUNIT);
+        positions[0] = OptionPosition(DerivativeType.CALL, 23000 * UNIT, 1 * sUNIT);
+        positions[1] = OptionPosition(DerivativeType.CALL, 22000 * UNIT, -1 * sUNIT);
+        positions[2] = OptionPosition(DerivativeType.PUT, 25000 * UNIT, -1 * sUNIT);
+        positions[3] = OptionPosition(DerivativeType.PUT, 10000 * UNIT, 1 * sUNIT);
 
         Balance[] memory balances = _previewMinCollateral(positions);
 

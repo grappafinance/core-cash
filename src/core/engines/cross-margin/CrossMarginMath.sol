@@ -385,13 +385,13 @@ library CrossMarginMath {
      * @dev if weight turns into zero, we remove it from the set
      */
     function _processDetailWithToken(CrossMarginDetail memory detail, uint256 tokenId, int256 amount) internal pure {
-        (TokenType tokenType,,,, uint64 strike,) = tokenId.parseTokenId();
+        (DerivativeType derivativeType,,,, uint64 strike,) = tokenId.parseTokenId();
 
         bool found;
         uint256 index;
 
         // adjust or append to callStrikes array or callWeights array.
-        if (tokenType == TokenType.CALL) {
+        if (derivativeType == DerivativeType.CALL) {
             (found, index) = detail.callStrikes.indexOf(strike);
 
             if (found) {
@@ -405,7 +405,7 @@ library CrossMarginMath {
                 detail.callStrikes = detail.callStrikes.append(strike);
                 detail.callWeights = detail.callWeights.append(amount);
             }
-        } else if (tokenType == TokenType.PUT) {
+        } else if (derivativeType == DerivativeType.PUT) {
             // adjust or append to putStrikes array or putWeights array.
             (found, index) = detail.putStrikes.indexOf(strike);
 
