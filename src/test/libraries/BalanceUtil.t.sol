@@ -15,8 +15,8 @@ contract BalanceUtilTester {
     }
 
     function find(Balance[] memory x, uint8 v) external pure returns (bool, Balance memory, uint256) {
-      (bool f, Balance memory b, uint256 i ) = BalanceUtil.find(x, v);
-      return (f, b, i);
+        (bool f, Balance memory b, uint256 i) = BalanceUtil.find(x, v);
+        return (f, b, i);
     }
 
     function indexOf(Balance[] memory x, uint8 v) external pure returns (bool, uint256) {
@@ -49,7 +49,7 @@ contract BalanceUtilTest is Test {
     function testAppend() public {
         Balance[] memory arr = new Balance[](0);
         Balance memory element = Balance(1, 1000_000);
-        
+
         Balance[] memory newArr = tester.append(arr, element);
         assertEq(newArr.length, 1);
         assertEq(newArr[0].collateralId, 1);
@@ -103,7 +103,7 @@ contract BalanceUtilTest is Test {
 
     function testSum() public {
         Balance[] memory defaultArr = _getDefaultBalanceArray();
-        uint sum = tester.sum(defaultArr);
+        uint256 sum = tester.sum(defaultArr);
         assertEq(sum, 15_000_000);
     }
 
@@ -116,5 +116,4 @@ contract BalanceUtilTest is Test {
         arr[4] = Balance(5, 5000_000);
         return arr;
     }
-
 }
