@@ -74,7 +74,7 @@ library CrossMarginLib {
     function mintOption(CrossMarginAccount storage account, uint256 tokenId, uint64 amount) external {
         if (amount == 0) return;
 
-        (TokenType optionType, uint40 productId,,,) = tokenId.parseTokenId();
+        (TokenType optionType,, uint40 productId,,,) = tokenId.parseTokenId();
 
         // assign collateralId or check collateral id is the same
         (,, uint8 underlyingId, uint8 strikeId, uint8 collateralId) = productId.parseProductId();

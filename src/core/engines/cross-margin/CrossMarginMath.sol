@@ -344,11 +344,11 @@ library CrossMarginMath {
         uint256 shortLength = shorts.length;
 
         for (uint256 i; i < positions.length;) {
-            (, uint40 productId, uint64 expiry,,) = positions[i].tokenId.parseTokenId();
+            (, SettlementType settlementType, uint40 productId, uint64 expiry,,) = positions[i].tokenId.parseTokenId();
 
             ProductDetails memory product = _getProductDetails(grappa, productId);
 
-            bytes32 pos = keccak256(abi.encode(product.underlyingId, product.strikeId, expiry));
+            bytes32 pos = keccak256(abi.encode(settlementType, product.underlyingId, product.strikeId, expiry));
 
             (bool found, uint256 index) = ArrayUtil.indexOf(usceLookUp, pos);
 
@@ -385,7 +385,7 @@ library CrossMarginMath {
      * @dev if weight turns into zero, we remove it from the set
      */
     function _processDetailWithToken(CrossMarginDetail memory detail, uint256 tokenId, int256 amount) internal pure {
-        (TokenType tokenType,,, uint64 strike,) = tokenId.parseTokenId();
+        (TokenType tokenType,,,, uint64 strike,) = tokenId.parseTokenId();
 
         bool found;
         uint256 index;

@@ -9,35 +9,36 @@ import "../config/errors.sol";
 /**
  * Token ID =
  *
- *  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
- *  | tokenType (24 bits) | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) | shortStrike (64 bits) |
- *  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
+ *  * ------------------- | ----------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
+ *  | tokenType (16 bits) | settlementType (8 bits) | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) | reserved (64 bits) |
+ *  * ------------------- | ----------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
  */
 
 /**
  * Compressed Token ID =
  *
- *  * ------------------- | ------------------- | ---------------- | -------------------- *
- *  | tokenType (24 bits) | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) |
- *  * ------------------- | ------------------- | ---------------- | -------------------- *
+ *  * ------------------- | ----------------------- | ------------------- | ---------------- | -------------------- *
+ *  | tokenType (16 bits) | settlementType (8 bits) | productId (40 bits) | expiry (64 bits) | strike     (64 bits) |
+ *  * ------------------- | ----------------------- | ------------------- | ---------------- | -------------------- *
  */
 library TokenIdUtil {
     /**
      * @notice calculate ERC1155 token id for given option parameters. See table above for tokenId
      * @param tokenType TokenType enum
-     * @param productId if of the product
+     * @param settlementType SettlementType enum
+     * @param productId id of the product
      * @param expiry timestamp of option expiry
      * @param longStrike strike price of the long option, with 6 decimals
      * @param shortStrike strike price of the short (upper bond for call and lower bond for put) if this is a spread. 6 decimals
      * @return tokenId token id
      */
-    function getTokenId(TokenType tokenType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike)
+    function getTokenId(TokenType tokenType, SettlementType settlementType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike)
         internal
         pure
         returns (uint256 tokenId)
     {
         unchecked {
-            tokenId = (uint256(tokenType) << 232) + (uint256(productId) << 192) + (uint256(expiry) << 128)
+            tokenId = (uint256(tokenType) << 240) + (uint256(settlementType) << 232) + (uint256(productId) << 192) + (uint256(expiry) << 128)
                 + (uint256(longStrike) << 64) + uint256(shortStrike);
         }
     }
@@ -47,7 +48,8 @@ library TokenIdUtil {
      * @dev    See table above for tokenId composition
      * @param tokenId token id
      * @return tokenType TokenType enum
-     * @return productId 32 bits product id
+     * @return settlementType SettlementType enum
+     * @return productId 40 bits product id
      * @return expiry timestamp of option expiry
      * @return longStrike strike price of the long option, with 6 decimals
      * @return shortStrike strike price of the short (upper bond for call and lower bond for put) if this is a spread. 6 decimals
@@ -55,29 +57,34 @@ library TokenIdUtil {
     function parseTokenId(uint256 tokenId)
         internal
         pure
-        returns (TokenType tokenType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike)
+        returns (TokenType tokenType, SettlementType settlementType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike)
     {
+        uint8 _settlementType;
+
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            tokenType := shr(232, tokenId)
+            tokenType := shr(240, tokenId)
+            _settlementType := shr(232, tokenId)
             productId := shr(192, tokenId)
             expiry := shr(128, tokenId)
             longStrike := shr(64, tokenId)
             shortStrike := tokenId
         }
+
+        settlementType = SettlementType(_settlementType);
     }
 
     /**
      * @notice parse collateral id from tokenId
      * @dev more efficient than parsing tokenId and than parse productId
      * @param tokenId token id
-     * @return collatearlId
+     * @return collateralId
      */
-    function parseCollateralId(uint256 tokenId) internal pure returns (uint8 collatearlId) {
+    function parseCollateralId(uint256 tokenId) internal pure returns (uint8 collateralId) {
         // solhint-disable-next-line no-inline-assembly
         assembly {
             // collateralId is the last bits of productId
-            collatearlId := shr(192, tokenId)
+            collateralId := shr(192, tokenId)
         }
     }
 
@@ -100,6 +107,7 @@ library TokenIdUtil {
      * @dev    See table above for tokenId composition
      * @param tokenId token id
      * @return tokenType TokenType enum
+     * @return settlementType SettlementType enum
      * @return productId 32 bits product id
      * @return expiry timestamp of option expiry
      * @return longStrike strike price of the long option, with 6 decimals
@@ -107,11 +115,12 @@ library TokenIdUtil {
     function parseShortTokenId(uint192 tokenId)
         internal
         pure
-        returns (TokenType tokenType, uint40 productId, uint64 expiry, uint64 longStrike)
+        returns (TokenType tokenType, SettlementType settlementType, uint40 productId, uint64 expiry, uint64 longStrike)
     {
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            tokenType := shr(168, tokenId)
+            tokenType := shr(176, tokenId)
+            settlementType := shr(168, tokenId)
             productId := shr(128, tokenId)
             expiry := shr(64, tokenId)
             longStrike := tokenId
@@ -126,7 +135,7 @@ library TokenIdUtil {
     function parseTokenType(uint256 tokenId) internal pure returns (TokenType tokenType) {
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            tokenType := shr(232, tokenId)
+            tokenType := shr(240, tokenId)
         }
     }
 
@@ -148,12 +157,12 @@ library TokenIdUtil {
 
     /**
      * @notice convert an spread tokenId back to put or call.
-     *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
-     * @dev   oldId =   | spread type (24 b)  | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) | shortStrike (64 bits) |
-     *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
-     *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
-     * @dev   newId =   | call or put type    | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) | 0           (64 bits) |
-     *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
+     *                  * ------------------- | ------------------------ | ------------------- | ---------------- | -------------------- | --------------------- *
+     * @dev   oldId =   | spread type (16 b)  | settlementType  (8 bits) | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) | shortStrike (64 bits) |
+     *                  * ------------------- | ------------------------ | ------------------- | ---------------- | -------------------- | --------------------- *
+     *                  * ------------------- | ------------------------ | ------------------- | ---------------- | -------------------- | --------------------- *
+     * @dev   newId =   | call or put type    | settlementType  (8 bits) | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) | 0           (64 bits) |
+     *                  * ------------------- | ------------------------ | ------------------- | ---------------- | -------------------- | --------------------- *
      * @dev   this function will: override tokenType, remove shortStrike.
      * @param _tokenId token id to change
      */
@@ -163,18 +172,18 @@ library TokenIdUtil {
             newId := shr(64, _tokenId) // step 1: >> 64 to wipe out shortStrike
             newId := shl(64, newId) // step 2: << 64 go back
 
-            newId := sub(newId, shl(232, 1)) // step 3: new tokenType = spread type - 1
+            newId := sub(newId, shl(240, 1)) // step 3: new tokenType = spread type - 1
         }
     }
 
     /**
      * @notice convert an spread tokenId back to put or call.
-     *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
-     * @dev   oldId =   | call or put type    | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) | 0           (64 bits) |
-     *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
-     *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
-     * @dev   newId =   | spread type         | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) | shortStrike (64 bits) |
-     *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
+     *                  * ------------------- | ------------------------ | ------------------- | ---------------- | -------------------- | --------------------- *
+     * @dev   oldId =   | call or put type    | settlementType  (8 bits) | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) | 0           (64 bits) |
+     *                  * ------------------- | ------------------------ | ------------------- | ---------------- | -------------------- | --------------------- *
+     *                  * ------------------- | ------------------------ | ------------------- | ---------------- | -------------------- | --------------------- *
+     * @dev   newId =   | spread type         | settlementType  (8 bits) | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) | shortStrike (64 bits) |
+     *                  * ------------------- | ------------------------ | ------------------- | ---------------- | -------------------- | --------------------- *
      *
      * this function convert put or call type to spread type, add shortStrike.
      * @param _tokenId token id to change
@@ -184,18 +193,18 @@ library TokenIdUtil {
         // solhint-disable-next-line no-inline-assembly
         unchecked {
             newId = _tokenId + _shortStrike;
-            return newId + (1 << 232); // new type (spread type) = old type + 1
+            return newId + (1 << 240); // new type (spread type) = old type + 1
         }
     }
 
     /**
      * @notice Compresses tokenId by removing shortStrike.
-     *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
-     * @dev   oldId =   | call or put type    | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) | 0           (64 bits) |
-     *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
-     *                  * ------------------- | ------------------- | ---------------- | -------------------- *
-     * @dev   newId =   | call or put type    | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) |
-     *                  * ------------------- | ------------------- | ---------------- | -------------------- *
+     *                  * ------------------- | ------------------------ | ------------------- | ---------------- | -------------------- | --------------------- *
+     * @dev   oldId =   | call or put type    | settlementType  (8 bits) | productId (40 bits) | expiry (64 bits) | strike     (64 bits) | 0           (64 bits) |
+     *                  * ------------------- | ------------------------ | ------------------- | ---------------- | -------------------- | --------------------- *
+     *                  * ------------------- | ------------------------ | ------------------- | ---------------- | -------------------- *
+     * @dev   newId =   | call or put type    | settlementType  (8 bits) | productId (40 bits) | expiry (64 bits) | strike     (64 bits) |
+     *                  * ------------------- | ------------------------ | ------------------- | ---------------- | -------------------- *
      *
      * @param _tokenId token id to change
      */
@@ -208,12 +217,12 @@ library TokenIdUtil {
 
     /**
      * @notice convert a shortened tokenId back ERC1155 compliant.
-     *                  * ------------------- | ------------------- | ---------------- | -------------------- *
-     * @dev   oldId =   | call or put type    | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) |
-     *                  * ------------------- | ------------------- | ---------------- | -------------------- *
-     *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
-     * @dev   newId =   | call or put type    | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) | 0           (64 bits) |
-     *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
+     *                  * ------------------- | ------------------------ | ------------------- | ---------------- | -------------------- *
+     * @dev   oldId =   | call or put type    | settlementType  (8 bits) | productId (40 bits) | expiry (64 bits) | strike     (64 bits) |
+     *                  * ------------------- | ------------------------ | ------------------- | ---------------- | -------------------- *
+     *                  * ------------------- | ------------------------ | ------------------- | ---------------- | -------------------- | --------------------- *
+     * @dev   newId =   | call or put type    | settlementType  (8 bits) | productId (40 bits) | expiry (64 bits) | strike     (64 bits) | 0           (64 bits) |
+     *                  * ------------------- | ------------------------ | ------------------- | ---------------- | -------------------- | --------------------- *
      *
      * @param _tokenId token id to change
      */

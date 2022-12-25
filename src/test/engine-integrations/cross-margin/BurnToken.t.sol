@@ -29,7 +29,7 @@ contract TestBurnOption_CM is CrossMarginFixture {
         oracle.setSpotPrice(address(weth), 3000 * UNIT);
 
         // mint a 3000 strike call first
-        tokenId = getTokenId(TokenType.CALL, pidEthCollat, expiry, strikePrice, 0);
+        tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, pidEthCollat, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
@@ -56,7 +56,7 @@ contract TestBurnOption_CM is CrossMarginFixture {
         address subAccount = address(uint160(address(this)) - 1);
 
         // badId: usdc Id
-        uint256 badTokenId = getTokenId(TokenType.CALL, pidUsdcCollat, expiry, strikePrice, 0);
+        uint256 badTokenId = getTokenId(TokenType.CALL, SettlementType.CASH, pidUsdcCollat, expiry, strikePrice, 0);
         // build burn account
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createBurnAction(badTokenId, address(this), amount);

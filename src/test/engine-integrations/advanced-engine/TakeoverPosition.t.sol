@@ -40,7 +40,7 @@ import "../../../config/errors.sol";
 
 //         accountId = alice;
 
-//         tokenId = getTokenId(TokenType.CALL, productId, expiry, strike, 0);
+//         tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, strike, 0);
 //         ActionArgs[] memory actions = new ActionArgs[](2);
 //         actions[0] = createAddCollateralAction(usdcId, alice, initialCollateral);
 //         actions[1] = createMintAction(tokenId, alice, amount);

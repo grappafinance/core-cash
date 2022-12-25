@@ -254,10 +254,10 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
         AdvancedMarginAccount storage accout = marginAccounts[_subAccount];
 
         if (accout.shortCallAmount > 0) {
-            (,, uint64 expiry,,) = TokenIdUtil.parseTokenId(accout.shortCallId);
+            (,,, uint64 expiry,,) = TokenIdUtil.parseTokenId(accout.shortCallId);
             if (expiry <= block.timestamp) revert AM_ExpiredShortInAccount();
         } else if (accout.shortPutAmount > 0) {
-            (,, uint64 expiry,,) = TokenIdUtil.parseTokenId(accout.shortPutId);
+            (,,, uint64 expiry,,) = TokenIdUtil.parseTokenId(accout.shortPutId);
             if (expiry <= block.timestamp) revert AM_ExpiredShortInAccount();
         }
 
@@ -391,7 +391,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
 
         // if it contains a call
         if (account.shortCallId != 0) {
-            (,,, uint64 longStrike, uint64 shortStrike) = TokenIdUtil.parseTokenId(account.shortCallId);
+            (,,,, uint64 longStrike, uint64 shortStrike) = TokenIdUtil.parseTokenId(account.shortCallId);
             // the short position of the account is the long of the minted optionToken
             detail.shortCallStrike = longStrike;
             detail.longCallStrike = shortStrike;
@@ -399,7 +399,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
 
         // if it contains a put
         if (account.shortPutId != 0) {
-            (,,, uint64 longStrike, uint64 shortStrike) = TokenIdUtil.parseTokenId(account.shortPutId);
+            (,,,, uint64 longStrike, uint64 shortStrike) = TokenIdUtil.parseTokenId(account.shortPutId);
 
             // the short position of the account is the long of the minted optionToken
             detail.shortPutStrike = longStrike;
@@ -410,7 +410,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
         // use the OR operator, so as long as one of shortPutId or shortCallId is non-zero, got reflected here
         uint256 commonId = account.shortPutId | account.shortCallId;
 
-        (, uint40 productId, uint64 expiry,,) = TokenIdUtil.parseTokenId(commonId);
+        (,, uint40 productId, uint64 expiry,,) = TokenIdUtil.parseTokenId(commonId);
         detail.productId = productId;
         detail.expiry = expiry;
     }

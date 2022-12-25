@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+enum SettlementType {
+    CASH,
+    PHYSICAL
+}
+
 enum TokenType {
     PUT,
     PUT_SPREAD,

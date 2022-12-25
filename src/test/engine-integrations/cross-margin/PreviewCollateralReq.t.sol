@@ -47,11 +47,11 @@ contract PreviewCollateralReqBase is CrossMarginFixture {
     }
 
     function _callTokenId(uint256 _strikePrice) internal view returns (uint256 tokenId) {
-        tokenId = getTokenId(TokenType.CALL, pidEthCollat, expiry, _strikePrice, 0);
+        tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, pidEthCollat, expiry, _strikePrice, 0);
     }
 
     function _putTokenId(uint256 _strikePrice) internal view returns (uint256 tokenId) {
-        tokenId = getTokenId(TokenType.PUT, pidUsdcCollat, expiry, _strikePrice, 0);
+        tokenId = getTokenId(TokenType.PUT, SettlementType.CASH, pidUsdcCollat, expiry, _strikePrice, 0);
     }
 
     // add a function prefixed with test here so forge coverage will ignore this file

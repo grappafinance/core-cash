@@ -31,7 +31,7 @@ contract TestSettleCoveredCall_CM is CrossMarginFixture {
 
         strike = uint64(4000 * UNIT);
 
-        tokenId = getTokenId(TokenType.CALL, pidEthCollat, expiry, strike, 0);
+        tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, pidEthCollat, expiry, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         // give option to alice
@@ -137,7 +137,7 @@ contract TestSettleCoveredCall_CM is CrossMarginFixture {
     function testSellerCanClearOnlyExpiredOptions() public {
         vm.warp(expiry - 10 days);
 
-        uint256 tokenId2 = getTokenId(TokenType.CALL, pidEthCollat, expiry + 1 days, strike, 0);
+        uint256 tokenId2 = getTokenId(TokenType.CALL, SettlementType.CASH, pidEthCollat, expiry + 1 days, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId2, alice, amount);
@@ -174,7 +174,7 @@ contract TestSettleCoveredCall_CM is CrossMarginFixture {
 
     function testSellerCanClearMultipleExpiredOptions() public {
         vm.warp(expiry - 10 days);
-        uint256 tokenId2 = getTokenId(TokenType.CALL, pidEthCollat, expiry, strike + (1 * UNIT), 0);
+        uint256 tokenId2 = getTokenId(TokenType.CALL, SettlementType.CASH, pidEthCollat, expiry, strike + (1 * UNIT), 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
@@ -237,7 +237,7 @@ contract TestSettleCollateralizedPut_CM is CrossMarginFixture {
 
         strike = uint64(2000 * UNIT);
 
-        tokenId = getTokenId(TokenType.PUT, pidUsdcCollat, expiry, strike, 0);
+        tokenId = getTokenId(TokenType.PUT, SettlementType.CASH, pidUsdcCollat, expiry, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         // give optoin to alice
@@ -286,7 +286,7 @@ contract TestSettleCollateralizedPut_CM is CrossMarginFixture {
     // settlement on sell side
 
     function testSellerCanClearOnlyExpiredOptions() public {
-        uint256 tokenId2 = getTokenId(TokenType.PUT, pidUsdcCollat, expiry + 1 days, strike, 0);
+        uint256 tokenId2 = getTokenId(TokenType.PUT, SettlementType.CASH, pidUsdcCollat, expiry + 1 days, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId2, alice, amount);
@@ -366,8 +366,8 @@ contract TestLongShortSettlement is CrossMarginFixture {
 
         expiry = block.timestamp + 14 days;
 
-        selfTokenId = getTokenId(TokenType.PUT, pidUsdcCollat, expiry, selfStrike, 0);
-        aliceTokenId = getTokenId(TokenType.PUT, pidUsdcCollat, expiry, aliceStrike, 0);
+        selfTokenId = getTokenId(TokenType.PUT, SettlementType.CASH, pidUsdcCollat, expiry, selfStrike, 0);
+        aliceTokenId = getTokenId(TokenType.PUT, SettlementType.CASH, pidUsdcCollat, expiry, aliceStrike, 0);
 
         vm.startPrank(alice);
         usdc.approve(address(engine), type(uint256).max);

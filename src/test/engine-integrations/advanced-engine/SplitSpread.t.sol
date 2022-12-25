@@ -26,7 +26,7 @@ contract TestSplitCallSpread is AdvancedFixture {
         oracle.setSpotPrice(address(weth), 3000 * UNIT);
 
         // mint a 4000-4100 debit spread
-        spreadId = getTokenId(TokenType.CALL_SPREAD, productId, expiry, strikePriceLow, strikePriceHigh);
+        spreadId = getTokenId(TokenType.CALL_SPREAD, SettlementType.CASH, productId, expiry, strikePriceLow, strikePriceHigh);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
@@ -43,7 +43,7 @@ contract TestSplitCallSpread is AdvancedFixture {
 
         // check result
         (uint256 shortCallId,,,,,) = engine.marginAccounts(address(this));
-        (TokenType tokenType,,, uint64 longStrike, uint64 shortStrike) = parseTokenId(shortCallId);
+        (TokenType tokenType,,,, uint64 longStrike, uint64 shortStrike) = parseTokenId(shortCallId);
 
         assertEq(uint8(tokenType), uint8(TokenType.CALL));
         assertEq(longStrike, strikePriceLow);
@@ -58,7 +58,7 @@ contract TestSplitCallSpread is AdvancedFixture {
         engine.execute(address(this), actions);
 
         // check result
-        uint256 expectedTokenId = getTokenId(TokenType.CALL, productId, expiry, strikePriceHigh, 0);
+        uint256 expectedTokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, strikePriceHigh, 0);
 
         assertEq(option.balanceOf(address(this), expectedTokenId), amount);
     }
@@ -90,7 +90,7 @@ contract TestSplitPutSpread is AdvancedFixture {
         oracle.setSpotPrice(address(weth), 3000 * UNIT);
 
         // mint a 2000-1900 debit spread
-        spreadId = getTokenId(TokenType.PUT_SPREAD, productId, expiry, strikePriceHigh, strikePriceLow);
+        spreadId = getTokenId(TokenType.PUT_SPREAD, SettlementType.CASH, productId, expiry, strikePriceHigh, strikePriceLow);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
@@ -107,7 +107,7 @@ contract TestSplitPutSpread is AdvancedFixture {
 
         // check result
         (, uint256 shortPutId,,,,) = engine.marginAccounts(address(this));
-        (TokenType tokenType,,, uint64 longStrike, uint64 shortStrike) = parseTokenId(shortPutId);
+        (TokenType tokenType,,,, uint64 longStrike, uint64 shortStrike) = parseTokenId(shortPutId);
 
         assertEq(uint8(tokenType), uint8(TokenType.PUT));
         assertEq(longStrike, strikePriceHigh);
@@ -122,7 +122,7 @@ contract TestSplitPutSpread is AdvancedFixture {
         engine.execute(address(this), actions);
 
         // check result
-        uint256 expectedTokenId = getTokenId(TokenType.PUT, productId, expiry, strikePriceLow, 0);
+        uint256 expectedTokenId = getTokenId(TokenType.PUT, SettlementType.CASH, productId, expiry, strikePriceLow, 0);
 
         assertEq(option.balanceOf(address(this), expectedTokenId), amount);
     }
@@ -138,7 +138,7 @@ contract TestSplitPutSpread is AdvancedFixture {
 
     function testCannotSplitNonExistingSpreadId() public {
         uint256 fakeLongStrike = strikePriceHigh - (50 * UNIT);
-        uint256 fakeSpreadId = getTokenId(TokenType.PUT_SPREAD, productId, expiry, fakeLongStrike, strikePriceLow);
+        uint256 fakeSpreadId = getTokenId(TokenType.PUT_SPREAD, SettlementType.CASH, productId, expiry, fakeLongStrike, strikePriceLow);
 
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSplitAction(fakeSpreadId, amount, address(this));
@@ -149,7 +149,7 @@ contract TestSplitPutSpread is AdvancedFixture {
 
     function testCannotSplitPut() public {
         uint256 fakeLongStrike = strikePriceHigh - (50 * UNIT);
-        uint256 putId = getTokenId(TokenType.PUT, productId, expiry, fakeLongStrike, 0);
+        uint256 putId = getTokenId(TokenType.PUT, SettlementType.CASH, productId, expiry, fakeLongStrike, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSplitAction(putId, amount, address(this));

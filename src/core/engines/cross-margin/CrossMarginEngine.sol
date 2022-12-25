@@ -308,7 +308,7 @@ contract CrossMarginEngine is BaseEngine, IMarginEngine, OwnableUpgradeable, Ree
      * @param tokenId tokenId
      */
     function _verifyLongTokenIdToAdd(uint256 tokenId) internal view override {
-        (TokenType optionType, uint40 productId, uint64 expiry,,) = tokenId.parseTokenId();
+        (TokenType optionType,, uint40 productId, uint64 expiry,,) = tokenId.parseTokenId();
 
         // engine only supports calls and puts
         if (optionType != TokenType.CALL && optionType != TokenType.PUT) revert CM_UnsupportedTokenType();

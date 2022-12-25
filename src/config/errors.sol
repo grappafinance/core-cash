@@ -57,8 +57,11 @@ error BM_CannotMergeSpread();
 /// @dev only spread position can be split
 error BM_CanOnlySplitSpread();
 
-/// @dev type of existing short token doesn't match the incoming token
-error BM_MergeTypeMismatch();
+/// @dev type of existing short token type doesn't match the incoming token type
+error BM_MergeTokenTypeMismatch();
+
+/// @dev type of existing short token type doesn't match the incoming token type
+error BM_MergeSettlementTypeMismatch();
 
 /// @dev product type of existing short token doesn't match the incoming token
 error BM_MergeProductMismatch();

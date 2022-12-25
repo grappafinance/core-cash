@@ -32,7 +32,7 @@ contract TestMintVanillaOption is AdvancedFixture {
         uint256 strikePrice = 4000 * UNIT;
         uint256 amount = 1 * UNIT;
 
-        uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
+        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
@@ -55,7 +55,7 @@ contract TestMintVanillaOption is AdvancedFixture {
         uint256 strikePrice = 4000 * UNIT;
         uint256 amount = 1 * UNIT;
 
-        uint256 tokenId = getTokenId(TokenType.CALL, productIdEthCollat, expiry, strikePrice, 0);
+        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productIdEthCollat, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
@@ -86,7 +86,7 @@ contract TestMintVanillaOption is AdvancedFixture {
         uint256 depositAmount = 2 * 1e6; // 0.02 btc
         uint256 strikePrice = 4000 * UNIT;
         uint256 amount = 1 * UNIT;
-        uint256 tokenId = getTokenId(TokenType.CALL, productIdBtcCollat, expiry, strikePrice, 0);
+        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productIdBtcCollat, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wbtcId, address(this), depositAmount);
@@ -106,7 +106,7 @@ contract TestMintVanillaOption is AdvancedFixture {
         uint256 strikePrice = 4000 * UNIT;
         uint256 amount = 1 * UNIT;
 
-        uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
+        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
@@ -124,7 +124,7 @@ contract TestMintVanillaOption is AdvancedFixture {
 
         // try to mint a tokenId that belongs to another margin engine
         uint40 fakeProductId = grappa.getProductId(address(oracle), address(1), address(weth), address(usdc), address(weth));
-        uint256 tokenId = getTokenId(TokenType.CALL, fakeProductId, expiry, strikePrice, 0);
+        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, fakeProductId, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
@@ -139,7 +139,7 @@ contract TestMintVanillaOption is AdvancedFixture {
         uint256 strikePrice = 4000 * UNIT;
         uint256 amount = 1 * UNIT;
 
-        uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
+        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
@@ -157,7 +157,7 @@ contract TestMintVanillaOption is AdvancedFixture {
 
         uint256 amount = 1 * UNIT;
 
-        uint256 tokenId = getTokenId(TokenType.CALL_SPREAD, productId, expiry, longStrike, shortStrike);
+        uint256 tokenId = getTokenId(TokenType.CALL_SPREAD, SettlementType.CASH, productId, expiry, longStrike, shortStrike);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
@@ -179,7 +179,7 @@ contract TestMintVanillaOption is AdvancedFixture {
         uint256 strikePrice = 2000 * UNIT;
         uint256 amount = 1 * UNIT;
 
-        uint256 tokenId = getTokenId(TokenType.PUT, productId, expiry, strikePrice, 0);
+        uint256 tokenId = getTokenId(TokenType.PUT, SettlementType.CASH, productId, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
@@ -200,7 +200,7 @@ contract TestMintVanillaOption is AdvancedFixture {
         uint256 strikePrice = 2000 * UNIT;
         uint256 amount = 1 * UNIT;
 
-        uint256 tokenId = getTokenId(TokenType.PUT, productId, expiry, strikePrice, 0);
+        uint256 tokenId = getTokenId(TokenType.PUT, SettlementType.CASH, productId, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
@@ -218,7 +218,7 @@ contract TestMintVanillaOption is AdvancedFixture {
 
         uint256 amount = 1 * UNIT;
 
-        uint256 tokenId = getTokenId(TokenType.PUT_SPREAD, productId, expiry, longStrike, shortStrike);
+        uint256 tokenId = getTokenId(TokenType.PUT_SPREAD, SettlementType.CASH, productId, expiry, longStrike, shortStrike);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
@@ -237,8 +237,8 @@ contract TestMintVanillaOption is AdvancedFixture {
         uint256 strikePrice = 3000 * UNIT;
         uint256 amount = 1 * UNIT;
 
-        uint256 callId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
-        uint256 putId = getTokenId(TokenType.PUT, productId, expiry, strikePrice, 0);
+        uint256 callId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, strikePrice, 0);
+        uint256 putId = getTokenId(TokenType.PUT, SettlementType.CASH, productId, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](3);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
@@ -262,8 +262,8 @@ contract TestMintVanillaOption is AdvancedFixture {
         uint256 depositAmount = 1000 * 1e6;
         uint256 amount = 1 * UNIT;
 
-        uint256 callId = getTokenId(TokenType.CALL, productId, expiry, 4000 * UNIT, 0);
-        uint256 putId = getTokenId(TokenType.PUT, productId, expiry, 2000 * UNIT, 0);
+        uint256 callId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, 4000 * UNIT, 0);
+        uint256 putId = getTokenId(TokenType.PUT, SettlementType.CASH, productId, expiry, 2000 * UNIT, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](3);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
@@ -287,7 +287,7 @@ contract TestMintVanillaOption is AdvancedFixture {
         uint256 strikePrice = 3000 * UNIT;
         uint256 amount = 1 * UNIT;
 
-        uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
+        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createMintAction(tokenId, address(this), amount);
@@ -303,7 +303,7 @@ contract TestMintVanillaOption is AdvancedFixture {
         uint256 strikePrice = 4000 * UNIT;
         uint256 amount = 1 * UNIT;
 
-        uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
+        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
@@ -312,7 +312,7 @@ contract TestMintVanillaOption is AdvancedFixture {
 
         // prepare second mint
         ActionArgs[] memory action2 = new ActionArgs[](1);
-        uint256 secondCallId = getTokenId(TokenType.CALL, productId, expiry, 5000 * UNIT, 0);
+        uint256 secondCallId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, 5000 * UNIT, 0);
         action2[0] = createMintAction(secondCallId, address(this), amount);
 
         // expect call to revert

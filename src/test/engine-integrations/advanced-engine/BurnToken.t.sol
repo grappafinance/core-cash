@@ -26,7 +26,7 @@ contract TestBurnCall is AdvancedFixture {
         oracle.setSpotPrice(address(weth), 3000 * UNIT);
 
         // mint a 3000 strike call first
-        tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
+        tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);

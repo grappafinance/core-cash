@@ -165,7 +165,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     function getDetailFromTokenId(uint256 _tokenId)
         external
         pure
-        returns (TokenType tokenType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike)
+        returns (TokenType tokenType, SettlementType settlementType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike)
     {
         return TokenIdUtil.parseTokenId(_tokenId);
     }
@@ -191,17 +191,18 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      * @notice    get token id from type, productId, expiry, strike
      * @dev       function will still return even if some of the assets are not registered
      * @param _tokenType TokenType enum
+     * @param _settlementType SettlementType enum
      * @param _productId if of the product
      * @param _expiry timestamp of option expiry
      * @param _longStrike strike price of the long option, with 6 decimals
      * @param _shortStrike strike price of the short (upper bond for call and lower bond for put) if this is a spread. 6 decimals
      */
-    function getTokenId(TokenType _tokenType, uint40 _productId, uint256 _expiry, uint256 _longStrike, uint256 _shortStrike)
+    function getTokenId(TokenType _tokenType, SettlementType _settlementType, uint40 _productId, uint256 _expiry, uint256 _longStrike, uint256 _shortStrike)
         external
         pure
         returns (uint256 id)
     {
-        id = TokenIdUtil.getTokenId(_tokenType, _productId, uint64(_expiry), uint64(_longStrike), uint64(_shortStrike));
+        id = TokenIdUtil.getTokenId(_tokenType, _settlementType, _productId, uint64(_expiry), uint64(_longStrike), uint64(_shortStrike));
     }
 
     /**
@@ -419,7 +420,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      * @dev make sure that the tokenId make sense
      */
     function _isValidTokenIdToMint(uint256 _tokenId) internal view {
-        (TokenType optionType,, uint64 expiry, uint64 longStrike, uint64 shortStrike) = _tokenId.parseTokenId();
+        (TokenType optionType,,, uint64 expiry, uint64 longStrike, uint64 shortStrike) = _tokenId.parseTokenId();
 
         // check option type and strikes
         // check that vanilla options doesnt have a shortStrike argument
@@ -444,7 +445,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      *
      */
     function _getPayoutPerToken(uint256 _tokenId) internal view returns (address, address, uint256 payoutPerOption) {
-        (TokenType tokenType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) =
+        (TokenType tokenType, /*SettlementType settlementType*/, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) =
             TokenIdUtil.parseTokenId(_tokenId);
 
         if (block.timestamp < expiry) revert GP_NotExpired();
@@ -457,6 +458,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
 
         // cash value denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
         uint256 cashValue;
+
         if (tokenType == TokenType.CALL) {
             cashValue = MoneynessLib.getCallCashValue(expiryPrice, longStrike);
         } else if (tokenType == TokenType.CALL_SPREAD) {
