@@ -63,6 +63,8 @@ contract TokenIdLibTest is Test {
     function testCompressAndExpandAreMirrored(uint8 tokenType, uint40 productId, uint256 expiry, uint256 longStrike) public {
         vm.assume(tokenType < 4);
         vm.assume(productId > 0);
+        vm.assume(longStrike < type(uint64).max);
+        vm.assume(expiry < type(uint64).max);
 
         // generate an Id without short strike
         uint256 vanillaId = tester.getTokenId(TokenType(tokenType), productId, uint64(expiry), uint64(longStrike), 0);
