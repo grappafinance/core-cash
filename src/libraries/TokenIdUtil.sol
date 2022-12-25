@@ -96,7 +96,7 @@ library TokenIdUtil {
     }
 
     /**
-     * @notice derive option, product, expiry and strike price from short token id (no shortStrike)
+     * @notice derive option, product, expiry and strike price from compressed token id (no shortStrike)
      * @dev    See table above for tokenId composition
      * @param tokenId token id
      * @return tokenType TokenType enum
@@ -104,7 +104,7 @@ library TokenIdUtil {
      * @return expiry timestamp of option expiry
      * @return longStrike strike price of the long option, with 6 decimals
      */
-    function parseShortTokenId(uint192 tokenId)
+    function parseCompressedTokenId(uint192 tokenId)
         internal
         pure
         returns (TokenType tokenType, uint40 productId, uint64 expiry, uint64 longStrike)
