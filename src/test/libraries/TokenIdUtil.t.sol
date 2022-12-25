@@ -21,12 +21,6 @@ contract TokenIdUtilTester {
         return result;
     }
 
-    function parseTokenId(uint256 tokenId) external pure returns (TokenType, uint40, uint64, uint64, uint64) {
-        (TokenType tokenType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) =
-            TokenIdUtil.parseTokenId(tokenId);
-        return (tokenType, productId, expiry, longStrike, shortStrike);
-    }
-
     function parseCompressedTokenId(uint192 tokenId) external pure returns (TokenType, uint40, uint64, uint64) {
         (TokenType tokenType, uint40 productId, uint64 expiry, uint64 longStrike) = TokenIdUtil.parseCompressedTokenId(tokenId);
         return (tokenType, productId, expiry, longStrike);
