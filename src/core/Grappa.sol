@@ -438,7 +438,10 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         (,, uint8 underlyingId,, uint8 collateralId) = productId.parseProductId();
 
         // cannot have physical settlement when underlying and collateral are the same
-        if ((settlementType == SettlementType.PHYSICAL) && (derivativeType == DerivativeType.CALL || derivativeType == DerivativeType.PUT) && (underlyingId == collateralId)) {
+        if (
+            (settlementType == SettlementType.PHYSICAL)
+                && (derivativeType == DerivativeType.CALL || derivativeType == DerivativeType.PUT) && (underlyingId == collateralId)
+        ) {
             revert GP_BadPhysicallySettledDerivative();
         }
 
