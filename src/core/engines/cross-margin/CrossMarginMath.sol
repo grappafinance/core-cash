@@ -32,7 +32,6 @@ library CrossMarginMath {
     using BalanceUtil for Balance[];
     using AccountUtil for CrossMarginDetail[];
     using AccountUtil for Position[];
-    using AccountUtil for PositionOptim[];
     using ArrayUtil for uint256[];
     using ArrayUtil for int256[];
     using SafeCast for int256;

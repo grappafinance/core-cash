@@ -13,14 +13,6 @@ import "../config/errors.sol";
  *  | derivativeType (16 bits) | settlementType (8 bits) | productId (40 bits) | expiry (64 bits) | strike (64 bits)     | reserved (64 bits)    |
  *  * ------------------------ | ----------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
  */
-
-/**
- * Compressed Token ID =
- *
- *  * ------------------------ | ----------------------- | ------------------- | ---------------- | -------------------- *
- *  | derivativeType (16 bits) | settlementType (8 bits) | productId (40 bits) | expiry (64 bits) | strike     (64 bits) |
- *  * ------------------------ | ----------------------- | ------------------- | ---------------- | -------------------- *
- */
 library TokenIdUtil {
     /**
      * @notice calculate ERC1155 token id for given derivative parameters. See table above for tokenId
@@ -181,43 +173,6 @@ library TokenIdUtil {
         unchecked {
             newId = _tokenId + _shortStrike;
             return newId + (1 << 240); // new type (spread type) = old type + 1
-        }
-    }
-
-    /**
-     * @notice Compresses tokenId by removing shortStrike.
-     *                  * ------------------- | ------------------------ | ------------------- | ---------------- | -------------------- | --------------------- *
-     * @dev   oldId =   | call or put type    | settlementType  (8 bits) | productId (40 bits) | expiry (64 bits) | strike     (64 bits) | 0           (64 bits) |
-     *                  * ------------------- | ------------------------ | ------------------- | ---------------- | -------------------- | --------------------- *
-     *                  * ------------------- | ------------------------ | ------------------- | ---------------- | -------------------- *
-     * @dev   newId =   | call or put type    | settlementType  (8 bits) | productId (40 bits) | expiry (64 bits) | strike     (64 bits) |
-     *                  * ------------------- | ------------------------ | ------------------- | ---------------- | -------------------- *
-     *
-     * @param _tokenId token id to change
-     */
-    function compress(uint256 _tokenId) internal pure returns (uint192 newId) {
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            newId := shr(64, _tokenId) // >> 64 to wipe out shortStrike
-        }
-    }
-
-    /**
-     * @notice convert a shortened tokenId back ERC1155 compliant.
-     *                  * ------------------- | ------------------------ | ------------------- | ---------------- | -------------------- *
-     * @dev   oldId =   | call or put type    | settlementType  (8 bits) | productId (40 bits) | expiry (64 bits) | strike     (64 bits) |
-     *                  * ------------------- | ------------------------ | ------------------- | ---------------- | -------------------- *
-     *                  * ------------------- | ------------------------ | ------------------- | ---------------- | -------------------- | --------------------- *
-     * @dev   newId =   | call or put type    | settlementType  (8 bits) | productId (40 bits) | expiry (64 bits) | strike     (64 bits) | 0           (64 bits) |
-     *                  * ------------------- | ------------------------ | ------------------- | ---------------- | -------------------- | --------------------- *
-     *
-     * @param _tokenId token id to change
-     */
-    function expand(uint192 _tokenId) internal pure returns (uint256 newId) {
-        newId = uint256(_tokenId);
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            newId := shl(64, newId)
         }
     }
 }
