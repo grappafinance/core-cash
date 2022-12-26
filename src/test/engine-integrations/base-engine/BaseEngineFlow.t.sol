@@ -166,7 +166,8 @@ contract BaseEngineFlow is BaseEngineSetup {
         uint256 strikePriceHigher = 5000 * UNIT;
         uint256 amount = 1 * UNIT;
 
-        uint256 spreadId = getTokenId(DerivativeType.CALL_SPREAD, SettlementType.CASH, productId, expiry, strikePrice, strikePriceHigher);
+        uint256 spreadId =
+            getTokenId(DerivativeType.CALL_SPREAD, SettlementType.CASH, productId, expiry, strikePrice, strikePriceHigher);
 
         uint256 expecetedLong = getTokenId(DerivativeType.CALL, SettlementType.CASH, productId, expiry, strikePriceHigher, 0);
 

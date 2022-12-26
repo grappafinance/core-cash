@@ -7,14 +7,21 @@ import {TokenIdUtil} from "../../libraries/TokenIdUtil.sol";
 import "../../config/enums.sol";
 
 contract TokenIdUtilTest is Test {
-    function testTokenIdHigherThan0(uint8 derivativeType, uint8 settlementType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike)
-        public
-    {
+    function testTokenIdHigherThan0(
+        uint8 derivativeType,
+        uint8 settlementType,
+        uint40 productId,
+        uint64 expiry,
+        uint64 longStrike,
+        uint64 shortStrike
+    ) public {
         vm.assume(derivativeType < 4);
         vm.assume(settlementType < 2);
         vm.assume(productId > 0);
 
-        uint256 id = TokenIdUtil.getTokenId(DerivativeType(derivativeType), SettlementType(settlementType), productId, expiry, longStrike, shortStrike);
+        uint256 id = TokenIdUtil.getTokenId(
+            DerivativeType(derivativeType), SettlementType(settlementType), productId, expiry, longStrike, shortStrike
+        );
 
         assertGt(id, 0);
     }
@@ -31,9 +38,17 @@ contract TokenIdUtilTest is Test {
         vm.assume(settlementType < 2);
         vm.assume(productId > 0);
 
-        uint256 id = TokenIdUtil.getTokenId(DerivativeType(derivativeType), SettlementType(settlementType), productId, expiry, longStrike, shortStrike);
-        (DerivativeType _derivativeType, SettlementType _settlementType, uint40 _productId, uint64 _expiry, uint64 _longStrike, uint64 _shortStrike) =
-            TokenIdUtil.parseTokenId(id);
+        uint256 id = TokenIdUtil.getTokenId(
+            DerivativeType(derivativeType), SettlementType(settlementType), productId, expiry, longStrike, shortStrike
+        );
+        (
+            DerivativeType _derivativeType,
+            SettlementType _settlementType,
+            uint40 _productId,
+            uint64 _expiry,
+            uint64 _longStrike,
+            uint64 _shortStrike
+        ) = TokenIdUtil.parseTokenId(id);
 
         assertEq(uint8(derivativeType), uint8(_derivativeType));
         assertEq(uint8(settlementType), uint8(_settlementType));
@@ -55,10 +70,22 @@ contract TokenIdUtilTest is Test {
         vm.assume(settlementType < 2);
         vm.assume(productId > 0);
 
-        uint256 id =
-            TokenIdUtil.getTokenId(DerivativeType(derivativeType), SettlementType(settlementType), productId, uint64(expiry), uint64(longStrike), uint64(shortStrike));
-        (DerivativeType _derivativeType, SettlementType _settlementType, uint40 _productId, uint64 _expiry, uint64 _longStrike, uint64 _shortStrike) =
-            TokenIdUtil.parseTokenId(id);
+        uint256 id = TokenIdUtil.getTokenId(
+            DerivativeType(derivativeType),
+            SettlementType(settlementType),
+            productId,
+            uint64(expiry),
+            uint64(longStrike),
+            uint64(shortStrike)
+        );
+        (
+            DerivativeType _derivativeType,
+            SettlementType _settlementType,
+            uint40 _productId,
+            uint64 _expiry,
+            uint64 _longStrike,
+            uint64 _shortStrike
+        ) = TokenIdUtil.parseTokenId(id);
 
         assertEq(derivativeType, uint8(_derivativeType));
         assertEq(settlementType, uint8(_settlementType));

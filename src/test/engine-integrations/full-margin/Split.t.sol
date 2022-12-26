@@ -25,7 +25,8 @@ contract TestSplitCallSpread_FM is FullMarginFixture {
         expiry = block.timestamp + 7 days;
 
         // mint a 4000-5000 debit spread
-        spreadId = getTokenId(DerivativeType.CALL_SPREAD, SettlementType.CASH, pidEthCollat, expiry, strikePriceLow, strikePriceHigh);
+        spreadId =
+            getTokenId(DerivativeType.CALL_SPREAD, SettlementType.CASH, pidEthCollat, expiry, strikePriceLow, strikePriceHigh);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
@@ -93,7 +94,8 @@ contract TestSplitPutSpread_FM is FullMarginFixture {
         oracle.setSpotPrice(address(weth), 3000 * UNIT);
 
         // mint a 2000-1900 debit spread
-        spreadId = getTokenId(DerivativeType.PUT_SPREAD, SettlementType.CASH, pidUsdcCollat, expiry, strikePriceHigh, strikePriceLow);
+        spreadId =
+            getTokenId(DerivativeType.PUT_SPREAD, SettlementType.CASH, pidUsdcCollat, expiry, strikePriceHigh, strikePriceLow);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
@@ -143,7 +145,8 @@ contract TestSplitPutSpread_FM is FullMarginFixture {
 
     function testCannotSplitNonExistingSpreadId() public {
         uint256 fakeLongStrike = strikePriceHigh - (50 * UNIT);
-        uint256 fakeSpreadId = getTokenId(DerivativeType.PUT_SPREAD, SettlementType.CASH, pidEthCollat, expiry, fakeLongStrike, strikePriceLow);
+        uint256 fakeSpreadId =
+            getTokenId(DerivativeType.PUT_SPREAD, SettlementType.CASH, pidEthCollat, expiry, fakeLongStrike, strikePriceLow);
 
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSplitAction(fakeSpreadId, amount, address(this));

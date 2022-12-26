@@ -32,14 +32,17 @@ library TokenIdUtil {
      * @param shortStrike strike price of the short (upper bond for call and lower bond for put) if this is a spread. 6 decimals
      * @return tokenId token id
      */
-    function getTokenId(DerivativeType derivativeType, SettlementType settlementType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike)
-        internal
-        pure
-        returns (uint256 tokenId)
-    {
+    function getTokenId(
+        DerivativeType derivativeType,
+        SettlementType settlementType,
+        uint40 productId,
+        uint64 expiry,
+        uint64 longStrike,
+        uint64 shortStrike
+    ) internal pure returns (uint256 tokenId) {
         unchecked {
-            tokenId = (uint256(derivativeType) << 240) + (uint256(settlementType) << 232) + (uint256(productId) << 192) + (uint256(expiry) << 128)
-                + (uint256(longStrike) << 64) + uint256(shortStrike);
+            tokenId = (uint256(derivativeType) << 240) + (uint256(settlementType) << 232) + (uint256(productId) << 192)
+                + (uint256(expiry) << 128) + (uint256(longStrike) << 64) + uint256(shortStrike);
         }
     }
 
@@ -57,7 +60,14 @@ library TokenIdUtil {
     function parseTokenId(uint256 tokenId)
         internal
         pure
-        returns (DerivativeType derivativeType, SettlementType settlementType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike)
+        returns (
+            DerivativeType derivativeType,
+            SettlementType settlementType,
+            uint40 productId,
+            uint64 expiry,
+            uint64 longStrike,
+            uint64 shortStrike
+        )
     {
         uint8 _settlementType;
 

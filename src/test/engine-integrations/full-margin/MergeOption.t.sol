@@ -58,7 +58,8 @@ contract TestMergeOption_FM is FullMarginFixture {
     }
 
     function testCannotMergeByAddingSpread() public {
-        uint256 spreadToAdd = getTokenId(DerivativeType.CALL_SPREAD, SettlementType.CASH, pidEthCollat, expiry, strikePrice, strikePrice + 1);
+        uint256 spreadToAdd =
+            getTokenId(DerivativeType.CALL_SPREAD, SettlementType.CASH, pidEthCollat, expiry, strikePrice, strikePrice + 1);
 
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createMergeAction(spreadToAdd, existingTokenId, address(this), amount);

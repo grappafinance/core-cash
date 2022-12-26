@@ -99,7 +99,12 @@ contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyG
      * @param _tokenId  token id of derivative token
      * @return payoutPerToken amount paid
      */
-    function getCashPayoutPerToken(uint256 _tokenId) public view override (DebitSpread, BaseEngine, IMarginEngine) returns (uint256) {
+    function getCashPayoutPerToken(uint256 _tokenId)
+        public
+        view
+        override (DebitSpread, BaseEngine, IMarginEngine)
+        returns (uint256)
+    {
         return DebitSpread.getCashPayoutPerToken(_tokenId);
     }
 
@@ -210,7 +215,8 @@ contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyG
      * @notice  convert Account struct from storage to in-memory detail struct
      */
     function _getAccountDetail(FullMarginAccount memory account) internal view returns (FullMarginDetail memory detail) {
-        (DerivativeType derivativeType,, uint40 productId,, uint64 longStrike, uint64 shortStrike) = account.tokenId.parseTokenId();
+        (DerivativeType derivativeType,, uint40 productId,, uint64 longStrike, uint64 shortStrike) =
+            account.tokenId.parseTokenId();
 
         (,,, uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(productId);
 

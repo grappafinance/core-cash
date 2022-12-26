@@ -127,11 +127,10 @@ abstract contract BaseEngine {
      * @param _tokenId  token id of derivative token
      * @return payoutPerToken amount paid
      */
-    function getCashPayoutPerToken(uint256 _tokenId) public virtual view returns (uint256 payoutPerToken) {
-        (DerivativeType derivativeType,, uint40 productId, uint64 expiry, uint64 longStrike,) =
-            TokenIdUtil.parseTokenId(_tokenId);
+    function getCashPayoutPerToken(uint256 _tokenId) public view virtual returns (uint256 payoutPerToken) {
+        (DerivativeType derivativeType,, uint40 productId, uint64 expiry, uint64 longStrike,) = TokenIdUtil.parseTokenId(_tokenId);
 
-        (address oracle, , address underlying,, address strike,, address collateral, uint8 collateralDecimals) =
+        (address oracle,, address underlying,, address strike,, address collateral, uint8 collateralDecimals) =
             grappa.getDetailFromProductId(productId);
 
         // expiry price of underlying, denominated in strike (usually USD), with {UNIT_DECIMALS} decimals

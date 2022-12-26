@@ -43,11 +43,11 @@ abstract contract DebitSpread is BaseEngine {
      * @param _tokenId  token id of derivative token
      * @return payoutPerToken amount paid
      */
-    function getCashPayoutPerToken(uint256 _tokenId) public virtual view override (BaseEngine) returns (uint256 payoutPerToken) {
+    function getCashPayoutPerToken(uint256 _tokenId) public view virtual override (BaseEngine) returns (uint256 payoutPerToken) {
         (DerivativeType derivativeType,, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) =
             TokenIdUtil.parseTokenId(_tokenId);
 
-        (address oracle, , address underlying,, address strike,, address collateral, uint8 collateralDecimals) =
+        (address oracle,, address underlying,, address strike,, address collateral, uint8 collateralDecimals) =
             grappa.getDetailFromProductId(productId);
 
         // expiry price of underlying, denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
@@ -154,12 +154,14 @@ abstract contract DebitSpread is BaseEngine {
      */
     function _verifyMergeTokenIds(uint256 longId, uint256 shortId) internal pure {
         // get token attribute for incoming token
-        (DerivativeType longType, SettlementType settlementType, uint40 productId, uint64 expiry, uint64 longStrike,) = longId.parseTokenId();
+        (DerivativeType longType, SettlementType settlementType, uint40 productId, uint64 expiry, uint64 longStrike,) =
+            longId.parseTokenId();
 
         // token being added can only be call or put
         if (longType != DerivativeType.CALL && longType != DerivativeType.PUT) revert BM_CannotMergeSpread();
 
-        (DerivativeType shortType, SettlementType settlementType_, uint40 productId_, uint64 expiry_, uint64 shortStrike,) = shortId.parseTokenId();
+        (DerivativeType shortType, SettlementType settlementType_, uint40 productId_, uint64 expiry_, uint64 shortStrike,) =
+            shortId.parseTokenId();
 
         // check that the merging token (long) has the same property as existing short
         if (shortType != longType) revert BM_MergeDerivativeTypeMismatch();
@@ -173,7 +175,8 @@ abstract contract DebitSpread is BaseEngine {
 
     function _verifySpreadIdAndGetLong(uint256 _spreadId) internal pure returns (uint256 longId) {
         // parse the passed in spread id
-        (DerivativeType spreadType, SettlementType settlementType, uint40 productId, uint64 expiry,, uint64 shortStrike) = _spreadId.parseTokenId();
+        (DerivativeType spreadType, SettlementType settlementType, uint40 productId, uint64 expiry,, uint64 shortStrike) =
+            _spreadId.parseTokenId();
 
         if (spreadType != DerivativeType.CALL_SPREAD && spreadType != DerivativeType.PUT_SPREAD) revert BM_CanOnlySplitSpread();
 
