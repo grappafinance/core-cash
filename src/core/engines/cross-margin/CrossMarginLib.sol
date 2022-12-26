@@ -27,7 +27,6 @@ library CrossMarginLib {
     using ArrayUtil for uint256[];
     using ProductIdUtil for uint40;
     using TokenIdUtil for uint256;
-    using TokenIdUtil for uint192;
 
     /**
      * @dev return true if the account has no short,long positions nor collateral
