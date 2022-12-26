@@ -95,6 +95,15 @@ contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyG
     }
 
     /**
+     * @dev calculate the payout for one derivative token
+     * @param _tokenId  token id of derivative token
+     * @return payoutPerToken amount paid
+     */
+    function getCashPayoutPerToken(uint256 _tokenId) public view override (DebitSpread, BaseEngine, IMarginEngine) returns (uint256) {
+        return DebitSpread.getCashPayoutPerToken(_tokenId);
+    }
+
+    /**
      * @notice get minimum collateral needed for a margin account
      * @param _subAccount account id.
      * @return minCollateral minimum collateral required, in collateral asset's decimals

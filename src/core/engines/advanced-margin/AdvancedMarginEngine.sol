@@ -207,6 +207,15 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
     }
 
     /**
+     * @dev calculate the payout for one derivative token
+     * @param _tokenId  token id of derivative token
+     * @return payoutPerToken amount paid
+     */
+    function getCashPayoutPerToken(uint256 _tokenId) public view override (DebitSpread, BaseEngine, IMarginEngine) returns (uint256) {
+        return DebitSpread.getCashPayoutPerToken(_tokenId);
+    }
+
+    /**
      * @notice set the margin config for specific productId
      * @dev    expected to be used by Owner or governance
      * @param _productId product id

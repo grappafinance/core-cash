@@ -9,4 +9,6 @@ interface IMarginEngine {
     function execute(address _subAccount, ActionArgs[] calldata actions) external;
 
     function payCashValue(address _asset, address _recipient, uint256 _amount) external;
+
+    function getCashPayoutPerToken(uint256 _tokenId) external view returns (uint256 payoutPerToken);
 }

@@ -2,8 +2,6 @@
 pragma solidity ^0.8.0;
 
 // imported contracts and libraries
-import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
-
 import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
 import {UUPSUpgradeable} from "openzeppelin/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
@@ -18,8 +16,6 @@ import {IMarginEngine} from "../interfaces/IMarginEngine.sol";
 
 // librarise
 import {BalanceUtil} from "../libraries/BalanceUtil.sol";
-import {MoneynessLib} from "../libraries/MoneynessLib.sol";
-import {NumberUtil} from "../libraries/NumberUtil.sol";
 import {ProductIdUtil} from "../libraries/ProductIdUtil.sol";
 import {TokenIdUtil} from "../libraries/TokenIdUtil.sol";
 
@@ -36,8 +32,6 @@ import "../config/errors.sol";
  */
 contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
     using BalanceUtil for Balance[];
-    using FixedPointMathLib for uint256;
-    using NumberUtil for uint256;
     using ProductIdUtil for uint40;
     using SafeCast for uint256;
     using TokenIdUtil for uint256;
@@ -435,53 +429,31 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     }
 
     /**
-     * @dev calculate the payout for one option token
+     * @dev calculate the payout for one derivative token
      *
-     * @param _tokenId  token id of option token
+     * @param _tokenId  token id of derivative token
      *
      * @return engine engine to settle
      * @return collateral asset to settle in
-     * @return payoutPerOption amount paid
+     * @return payoutPerToken amount paid
      *
      */
-    function _getPayoutPerToken(uint256 _tokenId) internal view returns (address, address, uint256 payoutPerOption) {
-        (DerivativeType derivativeType, /*SettlementType settlementType*/, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) =
+    function _getPayoutPerToken(uint256 _tokenId) internal view returns (address, address, uint256 payoutPerToken) {
+        (, SettlementType settlementType, uint40 productId, uint64 expiry,,) =
             TokenIdUtil.parseTokenId(_tokenId);
 
         if (block.timestamp < expiry) revert GP_NotExpired();
 
-        (address oracle, address engine, address underlying,, address strike,, address collateral, uint8 collateralDecimals) =
-            getDetailFromProductId(productId);
+        (, address engine,,,,, address collateral,) = getDetailFromProductId(productId);
 
-        // expiry price of underlying, denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
-        uint256 expiryPrice = _getSettlementPrice(oracle, underlying, strike, expiry);
-
-        // cash value denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
-        uint256 cashValue;
-
-        if (derivativeType == DerivativeType.CALL) {
-            cashValue = MoneynessLib.getCallCashValue(expiryPrice, longStrike);
-        } else if (derivativeType == DerivativeType.CALL_SPREAD) {
-            cashValue = MoneynessLib.getCashValueDebitCallSpread(expiryPrice, longStrike, shortStrike);
-        } else if (derivativeType == DerivativeType.PUT) {
-            cashValue = MoneynessLib.getPutCashValue(expiryPrice, longStrike);
-        } else if (derivativeType == DerivativeType.PUT_SPREAD) {
-            cashValue = MoneynessLib.getCashValueDebitPutSpread(expiryPrice, longStrike, shortStrike);
+        if (settlementType == SettlementType.CASH) {
+            payoutPerToken = IMarginEngine(engine).getCashPayoutPerToken(_tokenId);
         }
 
-        // the following logic convert cash value (amount worth) if collateral is not strike:
-        if (collateral == underlying) {
-            // collateral is underlying. payout should be devided by underlying price
-            cashValue = cashValue.mulDivDown(UNIT, expiryPrice);
-        } else if (collateral != strike) {
-            // collateral is not underlying nor strike
-            uint256 collateralPrice = _getSettlementPrice(oracle, collateral, strike, expiry);
-            cashValue = cashValue.mulDivDown(UNIT, collateralPrice);
-        }
-        payoutPerOption = cashValue.convertDecimals(UNIT_DECIMALS, collateralDecimals);
-
-        return (engine, collateral, payoutPerOption);
+        return (engine, collateral, payoutPerToken);
     }
+
+
 
     /**
      * @dev add an entry to array of Balance
@@ -506,20 +478,20 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         return payouts;
     }
 
-    /**
-     * @dev check settlement price is finalized from oracle, and return price
-     * @param _oracle oracle contract address
-     * @param _base base asset (ETH is base asset while requesting ETH / USD)
-     * @param _quote quote asset (USD is base asset while requesting ETH / USD)
-     * @param _expiry expiry timestamp
-     */
-    function _getSettlementPrice(address _oracle, address _base, address _quote, uint256 _expiry)
-        internal
-        view
-        returns (uint256)
-    {
-        (uint256 price, bool isFinalized) = IOracle(_oracle).getPriceAtExpiry(_base, _quote, _expiry);
-        if (!isFinalized) revert GP_PriceNotFinalized();
-        return price;
-    }
+    // /**
+    //  * @dev check settlement price is finalized from oracle, and return price
+    //  * @param _oracle oracle contract address
+    //  * @param _base base asset (ETH is base asset while requesting ETH / USD)
+    //  * @param _quote quote asset (USD is base asset while requesting ETH / USD)
+    //  * @param _expiry expiry timestamp
+    //  */
+    // function _getSettlementPrice(address _oracle, address _base, address _quote, uint256 _expiry)
+    //     internal
+    //     view
+    //     returns (uint256)
+    // {
+    //     (uint256 price, bool isFinalized) = IOracle(_oracle).getPriceAtExpiry(_base, _quote, _expiry);
+    //     if (!isFinalized) revert GP_PriceNotFinalized();
+    //     return price;
+    // }
 }

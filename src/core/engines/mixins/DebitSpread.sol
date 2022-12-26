@@ -5,10 +5,16 @@ pragma solidity ^0.8.0;
 // inheriting contracts
 import {BaseEngine} from "../BaseEngine.sol";
 
+// imported contracts and libraries
+import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
+
 // librarise
 import {TokenIdUtil} from "../../../libraries/TokenIdUtil.sol";
+import {MoneynessLib} from "../../../libraries/MoneynessLib.sol";
+import {NumberUtil} from "../../../libraries/NumberUtil.sol";
 
 // // constants and types
+import "../../../config/constants.sol";
 import "../../../config/enums.sol";
 import "../../../config/errors.sol";
 
@@ -18,11 +24,61 @@ import "../../../config/errors.sol";
  * @notice  util functions for MarginEngines to support debit spreads
  */
 abstract contract DebitSpread is BaseEngine {
+    using FixedPointMathLib for uint256;
+    using NumberUtil for uint256;
     using TokenIdUtil for uint256;
 
     event OptionTokenMerged(address subAccount, uint256 longToken, uint256 shortToken, uint64 amount);
 
     event OptionTokenSplit(address subAccount, uint256 spreadId, uint64 amount);
+
+    /**
+     * ========================================================= **
+     *        External Functions for Token Cash Payout Calc
+     * ========================================================= *
+     */
+
+    /**
+     * @dev calculate the payout for one derivative token
+     * @param _tokenId  token id of derivative token
+     * @return payoutPerToken amount paid
+     */
+    function getCashPayoutPerToken(uint256 _tokenId) public virtual view override (BaseEngine) returns (uint256 payoutPerToken) {
+        (DerivativeType derivativeType,, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) =
+            TokenIdUtil.parseTokenId(_tokenId);
+
+        (address oracle, , address underlying,, address strike,, address collateral, uint8 collateralDecimals) =
+            grappa.getDetailFromProductId(productId);
+
+        // expiry price of underlying, denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
+        uint256 expiryPrice = _getSettlementPrice(oracle, underlying, strike, expiry);
+
+        // cash value denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
+        uint256 cashValue;
+
+        if (derivativeType == DerivativeType.CALL) {
+            cashValue = MoneynessLib.getCallCashValue(expiryPrice, longStrike);
+        } else if (derivativeType == DerivativeType.CALL_SPREAD) {
+            cashValue = MoneynessLib.getCashValueDebitCallSpread(expiryPrice, longStrike, shortStrike);
+        } else if (derivativeType == DerivativeType.PUT) {
+            cashValue = MoneynessLib.getPutCashValue(expiryPrice, longStrike);
+        } else if (derivativeType == DerivativeType.PUT_SPREAD) {
+            cashValue = MoneynessLib.getCashValueDebitPutSpread(expiryPrice, longStrike, shortStrike);
+        }
+
+        // the following logic convert cash value (amount worth) if collateral is not strike:
+        if (collateral == underlying) {
+            // collateral is underlying. payout should be devided by underlying price
+            cashValue = cashValue.mulDivDown(UNIT, expiryPrice);
+        } else if (collateral != strike) {
+            // collateral is not underlying nor strike
+            uint256 collateralPrice = _getSettlementPrice(oracle, collateral, strike, expiry);
+            cashValue = cashValue.mulDivDown(UNIT, collateralPrice);
+        }
+        payoutPerToken = cashValue.convertDecimals(UNIT_DECIMALS, collateralDecimals);
+
+        return (payoutPerToken);
+    }
 
     /**
      * ========================================================= **

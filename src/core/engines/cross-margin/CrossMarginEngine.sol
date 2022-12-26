@@ -166,6 +166,15 @@ contract CrossMarginEngine is BaseEngine, IMarginEngine, OwnableUpgradeable, Ree
     }
 
     /**
+     * @dev calculate the payout for one derivative token
+     * @param _tokenId  token id of derivative token
+     * @return payoutPerToken amount paid
+     */
+    function getCashPayoutPerToken(uint256 _tokenId) public view override (BaseEngine, IMarginEngine) returns (uint256) {
+        return BaseEngine.getCashPayoutPerToken(_tokenId);
+    }
+
+    /**
      * @notice get minimum collateral needed for a margin account
      * @param _subAccount account id.
      * @return balances array of collaterals and amount (signed)
