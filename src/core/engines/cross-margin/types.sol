@@ -44,18 +44,8 @@ struct CrossMarginDetail {
     uint256 expiry;
 }
 
-// /**
-//  * @dev a compressed Position struct, compresses tokenId to save storage space
-//  * @param tokenId option token
-//  * @param amount number option tokens
-//  */
-// struct PositionOptim {
-//     uint192 tokenId;
-//     uint64 amount;
-// }
-
 /**
- * @dev an uncompressed Position struct, expanding tokenId to uint256
+ * @dev an struct to store derivative
  * @param tokenId grappa option token id
  * @param amount number option tokens
  */
