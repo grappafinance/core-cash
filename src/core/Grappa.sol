@@ -164,8 +164,8 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
             SettlementType settlementType,
             uint40 productId,
             uint64 expiry,
-            uint64 longStrike,
-            uint64 shortStrike
+            uint64 strike,
+            uint64 reserved
         )
     {
         return TokenIdUtil.parseTokenId(_tokenId);
@@ -194,20 +194,20 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      * @param _derivativeType DerivativeType enum
      * @param _settlementType SettlementType enum
      * @param _productId if of the product
-     * @param _expiry timestamp of option expiry
-     * @param _longStrike strike price of the long option, with 6 decimals
-     * @param _shortStrike strike price of the short (upper bond for call and lower bond for put) if this is a spread. 6 decimals
+     * @param _expiry timestamp of derivative expiry
+     * @param _strike strike price of the derivative, with 6 decimals
+     * @param _reserved allocated space for additional data
      */
     function getTokenId(
         DerivativeType _derivativeType,
         SettlementType _settlementType,
         uint40 _productId,
         uint256 _expiry,
-        uint256 _longStrike,
-        uint256 _shortStrike
+        uint256 _strike,
+        uint256 _reserved
     ) external pure returns (uint256 id) {
         id = TokenIdUtil.getTokenId(
-            _derivativeType, _settlementType, _productId, uint64(_expiry), uint64(_longStrike), uint64(_shortStrike)
+            _derivativeType, _settlementType, _productId, uint64(_expiry), uint64(_strike), uint64(_reserved)
         );
     }
 
@@ -426,17 +426,42 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      * @dev make sure that the tokenId make sense
      */
     function _isValidTokenIdToMint(uint256 _tokenId) internal view {
-        (DerivativeType derivativeType,,, uint64 expiry, uint64 longStrike, uint64 shortStrike) = _tokenId.parseTokenId();
+        (
+            DerivativeType derivativeType,
+            SettlementType settlementType,
+            uint40 productId,
+            uint64 expiry,
+            uint64 strikePrice,
+            uint64 reserved
+        ) = _tokenId.parseTokenId();
 
-        // check option type and strikes
-        // check that vanilla options doesnt have a shortStrike argument
-        if ((derivativeType == DerivativeType.CALL || derivativeType == DerivativeType.PUT) && (shortStrike != 0)) {
-            revert GP_BadStrikes();
+        (,, uint8 underlyingId,, uint8 collateralId) = productId.parseProductId();
+
+        // cannot have physical settlement when underlying and collateral are the same
+        if ((settlementType == SettlementType.PHYSICAL) && (derivativeType == DerivativeType.CALL || derivativeType == DerivativeType.PUT) && (underlyingId == collateralId)) {
+            revert GP_BadPhysicallySettledDerivative();
         }
 
-        // check that you cannot mint a "credit spread" token
-        if (derivativeType == DerivativeType.CALL_SPREAD && (shortStrike < longStrike)) revert GP_BadStrikes();
-        if (derivativeType == DerivativeType.PUT_SPREAD && (shortStrike > longStrike)) revert GP_BadStrikes();
+        // check option type, strike and reserved
+        // check that vanilla options doesnt have a reserved argument
+        if (
+            (settlementType == SettlementType.CASH)
+                && (derivativeType == DerivativeType.CALL || derivativeType == DerivativeType.PUT) && (reserved != 0)
+        ) {
+            revert GP_BadCashSettledStrikes();
+        }
+
+        // debit spreads cannot be settled physically
+        if (
+            (settlementType == SettlementType.PHYSICAL)
+                && (derivativeType == DerivativeType.CALL_SPREAD || derivativeType == DerivativeType.PUT_SPREAD)
+        ) {
+            revert GP_BadPhysicallySettledDerivative();
+        }
+
+        // check that you cannot mint a "credit spread" token, reserved is used as a short strikePrice
+        if (derivativeType == DerivativeType.CALL_SPREAD && (reserved < strikePrice)) revert GP_BadCashSettledStrikes();
+        if (derivativeType == DerivativeType.PUT_SPREAD && (reserved > strikePrice)) revert GP_BadCashSettledStrikes();
 
         // check expiry
         if (expiry <= block.timestamp) revert GP_InvalidExpiry();
@@ -461,9 +486,9 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
 
         if (settlementType == SettlementType.CASH) {
             payoutPerToken = IMarginEngine(engine).getCashPayoutPerToken(_tokenId);
-        } else {
-            return (engine, collateral, payoutPerToken);
         }
+
+        return (engine, collateral, payoutPerToken);
     }
 
     /**

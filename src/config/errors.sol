@@ -41,8 +41,11 @@ error GP_PriceNotFinalized();
 /// @dev cannot mint token after expiry
 error GP_InvalidExpiry();
 
-/// @dev put and call should not contain "short stirkes"
-error GP_BadStrikes();
+/// @dev put and call should not contain "short strikes"
+error GP_BadCashSettledStrikes();
+
+/// @dev put and call should not contain "short strikes"
+error GP_BadPhysicallySettledDerivative();
 
 /// @dev burn or mint can only be called by corresponding engine.
 error GP_Not_Authorized_Engine();

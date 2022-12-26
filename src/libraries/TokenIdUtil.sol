@@ -9,27 +9,27 @@ import "../config/errors.sol";
 /**
  * Token ID =
  *
- *  * ------------------- | ----------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
- *  | derivativeType (16 bits) | settlementType (8 bits) | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) | reserved (64 bits) |
- *  * ------------------- | ----------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
+ *  * ------------------------ | ----------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
+ *  | derivativeType (16 bits) | settlementType (8 bits) | productId (40 bits) | expiry (64 bits) | strike (64 bits)     | reserved (64 bits)    |
+ *  * ------------------------ | ----------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
  */
 
 /**
  * Compressed Token ID =
  *
- *  * ------------------- | ----------------------- | ------------------- | ---------------- | -------------------- *
+ *  * ------------------------ | ----------------------- | ------------------- | ---------------- | -------------------- *
  *  | derivativeType (16 bits) | settlementType (8 bits) | productId (40 bits) | expiry (64 bits) | strike     (64 bits) |
- *  * ------------------- | ----------------------- | ------------------- | ---------------- | -------------------- *
+ *  * ------------------------ | ----------------------- | ------------------- | ---------------- | -------------------- *
  */
 library TokenIdUtil {
     /**
-     * @notice calculate ERC1155 token id for given option parameters. See table above for tokenId
+     * @notice calculate ERC1155 token id for given derivative parameters. See table above for tokenId
      * @param derivativeType DerivativeType enum
      * @param settlementType SettlementType enum
      * @param productId id of the product
-     * @param expiry timestamp of option expiry
-     * @param longStrike strike price of the long option, with 6 decimals
-     * @param shortStrike strike price of the short (upper bond for call and lower bond for put) if this is a spread. 6 decimals
+     * @param expiry timestamp of derivative expiry
+     * @param strike strike price of the derivative, with 6 decimals
+     * @param reserved allocated space for additional data
      * @return tokenId token id
      */
     function getTokenId(
@@ -37,25 +37,25 @@ library TokenIdUtil {
         SettlementType settlementType,
         uint40 productId,
         uint64 expiry,
-        uint64 longStrike,
-        uint64 shortStrike
+        uint64 strike,
+        uint64 reserved
     ) internal pure returns (uint256 tokenId) {
         unchecked {
             tokenId = (uint256(derivativeType) << 240) + (uint256(settlementType) << 232) + (uint256(productId) << 192)
-                + (uint256(expiry) << 128) + (uint256(longStrike) << 64) + uint256(shortStrike);
+                + (uint256(expiry) << 128) + (uint256(strike) << 64) + uint256(reserved);
         }
     }
 
     /**
-     * @notice derive option, product, expiry and strike price from ERC1155 token id
+     * @notice derive derivative, settlement, product, expiry and strike price from ERC1155 token id
      * @dev    See table above for tokenId composition
      * @param tokenId token id
      * @return derivativeType DerivativeType enum
      * @return settlementType SettlementType enum
      * @return productId 40 bits product id
-     * @return expiry timestamp of option expiry
-     * @return longStrike strike price of the long option, with 6 decimals
-     * @return shortStrike strike price of the short (upper bond for call and lower bond for put) if this is a spread. 6 decimals
+     * @return expiry timestamp of derivative expiry
+     * @return strike strike price of the derivative, with 6 decimals
+     * @return reserved allocated space for additional data
      */
     function parseTokenId(uint256 tokenId)
         internal
@@ -65,8 +65,8 @@ library TokenIdUtil {
             SettlementType settlementType,
             uint40 productId,
             uint64 expiry,
-            uint64 longStrike,
-            uint64 shortStrike
+            uint64 strike,
+            uint64 reserved
         )
     {
         uint8 _settlementType;
@@ -77,8 +77,8 @@ library TokenIdUtil {
             _settlementType := shr(232, tokenId)
             productId := shr(192, tokenId)
             expiry := shr(128, tokenId)
-            longStrike := shr(64, tokenId)
-            shortStrike := tokenId
+            strike := shr(64, tokenId)
+            reserved := tokenId
         }
 
         settlementType = SettlementType(_settlementType);
@@ -109,31 +109,6 @@ library TokenIdUtil {
         assembly {
             // collateralId is the last bits of productId
             engineId := shr(216, tokenId) // 192 to get product id, another 24 to get engineId
-        }
-    }
-
-    /**
-     * @notice derive option, product, expiry and strike price from short token id (no shortStrike)
-     * @dev    See table above for tokenId composition
-     * @param tokenId token id
-     * @return derivativeType DerivativeType enum
-     * @return settlementType SettlementType enum
-     * @return productId 32 bits product id
-     * @return expiry timestamp of option expiry
-     * @return longStrike strike price of the long option, with 6 decimals
-     */
-    function parseShortTokenId(uint192 tokenId)
-        internal
-        pure
-        returns (DerivativeType derivativeType, SettlementType settlementType, uint40 productId, uint64 expiry, uint64 longStrike)
-    {
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            derivativeType := shr(176, tokenId)
-            settlementType := shr(168, tokenId)
-            productId := shr(128, tokenId)
-            expiry := shr(64, tokenId)
-            longStrike := tokenId
         }
     }
 
@@ -173,7 +148,8 @@ library TokenIdUtil {
      *                  * ------------------- | ------------------------ | ------------------- | ---------------- | -------------------- | --------------------- *
      * @dev   newId =   | call or put type    | settlementType  (8 bits) | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) | 0           (64 bits) |
      *                  * ------------------- | ------------------------ | ------------------- | ---------------- | -------------------- | --------------------- *
-     * @dev   this function will: override derivativeType, remove shortStrike.
+     *        this function will: override derivativeType, remove shortStrike.
+     * @dev   this should only be used with DebitSpread Contract
      * @param _tokenId token id to change
      */
     function convertToVanillaId(uint256 _tokenId) internal pure returns (uint256 newId) {
@@ -195,7 +171,8 @@ library TokenIdUtil {
      * @dev   newId =   | spread type         | settlementType  (8 bits) | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) | shortStrike (64 bits) |
      *                  * ------------------- | ------------------------ | ------------------- | ---------------- | -------------------- | --------------------- *
      *
-     * this function convert put or call type to spread type, add shortStrike.
+     *        this function convert put or call type to spread type, add shortStrike.
+     * @dev   this should only be used with DebitSpread Contract
      * @param _tokenId token id to change
      * @param _shortStrike strike to add
      */

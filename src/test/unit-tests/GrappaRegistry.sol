@@ -90,8 +90,8 @@ contract GrappaRegistry is Test {
             SettlementType settlementType,
             uint40 productId,
             uint256 expiry,
-            uint256 longStrike,
-            uint256 shortStrike
+            uint256 strike,
+            uint256 reserved
         ) = grappa.getDetailFromTokenId(token);
 
         assertEq(uint8(derivativeType), uint8(DerivativeType.CALL));
@@ -100,8 +100,8 @@ contract GrappaRegistry is Test {
 
         // strike is empty
         assertEq(expiry, expiryTimestamp);
-        assertEq(longStrike, strikePrice);
-        assertEq(shortStrike, 0);
+        assertEq(strike, strikePrice);
+        assertEq(reserved, 0);
     }
 }
 

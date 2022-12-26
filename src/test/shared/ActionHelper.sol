@@ -13,12 +13,11 @@ abstract contract ActionHelper {
         SettlementType settlementType,
         uint40 productId,
         uint256 expiry,
-        uint256 longStrike,
-        uint256 shortStrike
+        uint256 strike,
+        uint256 reserved
     ) internal pure returns (uint256 tokenId) {
-        tokenId = TokenIdUtil.getTokenId(
-            derivativeType, settlementType, productId, uint64(expiry), uint64(longStrike), uint64(shortStrike)
-        );
+        tokenId =
+            TokenIdUtil.getTokenId(derivativeType, settlementType, productId, uint64(expiry), uint64(strike), uint64(reserved));
     }
 
     function parseTokenId(uint256 tokenId)
@@ -29,8 +28,8 @@ abstract contract ActionHelper {
             SettlementType settlementType,
             uint40 productId,
             uint64 expiry,
-            uint64 longStrike,
-            uint64 shortStrike
+            uint64 strike,
+            uint64 reserved
         )
     {
         return TokenIdUtil.parseTokenId(tokenId);
