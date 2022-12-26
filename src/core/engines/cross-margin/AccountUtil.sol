@@ -8,6 +8,7 @@ import "../../../libraries/ArrayUtil.sol";
 import "./types.sol";
 
 library AccountUtil {
+    using TokenIdUtil for uint256;
 
     function append(CrossMarginDetail[] memory x, CrossMarginDetail memory v)
         internal
