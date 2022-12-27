@@ -217,6 +217,8 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      * @param _account  who to settle for
      * @param _tokenId  tokenId of option token to burn
      * @param _amount   amount to settle
+     * @return debt amount owed
+     * @return payout amount receiving
      */
     function settleOption(address _account, uint256 _tokenId, uint256 _amount) external nonReentrant returns (uint256, uint256) {
         uint64 amount64 = _amount.toUint64();
@@ -309,9 +311,12 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     {
         uint256 payoutPerOption;
         uint256 debtPerOption;
+
         (engine, issuer, debtAsset, debtPerOption, payoutAsset, payoutPerOption) = _getDebtAndPayoutPerToken(_tokenId);
+
         debt = debtPerOption * _amount;
         payout = payoutPerOption * _amount;
+
         unchecked {
             debt = debt / UNIT;
             payout = payout / UNIT;
@@ -463,24 +468,8 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      * @dev make sure that the tokenId make sense
      */
     function _isValidTokenIdToMint(uint256 _tokenId) internal view {
-        (
-            DerivativeType derivativeType,
-            SettlementType settlementType,
-            uint40 productId,
-            uint64 expiry,
-            uint64 strikePrice,
-            uint64 reserved
-        ) = _tokenId.parseTokenId();
-
-        (,, uint8 underlyingId,, uint8 collateralId) = productId.parseProductId();
-
-        // cannot have physical settlement when underlying and collateral are the same
-        if (
-            (settlementType == SettlementType.PHYSICAL)
-                && (derivativeType == DerivativeType.CALL || derivativeType == DerivativeType.PUT) && (underlyingId == collateralId)
-        ) {
-            revert GP_BadPhysicallySettledDerivative();
-        }
+        (DerivativeType derivativeType, SettlementType settlementType,, uint64 expiry, uint64 strikePrice, uint64 reserved) =
+            _tokenId.parseTokenId();
 
         // check option type, strike and reserved
         // check that vanilla options doesnt have a reserved argument

@@ -94,7 +94,10 @@ contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyG
         BaseEngine.payCashValue(_asset, _recipient, _amount);
     }
 
-    function receiveDebtValue(address _asset, address _sender, address _subAccount, uint256 _amount) public override (BaseEngine, IMarginEngine) {}
+    function receiveDebtValue(address _asset, address _sender, address _subAccount, uint256 _amount)
+        public
+        override (BaseEngine, IMarginEngine)
+    {}
 
     /**
      * @dev calculate the debt and payout for one derivative token
@@ -109,21 +112,7 @@ contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyG
         override (IMarginEngine)
         returns (address, uint256, uint256 payoutPerToken)
     {
-        return (address(0), 0, getPayoutPerToken(_tokenId));
-    }
-
-    /**
-     * @dev calculate the payout for one derivative token
-     * @param _tokenId  token id of derivative token
-     * @return payoutPerToken amount paid
-     */
-    function getPayoutPerToken(uint256 _tokenId)
-        public
-        view
-        override (DebitSpread, BaseEngine)
-        returns (uint256 payoutPerToken)
-    {
-        payoutPerToken = DebitSpread.getPayoutPerToken(_tokenId);
+        return (address(0), 0, _getPayoutPerToken(_tokenId));
     }
 
     /**
@@ -191,7 +180,7 @@ contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyG
 
     /**
      * ========================================================= **
-     *                 Override view functions for BaseEngine
+     *                  Override view functions
      * ========================================================= *
      */
 
@@ -216,6 +205,15 @@ contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyG
         uint8 collatId = account.collateralId;
         (,, uint256 payout) = grappa.getPayout(account.tokenId, account.shortAmount);
         return (collatId, payout.toUint80());
+    }
+
+    /**
+     * @dev calculate the payout for one derivative token
+     * @param _tokenId  token id of derivative token
+     * @return payoutPerToken amount paid
+     */
+    function _getPayoutPerToken(uint256 _tokenId) internal view override (DebitSpread, BaseEngine) returns (uint256) {
+        return DebitSpread._getPayoutPerToken(_tokenId);
     }
 
     /**

@@ -180,12 +180,14 @@ contract CrossMarginEngine is
      * @param _subAccount receiver
      * @param _amount amount
      */
-    function receiveDebtValue(address _asset, address _sender, address _subAccount, uint256 _amount) public override (BaseEngine, IMarginEngine) {
+    function receiveDebtValue(address _asset, address _sender, address _subAccount, uint256 _amount)
+        public
+        override (BaseEngine, IMarginEngine)
+    {
         _checkPermissioned(_sender);
 
         BaseEngine.receiveDebtValue(_asset, _sender, _subAccount, _amount);
     }
-
 
     /**
      * @dev calculate the payout for one cash settled derivative token
@@ -197,15 +199,15 @@ contract CrossMarginEngine is
     function getDebtAndPayoutPerToken(uint256 _tokenId)
         public
         view
-        override (PhysicallySettled, IMarginEngine)
+        override (IMarginEngine)
         returns (address issuer, uint256 debtPerToken, uint256 payoutPerToken)
     {
         (, SettlementType settlementType,,,,) = _tokenId.parseTokenId();
 
         if (settlementType == SettlementType.PHYSICAL) {
-            (issuer, debtPerToken, payoutPerToken) = PhysicallySettled.getDebtAndPayoutPerToken(_tokenId);
+            (issuer, debtPerToken, payoutPerToken) = PhysicallySettled._getDebtAndPayoutPerToken(_tokenId);
         } else {
-            payoutPerToken = BaseEngine.getPayoutPerToken(_tokenId);
+            payoutPerToken = BaseEngine._getPayoutPerToken(_tokenId);
         }
     }
 

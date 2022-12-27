@@ -145,7 +145,7 @@ abstract contract BaseEngine {
      * @param _tokenId  token id of derivative token
      * @return payoutPerToken amount paid
      */
-    function getPayoutPerToken(uint256 _tokenId) public view virtual returns (uint256 payoutPerToken) {
+    function _getPayoutPerToken(uint256 _tokenId) internal view virtual returns (uint256 payoutPerToken) {
         (DerivativeType derivativeType,, uint40 productId, uint64 expiry, uint64 strikePrice,) =
             TokenIdUtil.parseTokenId(_tokenId);
 
