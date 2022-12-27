@@ -8,6 +8,7 @@ import {ReentrancyGuardUpgradeable} from "openzeppelin-upgradeable/security/Reen
 
 // inheriting contracts
 import {BaseEngine} from "../BaseEngine.sol";
+import {PhysicallySettled} from "../mixins/PhysicallySettled.sol";
 import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
 
 // interfaces
@@ -43,7 +44,14 @@ import "../../../config/errors.sol";
  *             Interacts with OptionToken to mint / burn
  *             Interacts with grappa to fetch registered asset info
  */
-contract CrossMarginEngine is BaseEngine, IMarginEngine, OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
+contract CrossMarginEngine is
+    BaseEngine,
+    PhysicallySettled,
+    IMarginEngine,
+    OwnableUpgradeable,
+    ReentrancyGuardUpgradeable,
+    UUPSUpgradeable
+{
     using AccountUtil for Position[];
     using BalanceUtil for Balance[];
     using CrossMarginLib for CrossMarginAccount;
@@ -165,12 +173,40 @@ contract CrossMarginEngine is BaseEngine, IMarginEngine, OwnableUpgradeable, Ree
     }
 
     /**
-     * @dev calculate the payout for one derivative token
+     * @notice collect debt on settlement.
+     * @dev this can only triggered by Grappa, would only be called on settlement.
+     * @param _asset asset to transfer
+     * @param _sender sender
+     * @param _subAccount receiver
+     * @param _amount amount
+     */
+    function receiveDebtValue(address _asset, address _sender, address _subAccount, uint256 _amount) public override (BaseEngine, IMarginEngine) {
+        _checkPermissioned(_sender);
+
+        BaseEngine.receiveDebtValue(_asset, _sender, _subAccount, _amount);
+    }
+
+
+    /**
+     * @dev calculate the payout for one cash settled derivative token
      * @param _tokenId  token id of derivative token
+     * @return issuer who minted derivative
+     * @return debtPerToken amount owed
      * @return payoutPerToken amount paid
      */
-    function getCashPayoutPerToken(uint256 _tokenId) public view override (BaseEngine, IMarginEngine) returns (uint256) {
-        return BaseEngine.getCashPayoutPerToken(_tokenId);
+    function getDebtAndPayoutPerToken(uint256 _tokenId)
+        public
+        view
+        override (PhysicallySettled, IMarginEngine)
+        returns (address issuer, uint256 debtPerToken, uint256 payoutPerToken)
+    {
+        (, SettlementType settlementType,,,,) = _tokenId.parseTokenId();
+
+        if (settlementType == SettlementType.PHYSICAL) {
+            (issuer, debtPerToken, payoutPerToken) = PhysicallySettled.getDebtAndPayoutPerToken(_tokenId);
+        } else {
+            payoutPerToken = BaseEngine.getPayoutPerToken(_tokenId);
+        }
     }
 
     /**

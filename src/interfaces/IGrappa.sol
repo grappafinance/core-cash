@@ -24,6 +24,8 @@ interface IGrappa {
 
     function engineIds(address _engine) external view returns (uint8 id);
 
+    function assetIds(address _asset) external view returns (uint8 id);
+
     function assets(uint8 _id) external view returns (address addr, uint8 decimals);
 
     function engines(uint8 _id) external view returns (address engine);

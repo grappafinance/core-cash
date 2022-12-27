@@ -123,12 +123,31 @@ abstract contract BaseEngine {
     }
 
     /**
-     * @dev calculate the payout for one derivative token
+     * @notice payout to user on settlement.
+     * @dev this can only triggered by Grappa, would only be called on settlement.
+     * @param _asset asset to transfer
+     * @param _sender sender
+     * @param _subAccount receiver
+     * @param _amount amount
+     */
+    function receiveDebtValue(address _asset, address _sender, address _subAccount, uint256 _amount) public virtual {
+        if (msg.sender != address(grappa)) revert NoAccess();
+
+        uint8 collateralId = grappa.assetIds(_asset);
+
+        _addCollateralToAccount(_subAccount, collateralId, uint80(_amount));
+
+        if (_sender != address(this)) IERC20(_asset).safeTransferFrom(_sender, address(this), _amount);
+    }
+
+    /**
+     * @dev calculate the cash settled payout for one derivative token
      * @param _tokenId  token id of derivative token
      * @return payoutPerToken amount paid
      */
-    function getCashPayoutPerToken(uint256 _tokenId) public view virtual returns (uint256 payoutPerToken) {
-        (DerivativeType derivativeType,, uint40 productId, uint64 expiry, uint64 longStrike,) = TokenIdUtil.parseTokenId(_tokenId);
+    function getPayoutPerToken(uint256 _tokenId) public view virtual returns (uint256 payoutPerToken) {
+        (DerivativeType derivativeType,, uint40 productId, uint64 expiry, uint64 strikePrice,) =
+            TokenIdUtil.parseTokenId(_tokenId);
 
         (address oracle,, address underlying,, address strike,, address collateral, uint8 collateralDecimals) =
             grappa.getDetailFromProductId(productId);
@@ -140,9 +159,9 @@ abstract contract BaseEngine {
         uint256 cashValue;
 
         if (derivativeType == DerivativeType.CALL) {
-            cashValue = MoneynessLib.getCallCashValue(expiryPrice, longStrike);
+            cashValue = MoneynessLib.getCallCashValue(expiryPrice, strikePrice);
         } else if (derivativeType == DerivativeType.PUT) {
-            cashValue = MoneynessLib.getPutCashValue(expiryPrice, longStrike);
+            cashValue = MoneynessLib.getPutCashValue(expiryPrice, strikePrice);
         }
 
         // the following logic convert cash value (amount worth) if collateral is not strike:
@@ -154,9 +173,8 @@ abstract contract BaseEngine {
             uint256 collateralPrice = _getSettlementPrice(oracle, collateral, strike, expiry);
             cashValue = cashValue.mulDivDown(UNIT, collateralPrice);
         }
-        payoutPerToken = cashValue.convertDecimals(UNIT_DECIMALS, collateralDecimals);
 
-        return (payoutPerToken);
+        payoutPerToken = cashValue.convertDecimals(UNIT_DECIMALS, collateralDecimals);
     }
 
     function onERC1155Received(address, address, uint256, uint256, bytes calldata) external virtual returns (bytes4) {

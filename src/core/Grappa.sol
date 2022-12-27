@@ -218,16 +218,23 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      * @param _tokenId  tokenId of option token to burn
      * @param _amount   amount to settle
      */
-    function settleOption(address _account, uint256 _tokenId, uint256 _amount) external nonReentrant returns (uint256) {
-        (address engine, address collateral, uint256 payout) = getPayout(_tokenId, _amount.toUint64());
+    function settleOption(address _account, uint256 _tokenId, uint256 _amount) external nonReentrant returns (uint256, uint256) {
+        uint64 amount64 = _amount.toUint64();
+
+        (address _engine, address issuer, address debtAsset, uint256 debt, address payoutAsset, uint256 payout) =
+            getDebtAndPayout(_tokenId, amount64);
 
         emit OptionSettled(_account, _tokenId, _amount, payout);
 
         optionToken.burnGrappaOnly(_account, _tokenId, _amount);
 
-        IMarginEngine(engine).payCashValue(collateral, _account, payout);
+        IMarginEngine engine = IMarginEngine(_engine);
 
-        return payout;
+        engine.payCashValue(payoutAsset, _account, payout);
+
+        if (debt != 0) engine.receiveDebtValue(debtAsset, _account, issuer, debt);
+
+        return (debt, payout);
     }
 
     /**
@@ -288,6 +295,36 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      * @param _amount   amount to settle
      *
      * @return engine engine to settle
+     * @return issuer subAccount that issued the derivative
+     * @return debtAsset asset to pay debt in
+     * @return debt amount owed to issuer in debtAsset
+     * @return payoutAsset asset to payout in
+     * @return payout amount paid in payoutAsset
+     *
+     */
+    function getDebtAndPayout(uint256 _tokenId, uint64 _amount)
+        public
+        view
+        returns (address engine, address issuer, address debtAsset, uint256 debt, address payoutAsset, uint256 payout)
+    {
+        uint256 payoutPerOption;
+        uint256 debtPerOption;
+        (engine, issuer, debtAsset, debtPerOption, payoutAsset, payoutPerOption) = _getDebtAndPayoutPerToken(_tokenId);
+        debt = debtPerOption * _amount;
+        payout = payoutPerOption * _amount;
+        unchecked {
+            debt = debt / UNIT;
+            payout = payout / UNIT;
+        }
+    }
+
+    /**
+     * @dev calculate the payout for one option token
+     *
+     * @param _tokenId  token id of option token
+     * @param _amount   amount to settle
+     *
+     * @return engine engine to settle
      * @return collateral asset to settle in
      * @return payout amount paid
      *
@@ -298,7 +335,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         returns (address engine, address collateral, uint256 payout)
     {
         uint256 payoutPerOption;
-        (engine, collateral, payoutPerOption) = _getPayoutPerToken(_tokenId);
+        (engine,,,, collateral, payoutPerOption) = _getDebtAndPayoutPerToken(_tokenId);
         payout = payoutPerOption * _amount;
         unchecked {
             payout = payout / UNIT;
@@ -471,27 +508,32 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     }
 
     /**
-     * @dev calculate the payout for one derivative token
+     * @dev calculate the debt and payout for one derivative token
      *
      * @param _tokenId  token id of derivative token
      *
      * @return engine engine to settle
-     * @return collateral asset to settle in
-     * @return payoutPerToken amount paid
+     * @return issuer subAccount that issued the derivative
+     * @return underlying asset to pay debt in
+     * @return debtPerToken amount owed to issuer in underlying
+     * @return collateral asset to payout in
+     * @return payoutPerToken amount paid in collateral
      *
      */
-    function _getPayoutPerToken(uint256 _tokenId) internal view returns (address, address, uint256 payoutPerToken) {
-        (, SettlementType settlementType, uint40 productId, uint64 expiry,,) = TokenIdUtil.parseTokenId(_tokenId);
+    function _getDebtAndPayoutPerToken(uint256 _tokenId)
+        internal
+        view
+        returns (address, address issuer, address, uint256 debtPerToken, address, uint256 payoutPerToken)
+    {
+        (,, uint40 productId, uint64 expiry,,) = TokenIdUtil.parseTokenId(_tokenId);
 
         if (block.timestamp < expiry) revert GP_NotExpired();
 
-        (, address engine,,,,, address collateral,) = getDetailFromProductId(productId);
+        (, address engine, address underlying,,,, address collateral,) = getDetailFromProductId(productId);
 
-        if (settlementType == SettlementType.CASH) {
-            payoutPerToken = IMarginEngine(engine).getCashPayoutPerToken(_tokenId);
-        }
+        (issuer, debtPerToken, payoutPerToken) = IMarginEngine(engine).getDebtAndPayoutPerToken(_tokenId);
 
-        return (engine, collateral, payoutPerToken);
+        return (engine, issuer, underlying, debtPerToken, collateral, payoutPerToken);
     }
 
     /**
@@ -516,21 +558,4 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
 
         return payouts;
     }
-
-    // /**
-    //  * @dev check settlement price is finalized from oracle, and return price
-    //  * @param _oracle oracle contract address
-    //  * @param _base base asset (ETH is base asset while requesting ETH / USD)
-    //  * @param _quote quote asset (USD is base asset while requesting ETH / USD)
-    //  * @param _expiry expiry timestamp
-    //  */
-    // function _getSettlementPrice(address _oracle, address _base, address _quote, uint256 _expiry)
-    //     internal
-    //     view
-    //     returns (uint256)
-    // {
-    //     (uint256 price, bool isFinalized) = IOracle(_oracle).getPriceAtExpiry(_base, _quote, _expiry);
-    //     if (!isFinalized) revert GP_PriceNotFinalized();
-    //     return price;
-    // }
 }

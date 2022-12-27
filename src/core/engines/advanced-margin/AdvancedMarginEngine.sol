@@ -206,18 +206,36 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
         BaseEngine.payCashValue(_asset, _recipient, _amount);
     }
 
+    function receiveDebtValue(address _asset, address _sender, address _subAccount, uint256 _amount) public override (BaseEngine, IMarginEngine) {}
+
+    /**
+     * @dev calculate the debt and payout for one derivative token
+     * @param _tokenId  token id of derivative token
+     * @return issuer who minted derivative
+     * @return debtPerToken amount owed
+     * @return payoutPerToken amount paid
+     */
+    function getDebtAndPayoutPerToken(uint256 _tokenId)
+        public
+        view
+        override (IMarginEngine)
+        returns (address, uint256, uint256 payoutPerToken)
+    {
+        return (address(0), 0, getPayoutPerToken(_tokenId));
+    }
+
     /**
      * @dev calculate the payout for one derivative token
      * @param _tokenId  token id of derivative token
      * @return payoutPerToken amount paid
      */
-    function getCashPayoutPerToken(uint256 _tokenId)
+    function getPayoutPerToken(uint256 _tokenId)
         public
         view
-        override (DebitSpread, BaseEngine, IMarginEngine)
-        returns (uint256)
+        override (DebitSpread, BaseEngine)
+        returns (uint256 payoutPerToken)
     {
-        return DebitSpread.getCashPayoutPerToken(_tokenId);
+        payoutPerToken = DebitSpread.getPayoutPerToken(_tokenId);
     }
 
     /**

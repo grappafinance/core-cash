@@ -81,8 +81,8 @@ contract MockEngine is BaseEngine, DebitSpread, ReentrancyGuard {
         if (!_isAccountAboveWater(_subAccount)) revert BM_AccountUnderwater();
     }
 
-    function getCashPayoutPerToken(uint256 _tokenId) public view override (DebitSpread, BaseEngine) returns (uint256) {
-        return DebitSpread.getCashPayoutPerToken(_tokenId);
+    function getPayoutPerToken(uint256 _tokenId) public view override (DebitSpread, BaseEngine) returns (uint256) {
+        return DebitSpread.getPayoutPerToken(_tokenId);
     }
 
     function _isAccountAboveWater(address /*_subAccount*/ ) internal view override returns (bool) {

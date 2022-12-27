@@ -7,7 +7,6 @@ import "../../../libraries/ArrayUtil.sol";
 import "./types.sol";
 
 library AccountUtil {
-
     function append(CrossMarginDetail[] memory x, CrossMarginDetail memory v)
         internal
         pure
