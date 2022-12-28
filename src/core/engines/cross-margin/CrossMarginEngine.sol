@@ -185,23 +185,23 @@ contract CrossMarginEngine is
     }
 
     /**
-     * @notice collect debt on settlement.
-     * @dev this can only triggered by Grappa, would only be called on settlement.
-     * @param _settlement struct
-     */
-    function physicallySettleOption(Settlement calldata _settlement) public override (PhysicallySettled, IMEPhysicalSettlement) {
-        _checkPermissioned(_settlement.debtor);
-
-        PhysicallySettled.physicallySettleOption(_settlement);
-    }
-
-    /**
      * @dev calculate the debt and payout for one derivative token
      * @param _tokenId  token id of derivative token
      * @return payoutPerToken amount paid
      */
-    function getPayoutPerToken(uint256 _tokenId) public view override (IMarginEngine) returns (uint256) {
-        return _getPayoutPerToken(_tokenId);
+    function getCashSettlementPerToken(uint256 _tokenId) public view override (BaseEngine, IMarginEngine) returns (uint256) {
+        return BaseEngine.getCashSettlementPerToken(_tokenId);
+    }
+
+    /**
+     * @notice settlement of physical option.
+     * @dev this can only triggered by Grappa, would only be called on settlement.
+     * @param _settlement struct
+     */
+    function settlePhysicalOption(Settlement calldata _settlement) public override (PhysicallySettled, IMEPhysicalSettlement) {
+        _checkPermissioned(_settlement.debtor);
+
+        PhysicallySettled.settlePhysicalOption(_settlement);
     }
 
     /**
@@ -209,17 +209,13 @@ contract CrossMarginEngine is
      * @param _tokenId  token id of derivative token
      * @return settlement struct
      */
-    function getDebtAndPayoutPerToken(uint256 _tokenId)
+    function getPhysicalSettlementPerToken(uint256 _tokenId)
         public
         view
-        override (IMEPhysicalSettlement)
-        returns (Settlement memory settlement)
+        override (PhysicallySettled, IMEPhysicalSettlement)
+        returns (Settlement memory)
     {
-        (, SettlementType settlementType,,,,) = _tokenId.parseTokenId();
-
-        if (settlementType == SettlementType.PHYSICAL) {
-            settlement = _getDebtAndPayoutPerToken(_tokenId);
-        } // TODO else revert ERROR
+        return PhysicallySettled.getPhysicalSettlementPerToken(_tokenId);
     }
 
     /**
@@ -299,6 +295,11 @@ contract CrossMarginEngine is
      *               Override Sate changing functions             *
      * ========================================================= *
      */
+
+    function _mintOption(address _subAccount, bytes calldata _data) internal override (BaseEngine, PhysicallySettled) {
+        // ensuring physical options are properly created
+        PhysicallySettled._mintOption(_subAccount, _data);
+    }
 
     function _addCollateralToAccount(address _subAccount, uint8 collateralId, uint80 amount) internal override {
         accounts[_subAccount].addCollateral(collateralId, amount);

@@ -99,8 +99,13 @@ contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyG
      * @param _tokenId  token id of derivative token
      * @return payoutPerToken amount paid
      */
-    function getPayoutPerToken(uint256 _tokenId) public view override (IMarginEngine) returns (uint256) {
-        return _getPayoutPerToken(_tokenId);
+    function getCashSettlementPerToken(uint256 _tokenId)
+        public
+        view
+        override (BaseEngine, DebitSpread, IMarginEngine)
+        returns (uint256)
+    {
+        return DebitSpread.getCashSettlementPerToken(_tokenId);
     }
 
     /**
@@ -194,15 +199,6 @@ contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyG
         Settlement memory settlement = grappa.getSettlement(account.tokenId, account.shortAmount);
 
         return (collatId, settlement.payout.toUint80());
-    }
-
-    /**
-     * @dev calculate the payout for one derivative token
-     * @param _tokenId  token id of derivative token
-     * @return payoutPerToken amount paid
-     */
-    function _getPayoutPerToken(uint256 _tokenId) internal view override (DebitSpread, BaseEngine) returns (uint256) {
-        return DebitSpread._getPayoutPerToken(_tokenId);
     }
 
     /**

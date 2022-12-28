@@ -43,7 +43,13 @@ abstract contract DebitSpread is BaseEngine {
      * @param _tokenId  token id of derivative token
      * @return payoutPerToken amount paid
      */
-    function _getPayoutPerToken(uint256 _tokenId) internal view virtual override (BaseEngine) returns (uint256 payoutPerToken) {
+    function getCashSettlementPerToken(uint256 _tokenId)
+        public
+        view
+        virtual
+        override (BaseEngine)
+        returns (uint256 payoutPerToken)
+    {
         (DerivativeType derivativeType,, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) =
             TokenIdUtil.parseTokenId(_tokenId);
 

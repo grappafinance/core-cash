@@ -213,7 +213,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     }
 
     /**
-     * @notice burn option token and get out cash value at expiry
+     * @notice burn option token and settles debt and payout at expiry
      *
      * @param _account  who to settle for
      * @param _tokenId  tokenId of option token to burn
@@ -234,7 +234,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     }
 
     /**
-     * @notice burn array of option tokens and get out cash value at expiry
+     * @notice burn array of option tokens and settles debts and payouts at expiry
      *
      * @param _account who to settle for
      * @param _tokenIds array of tokenIds to burn
@@ -286,7 +286,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     }
 
     /**
-     * @dev calculate the payout for array of options
+     * @dev calculate the debts and payouts for array of options
      *
      * @param _tokenIds array of token id
      * @param _amounts  array of amount
@@ -464,7 +464,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
             settlement.debtor = msg.sender;
             settlement.creditor = _account;
 
-            IMEPhysicalSettlement(settlement.engine).physicallySettleOption(settlement);
+            IMEPhysicalSettlement(settlement.engine).settlePhysicalOption(settlement);
         } else if (payout != 0) {
             address payoutAsset = assets[settlement.payoutAssetId].addr;
             IMarginEngine(settlement.engine).sendPayoutValue(payoutAsset, _account, payout);
@@ -487,11 +487,11 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         address engine = engines[_tokenId.parseEngineId()];
 
         if (settlementType == SettlementType.CASH) {
-            settlement.payoutPerToken = IMarginEngine(engine).getPayoutPerToken(_tokenId);
+            settlement.payoutPerToken = IMarginEngine(engine).getCashSettlementPerToken(_tokenId);
 
             if (settlement.payoutPerToken != 0) settlement.payoutAssetId = _tokenId.parseCollateralId();
         } else if (settlementType == SettlementType.PHYSICAL) {
-            settlement = IMEPhysicalSettlement(engine).getDebtAndPayoutPerToken(_tokenId);
+            settlement = IMEPhysicalSettlement(engine).getPhysicalSettlementPerToken(_tokenId);
         }
 
         settlement.engine = engine;

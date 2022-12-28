@@ -18,6 +18,7 @@ import {NumberUtil} from "../../../libraries/NumberUtil.sol";
 // // constants and types
 import "../../../config/constants.sol";
 import "../../../config/enums.sol";
+import "../../../config/errors.sol";
 import "../../../config/types.sol";
 
 /**
@@ -37,17 +38,24 @@ abstract contract PhysicallySettled is BaseEngine {
     /// @dev address => issuerId
     mapping(address => uint16) public issuerIds;
 
+    /// @dev issuerId => issuer address
     mapping(uint16 => address) public issuers;
 
-    error PS_IssuerAlreadyRegistered();
+    /*///////////////////////////////////////////////////////////////
+                                Events
+    //////////////////////////////////////////////////////////////*/
 
     event IssuerRegistered(address subAccount, uint16 id);
 
     // TODO add set settlementWindow function
-    // TODO enforce _mintOption to include issuer id (for force)
     // TODO should settleOption check for aboveWater on subAccount?
-    // TODO CM.getDebtAndPayoutPerToken revert ERROR
     // TODO CMLib settle shorts and longs
+    // TODO check that margining math is properly accounting for co-mingled options
+    // Change Runs on CME to 10_000
+
+    /*///////////////////////////////////////////////////////////////
+                            External Functions
+    //////////////////////////////////////////////////////////////*/
 
     /**
      * @dev register an issuer for physical options
@@ -65,16 +73,84 @@ abstract contract PhysicallySettled is BaseEngine {
         emit IssuerRegistered(_subAccount, id);
     }
 
-    function physicallySettleOption(Settlement calldata _settlement) public virtual {
+    function settlePhysicalOption(Settlement calldata _settlement) public virtual {
         _checkIsGrappa();
 
-        address _subAccount = issuers[uint16(_settlement.tokenId)];
+        address _subAccount = _getIssuer(_settlement.tokenId);
 
+        // issuer of option gets underlying asset (PUT) or strike asset (CALL)
         _receiveDebtValue(_settlement.debtAssetId, _settlement.debtor, _subAccount, _settlement.debt);
 
+        // option owner gets collateral
         _sendPayoutValue(_settlement.payoutAssetId, _settlement.creditor, _subAccount, _settlement.payout);
 
+        // option burned, removing debt from issuer
         _decreaseShortInAccount(_subAccount, _settlement.tokenId, _settlement.tokenAmount.toUint64());
+    }
+
+    /**
+     * @dev calculate the payout for one physically settled derivative token
+     * @param _tokenId  token id of derivative token
+     * @return settlement struct
+     */
+    function getPhysicalSettlementPerToken(uint256 _tokenId) public view virtual returns (Settlement memory settlement) {
+        (DerivativeType derivativeType, SettlementType settlementType, uint40 productId, uint64 expiry, uint64 strike,) =
+            TokenIdUtil.parseTokenId(_tokenId);
+
+        if (settlementType == SettlementType.CASH) revert PS_InvalidSettlementType();
+
+        // settlement window
+        bool settlementWindowOpen = block.timestamp < expiry + 1 hours;
+
+        if (settlementWindowOpen) {
+            // cash value denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
+            uint256 strikePrice = uint256(strike);
+
+            (,, uint8 underlyingId, uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(productId);
+
+            (, uint8 strikeDecimals) = grappa.assets(strikeId);
+            uint256 strikeAmount = strikePrice.convertDecimals(UNIT_DECIMALS, strikeDecimals);
+
+            if (derivativeType == DerivativeType.CALL) {
+                settlement.debtAssetId = strikeId;
+                settlement.debtPerToken = strikeAmount;
+
+                settlement.payoutAssetId = collateralId;
+                (, uint8 collateralDecimals) = grappa.assets(collateralId);
+                settlement.payoutPerToken = UNIT.convertDecimals(UNIT_DECIMALS, collateralDecimals);
+            } else if (derivativeType == DerivativeType.PUT) {
+                settlement.debtAssetId = underlyingId;
+                (, uint8 underlyingDecimals) = grappa.assets(underlyingId);
+                settlement.debtPerToken = UNIT.convertDecimals(UNIT_DECIMALS, underlyingDecimals);
+
+                settlement.payoutAssetId = strikeId;
+                settlement.payoutPerToken = strikeAmount;
+            }
+        }
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                            Internal Functions
+    //////////////////////////////////////////////////////////////*/
+
+    /**
+     * @dev mint option token to _subAccount, checks issuer is properly set
+     * @param _data bytes data to decode
+     */
+    function _mintOption(address _subAccount, bytes calldata _data) internal virtual override (BaseEngine) {
+        // decode parameters
+        (uint256 tokenId,,) = abi.decode(_data, (uint256, address, uint64));
+
+        (, SettlementType settlementType,,,,) = TokenIdUtil.parseTokenId(tokenId);
+
+        // only check if issuer is properly set if physically settled option
+        if (settlementType == SettlementType.PHYSICAL) {
+            address issuer = _getIssuer(tokenId);
+
+            if (issuer != _subAccount) revert PS_InvalidIssuerAddress();
+        }
+
+        BaseEngine._mintOption(_subAccount, _data);
     }
 
     /**
@@ -109,41 +185,12 @@ abstract contract PhysicallySettled is BaseEngine {
         if (_recipient != address(this)) IERC20(_asset).safeTransfer(_recipient, _amount);
     }
 
-    /**
-     * @dev calculate the payout for one physically settled derivative token
-     * @param _tokenId  token id of derivative token
-     * @return settlement struct
-     */
-    function _getDebtAndPayoutPerToken(uint256 _tokenId) internal view virtual returns (Settlement memory settlement) {
-        (DerivativeType derivativeType,, uint40 productId, uint64 expiry, uint64 strike,) = TokenIdUtil.parseTokenId(_tokenId);
+    function _getIssuer(uint256 _tokenId) internal view returns (address issuer) {
+        return issuers[_getIssuerId(_tokenId)];
+    }
 
-        // settlement window
-        bool settlementWindowOpen = block.timestamp < expiry + 1 hours;
-
-        if (settlementWindowOpen) {
-            // cash value denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
-            uint256 strikePrice = uint256(strike);
-
-            (,, uint8 underlyingId, uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(productId);
-
-            (, uint8 strikeDecimals) = grappa.assets(strikeId);
-            uint256 strikeAmount = strikePrice.convertDecimals(UNIT_DECIMALS, strikeDecimals);
-
-            if (derivativeType == DerivativeType.CALL) {
-                settlement.debtAssetId = strikeId;
-                settlement.debtPerToken = strikeAmount;
-
-                settlement.payoutAssetId = collateralId;
-                (, uint8 collateralDecimals) = grappa.assets(collateralId);
-                settlement.payoutPerToken = UNIT.convertDecimals(UNIT_DECIMALS, collateralDecimals);
-            } else if (derivativeType == DerivativeType.PUT) {
-                settlement.debtAssetId = underlyingId;
-                (, uint8 underlyingDecimals) = grappa.assets(underlyingId);
-                settlement.debtPerToken = UNIT.convertDecimals(UNIT_DECIMALS, underlyingDecimals);
-
-                settlement.payoutAssetId = strikeId;
-                settlement.payoutPerToken = strikeAmount;
-            }
-        }
+    function _getIssuerId(uint256 _tokenId) internal pure returns (uint16 issuerId) {
+        // since issuer id is uint16 of the last 16 bits of tokenId, we can just cast to uint16
+        return uint16(_tokenId);
     }
 }

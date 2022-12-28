@@ -128,9 +128,11 @@ abstract contract BaseEngine {
      * @param _tokenId  token id of derivative token
      * @return payoutPerToken amount paid
      */
-    function _getPayoutPerToken(uint256 _tokenId) internal view virtual returns (uint256 payoutPerToken) {
-        (DerivativeType derivativeType,, uint40 productId, uint64 expiry, uint64 strikePrice,) =
+    function getCashSettlementPerToken(uint256 _tokenId) public view virtual returns (uint256 payoutPerToken) {
+        (DerivativeType derivativeType, SettlementType settlementType, uint40 productId, uint64 expiry, uint64 strikePrice,) =
             TokenIdUtil.parseTokenId(_tokenId);
+
+        if (settlementType == SettlementType.PHYSICAL) revert BM_InvalidSettlementType();
 
         (address oracle,, address underlying,, address strike,, address collateral, uint8 collateralDecimals) =
             grappa.getDetailFromProductId(productId);

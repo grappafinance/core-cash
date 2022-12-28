@@ -13,7 +13,33 @@ import "../../../config/errors.sol";
 import "../../../core/engines/cross-margin/types.sol";
 
 // solhint-disable-next-line contract-name-camelcase
-contract TestSettleCoveredCall_CM is CrossMarginFixture {
+contract TestSettleCash_CM is CrossMarginFixture {
+    uint256 public expiry;
+
+    uint64 private amount = uint64(1 * UNIT);
+    uint256 private tokenId;
+    uint64 private strike;
+    uint256 private depositAmount = 1 ether;
+
+    function setUp() public {
+        weth.mint(address(this), 1000 * 1e18);
+        weth.approve(address(engine), type(uint256).max);
+
+        expiry = block.timestamp + 14 days;
+
+        strike = uint64(4000 * UNIT);
+    }
+
+    function testCannotGetCashSettlementPerTokenForPhysicalSettledToken() public {
+        tokenId = getTokenId(DerivativeType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, 0);
+
+        vm.expectRevert(BM_InvalidSettlementType.selector);
+        engine.getCashSettlementPerToken(tokenId);
+    }
+}
+
+// solhint-disable-next-line contract-name-camelcase
+contract TestSettleCashCoveredCall_CM is CrossMarginFixture {
     uint256 public expiry;
 
     uint64 private amount = uint64(1 * UNIT);
@@ -217,7 +243,7 @@ contract TestSettleCoveredCall_CM is CrossMarginFixture {
 }
 
 // solhint-disable-next-line contract-name-camelcase
-contract TestSettleCollateralizedPut_CM is CrossMarginFixture {
+contract TestSettleCashCollateralizedPut_CM is CrossMarginFixture {
     uint256 public expiry;
 
     uint64 private amount = uint64(1 * UNIT);

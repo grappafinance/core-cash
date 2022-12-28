@@ -80,3 +80,19 @@ error BM_AccountUnderwater();
 
 /// @dev msg.sender is not authorized to ask margin account to pull token from {from} address
 error BM_InvalidFromAddress();
+
+/// @dev invalid settlement type
+error BM_InvalidSettlementType();
+
+/* ----------------------------- *
+ *   Physcially Settled Errors   *
+ * ----------------------------- */
+
+/// @dev issuer already registered
+error PS_IssuerAlreadyRegistered();
+
+/// @dev invalid settlement type
+error PS_InvalidSettlementType();
+
+/// @dev invalid issuer address in token
+error PS_InvalidIssuerAddress();
