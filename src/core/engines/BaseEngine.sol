@@ -117,27 +117,10 @@ abstract contract BaseEngine {
      * @param _recipient receiver
      * @param _amount amount
      */
-    function payCashValue(address _asset, address _recipient, uint256 _amount) public virtual {
-        if (msg.sender != address(grappa)) revert NoAccess();
+    function sendPayoutValue(address _asset, address _recipient, uint256 _amount) public virtual {
+        _checkIsGrappa();
+
         if (_recipient != address(this)) IERC20(_asset).safeTransfer(_recipient, _amount);
-    }
-
-    /**
-     * @notice payout to user on settlement.
-     * @dev this can only triggered by Grappa, would only be called on settlement.
-     * @param _asset asset to transfer
-     * @param _sender sender
-     * @param _subAccount receiver
-     * @param _amount amount
-     */
-    function receiveDebtValue(address _asset, address _sender, address _subAccount, uint256 _amount) public virtual {
-        if (msg.sender != address(grappa)) revert NoAccess();
-
-        uint8 collateralId = grappa.assetIds(_asset);
-
-        _addCollateralToAccount(_subAccount, collateralId, uint80(_amount));
-
-        if (_sender != address(this)) IERC20(_asset).safeTransferFrom(_sender, address(this), _amount);
     }
 
     /**
@@ -488,5 +471,12 @@ abstract contract BaseEngine {
         (uint256 price, bool isFinalized) = IOracle(_oracle).getPriceAtExpiry(_base, _quote, _expiry);
         if (!isFinalized) revert GP_PriceNotFinalized();
         return price;
+    }
+
+    /**
+     * @dev check if msg.sender is the marginAccount
+     */
+    function _checkIsGrappa() internal view {
+        if (msg.sender != address(grappa)) revert NoAccess();
     }
 }

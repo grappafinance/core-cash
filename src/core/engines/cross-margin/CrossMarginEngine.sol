@@ -14,6 +14,7 @@ import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
 // interfaces
 import {IOracle} from "../../../interfaces/IOracle.sol";
 import {IMarginEngine} from "../../../interfaces/IMarginEngine.sol";
+import {IMEPhysicalSettlement} from "../../../interfaces/IMEPhysicalSettlement.sol";
 import {IWhitelist} from "../../../interfaces/IWhitelist.sol";
 
 // librarise
@@ -48,6 +49,7 @@ contract CrossMarginEngine is
     BaseEngine,
     PhysicallySettled,
     IMarginEngine,
+    IMEPhysicalSettlement,
     OwnableUpgradeable,
     ReentrancyGuardUpgradeable,
     UUPSUpgradeable
@@ -72,7 +74,7 @@ contract CrossMarginEngine is
     ///@dev contract that verifys permissions
     ///     if not set allows anyone to transact
     ///     checks msg.sender on execute & batchExecute
-    ///     checks receipient on payCashValue
+    ///     checks receipient on sendPayoutValue
     IWhitelist public whitelist;
 
     /*///////////////////////////////////////////////////////////////
@@ -115,6 +117,16 @@ contract CrossMarginEngine is
         _checkOwner();
 
         whitelist = IWhitelist(_whitelist);
+    }
+
+    /**
+     * @notice Registers a new issuer
+     * @param _subAccount is the address of the new issuer
+     */
+    function registerIssuer(address _subAccount) public override (PhysicallySettled, IMEPhysicalSettlement) returns (uint16 id) {
+        _checkOwner();
+
+        id = PhysicallySettled.registerIssuer(_subAccount);
     }
 
     /**
@@ -166,49 +178,48 @@ contract CrossMarginEngine is
      * @param _recipient receiver
      * @param _amount amount
      */
-    function payCashValue(address _asset, address _recipient, uint256 _amount) public override (BaseEngine, IMarginEngine) {
+    function sendPayoutValue(address _asset, address _recipient, uint256 _amount) public override (BaseEngine, IMarginEngine) {
         _checkPermissioned(_recipient);
 
-        BaseEngine.payCashValue(_asset, _recipient, _amount);
+        BaseEngine.sendPayoutValue(_asset, _recipient, _amount);
     }
 
     /**
      * @notice collect debt on settlement.
      * @dev this can only triggered by Grappa, would only be called on settlement.
-     * @param _asset asset to transfer
-     * @param _sender sender
-     * @param _subAccount receiver
-     * @param _amount amount
+     * @param _settlement struct
      */
-    function receiveDebtValue(address _asset, address _sender, address _subAccount, uint256 _amount)
-        public
-        override (BaseEngine, IMarginEngine)
-    {
-        _checkPermissioned(_sender);
+    function physicallySettleOption(Settlement calldata _settlement) public override (PhysicallySettled, IMEPhysicalSettlement) {
+        _checkPermissioned(_settlement.debtor);
 
-        BaseEngine.receiveDebtValue(_asset, _sender, _subAccount, _amount);
+        PhysicallySettled.physicallySettleOption(_settlement);
+    }
+
+    /**
+     * @dev calculate the debt and payout for one derivative token
+     * @param _tokenId  token id of derivative token
+     * @return payoutPerToken amount paid
+     */
+    function getPayoutPerToken(uint256 _tokenId) public view override (IMarginEngine) returns (uint256) {
+        return _getPayoutPerToken(_tokenId);
     }
 
     /**
      * @dev calculate the payout for one cash settled derivative token
      * @param _tokenId  token id of derivative token
-     * @return issuer who minted derivative
-     * @return debtPerToken amount owed
-     * @return payoutPerToken amount paid
+     * @return settlement struct
      */
     function getDebtAndPayoutPerToken(uint256 _tokenId)
         public
         view
-        override (IMarginEngine)
-        returns (address issuer, uint256 debtPerToken, uint256 payoutPerToken)
+        override (IMEPhysicalSettlement)
+        returns (Settlement memory settlement)
     {
         (, SettlementType settlementType,,,,) = _tokenId.parseTokenId();
 
         if (settlementType == SettlementType.PHYSICAL) {
-            (issuer, debtPerToken, payoutPerToken) = PhysicallySettled._getDebtAndPayoutPerToken(_tokenId);
-        } else {
-            payoutPerToken = BaseEngine._getPayoutPerToken(_tokenId);
-        }
+            settlement = _getDebtAndPayoutPerToken(_tokenId);
+        } // TODO else revert ERROR
     }
 
     /**
@@ -218,6 +229,7 @@ contract CrossMarginEngine is
      */
     function getMinCollateral(address _subAccount) external view returns (Balance[] memory) {
         CrossMarginAccount memory account = accounts[_subAccount];
+
         return _getMinCollateral(account);
     }
 

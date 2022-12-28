@@ -55,4 +55,31 @@ contract TestMintIntoAccount_CM is CrossMarginFixture {
         assertEq(option.balanceOf(address(this), tokenId), 0);
         assertEq(option.balanceOf(address(engine), tokenId), amount);
     }
+
+    function testMintPhysicallySettledIntoAccountCall() public {
+        uint256 depositAmount = 1 * 1e18;
+
+        uint256 strikePrice = 4000 * UNIT;
+        uint256 amount = 1 * UNIT;
+
+        uint256 tokenId = getTokenId(DerivativeType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strikePrice, 1);
+
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
+        actions[1] = createMintIntoAccountAction(tokenId, address(this), amount);
+        engine.execute(address(this), actions);
+
+        (Position[] memory shorts, Position[] memory longs,) = engine.marginAccounts(address(this));
+
+        assertEq(shorts.length, 1);
+        assertEq(shorts[0].tokenId, tokenId);
+        assertEq(shorts[0].amount, amount);
+
+        assertEq(longs.length, 1);
+        assertEq(longs[0].tokenId, tokenId);
+        assertEq(longs[0].amount, amount);
+
+        assertEq(option.balanceOf(address(this), tokenId), 0);
+        assertEq(option.balanceOf(address(engine), tokenId), amount);
+    }
 }

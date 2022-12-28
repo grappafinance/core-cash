@@ -32,29 +32,29 @@ interface IGrappa {
 
     function oracles(uint8 _id) external view returns (address oracle);
 
-    function getPayout(uint256 tokenId, uint64 amount)
+    function getSettlement(uint256 _tokenId, uint64 _amount) external view returns (Settlement memory settlement);
+
+    function batchGetSettlements(uint256[] memory _tokenIds, uint256[] memory _amounts)
         external
-        view
-        returns (address engine, address collateral, uint256 payout);
+        returns (Balance[] memory debts, Balance[] memory payouts);
 
     /**
-     * @notice burn option token and get out cash value at expiry
+     * @notice burn token and settle at expiry
      * @param _account who to settle for
      * @param _tokenId  tokenId of option token to burn
      * @param _amount   amount to settle
+     * @return debt amount owed
      * @return payout amount paid out
      */
-    function settleOption(address _account, uint256 _tokenId, uint256 _amount) external returns (uint256 payout);
+    function settle(address _account, uint256 _tokenId, uint256 _amount) external returns (uint256 debt, uint256 payout);
 
     /**
-     * @notice burn array of option tokens and get out cash value at expiry
+     * @notice burn array of tokens and settle at expiry
      * @param _account who to settle for
      * @param _tokenIds array of tokenIds to burn
      * @param _amounts   array of amounts to burn
      */
-    function batchSettleOptions(address _account, uint256[] memory _tokenIds, uint256[] memory _amounts)
+    function batchSettle(address _account, uint256[] memory _tokenIds, uint256[] memory _amounts)
         external
-        returns (Balance[] memory payouts);
-
-    function batchGetPayouts(uint256[] memory _tokenIds, uint256[] memory _amounts) external returns (Balance[] memory payouts);
+        returns (Balance[] memory debts, Balance[] memory payouts);
 }

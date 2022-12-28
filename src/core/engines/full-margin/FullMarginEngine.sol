@@ -90,29 +90,17 @@ contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyG
      * @param _recipient receiber
      * @param _amount amount
      */
-    function payCashValue(address _asset, address _recipient, uint256 _amount) public override (BaseEngine, IMarginEngine) {
-        BaseEngine.payCashValue(_asset, _recipient, _amount);
+    function sendPayoutValue(address _asset, address _recipient, uint256 _amount) public override (BaseEngine, IMarginEngine) {
+        BaseEngine.sendPayoutValue(_asset, _recipient, _amount);
     }
-
-    function receiveDebtValue(address _asset, address _sender, address _subAccount, uint256 _amount)
-        public
-        override (BaseEngine, IMarginEngine)
-    {}
 
     /**
      * @dev calculate the debt and payout for one derivative token
      * @param _tokenId  token id of derivative token
-     * @return issuer who minted derivative
-     * @return debtPerToken amount owed
      * @return payoutPerToken amount paid
      */
-    function getDebtAndPayoutPerToken(uint256 _tokenId)
-        public
-        view
-        override (IMarginEngine)
-        returns (address, uint256, uint256 payoutPerToken)
-    {
-        return (address(0), 0, _getPayoutPerToken(_tokenId));
+    function getPayoutPerToken(uint256 _tokenId) public view override (IMarginEngine) returns (uint256) {
+        return _getPayoutPerToken(_tokenId);
     }
 
     /**
@@ -203,8 +191,9 @@ contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyG
     function _getAccountPayout(address _subAccount) internal view override returns (uint8, uint80) {
         FullMarginAccount memory account = marginAccounts[_subAccount];
         uint8 collatId = account.collateralId;
-        (,, uint256 payout) = grappa.getPayout(account.tokenId, account.shortAmount);
-        return (collatId, payout.toUint80());
+        Settlement memory settlement = grappa.getSettlement(account.tokenId, account.shortAmount);
+
+        return (collatId, settlement.payout.toUint80());
     }
 
     /**

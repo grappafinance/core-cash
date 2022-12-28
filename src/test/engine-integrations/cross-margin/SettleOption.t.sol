@@ -51,7 +51,7 @@ contract TestSettleCoveredCall_CM is CrossMarginFixture {
         uint256 wethBefore = weth.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(alice, tokenId, amount);
+        grappa.settle(alice, tokenId, amount);
 
         uint256 wethAfter = weth.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
@@ -69,7 +69,7 @@ contract TestSettleCoveredCall_CM is CrossMarginFixture {
         uint256 wethBefore = weth.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(alice, tokenId, amount);
+        grappa.settle(alice, tokenId, amount);
 
         uint256 wethAfter = weth.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
@@ -233,8 +233,6 @@ contract TestSettleCollateralizedPut_CM is CrossMarginFixture {
 
         expiry = block.timestamp + 14 days;
 
-        // mint option
-
         strike = uint64(2000 * UNIT);
 
         tokenId = getTokenId(DerivativeType.PUT, SettlementType.CASH, pidUsdcCollat, expiry, strike, 0);
@@ -256,7 +254,7 @@ contract TestSettleCollateralizedPut_CM is CrossMarginFixture {
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(alice, tokenId, amount);
+        grappa.settle(alice, tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
@@ -274,7 +272,7 @@ contract TestSettleCollateralizedPut_CM is CrossMarginFixture {
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(alice, tokenId, amount);
+        grappa.settle(alice, tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);

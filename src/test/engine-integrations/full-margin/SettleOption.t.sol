@@ -45,7 +45,7 @@ contract TestSettleCoveredCall_FM is FullMarginFixture {
     function testShouldRevertIfPriceIsNotFinalized() public {
         oracle.setExpiryPriceWithFinality(address(weth), address(usdc), strike, false);
         vm.expectRevert(GP_PriceNotFinalized.selector);
-        grappa.settleOption(alice, tokenId, amount);
+        grappa.settle(alice, tokenId, amount);
     }
 
     function testShouldGetNothingIfExpiresOTM() public {
@@ -55,7 +55,7 @@ contract TestSettleCoveredCall_FM is FullMarginFixture {
         uint256 wethBefore = weth.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(alice, tokenId, amount);
+        grappa.settle(alice, tokenId, amount);
 
         uint256 wethAfter = weth.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
@@ -73,7 +73,7 @@ contract TestSettleCoveredCall_FM is FullMarginFixture {
         uint256 wethBefore = weth.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(alice, tokenId, amount);
+        grappa.settle(alice, tokenId, amount);
 
         uint256 wethAfter = weth.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
@@ -168,7 +168,7 @@ contract TestSettlePut_FM is FullMarginFixture {
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(alice, tokenId, amount);
+        grappa.settle(alice, tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
@@ -186,7 +186,7 @@ contract TestSettlePut_FM is FullMarginFixture {
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(alice, tokenId, amount);
+        grappa.settle(alice, tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
@@ -285,7 +285,7 @@ contract TestSettleCallSpread_FM is FullMarginFixture {
         uint256 wethBefore = weth.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(alice, tokenId, amount);
+        grappa.settle(alice, tokenId, amount);
 
         uint256 wethAfter = weth.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
@@ -303,7 +303,7 @@ contract TestSettleCallSpread_FM is FullMarginFixture {
         uint256 wethBefore = weth.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(alice, tokenId, amount);
+        grappa.settle(alice, tokenId, amount);
 
         uint256 wethAfter = weth.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
@@ -321,7 +321,7 @@ contract TestSettleCallSpread_FM is FullMarginFixture {
         uint256 wethBefore = weth.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(alice, tokenId, amount);
+        grappa.settle(alice, tokenId, amount);
 
         uint256 wethAfter = weth.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
@@ -419,7 +419,7 @@ contract TestSettleCallStrikeSpread_FM is FullMarginFixture {
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(alice, tokenId, amount);
+        grappa.settle(alice, tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
@@ -437,7 +437,7 @@ contract TestSettleCallStrikeSpread_FM is FullMarginFixture {
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(alice, tokenId, amount);
+        grappa.settle(alice, tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
@@ -455,7 +455,7 @@ contract TestSettleCallStrikeSpread_FM is FullMarginFixture {
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(alice, tokenId, amount);
+        grappa.settle(alice, tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
@@ -531,7 +531,7 @@ contract TestSettlePutSpread_FM is FullMarginFixture {
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(alice, tokenId, amount);
+        grappa.settle(alice, tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
@@ -549,7 +549,7 @@ contract TestSettlePutSpread_FM is FullMarginFixture {
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(alice, tokenId, amount);
+        grappa.settle(alice, tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
@@ -567,7 +567,7 @@ contract TestSettlePutSpread_FM is FullMarginFixture {
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        grappa.settleOption(alice, tokenId, amount);
+        grappa.settle(alice, tokenId, amount);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);

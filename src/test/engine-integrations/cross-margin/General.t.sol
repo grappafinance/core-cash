@@ -50,7 +50,7 @@ contract CrossEngineGenernal is CrossMarginFixture {
 
     function testCannotCallPayoutFromAnybody() public {
         vm.expectRevert(NoAccess.selector);
-        engine.payCashValue(address(usdc), address(this), UNIT);
+        engine.sendPayoutValue(address(usdc), address(this), UNIT);
     }
 
     function testGetMinCollateral() public {

@@ -176,7 +176,7 @@ library CrossMarginLib {
         }
 
         if (tokenIds.length > 0) {
-            payouts = grappa.batchSettleOptions(address(this), tokenIds, amounts);
+            (, payouts) = grappa.batchSettle(address(this), tokenIds, amounts);
 
             for (i = 0; i < payouts.length;) {
                 // add the collateral in the account storage.
@@ -213,7 +213,7 @@ library CrossMarginLib {
         }
 
         if (tokenIds.length > 0) {
-            payouts = grappa.batchGetPayouts(tokenIds, amounts);
+            (, payouts) = grappa.batchGetSettlements(tokenIds, amounts);
 
             for (i = 0; i < payouts.length;) {
                 // remove the collateral in the account storage.

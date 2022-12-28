@@ -70,7 +70,7 @@ contract Permissioned is CrossMarginFixture {
 
         vm.startPrank(alice);
         vm.expectRevert(NoAccess.selector);
-        grappa.settleOption(alice, tokenId, amount);
+        grappa.settle(alice, tokenId, amount);
     }
 
     function testAliceCanSettleOption() public {
@@ -84,7 +84,7 @@ contract Permissioned is CrossMarginFixture {
         vm.warp(expiry);
 
         vm.startPrank(alice);
-        grappa.settleOption(alice, tokenId, amount);
+        grappa.settle(alice, tokenId, amount);
         vm.stopPrank();
     }
 
