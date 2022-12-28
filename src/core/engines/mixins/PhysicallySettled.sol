@@ -31,6 +31,8 @@ abstract contract PhysicallySettled is BaseEngine {
     using SafeCast for uint256;
     using SafeERC20 for IERC20;
 
+    uint256 constant MIN_SETTLEMENT_WINDOW = 15 minutes;
+
     /// @dev next id used to represent an address
     /// invariant:  any id in tokenId not greater than this number
     uint16 public nextIssuerId;
@@ -41,13 +43,14 @@ abstract contract PhysicallySettled is BaseEngine {
     /// @dev issuerId => issuer address
     mapping(uint16 => address) public issuers;
 
+    uint256 public settlementWindow;
+
     /*///////////////////////////////////////////////////////////////
                                 Events
     //////////////////////////////////////////////////////////////*/
 
     event IssuerRegistered(address subAccount, uint16 id);
 
-    // TODO add set settlementWindow function
     // TODO should settleOption check for aboveWater on subAccount?
     // TODO CMLib settle shorts and longs
     // TODO check that margining math is properly accounting for co-mingled options
@@ -60,7 +63,6 @@ abstract contract PhysicallySettled is BaseEngine {
     /**
      * @dev register an issuer for physical options
      * @param _subAccount address of the new margin engine
-     *
      */
     function registerIssuer(address _subAccount) public virtual returns (uint16 id) {
         if (issuerIds[_subAccount] != 0) revert PS_IssuerAlreadyRegistered();
@@ -71,6 +73,16 @@ abstract contract PhysicallySettled is BaseEngine {
         issuerIds[_subAccount] = id;
 
         emit IssuerRegistered(_subAccount, id);
+    }
+
+    /**
+     * @dev set new settlement window
+     * @param _window is the time from expiry that the option can be exercised
+     */
+    function setPhysicalSettlementWindow(uint256 _window) public virtual {
+        if (_window < MIN_SETTLEMENT_WINDOW) revert PS_InvalidSettlementWindow();
+
+        settlementWindow = _window;
     }
 
     function settlePhysicalOption(Settlement calldata _settlement) public virtual {
@@ -100,7 +112,7 @@ abstract contract PhysicallySettled is BaseEngine {
         if (settlementType == SettlementType.CASH) revert PS_InvalidSettlementType();
 
         // settlement window
-        bool settlementWindowOpen = block.timestamp < expiry + 1 hours;
+        bool settlementWindowOpen = block.timestamp <= expiry + (settlementWindow != 0 ? settlementWindow : MIN_SETTLEMENT_WINDOW);
 
         if (settlementWindowOpen) {
             // cash value denominated in strike (usually USD), with {UNIT_DECIMALS} decimals

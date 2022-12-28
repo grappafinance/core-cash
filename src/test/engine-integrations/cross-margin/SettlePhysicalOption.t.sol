@@ -20,6 +20,7 @@ contract TestSettlePhysicalOption_CM is CrossMarginFixture {
     uint256 private tokenId;
     uint64 private strike;
     uint256 private depositAmount = 1 ether;
+    uint16 private issuerId;
 
     function setUp() public {
         weth.mint(address(this), 1000 * 1e18);
@@ -28,6 +29,8 @@ contract TestSettlePhysicalOption_CM is CrossMarginFixture {
         expiry = block.timestamp + 14 days;
 
         strike = uint64(4000 * UNIT);
+
+        issuerId = engine.registerIssuer(address(this));
     }
 
     function testCannotGetPhysicalSettlementPerTokenForCashSettledToken() public {
@@ -35,6 +38,44 @@ contract TestSettlePhysicalOption_CM is CrossMarginFixture {
 
         vm.expectRevert(PS_InvalidSettlementType.selector);
         engine.getPhysicalSettlementPerToken(tokenId);
+    }
+
+    function testGetsNothingFromOptionPastSettlementWindow() public {
+        tokenId = getTokenId(DerivativeType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, issuerId);
+
+        vm.warp(expiry + 14 minutes);
+
+        Settlement memory settlement = engine.getPhysicalSettlementPerToken(tokenId);
+
+        assertEq(settlement.debtPerToken, uint256(strike));
+        assertEq(settlement.payoutPerToken, depositAmount);
+
+        vm.warp(expiry + 16 minutes);
+
+        settlement = engine.getPhysicalSettlementPerToken(tokenId);
+
+        assertEq(settlement.debtPerToken, 0);
+        assertEq(settlement.payoutPerToken, 0);
+    }
+
+    function testGetsNothingFromOptionPastCustomSettlementWindow() public {
+        engine.setPhysicalSettlementWindow(1 hours);
+
+        tokenId = getTokenId(DerivativeType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, issuerId);
+
+        vm.warp(expiry + 16 minutes);
+
+        Settlement memory settlement = engine.getPhysicalSettlementPerToken(tokenId);
+
+        assertEq(settlement.debtPerToken, uint256(strike));
+        assertEq(settlement.payoutPerToken, depositAmount);
+
+        vm.warp(expiry + 61 minutes);
+
+        settlement = engine.getPhysicalSettlementPerToken(tokenId);
+
+        assertEq(settlement.debtPerToken, 0);
+        assertEq(settlement.payoutPerToken, 0);
     }
 }
 

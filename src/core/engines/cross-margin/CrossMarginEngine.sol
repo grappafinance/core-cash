@@ -130,6 +130,16 @@ contract CrossMarginEngine is
     }
 
     /**
+     * @dev set new settlement window
+     * @param _window is the time from expiry that the option can be exercised
+     */
+    function setPhysicalSettlementWindow(uint256 _window) public override {
+        _checkOwner();
+
+        PhysicallySettled.setPhysicalSettlementWindow(_window);
+    }
+
+    /**
      * @notice batch execute on multiple subAccounts
      * @dev    check margin after all subAccounts are updated
      *         because we support actions like `TransferCollateral` that moves collateral between subAccounts
