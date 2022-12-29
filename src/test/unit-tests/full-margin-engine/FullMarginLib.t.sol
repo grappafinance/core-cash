@@ -19,7 +19,7 @@ contract FullMarginLibTester {
     FullMarginAccount private _account;
 
     function account() external view returns (FullMarginAccount memory) {
-      return _account;
+        return _account;
     }
 
     function isEmpty() external view returns (bool) {
@@ -60,7 +60,6 @@ contract FullMarginLibTester {
  * test full margin calculation for simple call
  */
 contract FullMarginLibTest is Test {
-    
     FullMarginLibTester tester;
 
     function setUp() public {
@@ -122,7 +121,5 @@ contract FullMarginLibTest is Test {
         acc = tester.account();
         assertEq(acc.collateralId, 0);
         assertEq(acc.collateralAmount, 0);
-
     }
-    
 }
