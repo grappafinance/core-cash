@@ -118,22 +118,25 @@ abstract contract PhysicallySettled is BaseEngine {
             // cash value denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
             uint256 strikePrice = uint256(strike);
 
-            (,, uint8 underlyingId, uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(productId);
+            (,, uint8 underlyingId, uint8 strikeId,) = ProductIdUtil.parseProductId(productId);
 
+            // puts can only be collateralized in strike
             (, uint8 strikeDecimals) = grappa.assets(strikeId);
             uint256 strikeAmount = strikePrice.convertDecimals(UNIT_DECIMALS, strikeDecimals);
+
+            // calls can only be collateralized in underlying
+            (, uint8 underlyingDecimals) = grappa.assets(underlyingId);
+            uint256 underlyingAmount = UNIT.convertDecimals(UNIT_DECIMALS, underlyingDecimals);
 
             if (derivativeType == DerivativeType.CALL) {
                 settlement.debtAssetId = strikeId;
                 settlement.debtPerToken = strikeAmount;
 
-                settlement.payoutAssetId = collateralId;
-                (, uint8 collateralDecimals) = grappa.assets(collateralId);
-                settlement.payoutPerToken = UNIT.convertDecimals(UNIT_DECIMALS, collateralDecimals);
+                settlement.payoutAssetId = underlyingId;
+                settlement.payoutPerToken = underlyingAmount;
             } else if (derivativeType == DerivativeType.PUT) {
                 settlement.debtAssetId = underlyingId;
-                (, uint8 underlyingDecimals) = grappa.assets(underlyingId);
-                settlement.debtPerToken = UNIT.convertDecimals(UNIT_DECIMALS, underlyingDecimals);
+                settlement.debtPerToken = underlyingAmount;
 
                 settlement.payoutAssetId = strikeId;
                 settlement.payoutPerToken = strikeAmount;
