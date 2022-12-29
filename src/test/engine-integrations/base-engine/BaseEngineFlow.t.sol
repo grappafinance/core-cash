@@ -210,7 +210,7 @@ contract BaseEngineFlow is BaseEngineSetup {
         // execute merge
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createMergeAction(tokenId, tokenId, address(this), amount);
-        vm.expectRevert(BM_MergeWithSameStrike.selector);
+        vm.expectRevert(DS_MergeWithSameStrike.selector);
         engine.execute(address(this), actions);
     }
 

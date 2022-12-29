@@ -170,13 +170,13 @@ abstract contract DebitSpread is BaseEngine {
             shortId.parseTokenId();
 
         // check that the merging token (long) has the same property as existing short
-        if (shortType != longType) revert BM_MergeOptionTypeMismatch();
-        if (settlementType != settlementType_) revert BM_MergeSettlementTypeMismatch();
-        if (productId_ != productId) revert BM_MergeProductMismatch();
-        if (expiry_ != expiry) revert BM_MergeExpiryMismatch();
+        if (shortType != longType) revert DS_MergeOptionTypeMismatch();
+        if (settlementType != settlementType_) revert DS_MergeSettlementTypeMismatch();
+        if (productId_ != productId) revert DS_MergeProductMismatch();
+        if (expiry_ != expiry) revert DS_MergeExpiryMismatch();
 
         // should use burn instead
-        if (longStrike == shortStrike) revert BM_MergeWithSameStrike();
+        if (longStrike == shortStrike) revert DS_MergeWithSameStrike();
     }
 
     function _verifySpreadIdAndGetLong(uint256 _spreadId) internal pure returns (uint256 longId) {

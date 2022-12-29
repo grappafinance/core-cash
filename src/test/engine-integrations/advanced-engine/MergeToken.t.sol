@@ -130,7 +130,7 @@ contract TestMergeOption is AdvancedFixture {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createMergeAction(newTokenId, existingTokenId, address(this), amount);
 
-        vm.expectRevert(BM_MergeExpiryMismatch.selector);
+        vm.expectRevert(DS_MergeExpiryMismatch.selector);
         engine.execute(address(this), actions);
     }
 
@@ -141,7 +141,7 @@ contract TestMergeOption is AdvancedFixture {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createMergeAction(newTokenId, existingTokenId, address(this), amount);
 
-        vm.expectRevert(BM_MergeWithSameStrike.selector);
+        vm.expectRevert(DS_MergeWithSameStrike.selector);
         engine.execute(address(this), actions);
     }
 
@@ -152,7 +152,7 @@ contract TestMergeOption is AdvancedFixture {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createMergeAction(newTokenId, existingTokenId, address(this), amount);
 
-        vm.expectRevert(BM_MergeOptionTypeMismatch.selector);
+        vm.expectRevert(DS_MergeOptionTypeMismatch.selector);
         engine.execute(address(this), actions);
     }
 
@@ -163,7 +163,7 @@ contract TestMergeOption is AdvancedFixture {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createMergeAction(newTokenId, existingTokenId, address(this), amount);
 
-        vm.expectRevert(BM_MergeProductMismatch.selector);
+        vm.expectRevert(DS_MergeProductMismatch.selector);
         engine.execute(address(this), actions);
     }
 
