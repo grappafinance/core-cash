@@ -39,7 +39,7 @@ library FullMarginLib {
     }
 
     ///@dev Reduce the collateral in the account
-    ///@param account FullMarginAccount memory that will be updated
+    ///@param account FullMarginAccount storage that will be updated
     function removeCollateral(FullMarginAccount storage account, uint8 collateralId, uint80 amount) internal {
         if (account.collateralId != collateralId) revert FM_WrongCollateralId();
 
@@ -51,14 +51,14 @@ library FullMarginLib {
     }
 
     ///@dev Increase the amount of short call or put (debt) of the account
-    ///@param account FullMarginAccount memory that will be updated
+    ///@param account FullMarginAccount storage that will be updated
     function mintOption(FullMarginAccount storage account, uint256 tokenId, uint64 amount) internal {
         (TokenType optionType, uint40 productId,,,) = tokenId.parseTokenId();
 
         // assign collateralId or check collateral id is the same
         (,, uint8 underlyingId, uint8 strikeId, uint8 collateralId) = productId.parseProductId();
 
-        // call can only collateralized by underlying
+        // call can only be collateralized by underlying
         if ((optionType == TokenType.CALL) && underlyingId != collateralId) {
             revert FM_CannotMintOptionWithThisCollateral();
         }
@@ -99,7 +99,7 @@ library FullMarginLib {
 
     ///@dev merge an OptionToken into the accunt, changing existing short to spread
     ///@dev shortId and longId already have the same optionType, productId, expiry
-    ///@param account FullMarginAccount memory that will be updated in-place
+    ///@param account FullMarginAccount storage that will be updated
     ///@param shortId existing short position to be converted into spread
     ///@param longId token to be "added" into the account. This is expected to have the same time of the exisiting short type.
     ///               e.g: if the account currenly have short call, we can added another "call token" into the account
@@ -116,7 +116,7 @@ library FullMarginLib {
     }
 
     ///@dev split an accunt's spread position into short + 1 token
-    ///@param account FullMarginAccount memory that will be updated in-place
+    ///@param account FullMarginAccount storage that will be updated
     ///@param spreadId id of spread to be parsed
     function split(FullMarginAccount storage account, uint256 spreadId, uint64 amount) internal {
         // passed in spreadId should match the one in account memory (shortCallId or shortPutId)
@@ -127,13 +127,18 @@ library FullMarginLib {
         account.tokenId = TokenIdUtil.convertToVanillaId(spreadId);
     }
 
-    function settleAtExpiry(FullMarginAccount storage account, uint80 _payout) internal {
+    /**
+     * @dev clear short amount, and reduce collateral ny amount of payout
+     * @param account FullMarginAccount storage that will be updated
+     * @param payout amount of payout for minted options
+     */
+    function settleAtExpiry(FullMarginAccount storage account, uint80 payout) internal {
         // clear all debt
         account.tokenId = 0;
         account.shortAmount = 0;
 
         // this line should not underflow because collateral should always be enough
         // but keeping the underflow check to make sure
-        account.collateralAmount = account.collateralAmount - _payout;
+        account.collateralAmount = account.collateralAmount - payout;
     }
 }
