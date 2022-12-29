@@ -19,9 +19,8 @@ contract TokenIdUtilTest is Test {
         vm.assume(settlementType < 2);
         vm.assume(productId > 0);
 
-        uint256 id = TokenIdUtil.getTokenId(
-            TokenType(optionType), SettlementType(settlementType), productId, expiry, strike, reserved
-        );
+        uint256 id =
+            TokenIdUtil.getTokenId(TokenType(optionType), SettlementType(settlementType), productId, expiry, strike, reserved);
 
         assertGt(id, 0);
     }
@@ -38,9 +37,8 @@ contract TokenIdUtilTest is Test {
         vm.assume(settlementType < 2);
         vm.assume(productId > 0);
 
-        uint256 id = TokenIdUtil.getTokenId(
-            TokenType(optionType), SettlementType(settlementType), productId, expiry, strike, reserved
-        );
+        uint256 id =
+            TokenIdUtil.getTokenId(TokenType(optionType), SettlementType(settlementType), productId, expiry, strike, reserved);
         (
             TokenType _optionType,
             SettlementType _settlementType,
@@ -71,12 +69,7 @@ contract TokenIdUtilTest is Test {
         vm.assume(productId > 0);
 
         uint256 id = TokenIdUtil.getTokenId(
-            TokenType(optionType),
-            SettlementType(settlementType),
-            productId,
-            uint64(expiry),
-            uint64(strike),
-            uint64(reserved)
+            TokenType(optionType), SettlementType(settlementType), productId, uint64(expiry), uint64(strike), uint64(reserved)
         );
         (
             TokenType _optionType,

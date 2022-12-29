@@ -16,8 +16,7 @@ abstract contract ActionHelper {
         uint256 strike,
         uint256 reserved
     ) internal pure returns (uint256 tokenId) {
-        tokenId =
-            TokenIdUtil.getTokenId(optionType, settlementType, productId, uint64(expiry), uint64(strike), uint64(reserved));
+        tokenId = TokenIdUtil.getTokenId(optionType, settlementType, productId, uint64(expiry), uint64(strike), uint64(reserved));
     }
 
     function parseTokenId(uint256 tokenId)

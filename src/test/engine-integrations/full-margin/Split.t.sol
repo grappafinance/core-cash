@@ -25,8 +25,7 @@ contract TestSplitCallSpread_FM is FullMarginFixture {
         expiry = block.timestamp + 7 days;
 
         // mint a 4000-5000 debit spread
-        spreadId =
-            getTokenId(TokenType.CALL_SPREAD, SettlementType.CASH, pidEthCollat, expiry, strikePriceLow, strikePriceHigh);
+        spreadId = getTokenId(TokenType.CALL_SPREAD, SettlementType.CASH, pidEthCollat, expiry, strikePriceLow, strikePriceHigh);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
@@ -94,8 +93,7 @@ contract TestSplitPutSpread_FM is FullMarginFixture {
         oracle.setSpotPrice(address(weth), 3000 * UNIT);
 
         // mint a 2000-1900 debit spread
-        spreadId =
-            getTokenId(TokenType.PUT_SPREAD, SettlementType.CASH, pidUsdcCollat, expiry, strikePriceHigh, strikePriceLow);
+        spreadId = getTokenId(TokenType.PUT_SPREAD, SettlementType.CASH, pidUsdcCollat, expiry, strikePriceHigh, strikePriceLow);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);

@@ -207,9 +207,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         uint256 _strike,
         uint256 _reserved
     ) external pure returns (uint256 id) {
-        id = TokenIdUtil.getTokenId(
-            _optionType, _settlementType, _productId, uint64(_expiry), uint64(_strike), uint64(_reserved)
-        );
+        id = TokenIdUtil.getTokenId(_optionType, _settlementType, _productId, uint64(_expiry), uint64(_strike), uint64(_reserved));
     }
 
     /**
@@ -391,8 +389,8 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         // check option type, strike and reserved
         // check that vanilla options doesnt have a reserved argument
         if (
-            (settlementType == SettlementType.CASH)
-                && (optionType == TokenType.CALL || optionType == TokenType.PUT) && (reserved != 0)
+            (settlementType == SettlementType.CASH) && (optionType == TokenType.CALL || optionType == TokenType.PUT)
+                && (reserved != 0)
         ) {
             revert GP_BadCashSettledStrikes();
         }

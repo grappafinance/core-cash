@@ -83,8 +83,7 @@ contract TestMint_CM is CrossMarginFixture {
 
         uint16 issuerId = engine.registerIssuer(address(this));
 
-        uint256 tokenId =
-            getTokenId(TokenType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strikePrice, issuerId + 1);
+        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strikePrice, issuerId + 1);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
@@ -256,8 +255,7 @@ contract TestMint_CM is CrossMarginFixture {
 
         uint256 amount = 1 * UNIT;
 
-        uint256 tokenId =
-            getTokenId(TokenType.CALL_SPREAD, SettlementType.CASH, pidUsdcCollat, expiry, longStrike, shortStrike);
+        uint256 tokenId = getTokenId(TokenType.CALL_SPREAD, SettlementType.CASH, pidUsdcCollat, expiry, longStrike, shortStrike);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
@@ -275,8 +273,7 @@ contract TestMint_CM is CrossMarginFixture {
 
         uint256 amount = 1 * UNIT;
 
-        uint256 tokenId =
-            getTokenId(TokenType.PUT_SPREAD, SettlementType.CASH, pidUsdcCollat, expiry, longStrike, shortStrike);
+        uint256 tokenId = getTokenId(TokenType.PUT_SPREAD, SettlementType.CASH, pidUsdcCollat, expiry, longStrike, shortStrike);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
