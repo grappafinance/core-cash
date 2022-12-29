@@ -142,8 +142,7 @@ contract OptionTokenTest is Test {
         vm.mockCall(grappa, abi.encodeWithSelector(Grappa(grappa).engines.selector, engineId), abi.encode(address(this)));
 
         uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
-        uint256 tokenId =
-            TokenIdUtil.getTokenId(DerivativeType.PUT_SPREAD, SettlementType.PHYSICAL, productId, uint64(expiry), 20, 0);
+        uint256 tokenId = TokenIdUtil.getTokenId(DerivativeType.PUT, SettlementType.PHYSICAL, productId, uint64(expiry), 20, 0);
 
         vm.expectRevert(GP_BadPhysicallySettledDerivative.selector);
         option.mint(address(this), tokenId, 1);
@@ -156,8 +155,7 @@ contract OptionTokenTest is Test {
         vm.mockCall(grappa, abi.encodeWithSelector(Grappa(grappa).engines.selector, engineId), abi.encode(address(this)));
 
         uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
-        uint256 tokenId =
-            TokenIdUtil.getTokenId(DerivativeType.CALL_SPREAD, SettlementType.PHYSICAL, productId, uint64(expiry), 40, 0);
+        uint256 tokenId = TokenIdUtil.getTokenId(DerivativeType.CALL, SettlementType.PHYSICAL, productId, uint64(expiry), 40, 0);
 
         vm.expectRevert(GP_BadPhysicallySettledDerivative.selector);
         option.mint(address(this), tokenId, 1);

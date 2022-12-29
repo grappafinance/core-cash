@@ -308,3 +308,246 @@ contract TestSettlePhysicalCollateralizedPut_CM is CrossMarginFixture {
         assertEq(collaterals[0].amount, expectedDebt);
     }
 }
+
+// solhint-disable-next-line contract-name-camelcase
+contract TestSettlePhysicalShortPositions_CM is CrossMarginFixture {
+    uint256 public expiry;
+
+    uint64 private amount = uint64(1 * UNIT);
+    uint64 private strike;
+    uint256 private wethDepositAmount = 1 ether;
+    uint256 private usdcDepositAmount = 4000 * 1e6;
+    uint16 private issuerId;
+
+    function setUp() public {
+        weth.mint(address(this), 1000 * 1e18);
+        weth.approve(address(engine), type(uint256).max);
+
+        usdc.mint(address(this), 1000_000 * 1e6);
+        usdc.approve(address(engine), type(uint256).max);
+
+        expiry = block.timestamp + 14 days;
+
+        strike = uint64(4000 * UNIT);
+
+        issuerId = engine.registerIssuer(address(this));
+    }
+
+    function testSellerCannotClearCallDebtAfterExpiryBeforeWindowClosed() public {
+        uint256 tokenId = getTokenId(DerivativeType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, issuerId);
+
+        _mintTokens(tokenId, wethId, wethDepositAmount);
+
+        (Position[] memory shortsBefore,, Balance[] memory collateralsBefore) = engine.marginAccounts(address(this));
+
+        // settle marginaccount
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createSettleAction();
+        engine.execute(address(this), actions);
+
+        //margin account should not be reset
+        (Position[] memory shortsAfter,, Balance[] memory collateralsAfter) = engine.marginAccounts(address(this));
+
+        assertEq(shortsBefore.length, shortsAfter.length);
+        assertEq(collateralsBefore.length, collateralsAfter.length);
+    }
+
+    function testSellerCanClearCallDebtAfterWindowClosed() public {
+        uint256 tokenId = getTokenId(DerivativeType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, issuerId);
+
+        _mintTokens(tokenId, wethId, wethDepositAmount);
+
+        vm.warp(expiry + engine.getPhysicalSettlementWindow() + 1);
+
+        (,, Balance[] memory collateralsBefore) = engine.marginAccounts(address(this));
+
+        // settle marginaccount
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createSettleAction();
+        engine.execute(address(this), actions);
+
+        //margin account should be reset
+        (Position[] memory shorts,, Balance[] memory collateralsAfter) = engine.marginAccounts(address(this));
+
+        assertEq(shorts.length, 0);
+        assertEq(collateralsAfter[0].collateralId, collateralsBefore[0].collateralId);
+        assertEq(collateralsAfter[0].amount, collateralsBefore[0].amount);
+    }
+
+    function testSellerCannotClearPutDebtAfterExpiryBeforeWindowClosed() public {
+        uint256 tokenId = getTokenId(DerivativeType.PUT, SettlementType.PHYSICAL, pidUsdcCollat, expiry, strike, issuerId);
+
+        _mintTokens(tokenId, usdcId, usdcDepositAmount);
+
+        (Position[] memory shortsBefore,, Balance[] memory collateralsBefore) = engine.marginAccounts(address(this));
+
+        // settle marginaccount
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createSettleAction();
+        engine.execute(address(this), actions);
+
+        //margin account should not be reset
+        (Position[] memory shortsAfter,, Balance[] memory collateralsAfter) = engine.marginAccounts(address(this));
+
+        assertEq(shortsBefore.length, shortsAfter.length);
+        assertEq(collateralsBefore.length, collateralsAfter.length);
+    }
+
+    function testSellerCanClearPutDebtAfterWindowClosed() public {
+        uint256 tokenId = getTokenId(DerivativeType.PUT, SettlementType.PHYSICAL, pidUsdcCollat, expiry, strike, issuerId);
+
+        _mintTokens(tokenId, usdcId, usdcDepositAmount);
+
+        vm.warp(expiry + engine.getPhysicalSettlementWindow() + 1);
+
+        (,, Balance[] memory collateralsBefore) = engine.marginAccounts(address(this));
+
+        // settle marginaccount
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createSettleAction();
+        engine.execute(address(this), actions);
+
+        //margin account should be reset
+        (Position[] memory shorts,, Balance[] memory collateralsAfter) = engine.marginAccounts(address(this));
+
+        assertEq(shorts.length, 0);
+        assertEq(collateralsAfter[0].collateralId, collateralsBefore[0].collateralId);
+        assertEq(collateralsAfter[0].amount, collateralsBefore[0].amount);
+    }
+
+    function _mintTokens(uint256 tokenId, uint8 collateralId, uint256 depositAmount) internal {
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        actions[0] = createAddCollateralAction(collateralId, address(this), depositAmount);
+        // give option to alice
+        actions[1] = createMintAction(tokenId, alice, amount);
+
+        // mint option
+        engine.execute(address(this), actions);
+
+        // expire option
+        vm.warp(expiry);
+    }
+}
+
+// solhint-disable-next-line contract-name-camelcase
+contract TestSettlePhysicalLongPositions_CM is CrossMarginFixture {
+    uint256 public expiry;
+
+    uint64 private amount = uint64(1 * UNIT);
+    uint64 private strike;
+    uint256 private wethDepositAmount = 1 ether;
+    uint256 private usdcDepositAmount = 4000 * 1e6;
+    uint16 private issuerId;
+
+    function setUp() public {
+        weth.mint(alice, 1000 * 1e18);
+        weth.mint(address(this), 1000 * 1e18);
+        weth.approve(address(engine), type(uint256).max);
+
+        usdc.mint(alice, 1000_000 * 1e6);
+        usdc.mint(address(this), 1000_000 * 1e6);
+        usdc.approve(address(engine), type(uint256).max);
+
+        vm.startPrank(alice);
+        weth.approve(address(engine), type(uint256).max);
+        usdc.approve(address(engine), type(uint256).max);
+        vm.stopPrank();
+
+        expiry = block.timestamp + 14 days;
+
+        strike = uint64(4000 * UNIT);
+
+        issuerId = engine.registerIssuer(alice);
+    }
+
+    function testHolderCannotClearLongCallAfterWindowClosed() public {
+        uint256 tokenId = getTokenId(DerivativeType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, issuerId);
+
+        _mintTokens(tokenId, wethId, wethDepositAmount);
+
+        vm.warp(expiry + engine.getPhysicalSettlementWindow() + 1);
+
+        // settle marginaccount
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createSettleAction();
+        engine.execute(address(this), actions);
+
+        //margin account should be reset
+        (, Position[] memory longs, Balance[] memory collaterals) = engine.marginAccounts(address(this));
+
+        assertEq(longs.length, 0);
+        assertEq(collaterals.length, 0);
+    }
+
+    function testSellerCanClearLongCallDebtAfterExpiryBeforeWindowClosed() public {
+        uint256 tokenId = getTokenId(DerivativeType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, issuerId);
+
+        _mintTokens(tokenId, wethId, wethDepositAmount);
+
+        // settle marginaccount
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        actions[0] = createAddCollateralAction(usdcId, address(this), usdcDepositAmount);
+        actions[1] = createSettleAction();
+        engine.execute(address(this), actions);
+
+        //margin account should be reset
+        (, Position[] memory longs, Balance[] memory collaterals) = engine.marginAccounts(address(this));
+
+        assertEq(longs.length, 0);
+        assertEq(collaterals[0].collateralId, wethId);
+        assertEq(collaterals[0].amount, wethDepositAmount);
+    }
+
+    function testHolderCannotClearLongPutAfterWindowClosed() public {
+        uint256 tokenId = getTokenId(DerivativeType.PUT, SettlementType.PHYSICAL, pidUsdcCollat, expiry, strike, issuerId);
+
+        _mintTokens(tokenId, usdcId, usdcDepositAmount);
+
+        vm.warp(expiry + engine.getPhysicalSettlementWindow() + 1);
+
+        // settle marginaccount
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createSettleAction();
+        engine.execute(address(this), actions);
+
+        //margin account should be reset
+        (, Position[] memory longs, Balance[] memory collaterals) = engine.marginAccounts(address(this));
+
+        assertEq(longs.length, 0);
+        assertEq(collaterals.length, 0);
+    }
+
+    function testSellerCanClearPutDebtAfterWindowClosed() public {
+        uint256 tokenId = getTokenId(DerivativeType.PUT, SettlementType.PHYSICAL, pidUsdcCollat, expiry, strike, issuerId);
+
+        _mintTokens(tokenId, usdcId, usdcDepositAmount);
+
+        // settle marginaccount
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        actions[0] = createAddCollateralAction(wethId, address(this), wethDepositAmount);
+        actions[1] = createSettleAction();
+        engine.execute(address(this), actions);
+
+        //margin account should be reset
+        (, Position[] memory longs, Balance[] memory collaterals) = engine.marginAccounts(address(this));
+
+        assertEq(longs.length, 0);
+        assertEq(collaterals[0].collateralId, usdcId);
+        assertEq(collaterals[0].amount, usdcDepositAmount);
+    }
+
+    function _mintTokens(uint256 tokenId, uint8 collateralId, uint256 depositAmount) internal {
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        actions[0] = createAddCollateralAction(collateralId, alice, depositAmount);
+        // give option to alice
+        actions[1] = createMintIntoAccountAction(tokenId, address(this), amount);
+
+        // mint option
+        vm.startPrank(alice);
+        engine.execute(alice, actions);
+        vm.stopPrank();
+
+        // expire option
+        vm.warp(expiry);
+    }
+}

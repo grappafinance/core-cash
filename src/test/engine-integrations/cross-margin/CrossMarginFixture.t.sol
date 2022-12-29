@@ -55,30 +55,39 @@ abstract contract CrossMarginFixture is Test, ActionHelper, Utilities {
     uint8 internal oracleId;
 
     constructor() {
+        vm.label(address(this), "Tester");
+
         usdc = new MockERC20("USDC", "USDC", 6); // nonce: 1
+        vm.label(address(usdc), "USDC");
 
         weth = new MockERC20("WETH", "WETH", 18); // nonce: 2
+        vm.label(address(weth), "WETH");
 
         oracle = new MockOracle(); // nonce: 3
+        vm.label(address(oracle), "Oracle");
 
         // predit address of margin account and use it here
         address grappaAddr = predictAddress(address(this), 6);
 
         option = new OptionToken(grappaAddr, address(0)); // nonce: 4
+        vm.label(address(option), "OptionToken");
 
         address grappaImplementation = address(new Grappa(address(option))); // nonce: 5
 
         bytes memory grappaData = abi.encode(Grappa.initialize.selector);
 
         grappa = Grappa(address(new GrappaProxy(grappaImplementation, grappaData))); // 6
+        vm.label(address(grappa), "Grappa");
 
         address engineImplementation = address(new CrossMarginEngine(address(grappa), address(option))); // nonce 7
 
         bytes memory engineData = abi.encode(CrossMarginEngine.initialize.selector);
 
         engine = CrossMarginEngine(address(new CrossMarginEngineProxy(engineImplementation, engineData))); // 8
+        vm.label(address(engine), "CrossMarginEngine");
 
         whitelist = new MockWhitelist();
+        vm.label(address(whitelist), "Whitelist");
 
         // register products
         usdcId = grappa.registerAsset(address(usdc));

@@ -52,7 +52,6 @@ abstract contract PhysicallySettled is BaseEngine {
     event IssuerRegistered(address subAccount, uint16 id);
 
     // TODO should settleOption check for aboveWater on subAccount?
-    // TODO CMLib settle shorts and longs
     // TODO check that margining math is properly accounting for co-mingled options
     // Change Runs on CME to 10_000
 
@@ -112,7 +111,7 @@ abstract contract PhysicallySettled is BaseEngine {
         if (settlementType == SettlementType.CASH) revert PS_InvalidSettlementType();
 
         // settlement window
-        bool settlementWindowOpen = block.timestamp <= expiry + (settlementWindow != 0 ? settlementWindow : MIN_SETTLEMENT_WINDOW);
+        bool settlementWindowOpen = block.timestamp <= expiry + getPhysicalSettlementWindow();
 
         if (settlementWindowOpen) {
             // cash value denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
@@ -144,8 +143,12 @@ abstract contract PhysicallySettled is BaseEngine {
         }
     }
 
+    function getPhysicalSettlementWindow() public view returns (uint256) {
+        return settlementWindow != 0 ? settlementWindow : MIN_SETTLEMENT_WINDOW;
+    }
+
     /*///////////////////////////////////////////////////////////////
-                            Internal Functions
+                        Override Internal Functions
     //////////////////////////////////////////////////////////////*/
 
     /**
@@ -153,19 +156,41 @@ abstract contract PhysicallySettled is BaseEngine {
      * @param _data bytes data to decode
      */
     function _mintOption(address _subAccount, bytes calldata _data) internal virtual override (BaseEngine) {
-        // decode parameters
-        (uint256 tokenId,,) = abi.decode(_data, (uint256, address, uint64));
+        // decode tokenId
+        uint256 tokenId = abi.decode(_data, (uint256));
 
-        (, SettlementType settlementType,,,,) = TokenIdUtil.parseTokenId(tokenId);
+        _assertPhysicalSettlementIssuer(_subAccount, tokenId);
 
+        BaseEngine._mintOption(_subAccount, _data);
+    }
+
+    /**
+     * @dev mint option token into account, increase short position (debt) and increase long position in storage
+     * @param _data bytes data to decode
+     */
+    function _mintOptionIntoAccount(address _subAccount, bytes calldata _data) internal virtual override {
+        // decode tokenId
+        uint256 tokenId = abi.decode(_data, (uint256));
+
+        _assertPhysicalSettlementIssuer(_subAccount, tokenId);
+
+        BaseEngine._mintOptionIntoAccount(_subAccount, _data);
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                            Internal Functions
+    //////////////////////////////////////////////////////////////*/
+
+    /**
+     * @dev ensures issuer is the subAccount
+     */
+    function _assertPhysicalSettlementIssuer(address _subAccount, uint256 _tokenId) internal {
         // only check if issuer is properly set if physically settled option
-        if (settlementType == SettlementType.PHYSICAL) {
-            address issuer = _getIssuer(tokenId);
+        if (TokenIdUtil.isPhysical(_tokenId)) {
+            address issuer = _getIssuer(_tokenId);
 
             if (issuer != _subAccount) revert PS_InvalidIssuerAddress();
         }
-
-        BaseEngine._mintOption(_subAccount, _data);
     }
 
     /**

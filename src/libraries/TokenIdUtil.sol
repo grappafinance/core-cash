@@ -117,6 +117,39 @@ library TokenIdUtil {
     }
 
     /**
+     * @notice derive option settlement type from ERC1155 token id
+     * @param tokenId token id
+     * @return settlementType SettlementType enum
+     */
+    function parseSettlementType(uint256 tokenId) internal pure returns (SettlementType) {
+        uint8 settlementType;
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            settlementType := shr(232, tokenId)
+        }
+
+        return SettlementType(settlementType);
+    }
+
+    /**
+     * @notice derive if option is cash settled from ERC1155 token id
+     * @param tokenId token id
+     * @return cash bool
+     */
+    function isCash(uint256 tokenId) internal pure returns (bool) {
+        return parseSettlementType(tokenId) == SettlementType.CASH;
+    }
+
+    /**
+     * @notice derive if option is cash settled from ERC1155 token id
+     * @param tokenId token id
+     * @return cash bool
+     */
+    function isPhysical(uint256 tokenId) internal pure returns (bool) {
+        return parseSettlementType(tokenId) == SettlementType.PHYSICAL;
+    }
+
+    /**
      * @notice derive if option is expired from ERC1155 token id
      * @param tokenId token id
      * @return expired bool

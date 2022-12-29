@@ -228,7 +228,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     {
         optionToken.burnGrappaOnly(_account, _tokenId, _amount);
 
-        Settlement memory settlement = _settle(_account, _tokenId, _amount);
+        Settlement memory settlement = _settle(_account, _tokenId, _amount, false);
 
         return (settlement.debt, settlement.payout);
     }
@@ -238,9 +238,10 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      *
      * @param _account who to settle for
      * @param _tokenIds array of tokenIds to burn
-     * @param _amounts   array of amounts to burn
+     * @param _amounts array of amounts to burn
+     * @param _dryRun flag to simulate transaction
      */
-    function batchSettle(address _account, uint256[] memory _tokenIds, uint256[] memory _amounts)
+    function batchSettle(address _account, uint256[] memory _tokenIds, uint256[] memory _amounts, bool _dryRun)
         external
         nonReentrant
         returns (Balance[] memory debts, Balance[] memory payouts)
@@ -249,14 +250,18 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
 
         if (_tokenIds.length == 0) return (debts, payouts);
 
-        optionToken.batchBurnGrappaOnly(_account, _tokenIds, _amounts);
+        if (!_dryRun) optionToken.batchBurnGrappaOnly(_account, _tokenIds, _amounts);
 
         for (uint256 i; i < _tokenIds.length;) {
-            Settlement memory settlement = _settle(_account, _tokenIds[i], _amounts[i]);
+            Settlement memory settlement = _settle(_account, _tokenIds[i], _amounts[i], _dryRun);
 
-            if (settlement.debt != 0) debts = _addToBalances(debts, settlement.debtAssetId, settlement.debt);
+            if (settlement.debt != 0) {
+                debts = _addToBalances(debts, settlement.debtAssetId, settlement.debt);
+            }
 
-            if (settlement.payout != 0) payouts = _addToBalances(payouts, settlement.payoutAssetId, settlement.payout);
+            if (settlement.payout != 0) {
+                payouts = _addToBalances(payouts, settlement.payoutAssetId, settlement.payout);
+            }
 
             unchecked {
                 ++i;
@@ -282,37 +287,6 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         unchecked {
             settlement.debt = settlement.debt / UNIT;
             settlement.payout = settlement.payout / UNIT;
-        }
-    }
-
-    /**
-     * @dev calculate the debts and payouts for array of options
-     *
-     * @param _tokenIds array of token id
-     * @param _amounts  array of amount
-     *
-     * @return debts amounts owed
-     * @return payouts amounts paid
-     *
-     */
-    function batchGetSettlements(uint256[] memory _tokenIds, uint256[] memory _amounts)
-        external
-        view
-        returns (Balance[] memory debts, Balance[] memory payouts)
-    {
-        for (uint256 i; i < _tokenIds.length;) {
-            Settlement memory settlement = getSettlement(_tokenIds[i], _amounts[i].toUint64());
-
-            uint256 debt = settlement.debt;
-            uint256 payout = settlement.payout;
-
-            if (debt != 0) debts = _addToBalances(debts, settlement.debtAssetId, debt);
-
-            if (payout != 0) payouts = _addToBalances(payouts, settlement.payoutAssetId, payout);
-
-            unchecked {
-                ++i;
-            }
         }
     }
 
@@ -448,10 +422,16 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      * @param _account  who to settle for
      * @param _tokenId  tokenId of option token to burn
      * @param _amount   amount to settle
+     * @param _dryRun   bool to simulate transaction
      * @return settlement struct
      */
-    function _settle(address _account, uint256 _tokenId, uint256 _amount) internal returns (Settlement memory settlement) {
+    function _settle(address _account, uint256 _tokenId, uint256 _amount, bool _dryRun)
+        internal
+        returns (Settlement memory settlement)
+    {
         settlement = getSettlement(_tokenId, _amount.toUint64());
+
+        if (_dryRun) return settlement;
 
         uint256 debt = settlement.debt;
         uint256 payout = settlement.payout;
@@ -499,24 +479,22 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
 
     /**
      * @dev add an entry to array of Balance
-     * @param payouts existing payout array
-     * @param collateralId new collateralId
-     * @param payout new payout
+     * @param _payouts existing payout array
+     * @param _collateralId new collateralId
+     * @param _payout new payout
      */
-    function _addToBalances(Balance[] memory payouts, uint8 collateralId, uint256 payout)
+    function _addToBalances(Balance[] memory _payouts, uint8 _collateralId, uint256 _payout)
         internal
         pure
         returns (Balance[] memory)
     {
-        if (payout == 0) return payouts;
+        (bool found, uint256 index) = _payouts.indexOf(_collateralId);
 
-        (bool found, uint256 index) = payouts.indexOf(collateralId);
-        if (!found) {
-            payouts = payouts.append(Balance(collateralId, payout.toUint80()));
-        } else {
-            payouts[index].amount += payout.toUint80();
-        }
+        uint80 payout = _payout.toUint80();
 
-        return payouts;
+        if (!found) _payouts = _payouts.append(Balance(_collateralId, payout));
+        else _payouts[index].amount += payout;
+
+        return _payouts;
     }
 }

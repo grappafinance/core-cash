@@ -296,7 +296,7 @@ contract CrossMarginEngine is
      */
     function _settle(address _subAccount) internal override {
         // update the account in state
-        (, Balance[] memory shortPayouts) = accounts[_subAccount].settleAtExpiry(grappa);
+        (,, Balance[] memory shortPayouts) = accounts[_subAccount].settleAtExpiry(grappa, getPhysicalSettlementWindow());
         emit AccountSettled(_subAccount, shortPayouts);
     }
 
@@ -309,6 +309,14 @@ contract CrossMarginEngine is
     function _mintOption(address _subAccount, bytes calldata _data) internal override (BaseEngine, PhysicallySettled) {
         // ensuring physical options are properly created
         PhysicallySettled._mintOption(_subAccount, _data);
+    }
+
+    function _mintOptionIntoAccount(address _subAccount, bytes calldata _data)
+        internal
+        virtual
+        override (BaseEngine, PhysicallySettled)
+    {
+        PhysicallySettled._mintOptionIntoAccount(_subAccount, _data);
     }
 
     function _addCollateralToAccount(address _subAccount, uint8 collateralId, uint80 amount) internal override {

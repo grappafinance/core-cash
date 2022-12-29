@@ -55,7 +55,7 @@ library CrossMarginMath {
         view
         returns (Balance[] memory amounts)
     {
-        // groups shorts and longs by underlying + strike + collateral + expiry
+        // groups shorts and longs by settlement, underlying, strike, expiry
         CrossMarginDetail[] memory details = _getPositionDetails(grappa, shorts, longs);
 
         // portfolio has no longs or shorts
