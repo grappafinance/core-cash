@@ -161,7 +161,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         external
         pure
         returns (
-            TokenType optionType,
+            TokenType tokenType,
             SettlementType settlementType,
             uint40 productId,
             uint64 expiry,
@@ -383,13 +383,13 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      * @dev make sure that the tokenId make sense
      */
     function _isValidTokenIdToMint(uint256 _tokenId) internal view {
-        (TokenType optionType, SettlementType settlementType,, uint64 expiry, uint64 strikePrice, uint64 reserved) =
+        (TokenType tokenType, SettlementType settlementType,, uint64 expiry, uint64 strikePrice, uint64 reserved) =
             _tokenId.parseTokenId();
 
         // check option type, strike and reserved
         // check that vanilla options doesnt have a reserved argument
         if (
-            (settlementType == SettlementType.CASH) && (optionType == TokenType.CALL || optionType == TokenType.PUT)
+            (settlementType == SettlementType.CASH) && (tokenType == TokenType.CALL || tokenType == TokenType.PUT)
                 && (reserved != 0)
         ) {
             revert GP_BadCashSettledStrikes();
@@ -398,7 +398,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         // debit spreads cannot be settled physically
         if (
             (settlementType == SettlementType.PHYSICAL)
-                && (optionType == TokenType.CALL_SPREAD || optionType == TokenType.PUT_SPREAD)
+                && (tokenType == TokenType.CALL_SPREAD || tokenType == TokenType.PUT_SPREAD)
         ) {
             revert GP_BadPhysicallySettledOption();
         }
@@ -407,8 +407,8 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         if ((settlementType == SettlementType.PHYSICAL) && (reserved == 0)) revert GP_BadPhysicallySettledOption();
 
         // check that you cannot mint a "credit spread" token, reserved is used as a short strikePrice
-        if (optionType == TokenType.CALL_SPREAD && (reserved < strikePrice)) revert GP_BadCashSettledStrikes();
-        if (optionType == TokenType.PUT_SPREAD && (reserved > strikePrice)) revert GP_BadCashSettledStrikes();
+        if (tokenType == TokenType.CALL_SPREAD && (reserved < strikePrice)) revert GP_BadCashSettledStrikes();
+        if (tokenType == TokenType.PUT_SPREAD && (reserved > strikePrice)) revert GP_BadCashSettledStrikes();
 
         // check expiry
         if (expiry <= block.timestamp) revert GP_InvalidExpiry();

@@ -43,9 +43,9 @@ contract TestSplitCallSpread_FM is FullMarginFixture {
 
         // check result
         (uint256 shortId, uint64 shortAmount,,) = engine.marginAccounts(address(this));
-        (TokenType optionType,,,, uint64 longStrike, uint64 shortStrike) = parseTokenId(shortId);
+        (TokenType tokenType,,,, uint64 longStrike, uint64 shortStrike) = parseTokenId(shortId);
 
-        assertEq(uint8(optionType), uint8(TokenType.CALL));
+        assertEq(uint8(tokenType), uint8(TokenType.CALL));
         assertEq(longStrike, strikePriceLow);
         assertEq(shortAmount, amount);
         assertEq(shortStrike, 0);
@@ -111,9 +111,9 @@ contract TestSplitPutSpread_FM is FullMarginFixture {
 
         // check result
         (uint256 shortId,,,) = engine.marginAccounts(address(this));
-        (TokenType optionType,,,, uint64 longStrike, uint64 shortStrike) = parseTokenId(shortId);
+        (TokenType tokenType,,,, uint64 longStrike, uint64 shortStrike) = parseTokenId(shortId);
 
-        assertEq(uint8(optionType), uint8(TokenType.PUT));
+        assertEq(uint8(tokenType), uint8(TokenType.PUT));
         assertEq(longStrike, strikePriceHigh);
         assertEq(shortStrike, 0);
     }

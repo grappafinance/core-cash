@@ -261,7 +261,7 @@ contract TestMint_CM is CrossMarginFixture {
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
 
-        vm.expectRevert(CM_UnsupportedOptionType.selector);
+        vm.expectRevert(CM_UnsupportedTokenType.selector);
         engine.execute(address(this), actions);
     }
 
@@ -279,7 +279,7 @@ contract TestMint_CM is CrossMarginFixture {
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
 
-        vm.expectRevert(CM_UnsupportedOptionType.selector);
+        vm.expectRevert(CM_UnsupportedTokenType.selector);
         engine.execute(address(this), actions);
     }
 }

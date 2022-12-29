@@ -50,7 +50,7 @@ abstract contract DebitSpread is BaseEngine {
         override (BaseEngine)
         returns (uint256 payoutPerToken)
     {
-        (TokenType optionType,, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) =
+        (TokenType tokenType,, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) =
             TokenIdUtil.parseTokenId(_tokenId);
 
         (address oracle,, address underlying,, address strike,, address collateral, uint8 collateralDecimals) =
@@ -62,13 +62,13 @@ abstract contract DebitSpread is BaseEngine {
         // cash value denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
         uint256 cashValue;
 
-        if (optionType == TokenType.CALL) {
+        if (tokenType == TokenType.CALL) {
             cashValue = MoneynessLib.getCallCashValue(expiryPrice, longStrike);
-        } else if (optionType == TokenType.CALL_SPREAD) {
+        } else if (tokenType == TokenType.CALL_SPREAD) {
             cashValue = MoneynessLib.getCashValueDebitCallSpread(expiryPrice, longStrike, shortStrike);
-        } else if (optionType == TokenType.PUT) {
+        } else if (tokenType == TokenType.PUT) {
             cashValue = MoneynessLib.getPutCashValue(expiryPrice, longStrike);
-        } else if (optionType == TokenType.PUT_SPREAD) {
+        } else if (tokenType == TokenType.PUT_SPREAD) {
             cashValue = MoneynessLib.getCashValueDebitPutSpread(expiryPrice, longStrike, shortStrike);
         }
 

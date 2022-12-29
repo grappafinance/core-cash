@@ -54,6 +54,8 @@ abstract contract PhysicallySettled is BaseEngine {
     // TODO should settleOption check for aboveWater on subAccount?
     // TODO check that margining math is properly accounting for co-mingled options
     // Change Runs on CME to 10_000
+    // TODO account for longDebts in account settled event
+    // TODO convert TokenIdUtil.parseTokenId
 
     /*///////////////////////////////////////////////////////////////
                             External Functions
@@ -105,7 +107,7 @@ abstract contract PhysicallySettled is BaseEngine {
      * @return settlement struct
      */
     function getPhysicalSettlementPerToken(uint256 _tokenId) public view virtual returns (Settlement memory settlement) {
-        (TokenType optionType, SettlementType settlementType, uint40 productId, uint64 expiry, uint64 strike,) =
+        (TokenType tokenType, SettlementType settlementType, uint40 productId, uint64 expiry, uint64 strike,) =
             TokenIdUtil.parseTokenId(_tokenId);
 
         if (settlementType == SettlementType.CASH) revert PS_InvalidSettlementType();
@@ -127,13 +129,13 @@ abstract contract PhysicallySettled is BaseEngine {
             (, uint8 underlyingDecimals) = grappa.assets(underlyingId);
             uint256 underlyingAmount = UNIT.convertDecimals(UNIT_DECIMALS, underlyingDecimals);
 
-            if (optionType == TokenType.CALL) {
+            if (tokenType == TokenType.CALL) {
                 settlement.debtAssetId = strikeId;
                 settlement.debtPerToken = strikeAmount;
 
                 settlement.payoutAssetId = underlyingId;
                 settlement.payoutPerToken = underlyingAmount;
-            } else if (optionType == TokenType.PUT) {
+            } else if (tokenType == TokenType.PUT) {
                 settlement.debtAssetId = underlyingId;
                 settlement.debtPerToken = underlyingAmount;
 

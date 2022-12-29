@@ -17,5 +17,5 @@ struct FullMarginDetail {
     uint256 collateralAmount;
     uint8 collateralDecimals;
     bool collateralizedWithStrike;
-    TokenType optionType;
+    TokenType tokenType;
 }

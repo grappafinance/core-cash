@@ -72,21 +72,21 @@ library CrossMarginLib {
     function mintOption(CrossMarginAccount storage account, uint256 tokenId, uint64 amount) external {
         if (amount == 0) return;
 
-        (TokenType optionType,, uint40 productId,,,) = tokenId.parseTokenId();
+        (TokenType tokenType,, uint40 productId,,,) = tokenId.parseTokenId();
 
         // assign collateralId or check collateral id is the same
         (,, uint8 underlyingId, uint8 strikeId, uint8 collateralId) = productId.parseProductId();
 
         // engine only supports calls and puts
-        if (optionType != TokenType.CALL && optionType != TokenType.PUT) revert CM_UnsupportedOptionType();
+        if (tokenType != TokenType.CALL && tokenType != TokenType.PUT) revert CM_UnsupportedTokenType();
 
         // call can only collateralized by underlying
-        if ((optionType == TokenType.CALL) && underlyingId != collateralId) {
+        if ((tokenType == TokenType.CALL) && underlyingId != collateralId) {
             revert CM_CannotMintOptionWithThisCollateral();
         }
 
         // put can only be collateralized by strike
-        if ((optionType == TokenType.PUT) && strikeId != collateralId) revert CM_CannotMintOptionWithThisCollateral();
+        if ((tokenType == TokenType.PUT) && strikeId != collateralId) revert CM_CannotMintOptionWithThisCollateral();
 
         (bool found, uint256 index) = account.shorts.indexOf(tokenId);
         if (!found) {
@@ -166,14 +166,14 @@ library CrossMarginLib {
         while (i < account.longs.length) {
             uint256 tokenId = account.longs[i].tokenId;
 
-            bool expired = tokenId.isExpired();
-            bool isPhysical = tokenId.isPhysical();
+            (, SettlementType settlementType,, uint64 expiry,,) = tokenId.parseTokenId();
+
+            bool expired = block.timestamp >= expiry;
+            bool isPhysical = settlementType == SettlementType.PHYSICAL;
             bool canSettle = true;
 
             // can only settle long physical options before the end of the settlement window
             if (expired && isPhysical) {
-                (,,, uint64 expiry,,) = tokenId.parseTokenId();
-
                 if (block.timestamp > expiry + physicalSettlementWindow) {
                     canSettle = false;
                 }
@@ -242,14 +242,14 @@ library CrossMarginLib {
         while (i < account.shorts.length) {
             uint256 tokenId = account.shorts[i].tokenId;
 
-            bool expired = tokenId.isExpired();
-            bool isPhysical = tokenId.isPhysical();
+            (, SettlementType settlementType,, uint64 expiry,,) = tokenId.parseTokenId();
+
+            bool expired = block.timestamp >= expiry;
+            bool isPhysical = settlementType == SettlementType.PHYSICAL;
             bool canSettle = true;
 
             // can only settle short physical options after the settlement window
             if (expired && isPhysical) {
-                (,,, uint64 expiry,,) = tokenId.parseTokenId();
-
                 if (block.timestamp < expiry + physicalSettlementWindow) {
                     canSettle = false;
                 }
@@ -273,7 +273,8 @@ library CrossMarginLib {
 
         if (tokenIds.length > 0) {
             // only concerned with payouts of cash settled options
-            // physical options will payout in full or not at all
+            // physical options will payout in full or not at all.
+            // simulating a batch settlement to get payouts
             (, payouts) = grappa.batchSettle(address(this), tokenIds, amounts, true);
 
             for (i = 0; i < payouts.length;) {

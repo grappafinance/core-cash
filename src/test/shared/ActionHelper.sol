@@ -9,21 +9,21 @@ import "../../libraries/ActionUtil.sol";
 
 abstract contract ActionHelper {
     function getTokenId(
-        TokenType optionType,
+        TokenType tokenType,
         SettlementType settlementType,
         uint40 productId,
         uint256 expiry,
         uint256 strike,
         uint256 reserved
     ) internal pure returns (uint256 tokenId) {
-        tokenId = TokenIdUtil.getTokenId(optionType, settlementType, productId, uint64(expiry), uint64(strike), uint64(reserved));
+        tokenId = TokenIdUtil.getTokenId(tokenType, settlementType, productId, uint64(expiry), uint64(strike), uint64(reserved));
     }
 
     function parseTokenId(uint256 tokenId)
         internal
         pure
         returns (
-            TokenType optionType,
+            TokenType tokenType,
             SettlementType settlementType,
             uint40 productId,
             uint64 expiry,

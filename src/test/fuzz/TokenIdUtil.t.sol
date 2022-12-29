@@ -8,37 +8,37 @@ import "../../config/enums.sol";
 
 contract TokenIdUtilTest is Test {
     function testTokenIdHigherThan0(
-        uint8 optionType,
+        uint8 tokenType,
         uint8 settlementType,
         uint40 productId,
         uint64 expiry,
         uint64 strike,
         uint64 reserved
     ) public {
-        vm.assume(optionType < 4);
+        vm.assume(tokenType < 4);
         vm.assume(settlementType < 2);
         vm.assume(productId > 0);
 
         uint256 id =
-            TokenIdUtil.getTokenId(TokenType(optionType), SettlementType(settlementType), productId, expiry, strike, reserved);
+            TokenIdUtil.getTokenId(TokenType(tokenType), SettlementType(settlementType), productId, expiry, strike, reserved);
 
         assertGt(id, 0);
     }
 
     function testFormatAndParseAreMirrored(
-        uint8 optionType,
+        uint8 tokenType,
         uint8 settlementType,
         uint40 productId,
         uint64 expiry,
         uint64 strike,
         uint64 reserved
     ) public {
-        vm.assume(optionType < 4);
+        vm.assume(tokenType < 4);
         vm.assume(settlementType < 2);
         vm.assume(productId > 0);
 
         uint256 id =
-            TokenIdUtil.getTokenId(TokenType(optionType), SettlementType(settlementType), productId, expiry, strike, reserved);
+            TokenIdUtil.getTokenId(TokenType(tokenType), SettlementType(settlementType), productId, expiry, strike, reserved);
         (
             TokenType _optionType,
             SettlementType _settlementType,
@@ -48,7 +48,7 @@ contract TokenIdUtilTest is Test {
             uint64 _reserved
         ) = TokenIdUtil.parseTokenId(id);
 
-        assertEq(uint8(optionType), uint8(_optionType));
+        assertEq(uint8(tokenType), uint8(_optionType));
         assertEq(uint8(settlementType), uint8(_settlementType));
         assertEq(productId, _productId);
         assertEq(expiry, _expiry);
@@ -57,19 +57,19 @@ contract TokenIdUtilTest is Test {
     }
 
     function testGetAndParseAreMirrored(
-        uint8 optionType,
+        uint8 tokenType,
         uint8 settlementType,
         uint40 productId,
         uint256 expiry,
         uint256 strike,
         uint256 reserved
     ) public {
-        vm.assume(optionType < 4);
+        vm.assume(tokenType < 4);
         vm.assume(settlementType < 2);
         vm.assume(productId > 0);
 
         uint256 id = TokenIdUtil.getTokenId(
-            TokenType(optionType), SettlementType(settlementType), productId, uint64(expiry), uint64(strike), uint64(reserved)
+            TokenType(tokenType), SettlementType(settlementType), productId, uint64(expiry), uint64(strike), uint64(reserved)
         );
         (
             TokenType _optionType,
@@ -80,7 +80,7 @@ contract TokenIdUtilTest is Test {
             uint64 _reserved
         ) = TokenIdUtil.parseTokenId(id);
 
-        assertEq(optionType, uint8(_optionType));
+        assertEq(tokenType, uint8(_optionType));
         assertEq(settlementType, uint8(_settlementType));
         assertEq(productId, _productId);
         assertEq(uint64(expiry), _expiry);

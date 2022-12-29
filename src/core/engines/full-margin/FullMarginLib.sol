@@ -53,23 +53,23 @@ library FullMarginLib {
     ///@dev Increase the amount of short call or put (debt) of the account
     ///@param account FullMarginAccount memory that will be updated
     function mintOption(FullMarginAccount storage account, uint256 tokenId, uint64 amount) internal {
-        (TokenType optionType,, uint40 productId,,,) = tokenId.parseTokenId();
+        (TokenType tokenType,, uint40 productId,,,) = tokenId.parseTokenId();
 
         // assign collateralId or check collateral id is the same
         (,, uint8 underlyingId, uint8 strikeId, uint8 collateralId) = productId.parseProductId();
 
         // call can only collateralized by underlying
-        if ((optionType == TokenType.CALL) && underlyingId != collateralId) {
+        if ((tokenType == TokenType.CALL) && underlyingId != collateralId) {
             revert FM_CannotMintOptionWithThisCollateral();
         }
 
         // call spread can be collateralized by underlying or strike
-        if (optionType == TokenType.CALL_SPREAD && collateralId != underlyingId && collateralId != strikeId) {
+        if (tokenType == TokenType.CALL_SPREAD && collateralId != underlyingId && collateralId != strikeId) {
             revert FM_CannotMintOptionWithThisCollateral();
         }
 
         // put or put spread can only be collateralized by strike
-        if ((optionType == TokenType.PUT_SPREAD || optionType == TokenType.PUT) && strikeId != collateralId) {
+        if ((tokenType == TokenType.PUT_SPREAD || tokenType == TokenType.PUT) && strikeId != collateralId) {
             revert FM_CannotMintOptionWithThisCollateral();
         }
 
@@ -98,7 +98,7 @@ library FullMarginLib {
     }
 
     ///@dev merge an OptionToken into the accunt, changing existing short to spread
-    ///@dev shortId and longId already have the same optionType, productId, expiry
+    ///@dev shortId and longId already have the same tokenType, productId, expiry
     ///@param account FullMarginAccount memory that will be updated in-place
     ///@param shortId existing short position to be converted into spread
     ///@param longId token to be "added" into the account. This is expected to have the same time of the exisiting short type.
@@ -123,7 +123,7 @@ library FullMarginLib {
         if (spreadId != account.tokenId) revert FM_InvalidToken();
         if (amount != account.shortAmount) revert FM_SplitAmountMisMatch();
 
-        // convert to call: remove the "short strike" and update "optionType" field
+        // convert to call: remove the "short strike" and update "tokenType" field
         account.tokenId = TokenIdUtil.convertToVanillaId(spreadId);
     }
 

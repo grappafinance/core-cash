@@ -21,7 +21,7 @@ import "../config/errors.sol";
  * @title   OptionToken
  * @author  antoncoding
  * @dev     each OptionToken represent the right to redeem cash value at expiry.
- *             The value of each TokenType should always be positive.
+ *             The value of each OptionType should always be positive.
  */
 contract OptionToken is ERC1155, IOptionToken {
     ///@dev grappa serve as the registry

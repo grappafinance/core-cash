@@ -24,19 +24,19 @@ contract PreviewCollateralReqBase is CrossMarginFixture {
     uint8 constant PHYSICAL = uint8(1);
 
     struct OptionPosition {
-        TokenType optionType;
+        TokenType tokenType;
         SettlementType settlementType;
         uint256 strike;
         int256 amount;
     }
 
-    function _optionPosition(uint8 optionType, uint8 settlementType, uint256 strike, int256 amount)
+    function _optionPosition(uint8 tokenType, uint8 settlementType, uint256 strike, int256 amount)
         internal
         pure
         returns (OptionPosition memory op)
     {
         if (strike <= UNIT) strike = strike * UNIT;
-        return OptionPosition(TokenType(optionType), SettlementType(settlementType), strike, amount * sUNIT);
+        return OptionPosition(TokenType(tokenType), SettlementType(settlementType), strike, amount * sUNIT);
     }
 
     function _previewMinCollateral(OptionPosition[] memory postions) internal view returns (Balance[] memory balances) {
@@ -52,7 +52,7 @@ contract PreviewCollateralReqBase is CrossMarginFixture {
         for (uint256 i = 0; i < positions.length; i++) {
             OptionPosition memory position = positions[i];
 
-            uint256 tokenId = TokenType.CALL == position.optionType ? _callTokenId(position.strike) : _putTokenId(position.strike);
+            uint256 tokenId = TokenType.CALL == position.tokenType ? _callTokenId(position.strike) : _putTokenId(position.strike);
 
             if (position.amount < 0) {
                 shorts = AccountUtil.append(shorts, Position(tokenId, uint64(uint256(-position.amount))));
