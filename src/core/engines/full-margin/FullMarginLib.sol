@@ -13,7 +13,10 @@ import "./errors.sol";
 
 /**
  * @title FullMarginLib
- * @dev   This library is in charge of updating the simple account struct and do validations
+ * @dev   This library is in charge of updating the full account struct.
+ *        whether a "token id" is valid or not is checked in Grappa.sol.
+ *
+ *        FullMarginLib only supports 1 collat type and 1 short position
  */
 library FullMarginLib {
     using TokenIdUtil for uint256;
