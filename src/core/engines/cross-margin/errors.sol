@@ -12,7 +12,7 @@ error CM_UnsupportedAction();
 error CM_AccountIsNotEmpty();
 
 /// @dev unsupported token type
-error CM_UnsupportedDerivativeType();
+error CM_UnsupportedOptionType();
 
 /// @dev can only add long tokens that are not expired
 error CM_Option_Expired();

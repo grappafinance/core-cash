@@ -24,19 +24,19 @@ contract PreviewCollateralReqBase is CrossMarginFixture {
     uint8 constant PHYSICAL = uint8(1);
 
     struct OptionPosition {
-        DerivativeType derivativeType;
+        TokenType optionType;
         SettlementType settlementType;
         uint256 strike;
         int256 amount;
     }
 
-    function _optionPosition(uint8 derivativeType, uint8 settlementType, uint256 strike, int256 amount)
+    function _optionPosition(uint8 optionType, uint8 settlementType, uint256 strike, int256 amount)
         internal
         pure
         returns (OptionPosition memory op)
     {
         if (strike <= UNIT) strike = strike * UNIT;
-        return OptionPosition(DerivativeType(derivativeType), SettlementType(settlementType), strike, amount * sUNIT);
+        return OptionPosition(TokenType(optionType), SettlementType(settlementType), strike, amount * sUNIT);
     }
 
     function _previewMinCollateral(OptionPosition[] memory postions) internal view returns (Balance[] memory balances) {
@@ -53,7 +53,7 @@ contract PreviewCollateralReqBase is CrossMarginFixture {
             OptionPosition memory position = positions[i];
 
             uint256 tokenId =
-                DerivativeType.CALL == position.derivativeType ? _callTokenId(position.strike) : _putTokenId(position.strike);
+                TokenType.CALL == position.optionType ? _callTokenId(position.strike) : _putTokenId(position.strike);
 
             if (position.amount < 0) {
                 shorts = AccountUtil.append(shorts, Position(tokenId, uint64(uint256(-position.amount))));
@@ -64,11 +64,11 @@ contract PreviewCollateralReqBase is CrossMarginFixture {
     }
 
     function _callTokenId(uint256 _strikePrice) internal view returns (uint256 tokenId) {
-        tokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, pidEthCollat, expiry, _strikePrice, 0);
+        tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, pidEthCollat, expiry, _strikePrice, 0);
     }
 
     function _putTokenId(uint256 _strikePrice) internal view returns (uint256 tokenId) {
-        tokenId = getTokenId(DerivativeType.PUT, SettlementType.CASH, pidUsdcCollat, expiry, _strikePrice, 0);
+        tokenId = getTokenId(TokenType.PUT, SettlementType.CASH, pidUsdcCollat, expiry, _strikePrice, 0);
     }
 
     // add a function prefixed with test here so forge coverage will ignore this file

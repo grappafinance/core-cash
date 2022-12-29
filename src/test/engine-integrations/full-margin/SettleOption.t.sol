@@ -29,7 +29,7 @@ contract TestSettleCoveredCall_FM is FullMarginFixture {
 
         strike = uint64(4000 * UNIT);
 
-        tokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, pidEthCollat, expiry, strike, 0);
+        tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, pidEthCollat, expiry, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         // give optoin to alice
@@ -149,7 +149,7 @@ contract TestSettlePut_FM is FullMarginFixture {
 
         uint256 depositAmount = 2000 * 1e6;
 
-        tokenId = getTokenId(DerivativeType.PUT, SettlementType.CASH, pidUsdcCollat, expiry, strike, 0);
+        tokenId = getTokenId(TokenType.PUT, SettlementType.CASH, pidUsdcCollat, expiry, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         // give optoin to alice
@@ -266,7 +266,7 @@ contract TestSettleCallSpread_FM is FullMarginFixture {
         longStrike = uint64(4000 * UNIT);
         shortStrike = uint64(5000 * UNIT);
 
-        tokenId = getTokenId(DerivativeType.CALL_SPREAD, SettlementType.CASH, pidEthCollat, expiry, longStrike, shortStrike);
+        tokenId = getTokenId(TokenType.CALL_SPREAD, SettlementType.CASH, pidEthCollat, expiry, longStrike, shortStrike);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         // give optoin to alice
@@ -400,7 +400,7 @@ contract TestSettleCallStrikeSpread_FM is FullMarginFixture {
         longStrike = uint64(4000 * UNIT);
         shortStrike = uint64(5000 * UNIT);
 
-        tokenId = getTokenId(DerivativeType.CALL_SPREAD, SettlementType.CASH, pidUsdcCollat, expiry, longStrike, shortStrike);
+        tokenId = getTokenId(TokenType.CALL_SPREAD, SettlementType.CASH, pidUsdcCollat, expiry, longStrike, shortStrike);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         // give optoin to alice
@@ -512,7 +512,7 @@ contract TestSettlePutSpread_FM is FullMarginFixture {
         longStrike = uint64(2000 * UNIT);
         shortStrike = uint64(1800 * UNIT);
 
-        tokenId = getTokenId(DerivativeType.PUT_SPREAD, SettlementType.CASH, pidUsdcCollat, expiry, longStrike, shortStrike);
+        tokenId = getTokenId(TokenType.PUT_SPREAD, SettlementType.CASH, pidUsdcCollat, expiry, longStrike, shortStrike);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         // give optoin to alice

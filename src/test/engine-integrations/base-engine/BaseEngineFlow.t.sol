@@ -99,7 +99,7 @@ contract BaseEngineFlow is BaseEngineSetup {
         uint256 strikePrice = 4000 * UNIT;
         uint256 amount = 1 * UNIT;
 
-        uint256 tokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, productId, expiry, strikePrice, 0);
+        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createMintAction(tokenId, address(this), amount);
@@ -114,7 +114,7 @@ contract BaseEngineFlow is BaseEngineSetup {
         uint256 strikePrice = 4000 * UNIT;
         uint256 amount = 1 * UNIT;
 
-        uint256 tokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, productId, expiry, strikePrice, 0);
+        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createMintIntoAccountAction(tokenId, address(this), amount);
@@ -130,7 +130,7 @@ contract BaseEngineFlow is BaseEngineSetup {
         uint256 strikePrice = 4000 * UNIT;
         uint256 amount = 1 * UNIT;
 
-        uint256 tokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, productId, expiry, strikePrice, 0);
+        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, strikePrice, 0);
 
         // prepare mint tokens
         ActionArgs[] memory _actions = new ActionArgs[](1);
@@ -150,7 +150,7 @@ contract BaseEngineFlow is BaseEngineSetup {
 
         uint256 strikePrice = 4000 * UNIT;
         uint256 amount = 1 * UNIT;
-        uint256 tokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, productId, expiry, strikePrice, 0);
+        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, strikePrice, 0);
 
         // burn
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -167,9 +167,9 @@ contract BaseEngineFlow is BaseEngineSetup {
         uint256 amount = 1 * UNIT;
 
         uint256 spreadId =
-            getTokenId(DerivativeType.CALL_SPREAD, SettlementType.CASH, productId, expiry, strikePrice, strikePriceHigher);
+            getTokenId(TokenType.CALL_SPREAD, SettlementType.CASH, productId, expiry, strikePrice, strikePriceHigher);
 
-        uint256 expecetedLong = getTokenId(DerivativeType.CALL, SettlementType.CASH, productId, expiry, strikePriceHigher, 0);
+        uint256 expecetedLong = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, strikePriceHigher, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSplitAction(spreadId, amount, address(this));
@@ -183,8 +183,8 @@ contract BaseEngineFlow is BaseEngineSetup {
 
         uint256 strikePrice = 4000 * UNIT;
         uint256 amount = 1 * UNIT;
-        uint256 tokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, productId, expiry, strikePrice, 0);
-        uint256 shortId = getTokenId(DerivativeType.CALL, SettlementType.CASH, productId, expiry, strikePrice + 1, 0);
+        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, strikePrice, 0);
+        uint256 shortId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, strikePrice + 1, 0);
 
         // prepare: mint tokens
         ActionArgs[] memory _actions = new ActionArgs[](1);
@@ -205,7 +205,7 @@ contract BaseEngineFlow is BaseEngineSetup {
 
         uint256 strikePrice = 4000 * UNIT;
         uint256 amount = 1 * UNIT;
-        uint256 tokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, productId, expiry, strikePrice, 0);
+        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, strikePrice, 0);
 
         // execute merge
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -219,7 +219,7 @@ contract BaseEngineFlow is BaseEngineSetup {
 
         uint256 strikePrice = 4000 * UNIT;
         uint256 amount = 1 * UNIT;
-        uint256 tokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, productId, expiry, strikePrice, 0);
+        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, strikePrice, 0);
 
         // execute add long
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -234,7 +234,7 @@ contract BaseEngineFlow is BaseEngineSetup {
 
         uint256 strikePrice = 4000 * UNIT;
         uint256 amount = 1 * UNIT;
-        uint256 tokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, productId, expiry, strikePrice, 0);
+        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, strikePrice, 0);
 
         // prepare: mint tokens
         ActionArgs[] memory _actions = new ActionArgs[](1);
@@ -257,7 +257,7 @@ contract BaseEngineFlow is BaseEngineSetup {
 
         uint256 strikePrice = 4000 * UNIT;
         uint256 amount = 1 * UNIT;
-        uint256 tokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, productId, expiry, strikePrice, 0);
+        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, strikePrice, 0);
 
         // prepare: mint tokens to engine
         ActionArgs[] memory _actions = new ActionArgs[](1);

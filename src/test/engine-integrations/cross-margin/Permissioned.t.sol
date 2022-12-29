@@ -34,7 +34,7 @@ contract Permissioned is CrossMarginFixture {
 
         expiry = block.timestamp + 14 days;
 
-        tokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, pidEthCollat, expiry, strikePrice, 0);
+        tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, pidEthCollat, expiry, strikePrice, 0);
 
         oracle.setSpotPrice(address(weth), 3000 * UNIT);
     }

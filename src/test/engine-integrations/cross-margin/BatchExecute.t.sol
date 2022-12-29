@@ -36,8 +36,8 @@ contract TestBatchExecute_CM is CrossMarginFixture {
 
         expiry = block.timestamp + 1 days;
 
-        tokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, pidEthCollat, expiry, strikePrice, 0);
-        tokenId2 = getTokenId(DerivativeType.CALL, SettlementType.CASH, pidEthCollat, expiry, strikePrice * 2, 0);
+        tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, pidEthCollat, expiry, strikePrice, 0);
+        tokenId2 = getTokenId(TokenType.CALL, SettlementType.CASH, pidEthCollat, expiry, strikePrice * 2, 0);
 
         oracle.setSpotPrice(address(weth), 2000 * UNIT);
     }
@@ -137,8 +137,8 @@ contract TestBatchExecute_CM is CrossMarginFixture {
     function testMintSpreadChecksCollateralAfterBatch() public {
         uint256 k1 = 2100 * UNIT;
         uint256 k2 = 2101 * UNIT;
-        uint256 c2100 = getTokenId(DerivativeType.CALL, SettlementType.CASH, pidEthCollat, expiry, k1, 0);
-        uint256 c2101 = getTokenId(DerivativeType.CALL, SettlementType.CASH, pidEthCollat, expiry, k2, 0);
+        uint256 c2100 = getTokenId(TokenType.CALL, SettlementType.CASH, pidEthCollat, expiry, k1, 0);
+        uint256 c2101 = getTokenId(TokenType.CALL, SettlementType.CASH, pidEthCollat, expiry, k2, 0);
         // we are making a $1 wide call spread, so you should only need $1 of collateral for this
 
         uint256 requiredCollateral = ((k2 - k1) * depositAmount) / k2;

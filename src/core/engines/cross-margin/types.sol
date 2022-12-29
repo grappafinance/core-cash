@@ -45,7 +45,7 @@ struct CrossMarginDetail {
 }
 
 /**
- * @dev an struct to store derivative
+ * @dev an struct to store option
  * @param tokenId grappa option token id
  * @param amount number option tokens
  */

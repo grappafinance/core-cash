@@ -34,14 +34,14 @@ contract TestSettlePhysicalOption_CM is CrossMarginFixture {
     }
 
     function testCannotGetPhysicalSettlementPerTokenForCashSettledToken() public {
-        tokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, pidEthCollat, expiry, strike, 0);
+        tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, pidEthCollat, expiry, strike, 0);
 
         vm.expectRevert(PS_InvalidSettlementType.selector);
         engine.getPhysicalSettlementPerToken(tokenId);
     }
 
     function testGetsNothingFromOptionPastSettlementWindow() public {
-        tokenId = getTokenId(DerivativeType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, issuerId);
+        tokenId = getTokenId(TokenType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, issuerId);
 
         vm.warp(expiry + 14 minutes);
 
@@ -61,7 +61,7 @@ contract TestSettlePhysicalOption_CM is CrossMarginFixture {
     function testGetsNothingFromOptionPastCustomSettlementWindow() public {
         engine.setPhysicalSettlementWindow(1 hours);
 
-        tokenId = getTokenId(DerivativeType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, issuerId);
+        tokenId = getTokenId(TokenType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, issuerId);
 
         vm.warp(expiry + 16 minutes);
 
@@ -98,7 +98,7 @@ contract TestSettlePhysicalCoveredCall_CM is CrossMarginFixture {
 
         strike = uint64(4000 * UNIT);
 
-        tokenId = getTokenId(DerivativeType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, issuerId);
+        tokenId = getTokenId(TokenType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, issuerId);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         // give option to alice
@@ -213,7 +213,7 @@ contract TestSettlePhysicalCollateralizedPut_CM is CrossMarginFixture {
 
         strike = uint64(2000 * UNIT);
 
-        tokenId = getTokenId(DerivativeType.PUT, SettlementType.PHYSICAL, pidUsdcCollat, expiry, strike, issuerId);
+        tokenId = getTokenId(TokenType.PUT, SettlementType.PHYSICAL, pidUsdcCollat, expiry, strike, issuerId);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         // give optoin to alice
@@ -334,7 +334,7 @@ contract TestSettlePhysicalShortPositions_CM is CrossMarginFixture {
     }
 
     function testSellerCannotClearCallDebtAfterExpiryBeforeWindowClosed() public {
-        uint256 tokenId = getTokenId(DerivativeType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, issuerId);
+        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, issuerId);
 
         _mintTokens(tokenId, wethId, wethDepositAmount);
 
@@ -353,7 +353,7 @@ contract TestSettlePhysicalShortPositions_CM is CrossMarginFixture {
     }
 
     function testSellerCanClearCallDebtAfterWindowClosed() public {
-        uint256 tokenId = getTokenId(DerivativeType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, issuerId);
+        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, issuerId);
 
         _mintTokens(tokenId, wethId, wethDepositAmount);
 
@@ -375,7 +375,7 @@ contract TestSettlePhysicalShortPositions_CM is CrossMarginFixture {
     }
 
     function testSellerCannotClearPutDebtAfterExpiryBeforeWindowClosed() public {
-        uint256 tokenId = getTokenId(DerivativeType.PUT, SettlementType.PHYSICAL, pidUsdcCollat, expiry, strike, issuerId);
+        uint256 tokenId = getTokenId(TokenType.PUT, SettlementType.PHYSICAL, pidUsdcCollat, expiry, strike, issuerId);
 
         _mintTokens(tokenId, usdcId, usdcDepositAmount);
 
@@ -394,7 +394,7 @@ contract TestSettlePhysicalShortPositions_CM is CrossMarginFixture {
     }
 
     function testSellerCanClearPutDebtAfterWindowClosed() public {
-        uint256 tokenId = getTokenId(DerivativeType.PUT, SettlementType.PHYSICAL, pidUsdcCollat, expiry, strike, issuerId);
+        uint256 tokenId = getTokenId(TokenType.PUT, SettlementType.PHYSICAL, pidUsdcCollat, expiry, strike, issuerId);
 
         _mintTokens(tokenId, usdcId, usdcDepositAmount);
 
@@ -461,7 +461,7 @@ contract TestSettlePhysicalLongPositions_CM is CrossMarginFixture {
     }
 
     function testHolderCannotClearLongCallAfterWindowClosed() public {
-        uint256 tokenId = getTokenId(DerivativeType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, issuerId);
+        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, issuerId);
 
         _mintTokens(tokenId, wethId, wethDepositAmount);
 
@@ -480,7 +480,7 @@ contract TestSettlePhysicalLongPositions_CM is CrossMarginFixture {
     }
 
     function testSellerCanClearLongCallDebtAfterExpiryBeforeWindowClosed() public {
-        uint256 tokenId = getTokenId(DerivativeType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, issuerId);
+        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, issuerId);
 
         _mintTokens(tokenId, wethId, wethDepositAmount);
 
@@ -499,7 +499,7 @@ contract TestSettlePhysicalLongPositions_CM is CrossMarginFixture {
     }
 
     function testHolderCannotClearLongPutAfterWindowClosed() public {
-        uint256 tokenId = getTokenId(DerivativeType.PUT, SettlementType.PHYSICAL, pidUsdcCollat, expiry, strike, issuerId);
+        uint256 tokenId = getTokenId(TokenType.PUT, SettlementType.PHYSICAL, pidUsdcCollat, expiry, strike, issuerId);
 
         _mintTokens(tokenId, usdcId, usdcDepositAmount);
 
@@ -518,7 +518,7 @@ contract TestSettlePhysicalLongPositions_CM is CrossMarginFixture {
     }
 
     function testSellerCanClearPutDebtAfterWindowClosed() public {
-        uint256 tokenId = getTokenId(DerivativeType.PUT, SettlementType.PHYSICAL, pidUsdcCollat, expiry, strike, issuerId);
+        uint256 tokenId = getTokenId(TokenType.PUT, SettlementType.PHYSICAL, pidUsdcCollat, expiry, strike, issuerId);
 
         _mintTokens(tokenId, usdcId, usdcDepositAmount);
 

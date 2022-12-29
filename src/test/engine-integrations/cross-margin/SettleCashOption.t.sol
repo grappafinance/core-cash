@@ -31,7 +31,7 @@ contract TestSettleCash_CM is CrossMarginFixture {
     }
 
     function testCannotGetCashSettlementPerTokenForPhysicalSettledToken() public {
-        tokenId = getTokenId(DerivativeType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, 0);
+        tokenId = getTokenId(TokenType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, 0);
 
         vm.expectRevert(BM_InvalidSettlementType.selector);
         engine.getCashSettlementPerToken(tokenId);
@@ -57,7 +57,7 @@ contract TestSettleCashCoveredCall_CM is CrossMarginFixture {
 
         strike = uint64(4000 * UNIT);
 
-        tokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, pidEthCollat, expiry, strike, 0);
+        tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, pidEthCollat, expiry, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         // give option to alice
@@ -163,7 +163,7 @@ contract TestSettleCashCoveredCall_CM is CrossMarginFixture {
     function testSellerCanClearOnlyExpiredOptions() public {
         vm.warp(expiry - 10 days);
 
-        uint256 tokenId2 = getTokenId(DerivativeType.CALL, SettlementType.CASH, pidEthCollat, expiry + 1 days, strike, 0);
+        uint256 tokenId2 = getTokenId(TokenType.CALL, SettlementType.CASH, pidEthCollat, expiry + 1 days, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId2, alice, amount);
@@ -200,7 +200,7 @@ contract TestSettleCashCoveredCall_CM is CrossMarginFixture {
 
     function testSellerCanClearMultipleExpiredOptions() public {
         vm.warp(expiry - 10 days);
-        uint256 tokenId2 = getTokenId(DerivativeType.CALL, SettlementType.CASH, pidEthCollat, expiry, strike + (1 * UNIT), 0);
+        uint256 tokenId2 = getTokenId(TokenType.CALL, SettlementType.CASH, pidEthCollat, expiry, strike + (1 * UNIT), 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
@@ -261,7 +261,7 @@ contract TestSettleCashCollateralizedPut_CM is CrossMarginFixture {
 
         strike = uint64(2000 * UNIT);
 
-        tokenId = getTokenId(DerivativeType.PUT, SettlementType.CASH, pidUsdcCollat, expiry, strike, 0);
+        tokenId = getTokenId(TokenType.PUT, SettlementType.CASH, pidUsdcCollat, expiry, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         // give optoin to alice
@@ -310,7 +310,7 @@ contract TestSettleCashCollateralizedPut_CM is CrossMarginFixture {
     // settlement on sell side
 
     function testSellerCanClearOnlyExpiredOptions() public {
-        uint256 tokenId2 = getTokenId(DerivativeType.PUT, SettlementType.CASH, pidUsdcCollat, expiry + 1 days, strike, 0);
+        uint256 tokenId2 = getTokenId(TokenType.PUT, SettlementType.CASH, pidUsdcCollat, expiry + 1 days, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId2, alice, amount);
@@ -391,8 +391,8 @@ contract TestSettleCashLongShort_CM is CrossMarginFixture {
 
         expiry = block.timestamp + 14 days;
 
-        selfTokenId = getTokenId(DerivativeType.PUT, SettlementType.CASH, pidUsdcCollat, expiry, selfStrike, 0);
-        aliceTokenId = getTokenId(DerivativeType.PUT, SettlementType.CASH, pidUsdcCollat, expiry, aliceStrike, 0);
+        selfTokenId = getTokenId(TokenType.PUT, SettlementType.CASH, pidUsdcCollat, expiry, selfStrike, 0);
+        aliceTokenId = getTokenId(TokenType.PUT, SettlementType.CASH, pidUsdcCollat, expiry, aliceStrike, 0);
 
         vm.startPrank(alice);
         usdc.approve(address(engine), type(uint256).max);
@@ -460,7 +460,7 @@ contract TestSettleCashLongCalls_CM is CrossMarginFixture {
 
         expiry = block.timestamp + 1 days;
 
-        tokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, pidEthCollat, expiry, strikePrice, 0);
+        tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, pidEthCollat, expiry, strikePrice, 0);
 
         oracle.setSpotPrice(address(weth), 2000 * UNIT);
 
@@ -508,7 +508,7 @@ contract TestSettleCashLongCalls_CM is CrossMarginFixture {
     function testSettleMultipleLongCallsITMIncreasesCollateral() public {
         vm.warp(expiry - 1 days);
 
-        uint256 tokenId2 = getTokenId(DerivativeType.CALL, SettlementType.CASH, pidEthCollat, expiry - 1 hours, strikePrice, 0);
+        uint256 tokenId2 = getTokenId(TokenType.CALL, SettlementType.CASH, pidEthCollat, expiry - 1 hours, strikePrice, 0);
 
         // prepare: mint tokens
         ActionArgs[] memory _actions = new ActionArgs[](2);
@@ -570,7 +570,7 @@ contract TestSettleCashLongCalls_CM is CrossMarginFixture {
     function testSettleMultipleLongCallsOTMNoIncreaseInCollateral() public {
         vm.warp(expiry - 1 days);
 
-        uint256 tokenId2 = getTokenId(DerivativeType.CALL, SettlementType.CASH, pidEthCollat, expiry, strikePrice + (1 * UNIT), 0);
+        uint256 tokenId2 = getTokenId(TokenType.CALL, SettlementType.CASH, pidEthCollat, expiry, strikePrice + (1 * UNIT), 0);
 
         // prepare: mint tokens
         ActionArgs[] memory _actions = new ActionArgs[](2);
@@ -606,7 +606,7 @@ contract TestSettleCashLongCalls_CM is CrossMarginFixture {
     function testSettleOnlyExpiredLongCallOTMNoIncreaseInCollateral() public {
         vm.warp(expiry - 1 days);
 
-        uint256 tokenId2 = getTokenId(DerivativeType.CALL, SettlementType.CASH, pidEthCollat, expiry + 1 weeks, strikePrice, 0);
+        uint256 tokenId2 = getTokenId(TokenType.CALL, SettlementType.CASH, pidEthCollat, expiry + 1 weeks, strikePrice, 0);
 
         // prepare: mint tokens
         ActionArgs[] memory _actions = new ActionArgs[](2);
@@ -666,7 +666,7 @@ contract TestSettleCashLongPuts_CM is CrossMarginFixture {
 
         expiry = block.timestamp + 1 days;
 
-        tokenId = getTokenId(DerivativeType.PUT, SettlementType.CASH, pidUsdcCollat, expiry, strikePrice, 0);
+        tokenId = getTokenId(TokenType.PUT, SettlementType.CASH, pidUsdcCollat, expiry, strikePrice, 0);
 
         oracle.setSpotPrice(address(weth), 4000 * UNIT);
 

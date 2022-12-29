@@ -124,12 +124,12 @@ abstract contract BaseEngine {
     }
 
     /**
-     * @dev calculate the cash settled payout for one derivative token
-     * @param _tokenId  token id of derivative token
+     * @dev calculate the cash settled payout for one option token
+     * @param _tokenId  token id of option token
      * @return payoutPerToken amount paid
      */
     function getCashSettlementPerToken(uint256 _tokenId) public view virtual returns (uint256 payoutPerToken) {
-        (DerivativeType derivativeType, SettlementType settlementType, uint40 productId, uint64 expiry, uint64 strikePrice,) =
+        (TokenType optionType, SettlementType settlementType, uint40 productId, uint64 expiry, uint64 strikePrice,) =
             TokenIdUtil.parseTokenId(_tokenId);
 
         if (settlementType == SettlementType.PHYSICAL) revert BM_InvalidSettlementType();
@@ -143,9 +143,9 @@ abstract contract BaseEngine {
         // cash value denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
         uint256 cashValue;
 
-        if (derivativeType == DerivativeType.CALL) {
+        if (optionType == TokenType.CALL) {
             cashValue = MoneynessLib.getCallCashValue(expiryPrice, strikePrice);
-        } else if (derivativeType == DerivativeType.PUT) {
+        } else if (optionType == TokenType.PUT) {
             cashValue = MoneynessLib.getPutCashValue(expiryPrice, strikePrice);
         }
 

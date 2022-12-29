@@ -8,41 +8,41 @@ import "../../config/enums.sol";
 
 contract TokenIdUtilTest is Test {
     function testTokenIdHigherThan0(
-        uint8 derivativeType,
+        uint8 optionType,
         uint8 settlementType,
         uint40 productId,
         uint64 expiry,
         uint64 strike,
         uint64 reserved
     ) public {
-        vm.assume(derivativeType < 4);
+        vm.assume(optionType < 4);
         vm.assume(settlementType < 2);
         vm.assume(productId > 0);
 
         uint256 id = TokenIdUtil.getTokenId(
-            DerivativeType(derivativeType), SettlementType(settlementType), productId, expiry, strike, reserved
+            TokenType(optionType), SettlementType(settlementType), productId, expiry, strike, reserved
         );
 
         assertGt(id, 0);
     }
 
     function testFormatAndParseAreMirrored(
-        uint8 derivativeType,
+        uint8 optionType,
         uint8 settlementType,
         uint40 productId,
         uint64 expiry,
         uint64 strike,
         uint64 reserved
     ) public {
-        vm.assume(derivativeType < 4);
+        vm.assume(optionType < 4);
         vm.assume(settlementType < 2);
         vm.assume(productId > 0);
 
         uint256 id = TokenIdUtil.getTokenId(
-            DerivativeType(derivativeType), SettlementType(settlementType), productId, expiry, strike, reserved
+            TokenType(optionType), SettlementType(settlementType), productId, expiry, strike, reserved
         );
         (
-            DerivativeType _derivativeType,
+            TokenType _optionType,
             SettlementType _settlementType,
             uint40 _productId,
             uint64 _expiry,
@@ -50,7 +50,7 @@ contract TokenIdUtilTest is Test {
             uint64 _reserved
         ) = TokenIdUtil.parseTokenId(id);
 
-        assertEq(uint8(derivativeType), uint8(_derivativeType));
+        assertEq(uint8(optionType), uint8(_optionType));
         assertEq(uint8(settlementType), uint8(_settlementType));
         assertEq(productId, _productId);
         assertEq(expiry, _expiry);
@@ -59,19 +59,19 @@ contract TokenIdUtilTest is Test {
     }
 
     function testGetAndParseAreMirrored(
-        uint8 derivativeType,
+        uint8 optionType,
         uint8 settlementType,
         uint40 productId,
         uint256 expiry,
         uint256 strike,
         uint256 reserved
     ) public {
-        vm.assume(derivativeType < 4);
+        vm.assume(optionType < 4);
         vm.assume(settlementType < 2);
         vm.assume(productId > 0);
 
         uint256 id = TokenIdUtil.getTokenId(
-            DerivativeType(derivativeType),
+            TokenType(optionType),
             SettlementType(settlementType),
             productId,
             uint64(expiry),
@@ -79,7 +79,7 @@ contract TokenIdUtilTest is Test {
             uint64(reserved)
         );
         (
-            DerivativeType _derivativeType,
+            TokenType _optionType,
             SettlementType _settlementType,
             uint40 _productId,
             uint64 _expiry,
@@ -87,7 +87,7 @@ contract TokenIdUtilTest is Test {
             uint64 _reserved
         ) = TokenIdUtil.parseTokenId(id);
 
-        assertEq(derivativeType, uint8(_derivativeType));
+        assertEq(optionType, uint8(_optionType));
         assertEq(settlementType, uint8(_settlementType));
         assertEq(productId, _productId);
         assertEq(uint64(expiry), _expiry);

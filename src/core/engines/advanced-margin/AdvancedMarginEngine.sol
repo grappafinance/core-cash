@@ -207,8 +207,8 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
     }
 
     /**
-     * @dev calculate the debt and payout for one derivative token
-     * @param _tokenId  token id of derivative token
+     * @dev calculate the debt and payout for one option token
+     * @param _tokenId  token id of option token
      * @return payoutPerToken amount paid
      */
     function getCashSettlementPerToken(uint256 _tokenId)

@@ -31,7 +31,7 @@ contract CrossEngineGenernal is CrossMarginFixture {
     function testCannotCallAddLongWithNotAuthorizedEngine() public {
         uint40 productId = grappa.getProductId(address(oracle), address(0), address(weth), address(usdc), address(usdc));
 
-        uint256 tokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, productId, block.timestamp + 1 days, 0, 0);
+        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, block.timestamp + 1 days, 0, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createAddLongAction(tokenId, 0, address(this));
@@ -60,7 +60,7 @@ contract CrossEngineGenernal is CrossMarginFixture {
         uint256 strikePrice = 3000 * UNIT;
         uint256 amount = 1 * UNIT;
 
-        uint256 tokenId = getTokenId(DerivativeType.PUT, SettlementType.CASH, pidUsdcCollat, expiry, strikePrice, 0);
+        uint256 tokenId = getTokenId(TokenType.PUT, SettlementType.CASH, pidUsdcCollat, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);

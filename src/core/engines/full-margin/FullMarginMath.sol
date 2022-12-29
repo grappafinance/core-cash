@@ -30,9 +30,9 @@ library FullMarginMath {
         // amount with UNIT decimals
         uint256 unitAmount;
 
-        if (_account.derivativeType == DerivativeType.CALL) {
+        if (_account.optionType == TokenType.CALL) {
             unitAmount = _account.shortAmount;
-        } else if (_account.derivativeType == DerivativeType.CALL_SPREAD) {
+        } else if (_account.optionType == TokenType.CALL_SPREAD) {
             // if long strike <= short strike, all loss is covered, amount = 0
             // only consider when long strike > short strike
             if (_account.longStrike > _account.shortStrike) {
@@ -56,13 +56,13 @@ library FullMarginMath {
                     }
                 }
             }
-        } else if (_account.derivativeType == DerivativeType.PUT) {
+        } else if (_account.optionType == TokenType.PUT) {
             // unitAmount = shortStrike * amount / UNIT
             unitAmount = _account.shortStrike * _account.shortAmount;
             unchecked {
                 unitAmount = unitAmount / UNIT;
             }
-        } else if (_account.derivativeType == DerivativeType.PUT_SPREAD) {
+        } else if (_account.optionType == TokenType.PUT_SPREAD) {
             // if long strike >= short strike, all loss is covered, amount = 0
             // only consider when long strike < short strike
             if (_account.longStrike < _account.shortStrike) {

@@ -45,7 +45,7 @@ error GP_InvalidExpiry();
 error GP_BadCashSettledStrikes();
 
 /// @dev put and call should not contain "short strikes"
-error GP_BadPhysicallySettledDerivative();
+error GP_BadPhysicallySettledOption();
 
 /// @dev burn or mint can only be called by corresponding engine.
 error GP_Not_Authorized_Engine();
@@ -61,7 +61,7 @@ error BM_CannotMergeSpread();
 error BM_CanOnlySplitSpread();
 
 /// @dev type of existing short token type doesn't match the incoming token type
-error BM_MergeDerivativeTypeMismatch();
+error BM_MergeOptionTypeMismatch();
 
 /// @dev type of existing short token type doesn't match the incoming token type
 error BM_MergeSettlementTypeMismatch();

@@ -72,21 +72,21 @@ library CrossMarginLib {
     function mintOption(CrossMarginAccount storage account, uint256 tokenId, uint64 amount) external {
         if (amount == 0) return;
 
-        (DerivativeType derivativeType,, uint40 productId,,,) = tokenId.parseTokenId();
+        (TokenType optionType,, uint40 productId,,,) = tokenId.parseTokenId();
 
         // assign collateralId or check collateral id is the same
         (,, uint8 underlyingId, uint8 strikeId, uint8 collateralId) = productId.parseProductId();
 
         // engine only supports calls and puts
-        if (derivativeType != DerivativeType.CALL && derivativeType != DerivativeType.PUT) revert CM_UnsupportedDerivativeType();
+        if (optionType != TokenType.CALL && optionType != TokenType.PUT) revert CM_UnsupportedOptionType();
 
         // call can only collateralized by underlying
-        if ((derivativeType == DerivativeType.CALL) && underlyingId != collateralId) {
+        if ((optionType == TokenType.CALL) && underlyingId != collateralId) {
             revert CM_CannotMintOptionWithThisCollateral();
         }
 
         // put can only be collateralized by strike
-        if ((derivativeType == DerivativeType.PUT) && strikeId != collateralId) revert CM_CannotMintOptionWithThisCollateral();
+        if ((optionType == TokenType.PUT) && strikeId != collateralId) revert CM_CannotMintOptionWithThisCollateral();
 
         (bool found, uint256 index) = account.shorts.indexOf(tokenId);
         if (!found) {

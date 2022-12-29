@@ -95,8 +95,8 @@ contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyG
     }
 
     /**
-     * @dev calculate the debt and payout for one derivative token
-     * @param _tokenId  token id of derivative token
+     * @dev calculate the debt and payout for one option token
+     * @param _tokenId  token id of option token
      * @return payoutPerToken amount paid
      */
     function getCashSettlementPerToken(uint256 _tokenId)
@@ -216,7 +216,7 @@ contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyG
      * @notice  convert Account struct from storage to in-memory detail struct
      */
     function _getAccountDetail(FullMarginAccount memory account) internal view returns (FullMarginDetail memory detail) {
-        (DerivativeType derivativeType,, uint40 productId,, uint64 longStrike, uint64 shortStrike) =
+        (TokenType optionType,, uint40 productId,, uint64 longStrike, uint64 shortStrike) =
             account.tokenId.parseTokenId();
 
         (,,, uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(productId);
@@ -232,7 +232,7 @@ contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyG
             collateralAmount: account.collateralAmount,
             collateralDecimals: collateralDecimals,
             collateralizedWithStrike: collateralizedWithStrike,
-            derivativeType: derivativeType
+            optionType: optionType
         });
     }
 }

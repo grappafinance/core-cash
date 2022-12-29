@@ -74,7 +74,7 @@ contract TestRemoveCollateral_FM is FullMarginFixture {
         uint256 strike = 2500 * UNIT;
         uint256 strikeHigher = 3000 * UNIT;
 
-        uint256 tokenId = getTokenId(DerivativeType.CALL_SPREAD, SettlementType.CASH, pidUsdcCollat, expiry, strike, strikeHigher);
+        uint256 tokenId = getTokenId(TokenType.CALL_SPREAD, SettlementType.CASH, pidUsdcCollat, expiry, strike, strikeHigher);
 
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createMintAction(tokenId, address(this), UNIT);
@@ -106,7 +106,7 @@ contract TestRemoveCollateral_FM is FullMarginFixture {
         uint256 strike = 2500 * UNIT;
         uint256 strikeHigher = 3000 * UNIT;
 
-        uint256 tokenId = getTokenId(DerivativeType.CALL_SPREAD, SettlementType.CASH, pidUsdcCollat, expiry, strike, strikeHigher);
+        uint256 tokenId = getTokenId(TokenType.CALL_SPREAD, SettlementType.CASH, pidUsdcCollat, expiry, strike, strikeHigher);
 
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createMintAction(tokenId, address(this), UNIT);

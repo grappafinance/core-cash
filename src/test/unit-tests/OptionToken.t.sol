@@ -32,7 +32,7 @@ contract OptionTokenTest is Test {
         uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
         uint256 expiry = block.timestamp + 1 days;
         uint256 tokenId =
-            TokenIdUtil.getTokenId(DerivativeType.CALL_SPREAD, SettlementType.CASH, productId, uint64(expiry), 20, 40);
+            TokenIdUtil.getTokenId(TokenType.CALL_SPREAD, SettlementType.CASH, productId, uint64(expiry), 20, 40);
 
         vm.expectRevert(GP_Not_Authorized_Engine.selector);
         option.mint(address(this), tokenId, 1000_000_000);
@@ -61,7 +61,7 @@ contract OptionTokenTest is Test {
 
         uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
         uint256 tokenId =
-            TokenIdUtil.getTokenId(DerivativeType.CALL_SPREAD, SettlementType.CASH, productId, uint64(expiry), 40, 20);
+            TokenIdUtil.getTokenId(TokenType.CALL_SPREAD, SettlementType.CASH, productId, uint64(expiry), 40, 20);
 
         vm.expectRevert(GP_BadCashSettledStrikes.selector);
         option.mint(address(this), tokenId, 1);
@@ -75,9 +75,9 @@ contract OptionTokenTest is Test {
 
         uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
         uint256 tokenId =
-            TokenIdUtil.getTokenId(DerivativeType.CALL_SPREAD, SettlementType.PHYSICAL, productId, uint64(expiry), 40, 1);
+            TokenIdUtil.getTokenId(TokenType.CALL_SPREAD, SettlementType.PHYSICAL, productId, uint64(expiry), 40, 1);
 
-        vm.expectRevert(GP_BadPhysicallySettledDerivative.selector);
+        vm.expectRevert(GP_BadPhysicallySettledOption.selector);
         option.mint(address(this), tokenId, 1);
     }
 
@@ -89,7 +89,7 @@ contract OptionTokenTest is Test {
 
         uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
         uint256 tokenId =
-            TokenIdUtil.getTokenId(DerivativeType.PUT_SPREAD, SettlementType.CASH, productId, uint64(expiry), 20, 40);
+            TokenIdUtil.getTokenId(TokenType.PUT_SPREAD, SettlementType.CASH, productId, uint64(expiry), 20, 40);
 
         vm.expectRevert(GP_BadCashSettledStrikes.selector);
         option.mint(address(this), tokenId, 1);
@@ -103,9 +103,9 @@ contract OptionTokenTest is Test {
 
         uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
         uint256 tokenId =
-            TokenIdUtil.getTokenId(DerivativeType.PUT_SPREAD, SettlementType.PHYSICAL, productId, uint64(expiry), 20, 1);
+            TokenIdUtil.getTokenId(TokenType.PUT_SPREAD, SettlementType.PHYSICAL, productId, uint64(expiry), 20, 1);
 
-        vm.expectRevert(GP_BadPhysicallySettledDerivative.selector);
+        vm.expectRevert(GP_BadPhysicallySettledOption.selector);
         option.mint(address(this), tokenId, 1);
     }
 
@@ -116,7 +116,7 @@ contract OptionTokenTest is Test {
         vm.mockCall(grappa, abi.encodeWithSelector(Grappa(grappa).engines.selector, engineId), abi.encode(address(this)));
 
         uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
-        uint256 tokenId = TokenIdUtil.getTokenId(DerivativeType.CALL, SettlementType.CASH, productId, uint64(expiry), 20, 40);
+        uint256 tokenId = TokenIdUtil.getTokenId(TokenType.CALL, SettlementType.CASH, productId, uint64(expiry), 20, 40);
 
         vm.expectRevert(GP_BadCashSettledStrikes.selector);
         option.mint(address(this), tokenId, 1);
@@ -129,7 +129,7 @@ contract OptionTokenTest is Test {
         vm.mockCall(grappa, abi.encodeWithSelector(Grappa(grappa).engines.selector, engineId), abi.encode(address(this)));
 
         uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
-        uint256 tokenId = TokenIdUtil.getTokenId(DerivativeType.PUT, SettlementType.CASH, productId, uint64(expiry), 20, 40);
+        uint256 tokenId = TokenIdUtil.getTokenId(TokenType.PUT, SettlementType.CASH, productId, uint64(expiry), 20, 40);
 
         vm.expectRevert(GP_BadCashSettledStrikes.selector);
         option.mint(address(this), tokenId, 1);
@@ -142,9 +142,9 @@ contract OptionTokenTest is Test {
         vm.mockCall(grappa, abi.encodeWithSelector(Grappa(grappa).engines.selector, engineId), abi.encode(address(this)));
 
         uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
-        uint256 tokenId = TokenIdUtil.getTokenId(DerivativeType.PUT, SettlementType.PHYSICAL, productId, uint64(expiry), 20, 0);
+        uint256 tokenId = TokenIdUtil.getTokenId(TokenType.PUT, SettlementType.PHYSICAL, productId, uint64(expiry), 20, 0);
 
-        vm.expectRevert(GP_BadPhysicallySettledDerivative.selector);
+        vm.expectRevert(GP_BadPhysicallySettledOption.selector);
         option.mint(address(this), tokenId, 1);
     }
 
@@ -155,9 +155,9 @@ contract OptionTokenTest is Test {
         vm.mockCall(grappa, abi.encodeWithSelector(Grappa(grappa).engines.selector, engineId), abi.encode(address(this)));
 
         uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
-        uint256 tokenId = TokenIdUtil.getTokenId(DerivativeType.CALL, SettlementType.PHYSICAL, productId, uint64(expiry), 40, 0);
+        uint256 tokenId = TokenIdUtil.getTokenId(TokenType.CALL, SettlementType.PHYSICAL, productId, uint64(expiry), 40, 0);
 
-        vm.expectRevert(GP_BadPhysicallySettledDerivative.selector);
+        vm.expectRevert(GP_BadPhysicallySettledOption.selector);
         option.mint(address(this), tokenId, 1);
     }
 

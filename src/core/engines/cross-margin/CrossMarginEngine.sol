@@ -195,8 +195,8 @@ contract CrossMarginEngine is
     }
 
     /**
-     * @dev calculate the debt and payout for one derivative token
-     * @param _tokenId  token id of derivative token
+     * @dev calculate the debt and payout for one option token
+     * @param _tokenId  token id of option token
      * @return payoutPerToken amount paid
      */
     function getCashSettlementPerToken(uint256 _tokenId) public view override (BaseEngine, IMarginEngine) returns (uint256) {
@@ -215,8 +215,8 @@ contract CrossMarginEngine is
     }
 
     /**
-     * @dev calculate the payout for one cash settled derivative token
-     * @param _tokenId  token id of derivative token
+     * @dev calculate the payout for one cash settled option token
+     * @param _tokenId  token id of option token
      * @return settlement struct
      */
     function getPhysicalSettlementPerToken(uint256 _tokenId)
@@ -385,10 +385,10 @@ contract CrossMarginEngine is
      * @param tokenId tokenId
      */
     function _verifyLongTokenIdToAdd(uint256 tokenId) internal view override {
-        (DerivativeType derivativeType,, uint40 productId, uint64 expiry,,) = tokenId.parseTokenId();
+        (TokenType optionType,, uint40 productId, uint64 expiry,,) = tokenId.parseTokenId();
 
         // engine only supports calls and puts
-        if (derivativeType != DerivativeType.CALL && derivativeType != DerivativeType.PUT) revert CM_UnsupportedDerivativeType();
+        if (optionType != TokenType.CALL && optionType != TokenType.PUT) revert CM_UnsupportedOptionType();
 
         if (block.timestamp > expiry) revert CM_Option_Expired();
 

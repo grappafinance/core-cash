@@ -24,7 +24,7 @@ import "../../../config/types.sol";
 /**
  * @title   DebitSpread
  * @author  @dsshap
- * @notice  util functions for MarginEngines to support physically settled derivatives
+ * @notice  util functions for MarginEngines to support physically settled options
  */
 abstract contract PhysicallySettled is BaseEngine {
     using NumberUtil for uint256;
@@ -100,12 +100,12 @@ abstract contract PhysicallySettled is BaseEngine {
     }
 
     /**
-     * @dev calculate the payout for one physically settled derivative token
-     * @param _tokenId  token id of derivative token
+     * @dev calculate the payout for one physically settled option token
+     * @param _tokenId  token id of option token
      * @return settlement struct
      */
     function getPhysicalSettlementPerToken(uint256 _tokenId) public view virtual returns (Settlement memory settlement) {
-        (DerivativeType derivativeType, SettlementType settlementType, uint40 productId, uint64 expiry, uint64 strike,) =
+        (TokenType optionType, SettlementType settlementType, uint40 productId, uint64 expiry, uint64 strike,) =
             TokenIdUtil.parseTokenId(_tokenId);
 
         if (settlementType == SettlementType.CASH) revert PS_InvalidSettlementType();
@@ -127,13 +127,13 @@ abstract contract PhysicallySettled is BaseEngine {
             (, uint8 underlyingDecimals) = grappa.assets(underlyingId);
             uint256 underlyingAmount = UNIT.convertDecimals(UNIT_DECIMALS, underlyingDecimals);
 
-            if (derivativeType == DerivativeType.CALL) {
+            if (optionType == TokenType.CALL) {
                 settlement.debtAssetId = strikeId;
                 settlement.debtPerToken = strikeAmount;
 
                 settlement.payoutAssetId = underlyingId;
                 settlement.payoutPerToken = underlyingAmount;
-            } else if (derivativeType == DerivativeType.PUT) {
+            } else if (optionType == TokenType.PUT) {
                 settlement.debtAssetId = underlyingId;
                 settlement.debtPerToken = underlyingAmount;
 
@@ -184,7 +184,7 @@ abstract contract PhysicallySettled is BaseEngine {
     /**
      * @dev ensures issuer is the subAccount
      */
-    function _assertPhysicalSettlementIssuer(address _subAccount, uint256 _tokenId) internal {
+    function _assertPhysicalSettlementIssuer(address _subAccount, uint256 _tokenId) internal view {
         // only check if issuer is properly set if physically settled option
         if (TokenIdUtil.isPhysical(_tokenId)) {
             address issuer = _getIssuer(_tokenId);

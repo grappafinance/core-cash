@@ -30,7 +30,7 @@ contract TestSettleCall is AdvancedFixture {
 
         strike = uint64(4000 * UNIT);
 
-        tokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, productId, expiry, strike, 0);
+        tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         // give optoin to alice
@@ -158,7 +158,7 @@ contract TestSettleCoveredCall is AdvancedFixture {
 
         strike = uint64(4000 * UNIT);
 
-        tokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, productIdEthCollat, expiry, strike, 0);
+        tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productIdEthCollat, expiry, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         // give optoin to alice
@@ -272,7 +272,7 @@ contract TestSettlePut is AdvancedFixture {
 
         strike = uint64(2000 * UNIT);
 
-        tokenId = getTokenId(DerivativeType.PUT, SettlementType.CASH, productId, expiry, strike, 0);
+        tokenId = getTokenId(TokenType.PUT, SettlementType.CASH, productId, expiry, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         // give optoin to alice
@@ -402,7 +402,7 @@ contract TestSettleETHCollateralizedPut is AdvancedFixture {
 
         strike = uint64(2000 * UNIT);
 
-        tokenId = getTokenId(DerivativeType.PUT, SettlementType.CASH, productIdEthCollat, expiry, strike, 0);
+        tokenId = getTokenId(TokenType.PUT, SettlementType.CASH, productIdEthCollat, expiry, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         // give optoin to alice
@@ -515,7 +515,7 @@ contract TestSettleCallSpread is AdvancedFixture {
         longStrike = uint64(4000 * UNIT);
         shortStrike = uint64(4200 * UNIT);
 
-        tokenId = getTokenId(DerivativeType.CALL_SPREAD, SettlementType.CASH, productId, expiry, longStrike, shortStrike);
+        tokenId = getTokenId(TokenType.CALL_SPREAD, SettlementType.CASH, productId, expiry, longStrike, shortStrike);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         // give optoin to alice
@@ -671,7 +671,7 @@ contract TestSettlePutSpread is AdvancedFixture {
         longStrike = uint64(2000 * UNIT);
         shortStrike = uint64(1800 * UNIT);
 
-        tokenId = getTokenId(DerivativeType.PUT_SPREAD, SettlementType.CASH, productId, expiry, longStrike, shortStrike);
+        tokenId = getTokenId(TokenType.PUT_SPREAD, SettlementType.CASH, productId, expiry, longStrike, shortStrike);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         // give optoin to alice
@@ -837,9 +837,9 @@ contract TestSettleShortCondor is AdvancedFixture {
         lowerPutStrike = uint64(1000 * UNIT);
 
         callSpreadTokenId =
-            getTokenId(DerivativeType.CALL_SPREAD, SettlementType.CASH, productId, expiry, lowerCallStrike, higherCallStrike);
+            getTokenId(TokenType.CALL_SPREAD, SettlementType.CASH, productId, expiry, lowerCallStrike, higherCallStrike);
         putSpreadTokenId =
-            getTokenId(DerivativeType.PUT_SPREAD, SettlementType.CASH, productId, expiry, higherPutStrike, lowerPutStrike);
+            getTokenId(TokenType.PUT_SPREAD, SettlementType.CASH, productId, expiry, higherPutStrike, lowerPutStrike);
 
         ActionArgs[] memory actions = new ActionArgs[](3);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
@@ -932,7 +932,7 @@ contract TestSettleBTCCollateralizedCall is AdvancedFixture {
         strike = uint64(4000 * UNIT);
 
         wbtcBackedProductId = grappa.getProductId(address(oracle), address(engine), address(weth), address(usdc), address(wbtc));
-        wbtcbackedTokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, wbtcBackedProductId, expiry, strike, 0);
+        wbtcbackedTokenId = getTokenId(TokenType.CALL, SettlementType.CASH, wbtcBackedProductId, expiry, strike, 0);
         engine.setProductMarginConfig(wbtcBackedProductId, 180 days, 1 days, 6400, 800, 10000);
 
         // mint option with 1 wbtc as collateral
@@ -1019,9 +1019,9 @@ contract TestBatchSettleCall is AdvancedFixture {
         strikes[1] = uint64(4000 * UNIT);
         strikes[2] = uint64(4500 * UNIT);
 
-        tokenIds[0] = getTokenId(DerivativeType.CALL, SettlementType.CASH, productId, expiry, strikes[0], 0);
-        tokenIds[1] = getTokenId(DerivativeType.CALL, SettlementType.CASH, productId, expiry, strikes[1], 0);
-        tokenIds[2] = getTokenId(DerivativeType.CALL, SettlementType.CASH, productId, expiry, strikes[2], 0);
+        tokenIds[0] = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, strikes[0], 0);
+        tokenIds[1] = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, strikes[1], 0);
+        tokenIds[2] = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, strikes[2], 0);
 
         // mint 3 tokens to alice
         for (uint160 i = 0; i < 3; i++) {
@@ -1042,7 +1042,7 @@ contract TestBatchSettleCall is AdvancedFixture {
         oracle.setExpiryPrice(address(weth), address(usdc), strikes[0] - 1);
 
         uint256[] memory badIds = new uint256[](1);
-        badIds[0] = getTokenId(DerivativeType.CALL, SettlementType.CASH, productId, expiry, strikes[0], 0);
+        badIds[0] = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, strikes[0], 0);
 
         vm.expectRevert(GP_WrongArgumentLength.selector);
         grappa.batchSettle(alice, badIds, amounts, false);
@@ -1141,9 +1141,9 @@ contract TestBatchSettleMultipleProduct is AdvancedFixture {
         // 3500 call
         // 4000 put
         // 4500 call
-        tokenIds[0] = getTokenId(DerivativeType.CALL, SettlementType.CASH, productIdEthCollat, expiry, strikes[0], 0);
-        tokenIds[1] = getTokenId(DerivativeType.PUT, SettlementType.CASH, productId, expiry, strikes[1], 0);
-        tokenIds[2] = getTokenId(DerivativeType.CALL, SettlementType.CASH, productId, expiry, strikes[2], 0);
+        tokenIds[0] = getTokenId(TokenType.CALL, SettlementType.CASH, productIdEthCollat, expiry, strikes[0], 0);
+        tokenIds[1] = getTokenId(TokenType.PUT, SettlementType.CASH, productId, expiry, strikes[1], 0);
+        tokenIds[2] = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, strikes[2], 0);
 
         for (uint160 i = 0; i < 3; i++) {
             amounts[i] = amount;
@@ -1235,7 +1235,7 @@ contract TestSettlementEdgeCase is AdvancedFixture {
 
         strike = uint64(4000 * UNIT);
 
-        tokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, productId, expiry, strike, 0);
+        tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         // give optoin to alice
@@ -1268,7 +1268,7 @@ contract TestSettlementEdgeCase is AdvancedFixture {
         uint256 expiryPrice = strike;
         oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
 
-        uint256 newTokenId = getTokenId(DerivativeType.CALL, SettlementType.CASH, productId, expiry + 14 days, strike, 0);
+        uint256 newTokenId = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry + 14 days, strike, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createSettleAction();
