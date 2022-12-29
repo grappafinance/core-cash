@@ -188,4 +188,101 @@ contract FullMarginLibTest is Test {
         vm.expectRevert(FM_CannotMintOptionWithThisCollateral.selector);
         tester.mintOption(callSpread, 100);
     }
+
+    function testBurnOption() public {
+        // mint the option
+        uint64 expiry = uint64(block.timestamp) + 100;
+        uint8 strikeId = 1;
+        uint8 underlyingId = 2;
+        uint8 collateralId = 2;
+        uint40 productId = ProductIdUtil.getProductId(0, 0, underlyingId, strikeId, collateralId);
+        uint256 id = TokenIdUtil.getTokenId(TokenType.CALL, productId, expiry, 100, 0);
+        tester.mintOption(id, 100);
+
+        // cannot burn option with diff id
+        vm.expectRevert(FM_InvalidToken.selector);
+        tester.burnOption(id + 1, 100);
+
+        // cannot burn more than minted
+        vm.expectRevert(stdError.arithmeticError);
+        tester.burnOption(id, 101);
+
+        // can burned minted option id
+        tester.burnOption(id, 100);
+        FullMarginAccount memory acc = tester.account();
+        assertEq(acc.tokenId, 0);
+        assertEq(acc.shortAmount, 0);
+    }
+
+    function testMergeShortId() public {
+        // mint the option
+        uint64 expiry = uint64(block.timestamp) + 100;
+        uint8 strikeId = 1;
+        uint8 underlyingId = 2;
+        uint8 collateralId = 2;
+        uint40 productId = ProductIdUtil.getProductId(0, 0, underlyingId, strikeId, collateralId);
+        uint256 shortId = TokenIdUtil.getTokenId(TokenType.CALL, productId, expiry, 100, 0);
+        uint256 longId = TokenIdUtil.getTokenId(TokenType.CALL, productId, expiry, 120, 0);
+        tester.mintOption(shortId, 100);
+
+        // cannot merge if short is different then what the account holds
+        vm.expectRevert(FM_ShortDoesnotExist.selector);
+        tester.merge(shortId + 1, longId, 100);
+
+        // cannot merge with diff amount
+        vm.expectRevert(FM_MergeAmountMisMatch.selector);
+        tester.merge(shortId, longId, 99);
+
+        // convert type to spread
+        tester.merge(shortId, longId, 100);
+        FullMarginAccount memory acc = tester.account();
+        TokenType t = TokenIdUtil.parseTokenType(acc.tokenId);
+        assertEq(uint8(t), uint8(TokenType.CALL_SPREAD));
+    }
+
+    function testSplitSpreadId() public {
+        // mint the option
+        uint64 expiry = uint64(block.timestamp) + 100;
+        uint8 strikeId = 1;
+        uint8 underlyingId = 2;
+        uint8 collateralId = 2;
+        uint40 productId = ProductIdUtil.getProductId(0, 0, underlyingId, strikeId, collateralId);
+        uint256 spreadId = TokenIdUtil.getTokenId(TokenType.CALL_SPREAD, productId, expiry, 100, 120);
+        tester.mintOption(spreadId, 100);
+
+        // cannot split if spread id is different than what the account has minted
+        vm.expectRevert(FM_InvalidToken.selector);
+        tester.split(spreadId + 1, 100);
+
+        // cannot split with diff amount
+        vm.expectRevert(FM_SplitAmountMisMatch.selector);
+        tester.split(spreadId, 99);
+
+        // split spread into single short (and allow taking out the long)
+        tester.split(spreadId, 100);
+        FullMarginAccount memory acc = tester.account();
+        TokenType t = TokenIdUtil.parseTokenType(acc.tokenId);
+        assertEq(uint8(t), uint8(TokenType.CALL)); // call spread became vanilla call
+    }
+
+    function testSettle() public {
+        // mint the option
+        uint256 tokenId = 77777;
+        tester.mintOption(tokenId, 100);
+        uint8 collatId = 1;
+        tester.addCollateral(collatId, 1000);
+
+        // settlement will clear all short position
+        tester.settleAtExpiry(500);
+        FullMarginAccount memory acc = tester.account();
+        assertEq(acc.tokenId, 0);
+        assertEq(acc.shortAmount, 0);
+        assertEq(acc.collateralAmount, 500);
+
+        // will not reset collateral id if ending amount is 0!
+        tester.settleAtExpiry(500);
+        acc = tester.account();
+        assertEq(acc.collateralAmount, 0);
+        assertEq(acc.collateralId, collatId); // unchanged
+    }
 }

@@ -143,5 +143,10 @@ library FullMarginLib {
         // this line should not underflow because collateral should always be enough
         // but keeping the underflow check to make sure
         account.collateralAmount = account.collateralAmount - payout;
+
+        // do not check ending collateral amount (and reset collateral id) because it is very
+        // unlikely the payou is the exact amount in the account
+        // if that is the case (collateralAmount = 0), use can use removeCollateral(0)
+        // to reset the collateral id
     }
 }
