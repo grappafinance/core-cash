@@ -105,6 +105,7 @@ abstract contract DebitSpread is BaseEngine {
 
         (TokenType shortType, uint40 productId_, uint64 expiry_, uint64 shortStrike,) = shortId.parseTokenId();
 
+        // todo: use bit operation to compare these 3 fields
         // check that the merging token (long) has the same property as existing short
         if (shortType != longType) revert BM_MergeTypeMismatch();
         if (productId_ != productId) revert BM_MergeProductMismatch();

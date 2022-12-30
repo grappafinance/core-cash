@@ -150,6 +150,7 @@ abstract contract BaseEngine {
 
         emit CollateralAdded(_subAccount, collateral, amount);
 
+        // this line will revert if collateral id is not registered.
         IERC20(collateral).safeTransferFrom(from, address(this), amount);
     }
 
