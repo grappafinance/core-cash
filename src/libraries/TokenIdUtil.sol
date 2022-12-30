@@ -10,7 +10,7 @@ import "../config/errors.sol";
  * Token ID =
  *
  *  * ------------------------ | ----------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
- *  | tokenType (16 bits) | settlementType (8 bits) | productId (40 bits) | expiry (64 bits) | strike (64 bits)     | reserved (64 bits)    |
+ *  | tokenType (16 bits)      | settlementType (8 bits) | productId (40 bits) | expiry (64 bits) | strike (64 bits)     | reserved (64 bits)    |
  *  * ------------------------ | ----------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
  */
 library TokenIdUtil {
@@ -117,7 +117,7 @@ library TokenIdUtil {
     }
 
     /**
-     * @notice derive option settlement type from ERC1155 token id
+     * @notice derive token settlement type from ERC1155 token id
      * @param tokenId token id
      * @return settlementType SettlementType enum
      */
@@ -132,7 +132,7 @@ library TokenIdUtil {
     }
 
     /**
-     * @notice derive if option is cash settled from ERC1155 token id
+     * @notice derive if token is cash settled from ERC1155 token id
      * @param tokenId token id
      * @return cash bool
      */
@@ -141,7 +141,7 @@ library TokenIdUtil {
     }
 
     /**
-     * @notice derive if option is cash settled from ERC1155 token id
+     * @notice derive if token is cash settled from ERC1155 token id
      * @param tokenId token id
      * @return cash bool
      */
@@ -150,7 +150,7 @@ library TokenIdUtil {
     }
 
     /**
-     * @notice derive if option is expired from ERC1155 token id
+     * @notice derive if token is expired from ERC1155 token id
      * @param tokenId token id
      * @return expired bool
      */

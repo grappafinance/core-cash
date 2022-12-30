@@ -8,13 +8,13 @@ import {ReentrancyGuardUpgradeable} from "openzeppelin-upgradeable/security/Reen
 
 // inheriting contracts
 import {BaseEngine} from "../BaseEngine.sol";
-import {PhysicallySettled} from "../mixins/PhysicallySettled.sol";
+import {PhysicalSettlement} from "../mixins/PhysicalSettlement.sol";
 import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
 
 // interfaces
 import {IOracle} from "../../../interfaces/IOracle.sol";
 import {IMarginEngine} from "../../../interfaces/IMarginEngine.sol";
-import {IMEPhysicalSettlement} from "../../../interfaces/IMEPhysicalSettlement.sol";
+import {IPhysicalSettlement} from "../../../interfaces/IPhysicalSettlement.sol";
 import {IWhitelist} from "../../../interfaces/IWhitelist.sol";
 
 // librarise
@@ -47,9 +47,9 @@ import "../../../config/errors.sol";
  */
 contract CrossMarginEngine is
     BaseEngine,
-    PhysicallySettled,
+    PhysicalSettlement,
     IMarginEngine,
-    IMEPhysicalSettlement,
+    IPhysicalSettlement,
     OwnableUpgradeable,
     ReentrancyGuardUpgradeable,
     UUPSUpgradeable
@@ -123,10 +123,10 @@ contract CrossMarginEngine is
      * @notice Registers a new issuer
      * @param _subAccount is the address of the new issuer
      */
-    function registerIssuer(address _subAccount) public override (PhysicallySettled, IMEPhysicalSettlement) returns (uint16 id) {
+    function registerIssuer(address _subAccount) public override (PhysicalSettlement, IPhysicalSettlement) returns (uint16 id) {
         _checkOwner();
 
-        id = PhysicallySettled.registerIssuer(_subAccount);
+        id = PhysicalSettlement.registerIssuer(_subAccount);
     }
 
     /**
@@ -136,7 +136,7 @@ contract CrossMarginEngine is
     function setPhysicalSettlementWindow(uint256 _window) public override {
         _checkOwner();
 
-        PhysicallySettled.setPhysicalSettlementWindow(_window);
+        PhysicalSettlement.setPhysicalSettlementWindow(_window);
     }
 
     /**
@@ -195,8 +195,8 @@ contract CrossMarginEngine is
     }
 
     /**
-     * @dev calculate the debt and payout for one option token
-     * @param _tokenId  token id of option token
+     * @dev calculate the payout for one token
+     * @param _tokenId the token id
      * @return payoutPerToken amount paid
      */
     function getCashSettlementPerToken(uint256 _tokenId) public view override (BaseEngine, IMarginEngine) returns (uint256) {
@@ -204,28 +204,28 @@ contract CrossMarginEngine is
     }
 
     /**
-     * @notice settlement of physical option.
+     * @notice settlement of physical token.
      * @dev this can only triggered by Grappa, would only be called on settlement.
      * @param _settlement struct
      */
-    function settlePhysicalOption(Settlement calldata _settlement) public override (PhysicallySettled, IMEPhysicalSettlement) {
+    function settlePhysicalToken(Settlement calldata _settlement) public override (PhysicalSettlement, IPhysicalSettlement) {
         _checkPermissioned(_settlement.debtor);
 
-        PhysicallySettled.settlePhysicalOption(_settlement);
+        PhysicalSettlement.settlePhysicalToken(_settlement);
     }
 
     /**
-     * @dev calculate the payout for one cash settled option token
-     * @param _tokenId  token id of option token
+     * @dev calculate the debt and payout for one cash settled token
+     * @param _tokenId  the token id
      * @return settlement struct
      */
     function getPhysicalSettlementPerToken(uint256 _tokenId)
         public
         view
-        override (PhysicallySettled, IMEPhysicalSettlement)
+        override (PhysicalSettlement, IPhysicalSettlement)
         returns (Settlement memory)
     {
-        return PhysicallySettled.getPhysicalSettlementPerToken(_tokenId);
+        return PhysicalSettlement.getPhysicalSettlementPerToken(_tokenId);
     }
 
     /**
@@ -306,18 +306,18 @@ contract CrossMarginEngine is
      * ========================================================= *
      */
 
-    function _mintOption(address _subAccount, bytes calldata _data) internal override (BaseEngine, PhysicallySettled) {
+    function _mintOption(address _subAccount, bytes calldata _data) internal override (BaseEngine, PhysicalSettlement) {
         // ensuring physical options are properly created
-        PhysicallySettled._mintOption(_subAccount, _data);
+        PhysicalSettlement._mintOption(_subAccount, _data);
     }
 
     function _mintOptionIntoAccount(address _subAccount, bytes calldata _data)
         internal
         virtual
-        override (BaseEngine, PhysicallySettled)
+        override (BaseEngine, PhysicalSettlement)
     {
         // ensuring physical options are properly created
-        PhysicallySettled._mintOptionIntoAccount(_subAccount, _data);
+        PhysicalSettlement._mintOptionIntoAccount(_subAccount, _data);
     }
 
     function _addCollateralToAccount(address _subAccount, uint8 collateralId, uint80 amount) internal override {
@@ -391,7 +391,7 @@ contract CrossMarginEngine is
         // engine only supports calls and puts
         if (tokenType != TokenType.CALL && tokenType != TokenType.PUT) revert CM_UnsupportedTokenType();
 
-        if (block.timestamp > expiry) revert CM_Option_Expired();
+        if (block.timestamp > expiry) revert CM_Token_Expired();
 
         (, uint8 engineId,,,) = productId.parseProductId();
 

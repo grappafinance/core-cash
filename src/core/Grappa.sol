@@ -13,7 +13,7 @@ import {IOracle} from "../interfaces/IOracle.sol";
 import {IOptionToken} from "../interfaces/IOptionToken.sol";
 import {IGrappa} from "../interfaces/IGrappa.sol";
 import {IMarginEngine} from "../interfaces/IMarginEngine.sol";
-import {IMEPhysicalSettlement} from "../interfaces/IMEPhysicalSettlement.sol";
+import {IPhysicalSettlement} from "../interfaces/IPhysicalSettlement.sol";
 
 // librarise
 import {BalanceUtil} from "../libraries/BalanceUtil.sol";
@@ -400,11 +400,11 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
             (settlementType == SettlementType.PHYSICAL)
                 && (tokenType == TokenType.CALL_SPREAD || tokenType == TokenType.PUT_SPREAD)
         ) {
-            revert GP_BadPhysicallySettledOption();
+            revert GP_BadPhysicalSettlementToken();
         }
 
-        // physically settled must have a valid issuer ID
-        if ((settlementType == SettlementType.PHYSICAL) && (reserved == 0)) revert GP_BadPhysicallySettledOption();
+        // physical settlement must have a valid issuer ID
+        if ((settlementType == SettlementType.PHYSICAL) && (reserved == 0)) revert GP_BadPhysicalSettlementToken();
 
         // check that you cannot mint a "credit spread" token, reserved is used as a short strikePrice
         if (tokenType == TokenType.CALL_SPREAD && (reserved < strikePrice)) revert GP_BadCashSettledStrikes();
@@ -442,7 +442,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
             settlement.debtor = msg.sender;
             settlement.creditor = _account;
 
-            IMEPhysicalSettlement(settlement.engine).settlePhysicalOption(settlement);
+            IPhysicalSettlement(settlement.engine).settlePhysicalToken(settlement);
         } else if (payout != 0) {
             address payoutAsset = assets[settlement.payoutAssetId].addr;
             IMarginEngine(settlement.engine).sendPayoutValue(payoutAsset, _account, payout);
@@ -469,7 +469,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
 
             if (settlement.payoutPerToken != 0) settlement.payoutAssetId = _tokenId.parseCollateralId();
         } else if (settlementType == SettlementType.PHYSICAL) {
-            settlement = IMEPhysicalSettlement(engine).getPhysicalSettlementPerToken(_tokenId);
+            settlement = IPhysicalSettlement(engine).getPhysicalSettlementPerToken(_tokenId);
         }
 
         settlement.engine = engine;

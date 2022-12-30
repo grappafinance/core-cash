@@ -24,7 +24,7 @@ contract CrossEngineGenernal is CrossMarginFixture {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createAddLongAction(0, 0, address(this));
 
-        vm.expectRevert(CM_Option_Expired.selector);
+        vm.expectRevert(CM_Token_Expired.selector);
         engine.execute(address(this), actions);
     }
 

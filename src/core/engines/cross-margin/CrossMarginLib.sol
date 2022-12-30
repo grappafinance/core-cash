@@ -82,11 +82,11 @@ library CrossMarginLib {
 
         // call can only collateralized by underlying
         if ((tokenType == TokenType.CALL) && underlyingId != collateralId) {
-            revert CM_CannotMintOptionWithThisCollateral();
+            revert CM_CannotMintTokenWithThisCollateral();
         }
 
         // put can only be collateralized by strike
-        if ((tokenType == TokenType.PUT) && strikeId != collateralId) revert CM_CannotMintOptionWithThisCollateral();
+        if ((tokenType == TokenType.PUT) && strikeId != collateralId) revert CM_CannotMintTokenWithThisCollateral();
 
         (bool found, uint256 index) = account.shorts.indexOf(tokenId);
         if (!found) {
@@ -173,10 +173,8 @@ library CrossMarginLib {
             bool canSettle = true;
 
             // can only settle long physical options before the end of the settlement window
-            if (expired && isPhysical) {
-                if (block.timestamp > expiry + physicalSettlementWindow) {
-                    canSettle = false;
-                }
+            if (expired && isPhysical && block.timestamp > expiry + physicalSettlementWindow) {
+                canSettle = false;
             }
 
             if (expired) {
@@ -249,10 +247,8 @@ library CrossMarginLib {
             bool canSettle = true;
 
             // can only settle short physical options after the settlement window
-            if (expired && isPhysical) {
-                if (block.timestamp < expiry + physicalSettlementWindow) {
-                    canSettle = false;
-                }
+            if (expired && isPhysical && block.timestamp < expiry + physicalSettlementWindow) {
+                canSettle = false;
             }
 
             if (expired && canSettle) {

@@ -45,7 +45,7 @@ error GP_InvalidExpiry();
 error GP_BadCashSettledStrikes();
 
 /// @dev put and call should not contain "short strikes"
-error GP_BadPhysicallySettledOption();
+error GP_BadPhysicalSettlementToken();
 
 /// @dev burn or mint can only be called by corresponding engine.
 error GP_Not_Authorized_Engine();
@@ -73,7 +73,7 @@ error BM_InvalidSettlementType();
  *      Debit Spreads Errors     *
  * ----------------------------- */
 
- /// @dev type of existing short token type doesn't match the incoming token type
+/// @dev type of existing short token type doesn't match the incoming token type
 error DS_MergeOptionTypeMismatch();
 
 /// @dev type of existing short token type doesn't match the incoming token type

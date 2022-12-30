@@ -65,7 +65,7 @@ contract OptionTokenTest is Test {
         option.mint(address(this), tokenId, 1);
     }
 
-    function testCannotMintPhysicallySettledCreditCallSpread() public {
+    function testCannotMintPhysicalSettlementCreditCallSpread() public {
         uint8 engineId = 1;
         uint256 expiry = block.timestamp + 1 days;
 
@@ -74,7 +74,7 @@ contract OptionTokenTest is Test {
         uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
         uint256 tokenId = TokenIdUtil.getTokenId(TokenType.CALL_SPREAD, SettlementType.PHYSICAL, productId, uint64(expiry), 40, 1);
 
-        vm.expectRevert(GP_BadPhysicallySettledOption.selector);
+        vm.expectRevert(GP_BadPhysicalSettlementToken.selector);
         option.mint(address(this), tokenId, 1);
     }
 
@@ -91,7 +91,7 @@ contract OptionTokenTest is Test {
         option.mint(address(this), tokenId, 1);
     }
 
-    function testCannotMintPhysicallySettledCreditPutSpread() public {
+    function testCannotMintPhysicalSettlementCreditPutSpread() public {
         uint8 engineId = 1;
         uint256 expiry = block.timestamp + 1 days;
 
@@ -100,7 +100,7 @@ contract OptionTokenTest is Test {
         uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
         uint256 tokenId = TokenIdUtil.getTokenId(TokenType.PUT_SPREAD, SettlementType.PHYSICAL, productId, uint64(expiry), 20, 1);
 
-        vm.expectRevert(GP_BadPhysicallySettledOption.selector);
+        vm.expectRevert(GP_BadPhysicalSettlementToken.selector);
         option.mint(address(this), tokenId, 1);
     }
 
@@ -130,7 +130,7 @@ contract OptionTokenTest is Test {
         option.mint(address(this), tokenId, 1);
     }
 
-    function testCannotMintPhysicallySettledPutWithNoIssuer() public {
+    function testCannotMintPhysicalSettlementPutWithNoIssuer() public {
         uint8 engineId = 1;
         uint256 expiry = block.timestamp + 1 days;
 
@@ -139,11 +139,11 @@ contract OptionTokenTest is Test {
         uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
         uint256 tokenId = TokenIdUtil.getTokenId(TokenType.PUT, SettlementType.PHYSICAL, productId, uint64(expiry), 20, 0);
 
-        vm.expectRevert(GP_BadPhysicallySettledOption.selector);
+        vm.expectRevert(GP_BadPhysicalSettlementToken.selector);
         option.mint(address(this), tokenId, 1);
     }
 
-    function testCannotMintPhysicallySettledCallWithNoIssuer() public {
+    function testCannotMintPhysicalSettlementCallWithNoIssuer() public {
         uint8 engineId = 1;
         uint256 expiry = block.timestamp + 1 days;
 
@@ -152,7 +152,7 @@ contract OptionTokenTest is Test {
         uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
         uint256 tokenId = TokenIdUtil.getTokenId(TokenType.CALL, SettlementType.PHYSICAL, productId, uint64(expiry), 40, 0);
 
-        vm.expectRevert(GP_BadPhysicallySettledOption.selector);
+        vm.expectRevert(GP_BadPhysicalSettlementToken.selector);
         option.mint(address(this), tokenId, 1);
     }
 

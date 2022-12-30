@@ -51,7 +51,7 @@ contract TestMint_CM is CrossMarginFixture {
         assertEq(option.balanceOf(address(this), tokenId), amount);
     }
 
-    function testMintCallPhysicallySettled() public {
+    function testMintCallPhysicalSettlement() public {
         uint256 depositAmount = 1 * 1e18;
 
         uint256 strikePrice = 4000 * UNIT;
@@ -75,7 +75,7 @@ contract TestMint_CM is CrossMarginFixture {
         assertEq(option.balanceOf(address(this), tokenId), amount);
     }
 
-    function testCannotMintCallPhysicallySettledWithIncorrectIssuerSet() public {
+    function testCannotMintCallPhysicalSettlementWithIncorrectIssuerSet() public {
         uint256 depositAmount = 1 * 1e18;
 
         uint256 strikePrice = 4000 * UNIT;
@@ -105,7 +105,7 @@ contract TestMint_CM is CrossMarginFixture {
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
 
-        vm.expectRevert(CM_CannotMintOptionWithThisCollateral.selector);
+        vm.expectRevert(CM_CannotMintTokenWithThisCollateral.selector);
         engine.execute(address(this), actions);
     }
 
@@ -198,7 +198,7 @@ contract TestMint_CM is CrossMarginFixture {
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
 
-        vm.expectRevert(CM_CannotMintOptionWithThisCollateral.selector);
+        vm.expectRevert(CM_CannotMintTokenWithThisCollateral.selector);
         engine.execute(address(this), actions);
     }
 

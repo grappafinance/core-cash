@@ -56,7 +56,7 @@ contract TestMintIntoAccount_CM is CrossMarginFixture {
         assertEq(option.balanceOf(address(engine), tokenId), amount);
     }
 
-    function testMintPhysicallySettledIntoAccountCall() public {
+    function testMintPhysicalSettlementIntoAccountCall() public {
         uint256 depositAmount = 1 * 1e18;
 
         uint256 strikePrice = 4000 * UNIT;
