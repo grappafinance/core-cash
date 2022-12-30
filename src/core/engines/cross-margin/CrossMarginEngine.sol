@@ -216,7 +216,7 @@ contract CrossMarginEngine is
 
     /**
      * @dev calculate the debt and payout for one cash settled token
-     * @param _tokenId  the token id
+     * @param _tokenId  the gtoken id
      * @return settlement struct
      */
     function getPhysicalSettlementPerToken(uint256 _tokenId)
