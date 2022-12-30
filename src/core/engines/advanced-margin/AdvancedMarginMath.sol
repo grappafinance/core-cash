@@ -102,16 +102,22 @@ library AdvancedMarginMath {
         uint256 minCollateralCall = getMinCollateralForCallSpread(_account, _spot, _vol, params);
         uint256 minCollateralPut = getMinCollateralForPutSpread(_account, _spot, _vol, params);
 
-        if (_account.shortPutStrike < _account.shortCallStrike) {
+        if (_account.shortPutStrike <= _account.shortCallStrike) {
             // if strikes don't cross (put strike < call strike),
             // you only need collateral of higher risk of either put or call
             return max(minCollateralCall, minCollateralPut);
         } else {
-            // if strike crosses, it became more risky between shortStrike -> putStrike
-            // but the max loss could be capped
-            return minCollateralCall + minCollateralPut;
-
-            // todo: if the amount is the same, capped at the max loss
+            uint256 callCashValue = MoneynessLib.getCallCashValue(_spot, _account.shortCallStrike);
+            uint256 putCashValue = MoneynessLib.getPutCashValue(_spot, _account.shortPutStrike);
+            // if strikes cross (put strike > call strike) then at least one of the options is in the money
+            // both options can also be in the money
+            if (callCashValue > 0 && putCashValue > 0) {
+                // if both are in the money then to be safe use the collateral requirement for both
+                return minCollateralCall + minCollateralPut;
+            } else {
+                // if one is in the money then get the maximum collateral requirement
+                return max(minCollateralCall, minCollateralPut);
+            }
         }
     }
 

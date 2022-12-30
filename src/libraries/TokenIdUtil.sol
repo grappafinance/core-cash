@@ -106,6 +106,7 @@ library TokenIdUtil {
 
     /**
      * @notice derive option type from ERC1155 token id
+     * @dev    See table above for tokenId composition
      * @param tokenId token id
      * @return tokenType TokenType enum
      */

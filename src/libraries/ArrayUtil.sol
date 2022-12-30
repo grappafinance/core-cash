@@ -66,20 +66,6 @@ library ArrayUtil {
         }
     }
 
-    // /**
-    //  * @dev Returns minimal element's index
-    //  * @return m
-    //  */
-    // function imin(uint256[] memory x) internal pure returns (uint256 m) {
-    //     m = 0;
-    //     for (uint256 i; i < x.length; i++) {
-    //         if (x[i] < x[m]) {
-    //             m = i;
-    //         }
-    //     }
-    //     return m;
-    // }
-
     /**
      * @dev Returns maximal element in array
      * @return m
@@ -125,18 +111,6 @@ library ArrayUtil {
             }
         }
     }
-
-    // /**
-    //  * @dev Returns maximal element's index
-    //  * @return m maximal
-    //  */
-    // function imax(uint256[] memory x) internal pure returns (uint256 m) {
-    //     for (uint256 i; i < x.length; i++) {
-    //         if (x[i] > x[m]) {
-    //             m = i;
-    //         }
-    //     }
-    // }
 
     /**
      * @dev Removes element at index in a new unsigned int array, does not change x memory in place
