@@ -296,8 +296,9 @@ contract CrossMarginEngine is
      */
     function _settle(address _subAccount) internal override {
         // update the account in state
-        (,, Balance[] memory shortPayouts) = accounts[_subAccount].settleAtExpiry(grappa, getPhysicalSettlementWindow());
-        emit AccountSettled(_subAccount, shortPayouts);
+        (Balance[] memory longDebts,, Balance[] memory shortPayouts) =
+            accounts[_subAccount].settleAtExpiry(grappa, getPhysicalSettlementWindow());
+        emit AccountSettled(_subAccount, longDebts, shortPayouts);
     }
 
     /**

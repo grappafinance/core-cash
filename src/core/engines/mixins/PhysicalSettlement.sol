@@ -30,6 +30,7 @@ abstract contract PhysicalSettlement is BaseEngine {
     using NumberUtil for uint256;
     using SafeCast for uint256;
     using SafeERC20 for IERC20;
+    using TokenIdUtil for uint256;
 
     uint256 constant MIN_SETTLEMENT_WINDOW = 15 minutes;
 
@@ -50,12 +51,6 @@ abstract contract PhysicalSettlement is BaseEngine {
     //////////////////////////////////////////////////////////////*/
 
     event IssuerRegistered(address subAccount, uint16 id);
-
-    // TODO should settleOption check for aboveWater on subAccount?
-    // TODO check that margining math is properly accounting for co-mingled options
-    // Change Runs on CME to 10_000
-    // TODO account for longDebts in account settled event
-    // TODO convert TokenIdUtil.parseTokenId
 
     /*///////////////////////////////////////////////////////////////
                             External Functions
@@ -108,7 +103,7 @@ abstract contract PhysicalSettlement is BaseEngine {
      */
     function getPhysicalSettlementPerToken(uint256 _tokenId) public view virtual returns (Settlement memory settlement) {
         (TokenType tokenType, SettlementType settlementType, uint40 productId, uint64 expiry, uint64 strike,) =
-            TokenIdUtil.parseTokenId(_tokenId);
+            _tokenId.parseTokenId();
 
         if (settlementType == SettlementType.CASH) revert PS_InvalidSettlementType();
 
@@ -188,7 +183,7 @@ abstract contract PhysicalSettlement is BaseEngine {
      */
     function _assertPhysicalSettlementIssuer(address _subAccount, uint256 _tokenId) internal view {
         // only check if issuer is properly set if physically settled option
-        if (TokenIdUtil.isPhysical(_tokenId)) {
+        if (_tokenId.isPhysical()) {
             address issuer = _getIssuer(_tokenId);
 
             if (issuer != _subAccount) revert PS_InvalidIssuerAddress();

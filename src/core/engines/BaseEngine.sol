@@ -65,7 +65,7 @@ abstract contract BaseEngine {
 
     event OptionTokenTransfered(address from, address to, uint256 tokenId, uint64 amount);
 
-    event AccountSettled(address subAccount, Balance[] payouts);
+    event AccountSettled(address subAccount, Balance[] debts, Balance[] payouts);
 
     /**
      * ========================================================= **
@@ -377,10 +377,10 @@ abstract contract BaseEngine {
         // update the account in state
         _settleAccount(_subAccount, payout);
 
-        Balance[] memory balances = new Balance[](1);
-        balances[0] = Balance(collateralId, payout);
+        Balance[] memory payouts = new Balance[](1);
+        payouts[0] = Balance(collateralId, payout);
 
-        emit AccountSettled(_subAccount, balances);
+        emit AccountSettled(_subAccount, new Balance[](0), payouts);
     }
 
     /**
