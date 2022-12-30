@@ -281,9 +281,9 @@ contract AdvancedMarginMathTest is Test {
         assertEq(tester.getMinCollateralInStrike(acc, spot, vol, config), 483262500);
     }
 
-    function testAccountDoubleShortBothITM() public {
+    function testAccountDoubleShort() public {
         // if an account has 2 options, but the strike cross
-        // the margin requirement is the sum of 2.
+        // the margin requirement is the sum of 2 if they're both ITM
         uint256 spot = 3250 * base;
         uint256 amount = 1 * base;
         uint256 callStrike = 3000 * base;
