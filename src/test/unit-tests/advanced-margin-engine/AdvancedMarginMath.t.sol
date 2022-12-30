@@ -305,7 +305,7 @@ contract AdvancedMarginMathTest is Test {
 
         // if only the call is ITM, collateral requirement is reduced
         spot = 3600 * base;
-        assertEq(tester.getMinCollateralInStrike(acc, spot, vol, config), 1073_400000);   
+        assertEq(tester.getMinCollateralInStrike(acc, spot, vol, config), 1073_400000);
     }
 
     function testCannotCalculateMarginRequirementWithoutProperConfig() public {
