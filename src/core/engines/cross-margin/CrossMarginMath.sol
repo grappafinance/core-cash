@@ -60,7 +60,7 @@ library CrossMarginMath {
         CrossMarginDetail[] memory details = _getPositionDetails(grappa, shorts, longs);
 
         // portfolio has no longs or shorts
-        if (details.length == ZERO) return amounts;
+        if (details.length == 0) return amounts;
 
         bool found;
         uint256 index;
@@ -69,18 +69,18 @@ library CrossMarginMath {
             CrossMarginDetail memory detail = details[i];
 
             // checks that the combination has positions, otherwiser skips
-            if (detail.callWeights.length != ZERO || detail.putWeights.length != ZERO) {
+            if (detail.callWeights.length != 0 || detail.putWeights.length != 0) {
                 // gets the amount of numeraire and underlying needed
                 (uint256 numeraireNeeded, uint256 underlyingNeeded) = getMinCollateral(detail);
 
-                if (numeraireNeeded != ZERO) {
+                if (numeraireNeeded != 0) {
                     (found, index) = amounts.indexOf(detail.numeraireId);
 
                     if (found) amounts[index].amount += numeraireNeeded.toUint80();
                     else amounts = amounts.append(Balance(detail.numeraireId, numeraireNeeded.toUint80()));
                 }
 
-                if (underlyingNeeded != ZERO) {
+                if (underlyingNeeded != 0) {
                     (found, index) = amounts.indexOf(detail.underlyingId);
 
                     if (found) amounts[index].amount += underlyingNeeded.toUint80();
@@ -118,8 +118,8 @@ library CrossMarginMath {
 
         // if options collateralizied in underlying, forcing numeraire to be converted to underlying
         // only applied to calls since puts cannot be collateralized in underlying
-        if (numeraireNeeded > ZERO && _detail.putStrikes.length == ZERO) {
-            numeraireNeeded = ZERO;
+        if (numeraireNeeded > 0 && _detail.putStrikes.length == 0) {
+            numeraireNeeded = 0;
 
             underlyingNeeded = _convertCallNumeraireToUnderlying(scenarios, payouts, underlyingNeeded);
         } else {
@@ -139,15 +139,15 @@ library CrossMarginMath {
 
         uint256 i;
         for (i; i < _detail.putWeights.length;) {
-            if (_detail.putWeights[i] == sZERO) revert CMM_InvalidPutWeight();
+            if (_detail.putWeights[i] == 0) revert CMM_InvalidPutWeight();
 
             unchecked {
                 ++i;
             }
         }
 
-        for (i = ZERO; i < _detail.callWeights.length;) {
-            if (_detail.callWeights[i] == sZERO) revert CMM_InvalidCallWeight();
+        for (i; i < _detail.callWeights.length;) {
+            if (_detail.callWeights[i] == 0) revert CMM_InvalidCallWeight();
 
             unchecked {
                 ++i;
@@ -166,8 +166,8 @@ library CrossMarginMath {
         pure
         returns (uint256[] memory scenarios, int256[] memory payouts)
     {
-        bool hasPuts = _detail.putStrikes.length > ZERO;
-        bool hasCalls = _detail.callStrikes.length > ZERO;
+        bool hasPuts = _detail.putStrikes.length > 0;
+        bool hasCalls = _detail.callStrikes.length > 0;
 
         scenarios = _detail.putStrikes.concat(_detail.callStrikes).sort();
 
@@ -177,14 +177,14 @@ library CrossMarginMath {
         uint256 lastScenario;
 
         for (uint256 i; i < scenarios.length;) {
-            // deduping scenarios, leaving payout as zero
+            // deduping scenarios, leaving payout as 0
             if (scenarios[i] != lastScenario) {
                 if (hasPuts) {
-                    payouts[i] = _detail.putStrikes.subEachBy(scenarios[i]).maximum(sZERO).dot(_detail.putWeights) / sUNIT;
+                    payouts[i] = _detail.putStrikes.subEachBy(scenarios[i]).maximum(0).dot(_detail.putWeights) / sUNIT;
                 }
 
                 if (hasCalls) {
-                    payouts[i] += _detail.callStrikes.subEachFrom(scenarios[i]).maximum(sZERO).dot(_detail.callWeights) / sUNIT;
+                    payouts[i] += _detail.callStrikes.subEachFrom(scenarios[i]).maximum(0).dot(_detail.callWeights) / sUNIT;
                 }
 
                 lastScenario = scenarios[i];
@@ -210,8 +210,8 @@ library CrossMarginMath {
         pure
         returns (uint256 numeraireNeeded, uint256 underlyingNeeded)
     {
-        bool hasPuts = _detail.putStrikes.length > ZERO;
-        bool hasCalls = _detail.callStrikes.length > ZERO;
+        bool hasPuts = _detail.putStrikes.length > 0;
+        bool hasCalls = _detail.callStrikes.length > 0;
 
         (int256 minPayout, uint256 minPayoutIndex) = payouts.minWithIndex();
 
@@ -243,7 +243,7 @@ library CrossMarginMath {
 
         if (_numeraireNeeded > minPayout) _numeraireNeeded = minPayout;
 
-        if (_numeraireNeeded < sZERO) numeraireNeeded = uint256(-_numeraireNeeded);
+        if (_numeraireNeeded < 0) numeraireNeeded = uint256(-_numeraireNeeded);
     }
 
     /**
@@ -255,7 +255,7 @@ library CrossMarginMath {
     function _getUnderlyingNeeded(int256[] memory callWeights) internal pure returns (uint256 underlyingNeeded) {
         int256 totalCalls = callWeights.sum();
 
-        if (totalCalls < sZERO) underlyingNeeded = uint256(-totalCalls);
+        if (totalCalls < 0) underlyingNeeded = uint256(-totalCalls);
     }
 
     /**
@@ -282,7 +282,7 @@ library CrossMarginMath {
             uint256 underlyingPayoutAtMinStrike = (scenarios[minPayoutIndex] * underlyingNeeded) / UNIT;
 
             if (underlyingPayoutAtMinStrike.toInt256() > minPayout) {
-                numeraireNeeded = ZERO;
+                numeraireNeeded = 0;
             } else {
                 // check directly above means minPayout > underlyingPayoutAtMinStrike
                 numeraireNeeded = uint256(minPayout) - underlyingPayoutAtMinStrike;
@@ -320,7 +320,7 @@ library CrossMarginMath {
 
         underlyingOnlyNeeded = underlyingNeeded;
 
-        if (maxPayoutsOverScenarios > sZERO) underlyingOnlyNeeded += uint256(maxPayoutsOverScenarios);
+        if (maxPayoutsOverScenarios > 0) underlyingOnlyNeeded += uint256(maxPayoutsOverScenarios);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -335,10 +335,10 @@ library CrossMarginMath {
         view
         returns (CrossMarginDetail[] memory details)
     {
-        details = new CrossMarginDetail[](ZERO);
+        details = new CrossMarginDetail[](0);
 
         // used to reference which detail struct should be updated for a given position
-        bytes32[] memory usceLookUp = new bytes32[](ZERO);
+        bytes32[] memory usceLookUp = new bytes32[](0);
 
         Position[] memory positions = shorts.concat(longs);
         uint256 shortLength = shorts.length;
@@ -397,7 +397,7 @@ library CrossMarginMath {
             if (found) {
                 detail.callWeights[index] += amount;
 
-                if (detail.callWeights[index] == sZERO) {
+                if (detail.callWeights[index] == 0) {
                     detail.callWeights = detail.callWeights.remove(index);
                     detail.callStrikes = detail.callStrikes.remove(index);
                 }
@@ -412,7 +412,7 @@ library CrossMarginMath {
             if (found) {
                 detail.putWeights[index] += amount;
 
-                if (detail.putWeights[index] == sZERO) {
+                if (detail.putWeights[index] == 0) {
                     detail.putWeights = detail.putWeights.remove(index);
                     detail.putStrikes = detail.putStrikes.remove(index);
                 }

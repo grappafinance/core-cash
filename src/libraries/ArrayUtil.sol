@@ -14,8 +14,9 @@ library ArrayUtil {
      * @return m
      */
     function min(int256[] memory x) internal pure returns (int256 m) {
+        if (x.length == 1) return x[0];
         m = x[0];
-        for (uint256 i; i < x.length;) {
+        for (uint256 i = 1; i < x.length;) {
             if (x[i] < m) {
                 m = x[i];
             }
@@ -26,9 +27,10 @@ library ArrayUtil {
     }
 
     function minWithIndex(int256[] memory x) internal pure returns (int256 m, uint256 idx) {
+        if (x.length == 1) return (x[0], 0);
         m = x[0];
         idx = 0;
-        for (uint256 i; i < x.length;) {
+        for (uint256 i = 1; i < x.length;) {
             if (x[i] < m) {
                 m = x[i];
                 idx = i;
@@ -40,8 +42,9 @@ library ArrayUtil {
     }
 
     function min(uint256[] memory x) internal pure returns (uint256 m) {
+        if (x.length == 1) return x[0];
         m = x[0];
-        for (uint256 i; i < x.length;) {
+        for (uint256 i = 1; i < x.length;) {
             if (x[i] < m) {
                 m = x[i];
             }
@@ -52,12 +55,14 @@ library ArrayUtil {
     }
 
     function minMax(uint256[] memory x) internal pure returns (uint256 min_, uint256 max_) {
+        if (x.length == 1) return (x[0], x[0]);
         (min_, max_) = (x[0], x[0]);
-        for (uint256 i; i < x.length;) {
+        if (x.length == 1) return (min_, max_);
+
+        for (uint256 i = 1; i < x.length;) {
             if (x[i] < min_) {
                 min_ = x[i];
-            }
-            if (x[i] > max_) {
+            } else if (x[i] > max_) {
                 max_ = x[i];
             }
             unchecked {
@@ -71,8 +76,9 @@ library ArrayUtil {
      * @return m
      */
     function max(int256[] memory x) internal pure returns (int256 m) {
+        if (x.length == 1) return x[0];
         m = x[0];
-        for (uint256 i; i < x.length;) {
+        for (uint256 i = 1; i < x.length;) {
             if (x[i] > m) {
                 m = x[i];
             }
@@ -84,6 +90,7 @@ library ArrayUtil {
     }
 
     function max(uint256[] memory x) internal pure returns (uint256 m) {
+        if (x.length == 1) return x[0];
         m = x[0];
         for (uint256 i; i < x.length;) {
             if (x[i] > m) {
