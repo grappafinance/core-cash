@@ -247,7 +247,7 @@ library ArrayUtil {
         int256 i = left;
         int256 j = right;
         unchecked {
-            uint256 pivot = arr[uint256(left + (right - left) / 2)];
+            uint256 pivot = arr[uint256(left + right) / 2];
             while (i <= j) {
                 while (arr[uint256(i)] < pivot) {
                     ++i;
@@ -274,7 +274,7 @@ library ArrayUtil {
         int256 i = left;
         int256 j = right;
         unchecked {
-            uint256 pivot = arr[uint256(left + (right - left) / 2)];
+            uint256 pivot = arr[uint256((left + right) / 2)];
             while (i <= j) {
                 while (arr[uint256(i)] < pivot) {
                     ++i;
@@ -326,7 +326,7 @@ library ArrayUtil {
         int256 i = left;
         int256 j = right;
         unchecked {
-            int256 pivot = arr[uint256(left + (right - left) / 2)];
+            int256 pivot = arr[uint256((left + right) / 2)];
 
             while (i <= j) {
                 while (arr[uint256(i)] < pivot) {
@@ -352,7 +352,7 @@ library ArrayUtil {
         int256 i = left;
         int256 j = right;
         unchecked {
-            int256 pivot = arr[uint256(left + (right - left) / 2)];
+            int256 pivot = arr[uint256((left + right) / 2)];
             while (i <= j) {
                 while (arr[uint256(i)] < pivot) {
                     ++i;
