@@ -515,7 +515,8 @@ library ArrayUtil {
             return x[uint256(i)];
         } else {
             if (i < -len) revert IndexOutOfBounds();
-            return x[(len + i).toUint256()];
+            // cast directly here because len + i must > 0
+            return x[uint(len + i)];
         }
     }
 
@@ -526,7 +527,8 @@ library ArrayUtil {
             return x[uint256(i)];
         } else {
             if (i < -len) revert IndexOutOfBounds();
-            return x[(len + i).toUint256()];
+            // cast directly here because len + i must > 0
+            return x[uint(len + i)];    
         }
     }
 
