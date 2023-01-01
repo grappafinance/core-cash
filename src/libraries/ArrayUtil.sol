@@ -222,7 +222,6 @@ library ArrayUtil {
     /**
      * @dev put the min of last p elements in array at position p.
      */
-
     function argSort(uint256[] memory x) internal pure returns (uint256[] memory y, uint256[] memory ixArray) {
         ixArray = new uint256[](x.length);
         // fill in index array
@@ -302,9 +301,8 @@ library ArrayUtil {
     }
 
     /**
-     *  sort functions for int ***
+     * @dev  sort functions for int
      */
-
     function argSort(int256[] memory x) internal pure returns (int256[] memory y, uint256[] memory ixArray) {
         ixArray = new uint256[](x.length);
         // fill in index array
@@ -381,9 +379,8 @@ library ArrayUtil {
     }
 
     /**
-     * End Sort Functions for Int ******
+     * @dev Sort Functions for Int
      */
-
     function sortByIndexes(int256[] memory x, uint256[] memory z) internal pure returns (int256[] memory y) {
         y = new int256[](x.length);
         for (uint256 i; i < x.length;) {
@@ -478,9 +475,9 @@ library ArrayUtil {
         }
     }
 
-    /*
-    @dev this function modifies memory x IN PLACE. Fills x with value v
-    */
+    /**
+     * @dev this function modifies memory x IN PLACE. Fills x with value v
+     */
     function fill(int256[] memory x, int256 v) internal pure {
         for (uint256 i; i < x.length;) {
             x[i] = v;
@@ -491,9 +488,9 @@ library ArrayUtil {
         }
     }
 
-    /*
-    @dev modifies memory a IN PLACE. Populates a starting at index z with values from b.
-    */
+    /**
+     * @dev modifies memory a IN PLACE. Populates a starting at index z with values from b.
+     */
     function populate(uint256[] memory a, uint256[] memory b, uint256 z) internal pure {
         for (uint256 i; i < a.length;) {
             a[z + i] = b[i];
@@ -504,9 +501,9 @@ library ArrayUtil {
         }
     }
 
-    /*
-    @dev modifies memory a IN PLACE. Populates a starting at index z with values from b.
-    */
+    /**
+     * @dev modifies memory a IN PLACE. Populates a starting at index z with values from b.
+     */
     function populate(int256[] memory a, int256[] memory b, uint256 z) internal pure {
         for (uint256 i; i < a.length;) {
             a[z + i] = b[i];
@@ -671,22 +668,10 @@ library ArrayUtil {
     /**
      * @dev converting array of variable types
      */
-
     function toInt256(uint256[] memory x) internal pure returns (int256[] memory y) {
         y = new int256[](x.length);
         for (uint256 i; i < x.length;) {
             y[i] = x[i].toInt256();
-
-            unchecked {
-                ++i;
-            }
-        }
-    }
-
-    function toUint256(int256[] memory x) internal pure returns (uint256[] memory y) {
-        y = new uint256[](x.length);
-        for (uint256 i; i < x.length;) {
-            y[i] = x[i].toUint256();
 
             unchecked {
                 ++i;
