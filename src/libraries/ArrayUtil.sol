@@ -553,8 +553,9 @@ library ArrayUtil {
 
     function subEachFrom(uint256[] memory x, uint256 z) internal pure returns (int256[] memory y) {
         y = new int256[](x.length);
+        int256 intZ = z.toInt256();
         for (uint256 i; i < x.length;) {
-            y[i] = z.toInt256() - x[i].toInt256();
+            y[i] = intZ - x[i].toInt256();
 
             unchecked {
                 ++i;
@@ -564,8 +565,9 @@ library ArrayUtil {
 
     function subEachBy(uint256[] memory x, uint256 z) internal pure returns (int256[] memory y) {
         y = new int256[](x.length);
+        int256 intZ = z.toInt256();
         for (uint256 i; i < x.length;) {
-            y[i] = x[i].toInt256() - z.toInt256();
+            y[i] = x[i].toInt256() - intZ;
 
             unchecked {
                 ++i;
