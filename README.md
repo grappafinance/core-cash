@@ -1,9 +1,7 @@
 <div align="center">
-  <h1 > Grappa</h1>
-  <h3 style="font-size:2.2vw;color:grey">
-  An option protocol that focus on composability and capital efficiency.
-  </h3>
-  <img height=60 src="https://i.imgur.com/vSIO8xJ.png"> </image>
+  <h1 > Grappa Core</h1>
+  
+  <img height=60 src="https://i.imgur.com/vSIO8xJ.png"/>
   <br/>
   <br/>
   <a href="https://github.com/foundry-rs/foundry"><img src="https://img.shields.io/static/v1?label=foundry-rs&message=foundry&color=blue&logo=github"/></a>
@@ -88,7 +86,6 @@ solc-select use 0.8.13
 Run analysis
 
 ```shell
-slither ./src/core/FullMargin
 slither ./src/core/
 ```
 
@@ -100,7 +97,7 @@ With hardhat
 ```shell
 yarn add @grappafinance/grappa-contracts
 
-// or
+# or
 
 npm install @grappafinance/grappa-contracts
 ```
@@ -108,7 +105,7 @@ npm install @grappafinance/grappa-contracts
 With Foundry
 
 ```shell
-forge install antoncoding/grappa
+forge install grappafinance/core
 ```
 
 Then you will be able to import the libraries or contract interface
