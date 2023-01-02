@@ -8,11 +8,11 @@
   <br/>
   <a href="https://github.com/foundry-rs/foundry"><img src="https://img.shields.io/static/v1?label=foundry-rs&message=foundry&color=blue&logo=github"/></a>
   <a href=https://github.com/antoncoding/grappa/actions/workflows/Slither.yml""><img src="https://github.com/antoncoding/grappa/actions/workflows/Slither.yml/badge.svg?branch=master" > </a>
-  <a href=https://github.com/antoncoding/grappa/actions/workflows/CI.yml""><img src="https://github.com/antoncoding/grappa/actions/workflows/CI.yml/badge.svg?branch=master"> </a>
+  <a href=https://github.com/grappafinance/core/actions/workflows/CI.yml""><img src="https://github.com/grappafinance/core/actions/workflows/CI.yml/badge.svg?branch=master"> </a>
 
   <!-- reopen coverage badge again after foundry official launch coverage -->
-  <a href="https://codecov.io/gh/antoncoding/grappa" >
-<img src="https://codecov.io/gh/antoncoding/grappa/branch/master/graph/badge.svg?token=G52EOD1X5B"/>
+  <a href="https://codecov.io/gh/grappafinance/core" >
+<img src="https://codecov.io/gh/grappafinance/core/branch/master/graph/badge.svg?token=G52EOD1X5B"/>
 </a>
   <h5 align="center"> Don't waste your capital.</h5>
   
