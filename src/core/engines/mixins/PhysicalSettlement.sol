@@ -46,6 +46,10 @@ abstract contract PhysicalSettlement is BaseEngine {
 
     uint256 public settlementWindow;
 
+    // TODO include PHYSICAL Longs in batchSettlement to burn the token
+    // TODO dont include CASH longs in batchSettlement if dispute window has not ended (add test scenario)
+    // TODO prevent transfering of PHYSICAL shorts if there are other PHYSICAL shorts (requires re-assignement of Issuer)
+
     /*///////////////////////////////////////////////////////////////
                                 Events
     //////////////////////////////////////////////////////////////*/
