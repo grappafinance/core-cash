@@ -103,6 +103,6 @@ contract ChainlinkOracleDisputable is ChainlinkOracle {
 
         if (entry.isDisputed) return true;
 
-        return block.timestamp > entry.reportAt + disputePeriod[_base][_quote];
+        return block.timestamp >= entry.reportAt + disputePeriod[_base][_quote];
     }
 }

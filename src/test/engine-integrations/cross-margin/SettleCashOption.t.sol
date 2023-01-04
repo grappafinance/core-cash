@@ -426,7 +426,7 @@ contract TestSettleCashLongShort_CM is CrossMarginFixture {
         engine.execute(address(this), selfActions);
 
         // expire option & set expiry price
-        vm.warp(expiry);
+        vm.warp(expiry + engine.settlementWindow());
         oracle.setExpiryPrice(address(weth), address(usdc), 1000 * UNIT);
 
         //settle option
@@ -476,7 +476,7 @@ contract TestSettleCashLongCalls_CM is CrossMarginFixture {
         actions[0] = createAddLongAction(tokenId, amount, address(this));
         engine.execute(address(this), actions);
 
-        vm.warp(expiry);
+        vm.warp(expiry + engine.settlementWindow());
     }
 
     function testSettleLongCallITMIncreasesCollateral() public {
@@ -516,7 +516,7 @@ contract TestSettleCashLongCalls_CM is CrossMarginFixture {
         _actions[1] = createMintIntoAccountAction(tokenId2, address(this), amount);
         engine.execute(alice, _actions);
 
-        vm.warp(expiry);
+        vm.warp(expiry + engine.settlementWindow());
 
         oracle.setExpiryPrice(address(weth), address(usdc), 8000 * UNIT);
 
@@ -578,7 +578,7 @@ contract TestSettleCashLongCalls_CM is CrossMarginFixture {
         _actions[1] = createMintIntoAccountAction(tokenId2, address(this), amount);
         engine.execute(alice, _actions);
 
-        vm.warp(expiry);
+        vm.warp(expiry + engine.settlementWindow());
 
         oracle.setExpiryPrice(address(weth), address(usdc), 3000 * UNIT);
 
@@ -614,7 +614,7 @@ contract TestSettleCashLongCalls_CM is CrossMarginFixture {
         _actions[1] = createMintIntoAccountAction(tokenId2, address(this), amount);
         engine.execute(alice, _actions);
 
-        vm.warp(expiry);
+        vm.warp(expiry + engine.settlementWindow());
 
         oracle.setExpiryPrice(address(weth), address(usdc), 3000 * UNIT);
 
@@ -682,7 +682,7 @@ contract TestSettleCashLongPuts_CM is CrossMarginFixture {
         actions[0] = createAddLongAction(tokenId, amount, address(this));
         engine.execute(address(this), actions);
 
-        vm.warp(expiry);
+        vm.warp(expiry + engine.settlementWindow());
     }
 
     function testSettleLongCallITMIncreasesCollateral() public {

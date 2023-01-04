@@ -120,23 +120,13 @@ contract CrossMarginEngine is
     }
 
     /**
-     * @notice Registers a new issuer
-     * @param _subAccount is the address of the new issuer
-     */
-    function registerIssuer(address _subAccount) public override (PhysicalSettlement, IPhysicalSettlement) returns (uint16 id) {
-        _checkOwner();
-
-        id = PhysicalSettlement.registerIssuer(_subAccount);
-    }
-
-    /**
      * @dev set new settlement window
      * @param _window is the time from expiry that the option can be exercised
      */
-    function setPhysicalSettlementWindow(uint256 _window) public override {
+    function setSettlementWindow(uint256 _window) external override {
         _checkOwner();
 
-        PhysicalSettlement.setPhysicalSettlementWindow(_window);
+        PhysicalSettlement._setSettlementWindow(_window);
     }
 
     /**
@@ -208,10 +198,10 @@ contract CrossMarginEngine is
      * @dev this can only triggered by Grappa, would only be called on settlement.
      * @param _settlement struct
      */
-    function settlePhysicalToken(Settlement calldata _settlement) public override (PhysicalSettlement, IPhysicalSettlement) {
+    function settlePhysicalToken(Settlement calldata _settlement) public override (IPhysicalSettlement) {
         _checkPermissioned(_settlement.debtor);
 
-        PhysicalSettlement.settlePhysicalToken(_settlement);
+        _settlePhysicalToken(_settlement);
     }
 
     /**
@@ -220,12 +210,12 @@ contract CrossMarginEngine is
      * @return settlement struct
      */
     function getPhysicalSettlementPerToken(uint256 _tokenId)
-        public
+        external
         view
-        override (PhysicalSettlement, IPhysicalSettlement)
+        override (IPhysicalSettlement)
         returns (Settlement memory)
     {
-        return PhysicalSettlement.getPhysicalSettlementPerToken(_tokenId);
+        return _getPhysicalSettlementPerToken(_tokenId);
     }
 
     /**
@@ -296,8 +286,8 @@ contract CrossMarginEngine is
      */
     function _settle(address _subAccount) internal override {
         // update the account in state
-        (Balance[] memory longDebts,, Balance[] memory shortPayouts) =
-            accounts[_subAccount].settleAtExpiry(grappa, getPhysicalSettlementWindow());
+        (Balance[] memory longDebts,,, Balance[] memory shortPayouts) =
+            accounts[_subAccount].settleAtExpiry(grappa, settlementWindow());
         emit AccountSettled(_subAccount, longDebts, shortPayouts);
     }
 

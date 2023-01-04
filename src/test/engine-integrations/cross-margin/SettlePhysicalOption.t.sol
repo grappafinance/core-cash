@@ -20,7 +20,6 @@ contract TestSettlePhysicalOption_CM is CrossMarginFixture {
     uint256 private tokenId;
     uint64 private strike;
     uint256 private depositAmount = 1 ether;
-    uint16 private issuerId;
 
     function setUp() public {
         weth.mint(address(this), 1000 * 1e18);
@@ -29,8 +28,6 @@ contract TestSettlePhysicalOption_CM is CrossMarginFixture {
         expiry = block.timestamp + 14 days;
 
         strike = uint64(4000 * UNIT);
-
-        issuerId = engine.registerIssuer(address(this));
     }
 
     function testCannotGetPhysicalSettlementPerTokenForCashSettledToken() public {
@@ -41,7 +38,7 @@ contract TestSettlePhysicalOption_CM is CrossMarginFixture {
     }
 
     function testGetsNothingFromOptionPastSettlementWindow() public {
-        tokenId = getTokenId(TokenType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, issuerId);
+        tokenId = getTokenId(TokenType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, 0);
 
         vm.warp(expiry + 14 minutes);
 
@@ -59,9 +56,9 @@ contract TestSettlePhysicalOption_CM is CrossMarginFixture {
     }
 
     function testGetsNothingFromOptionPastCustomSettlementWindow() public {
-        engine.setPhysicalSettlementWindow(1 hours);
+        engine.setSettlementWindow(1 hours);
 
-        tokenId = getTokenId(TokenType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, issuerId);
+        tokenId = getTokenId(TokenType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, 0);
 
         vm.warp(expiry + 16 minutes);
 
@@ -92,13 +89,11 @@ contract TestSettlePhysicalCoveredCall_CM is CrossMarginFixture {
         weth.mint(address(this), 1000 * 1e18);
         weth.approve(address(engine), type(uint256).max);
 
-        uint16 issuerId = engine.registerIssuer(address(this));
-
         expiry = block.timestamp + 14 days;
 
         strike = uint64(4000 * UNIT);
 
-        tokenId = getTokenId(TokenType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, issuerId);
+        tokenId = getTokenId(TokenType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         // give option to alice
@@ -121,8 +116,6 @@ contract TestSettlePhysicalCoveredCall_CM is CrossMarginFixture {
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        (Position[] memory beforeShorts,,) = engine.marginAccounts(address(this));
-
         vm.startPrank(alice);
         (uint256 debt, uint256 payout) = grappa.settle(alice, tokenId, amount);
         vm.stopPrank();
@@ -139,17 +132,7 @@ contract TestSettlePhysicalCoveredCall_CM is CrossMarginFixture {
 
         assertEq(wethAfter, wethBefore + expectedPayout);
         assertEq(usdcBefore, usdcAfter + expectedDebt);
-
         assertEq(optionBefore, optionAfter + amount);
-
-        (Position[] memory afterShorts,, Balance[] memory collaterals) = engine.marginAccounts(address(this));
-
-        assertEq(beforeShorts.length, 1);
-        assertEq(afterShorts.length, 0);
-
-        assertEq(collaterals.length, 1);
-        assertEq(collaterals[0].collateralId, usdcId);
-        assertEq(collaterals[0].amount, expectedDebt);
     }
 
     function testShouldGetCallPayoutAndDeductedDebtFromSender() public {
@@ -163,8 +146,6 @@ contract TestSettlePhysicalCoveredCall_CM is CrossMarginFixture {
         vm.startPrank(alice);
         engine.setAccountAccess(address(this), type(uint256).max);
         vm.stopPrank();
-
-        (Position[] memory beforeShorts,,) = engine.marginAccounts(address(this));
 
         (uint256 debt, uint256 payout) = grappa.settle(alice, tokenId, amount);
 
@@ -180,17 +161,7 @@ contract TestSettlePhysicalCoveredCall_CM is CrossMarginFixture {
 
         assertEq(wethAfter, wethBefore + expectedPayout);
         assertEq(usdcBefore, usdcAfter + expectedDebt);
-
         assertEq(optionBefore, optionAfter + amount);
-
-        (Position[] memory afterShorts,, Balance[] memory collaterals) = engine.marginAccounts(address(this));
-
-        assertEq(beforeShorts.length, 1);
-        assertEq(afterShorts.length, 0);
-
-        assertEq(collaterals.length, 1);
-        assertEq(collaterals[0].collateralId, usdcId);
-        assertEq(collaterals[0].amount, expectedDebt);
     }
 }
 
@@ -207,13 +178,11 @@ contract TestSettlePhysicalCollateralizedPut_CM is CrossMarginFixture {
         usdc.mint(address(this), 1000_000 * 1e6);
         usdc.approve(address(engine), type(uint256).max);
 
-        uint16 issuerId = engine.registerIssuer(address(this));
-
         expiry = block.timestamp + 14 days;
 
         strike = uint64(2000 * UNIT);
 
-        tokenId = getTokenId(TokenType.PUT, SettlementType.PHYSICAL, pidUsdcCollat, expiry, strike, issuerId);
+        tokenId = getTokenId(TokenType.PUT, SettlementType.PHYSICAL, pidUsdcCollat, expiry, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         // give optoin to alice
@@ -236,8 +205,6 @@ contract TestSettlePhysicalCollateralizedPut_CM is CrossMarginFixture {
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 optionBefore = option.balanceOf(alice, tokenId);
 
-        (Position[] memory beforeShorts,,) = engine.marginAccounts(address(this));
-
         vm.startPrank(alice);
         (uint256 debt, uint256 payout) = grappa.settle(alice, tokenId, amount);
         vm.stopPrank();
@@ -254,17 +221,7 @@ contract TestSettlePhysicalCollateralizedPut_CM is CrossMarginFixture {
 
         assertEq(wethBefore, wethAfter + expectedDebt);
         assertEq(usdcAfter, usdcBefore + expectedPayout);
-
         assertEq(optionBefore, optionAfter + amount);
-
-        (Position[] memory afterShorts,, Balance[] memory collaterals) = engine.marginAccounts(address(this));
-
-        assertEq(beforeShorts.length, 1);
-        assertEq(afterShorts.length, 0);
-
-        assertEq(collaterals.length, 1);
-        assertEq(collaterals[0].collateralId, wethId);
-        assertEq(collaterals[0].amount, expectedDebt);
     }
 
     function testShouldGetPutPayoutAndDeductedDebtFromSender() public {
@@ -278,8 +235,6 @@ contract TestSettlePhysicalCollateralizedPut_CM is CrossMarginFixture {
         vm.startPrank(alice);
         engine.setAccountAccess(address(this), type(uint256).max);
         vm.stopPrank();
-
-        (Position[] memory beforeShorts,,) = engine.marginAccounts(address(this));
 
         (uint256 debt, uint256 payout) = grappa.settle(alice, tokenId, amount);
 
@@ -295,17 +250,7 @@ contract TestSettlePhysicalCollateralizedPut_CM is CrossMarginFixture {
 
         assertEq(wethBefore, wethAfter + expectedDebt);
         assertEq(usdcAfter, usdcBefore + expectedPayout);
-
         assertEq(optionBefore, optionAfter + amount);
-
-        (Position[] memory afterShorts,, Balance[] memory collaterals) = engine.marginAccounts(address(this));
-
-        assertEq(beforeShorts.length, 1);
-        assertEq(afterShorts.length, 0);
-
-        assertEq(collaterals.length, 1);
-        assertEq(collaterals[0].collateralId, wethId);
-        assertEq(collaterals[0].amount, expectedDebt);
     }
 }
 
@@ -317,7 +262,6 @@ contract TestSettlePhysicalShortPositions_CM is CrossMarginFixture {
     uint64 private strike;
     uint256 private wethDepositAmount = 1 ether;
     uint256 private usdcDepositAmount = 4000 * 1e6;
-    uint16 private issuerId;
 
     function setUp() public {
         weth.mint(address(this), 1000 * 1e18);
@@ -329,12 +273,10 @@ contract TestSettlePhysicalShortPositions_CM is CrossMarginFixture {
         expiry = block.timestamp + 14 days;
 
         strike = uint64(4000 * UNIT);
-
-        issuerId = engine.registerIssuer(address(this));
     }
 
     function testSellerCannotClearCallDebtAfterExpiryBeforeWindowClosed() public {
-        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, issuerId);
+        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, 0);
 
         _mintTokens(tokenId, wethId, wethDepositAmount);
 
@@ -353,11 +295,11 @@ contract TestSettlePhysicalShortPositions_CM is CrossMarginFixture {
     }
 
     function testSellerCanClearCallDebtAfterWindowClosed() public {
-        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, issuerId);
+        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, 0);
 
         _mintTokens(tokenId, wethId, wethDepositAmount);
 
-        vm.warp(expiry + engine.getPhysicalSettlementWindow() + 1);
+        vm.warp(expiry + engine.settlementWindow());
 
         (,, Balance[] memory collateralsBefore) = engine.marginAccounts(address(this));
 
@@ -374,8 +316,39 @@ contract TestSettlePhysicalShortPositions_CM is CrossMarginFixture {
         assertEq(collateralsAfter[0].amount, collateralsBefore[0].amount);
     }
 
+    function testSellerCanClearPartialCallDebtAfterWindowClosed() public {
+        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, 0);
+
+        _mintTokens(tokenId, wethId, wethDepositAmount);
+
+        vm.warp(expiry);
+
+        vm.startPrank(alice);
+        usdc.mint(alice, 1000_000 * 1e6);
+        usdc.approve(address(engine), type(uint256).max);
+
+        grappa.settle(alice, tokenId, amount / 2);
+        vm.stopPrank();
+
+        vm.warp(expiry + engine.settlementWindow());
+
+        (,, Balance[] memory collateralsBefore) = engine.marginAccounts(address(this));
+
+        // settle marginaccount
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createSettleAction();
+        engine.execute(address(this), actions);
+
+        //margin account should be reset
+        (Position[] memory shorts,, Balance[] memory collateralsAfter) = engine.marginAccounts(address(this));
+
+        assertEq(shorts.length, 0);
+        assertEq(collateralsAfter[0].collateralId, collateralsBefore[0].collateralId);
+        assertEq(collateralsAfter[0].amount, collateralsBefore[0].amount / 2);
+    }
+
     function testSellerCannotClearPutDebtAfterExpiryBeforeWindowClosed() public {
-        uint256 tokenId = getTokenId(TokenType.PUT, SettlementType.PHYSICAL, pidUsdcCollat, expiry, strike, issuerId);
+        uint256 tokenId = getTokenId(TokenType.PUT, SettlementType.PHYSICAL, pidUsdcCollat, expiry, strike, 0);
 
         _mintTokens(tokenId, usdcId, usdcDepositAmount);
 
@@ -394,11 +367,11 @@ contract TestSettlePhysicalShortPositions_CM is CrossMarginFixture {
     }
 
     function testSellerCanClearPutDebtAfterWindowClosed() public {
-        uint256 tokenId = getTokenId(TokenType.PUT, SettlementType.PHYSICAL, pidUsdcCollat, expiry, strike, issuerId);
+        uint256 tokenId = getTokenId(TokenType.PUT, SettlementType.PHYSICAL, pidUsdcCollat, expiry, strike, 0);
 
         _mintTokens(tokenId, usdcId, usdcDepositAmount);
 
-        vm.warp(expiry + engine.getPhysicalSettlementWindow() + 1);
+        vm.warp(expiry + engine.settlementWindow());
 
         (,, Balance[] memory collateralsBefore) = engine.marginAccounts(address(this));
 
@@ -413,6 +386,37 @@ contract TestSettlePhysicalShortPositions_CM is CrossMarginFixture {
         assertEq(shorts.length, 0);
         assertEq(collateralsAfter[0].collateralId, collateralsBefore[0].collateralId);
         assertEq(collateralsAfter[0].amount, collateralsBefore[0].amount);
+    }
+
+    function testSellerCanClearPartialPutDebtAfterWindowClosed() public {
+        uint256 tokenId = getTokenId(TokenType.PUT, SettlementType.PHYSICAL, pidUsdcCollat, expiry, strike, 0);
+
+        _mintTokens(tokenId, usdcId, usdcDepositAmount);
+
+        vm.warp(expiry);
+
+        vm.startPrank(alice);
+        weth.mint(alice, 1000 * 1e18);
+        weth.approve(address(engine), type(uint256).max);
+
+        grappa.settle(alice, tokenId, amount / 2);
+        vm.stopPrank();
+
+        vm.warp(expiry + engine.settlementWindow());
+
+        (,, Balance[] memory collateralsBefore) = engine.marginAccounts(address(this));
+
+        // settle marginaccount
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createSettleAction();
+        engine.execute(address(this), actions);
+
+        //margin account should be reset
+        (Position[] memory shorts,, Balance[] memory collateralsAfter) = engine.marginAccounts(address(this));
+
+        assertEq(shorts.length, 0);
+        assertEq(collateralsAfter[0].collateralId, collateralsBefore[0].collateralId);
+        assertEq(collateralsAfter[0].amount, collateralsBefore[0].amount / 2);
     }
 
     function _mintTokens(uint256 tokenId, uint8 collateralId, uint256 depositAmount) internal {
@@ -437,7 +441,6 @@ contract TestSettlePhysicalLongPositions_CM is CrossMarginFixture {
     uint64 private strike;
     uint256 private wethDepositAmount = 1 ether;
     uint256 private usdcDepositAmount = 4000 * 1e6;
-    uint16 private issuerId;
 
     function setUp() public {
         weth.mint(alice, 1000 * 1e18);
@@ -456,16 +459,14 @@ contract TestSettlePhysicalLongPositions_CM is CrossMarginFixture {
         expiry = block.timestamp + 14 days;
 
         strike = uint64(4000 * UNIT);
-
-        issuerId = engine.registerIssuer(alice);
     }
 
     function testHolderCannotClearLongCallAfterWindowClosed() public {
-        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, issuerId);
+        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, 0);
 
         _mintTokens(tokenId, wethId, wethDepositAmount);
 
-        vm.warp(expiry + engine.getPhysicalSettlementWindow() + 1);
+        vm.warp(expiry + engine.settlementWindow());
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -480,7 +481,7 @@ contract TestSettlePhysicalLongPositions_CM is CrossMarginFixture {
     }
 
     function testSellerCanClearLongCallDebtAfterExpiryBeforeWindowClosed() public {
-        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, issuerId);
+        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, 0);
 
         _mintTokens(tokenId, wethId, wethDepositAmount);
 
@@ -499,11 +500,11 @@ contract TestSettlePhysicalLongPositions_CM is CrossMarginFixture {
     }
 
     function testHolderCannotClearLongPutAfterWindowClosed() public {
-        uint256 tokenId = getTokenId(TokenType.PUT, SettlementType.PHYSICAL, pidUsdcCollat, expiry, strike, issuerId);
+        uint256 tokenId = getTokenId(TokenType.PUT, SettlementType.PHYSICAL, pidUsdcCollat, expiry, strike, 0);
 
         _mintTokens(tokenId, usdcId, usdcDepositAmount);
 
-        vm.warp(expiry + engine.getPhysicalSettlementWindow() + 1);
+        vm.warp(expiry + engine.settlementWindow());
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -518,7 +519,7 @@ contract TestSettlePhysicalLongPositions_CM is CrossMarginFixture {
     }
 
     function testSellerCanClearPutDebtAfterWindowClosed() public {
-        uint256 tokenId = getTokenId(TokenType.PUT, SettlementType.PHYSICAL, pidUsdcCollat, expiry, strike, issuerId);
+        uint256 tokenId = getTokenId(TokenType.PUT, SettlementType.PHYSICAL, pidUsdcCollat, expiry, strike, 0);
 
         _mintTokens(tokenId, usdcId, usdcDepositAmount);
 

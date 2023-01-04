@@ -92,13 +92,7 @@ error DS_MergeWithSameStrike();
  *   Physcially Settled Errors   *
  * ----------------------------- */
 
-/// @dev issuer already registered
-error PS_IssuerAlreadyRegistered();
-
 /// @dev invalid settlement type
 error PS_InvalidSettlementType();
-
-/// @dev invalid issuer address in token
-error PS_InvalidIssuerAddress();
 
 error PS_InvalidSettlementWindow();

@@ -130,32 +130,6 @@ contract OptionTokenTest is Test {
         option.mint(address(this), tokenId, 1);
     }
 
-    function testCannotMintPhysicalSettlementPutWithNoIssuer() public {
-        uint8 engineId = 1;
-        uint256 expiry = block.timestamp + 1 days;
-
-        vm.mockCall(grappa, abi.encodeWithSelector(Grappa(grappa).engines.selector, engineId), abi.encode(address(this)));
-
-        uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
-        uint256 tokenId = TokenIdUtil.getTokenId(TokenType.PUT, SettlementType.PHYSICAL, productId, uint64(expiry), 20, 0);
-
-        vm.expectRevert(GP_BadPhysicalSettlementToken.selector);
-        option.mint(address(this), tokenId, 1);
-    }
-
-    function testCannotMintPhysicalSettlementCallWithNoIssuer() public {
-        uint8 engineId = 1;
-        uint256 expiry = block.timestamp + 1 days;
-
-        vm.mockCall(grappa, abi.encodeWithSelector(Grappa(grappa).engines.selector, engineId), abi.encode(address(this)));
-
-        uint40 productId = ProductIdUtil.getProductId(0, engineId, 0, 0, 0);
-        uint256 tokenId = TokenIdUtil.getTokenId(TokenType.CALL, SettlementType.PHYSICAL, productId, uint64(expiry), 40, 0);
-
-        vm.expectRevert(GP_BadPhysicalSettlementToken.selector);
-        option.mint(address(this), tokenId, 1);
-    }
-
     function testGetUrl() public {
         assertEq(option.uri(0), "https://grappa.finance/token/0");
 

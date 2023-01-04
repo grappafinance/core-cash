@@ -403,9 +403,6 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
             revert GP_BadPhysicalSettlementToken();
         }
 
-        // physical settlement must have a valid issuer ID
-        if ((settlementType == SettlementType.PHYSICAL) && (reserved == 0)) revert GP_BadPhysicalSettlementToken();
-
         // check that you cannot mint a "credit spread" token, reserved is used as a short strikePrice
         if (tokenType == TokenType.CALL_SPREAD && (reserved < strikePrice)) revert GP_BadCashSettledStrikes();
         if (tokenType == TokenType.PUT_SPREAD && (reserved > strikePrice)) revert GP_BadCashSettledStrikes();
@@ -427,7 +424,9 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         internal
         returns (Settlement memory settlement)
     {
-        settlement = getSettlement(_tokenId, _amount.toUint64());
+        uint64 amount = _amount.toUint64();
+        
+        settlement = getSettlement(_tokenId, amount);
 
         if (_dryRun) return settlement;
 
@@ -438,7 +437,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
 
         if (debt != 0 && payout != 0) {
             settlement.tokenId = _tokenId;
-            settlement.tokenAmount = _amount;
+            settlement.tokenAmount = amount;
             settlement.debtor = msg.sender;
             settlement.creditor = _account;
 
