@@ -32,8 +32,6 @@ interface IGrappa {
 
     function oracles(uint8 _id) external view returns (address oracle);
 
-    function getSettlement(uint256 _tokenId, uint256 _amount) external view returns (uint256 debt, uint256 payout);
-
     /**
      * @notice burn token and settle at expiry
      * @param _account who to settle for
@@ -43,6 +41,15 @@ interface IGrappa {
      * @return payout amount paid out
      */
     function settle(address _account, uint256 _tokenId, uint256 _amount) external returns (uint256 debt, uint256 payout);
+
+    /**
+     * @notice calculated token settlement at expiry
+     * @param _tokenId  tokenId of option token to burn
+     * @param _amount   amount to settle
+     * @return debt amount owed
+     * @return payout amount paid out
+     */
+    function getSettlement(uint256 _tokenId, uint256 _amount) external view returns (uint256 debt, uint256 payout);
 
     /**
      * @notice burn array of tokens and settle at expiry
