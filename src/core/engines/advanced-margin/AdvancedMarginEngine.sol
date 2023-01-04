@@ -343,13 +343,11 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
         AdvancedMarginAccount memory account = marginAccounts[_subAccount];
         uint8 collatId = account.collateralId;
         if (account.shortCallAmount > 0) {
-            Settlement memory settlement = grappa.getSettlement(account.shortCallId, account.shortCallAmount);
-            callPayout = settlement.payout;
+            (, callPayout) = grappa.getSettlement(account.shortCallId, account.shortCallAmount);
         }
 
         if (account.shortPutAmount > 0) {
-            Settlement memory settlement = grappa.getSettlement(account.shortPutId, account.shortPutAmount);
-            putPayout = settlement.payout;
+            (, putPayout) = grappa.getSettlement(account.shortPutId, account.shortPutAmount);
         }
         return (collatId, (callPayout + putPayout).toUint80());
     }

@@ -196,9 +196,9 @@ contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyG
     function _getAccountPayout(address _subAccount) internal view override returns (uint8, uint80) {
         FullMarginAccount memory account = marginAccounts[_subAccount];
         uint8 collatId = account.collateralId;
-        Settlement memory settlement = grappa.getSettlement(account.tokenId, account.shortAmount);
+        (, uint256 payout) = grappa.getSettlement(account.tokenId, account.shortAmount);
 
-        return (collatId, settlement.payout.toUint80());
+        return (collatId, payout.toUint80());
     }
 
     /**

@@ -32,7 +32,7 @@ interface IGrappa {
 
     function oracles(uint8 _id) external view returns (address oracle);
 
-    function getSettlement(uint256 _tokenId, uint64 _amount) external view returns (Settlement memory settlement);
+    function getSettlement(uint256 _tokenId, uint256 _amount) external view returns (uint256 debt, uint256 payout);
 
     /**
      * @notice burn token and settle at expiry
@@ -49,9 +49,18 @@ interface IGrappa {
      * @param _account who to settle for
      * @param _tokenIds array of tokenIds to burn
      * @param _amounts array of amounts to burn
-     * @param _dryRun flag to simulate transaction
      */
-    function batchSettle(address _account, uint256[] memory _tokenIds, uint256[] memory _amounts, bool _dryRun)
+    function batchSettle(address _account, uint256[] memory _tokenIds, uint256[] memory _amounts)
         external
+        returns (Balance[] memory debts, Balance[] memory payouts);
+
+    /**
+     * @notice calculate array of tokens settlement at expiry
+     * @param _tokenIds array of tokenIds to burn
+     * @param _amounts array of amounts to burn
+     */
+    function getBatchSettlement(uint256[] memory _tokenIds, uint256[] memory _amounts)
+        external
+        view
         returns (Balance[] memory debts, Balance[] memory payouts);
 }

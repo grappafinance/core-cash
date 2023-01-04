@@ -201,7 +201,7 @@ library CrossMarginLib {
             // debts[i] = 0 for cash settled options
             // payouts[i] = 0 for OTM cash settled,
             // payouts[i] > 0 for physical settled options
-            (debts, payouts) = grappa.batchSettle(address(this), tokenIds, amounts, false);
+            (debts, payouts) = grappa.batchSettle(address(this), tokenIds, amounts);
 
             for (i = 0; i < debts.length;) {
                 if (debts[i].amount != 0) {
@@ -270,7 +270,7 @@ library CrossMarginLib {
             // debts[i] = 0 for cash settled options
             // payouts[i] = 0 for OTM cash settled,
             // payouts[i] > 0 for physical settled options
-            (debts, payouts) = grappa.batchSettle(address(this), tokenIds, amounts, true);
+            (debts, payouts) = grappa.getBatchSettlement(tokenIds, amounts);
 
             for (i = 0; i < debts.length;) {
                 if (debts[i].amount != 0) {

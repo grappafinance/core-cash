@@ -1045,7 +1045,7 @@ contract TestBatchSettleCall is AdvancedFixture {
         badIds[0] = getTokenId(TokenType.CALL, SettlementType.CASH, productId, expiry, strikes[0], 0);
 
         vm.expectRevert(GP_WrongArgumentLength.selector);
-        grappa.batchSettle(alice, badIds, amounts, false);
+        grappa.batchSettle(alice, badIds, amounts);
     }
 
     function testShouldGetNothingIfAllOptionsExpiresOTM() public {
@@ -1054,7 +1054,7 @@ contract TestBatchSettleCall is AdvancedFixture {
 
         uint256 usdcBefore = usdc.balanceOf(alice);
 
-        grappa.batchSettle(alice, tokenIds, amounts, false);
+        grappa.batchSettle(alice, tokenIds, amounts);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 option1After = option.balanceOf(alice, tokenIds[0]);
@@ -1075,7 +1075,7 @@ contract TestBatchSettleCall is AdvancedFixture {
         uint256 expectedReturn = strikes[1] - strikes[0];
 
         uint256 usdcBefore = usdc.balanceOf(alice);
-        grappa.batchSettle(alice, tokenIds, amounts, false);
+        grappa.batchSettle(alice, tokenIds, amounts);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 option1After = option.balanceOf(alice, tokenIds[0]);
@@ -1097,7 +1097,7 @@ contract TestBatchSettleCall is AdvancedFixture {
         uint256 expectedReturn = 3 * expiryPrice - (strikes[0] + strikes[1] + strikes[2]);
 
         uint256 usdcBefore = usdc.balanceOf(alice);
-        grappa.batchSettle(alice, tokenIds, amounts, false);
+        grappa.batchSettle(alice, tokenIds, amounts);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 option1After = option.balanceOf(alice, tokenIds[0]);
@@ -1171,7 +1171,7 @@ contract TestBatchSettleMultipleProduct is AdvancedFixture {
         uint256 expectedReturn = (((strikes[1] - strikes[0]) * UNIT) / strikes[1]) * 1e12;
 
         uint256 wethBefore = weth.balanceOf(alice);
-        grappa.batchSettle(alice, tokenIds, amounts, false);
+        grappa.batchSettle(alice, tokenIds, amounts);
 
         uint256 wethAfter = weth.balanceOf(alice);
         uint256 option1After = option.balanceOf(alice, tokenIds[0]);
@@ -1198,7 +1198,7 @@ contract TestBatchSettleMultipleProduct is AdvancedFixture {
         uint256 usdcBefore = usdc.balanceOf(alice);
         uint256 wethBefore = weth.balanceOf(alice);
 
-        grappa.batchSettle(alice, tokenIds, amounts, false);
+        grappa.batchSettle(alice, tokenIds, amounts);
 
         uint256 usdcAfter = usdc.balanceOf(alice);
         uint256 wethAfter = weth.balanceOf(alice);
