@@ -13,13 +13,10 @@ import {IERC1155} from "openzeppelin/token/ERC1155/IERC1155.sol";
 // interfaces
 import {IGrappa} from "../../interfaces/IGrappa.sol";
 import {IOptionToken} from "../../interfaces/IOptionToken.sol";
-import {IOracle} from "../../interfaces/IOracle.sol";
 import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 
 // librarise
 import {TokenIdUtil} from "../../libraries/TokenIdUtil.sol";
-import {MoneynessLib} from "../../libraries/MoneynessLib.sol";
-import {NumberUtil} from "../../libraries/NumberUtil.sol";
 
 // constants and types
 import "../../config/types.sol";
@@ -34,7 +31,6 @@ import "../../config/errors.sol";
  */
 abstract contract BaseEngine {
     using FixedPointMathLib for uint256;
-    using NumberUtil for uint256;
     using SafeERC20 for IERC20;
     using TokenIdUtil for uint256;
 
@@ -108,58 +104,6 @@ abstract contract BaseEngine {
         allowedExecutionLeft[maskedId][msg.sender] = 0;
 
         emit AccountAuthorizationUpdate(maskedId, msg.sender, 0);
-    }
-
-    /**
-     * @notice payout to user on settlement.
-     * @dev this can only triggered by Grappa, would only be called on settlement.
-     * @param _asset asset to transfer
-     * @param _recipient receiver
-     * @param _amount amount
-     */
-    function sendPayoutValue(address _asset, address _recipient, uint256 _amount) public virtual {
-        _checkIsGrappa();
-
-        if (_recipient != address(this)) IERC20(_asset).safeTransfer(_recipient, _amount);
-    }
-
-    /**
-     * @dev calculate the cash settled payout for one option token
-     * @param _tokenId  token id of option token
-     * @return payoutPerToken amount paid
-     */
-    function getCashSettlementPerToken(uint256 _tokenId) public view virtual returns (uint256 payoutPerToken) {
-        (TokenType tokenType, SettlementType settlementType, uint40 productId, uint64 expiry, uint64 strikePrice,) =
-            TokenIdUtil.parseTokenId(_tokenId);
-
-        if (settlementType == SettlementType.PHYSICAL) revert BM_InvalidSettlementType();
-
-        (address oracle,, address underlying,, address strike,, address collateral, uint8 collateralDecimals) =
-            grappa.getDetailFromProductId(productId);
-
-        // expiry price of underlying, denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
-        uint256 expiryPrice = _getSettlementPrice(oracle, underlying, strike, expiry);
-
-        // cash value denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
-        uint256 cashValue;
-
-        if (tokenType == TokenType.CALL) {
-            cashValue = MoneynessLib.getCallCashValue(expiryPrice, strikePrice);
-        } else if (tokenType == TokenType.PUT) {
-            cashValue = MoneynessLib.getPutCashValue(expiryPrice, strikePrice);
-        }
-
-        // the following logic convert cash value (amount worth) if collateral is not strike:
-        if (collateral == underlying) {
-            // collateral is underlying. payout should be devided by underlying price
-            cashValue = cashValue.mulDivDown(UNIT, expiryPrice);
-        } else if (collateral != strike) {
-            // collateral is not underlying nor strike
-            uint256 collateralPrice = _getSettlementPrice(oracle, collateral, strike, expiry);
-            cashValue = cashValue.mulDivDown(UNIT, collateralPrice);
-        }
-
-        payoutPerToken = cashValue.convertDecimals(UNIT_DECIMALS, collateralDecimals);
     }
 
     function onERC1155Received(address, address, uint256, uint256, bytes calldata) external virtual returns (bytes4) {
@@ -457,23 +401,6 @@ abstract contract BaseEngine {
      */
     function _isPrimaryAccountFor(address _primary, address _subAccount) internal pure returns (bool) {
         return (uint160(_primary) | 0xFF) == (uint160(_subAccount) | 0xFF);
-    }
-
-    /**
-     * @dev check settlement price is finalized from oracle, and return price
-     * @param _oracle oracle contract address
-     * @param _base base asset (ETH is base asset while requesting ETH / USD)
-     * @param _quote quote asset (USD is base asset while requesting ETH / USD)
-     * @param _expiry expiry timestamp
-     */
-    function _getSettlementPrice(address _oracle, address _base, address _quote, uint256 _expiry)
-        internal
-        view
-        returns (uint256)
-    {
-        (uint256 price, bool isFinalized) = IOracle(_oracle).getPriceAtExpiry(_base, _quote, _expiry);
-        if (!isFinalized) revert GP_PriceNotFinalized();
-        return price;
     }
 
     /**

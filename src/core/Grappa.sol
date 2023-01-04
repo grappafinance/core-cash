@@ -8,11 +8,12 @@ import {OwnableUpgradeable} from "openzeppelin-upgradeable/access/OwnableUpgrade
 import {ReentrancyGuardUpgradeable} from "openzeppelin-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 // interfaces
+import {ICashSettlement} from "../interfaces/ICashSettlement.sol";
 import {IERC20Metadata} from "openzeppelin/token/ERC20/extensions/IERC20Metadata.sol";
-import {IOracle} from "../interfaces/IOracle.sol";
-import {IOptionToken} from "../interfaces/IOptionToken.sol";
 import {IGrappa} from "../interfaces/IGrappa.sol";
 import {IMarginEngine} from "../interfaces/IMarginEngine.sol";
+import {IOptionToken} from "../interfaces/IOptionToken.sol";
+import {IOracle} from "../interfaces/IOracle.sol";
 import {IPhysicalSettlement} from "../interfaces/IPhysicalSettlement.sol";
 
 // librarise
@@ -21,10 +22,10 @@ import {ProductIdUtil} from "../libraries/ProductIdUtil.sol";
 import {TokenIdUtil} from "../libraries/TokenIdUtil.sol";
 
 // constants and types
-import "../config/types.sol";
-import "../config/enums.sol";
 import "../config/constants.sol";
+import "../config/enums.sol";
 import "../config/errors.sol";
+import "../config/types.sol";
 
 /**
  * @title   Grappa
@@ -441,16 +442,17 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
 
         emit OptionSettled(_account, _tokenId, _amount, settlement.debt, settlement.payout);
 
-        if (settlement.debt != 0 && settlement.payout != 0) {
-            settlement.tokenId = _tokenId;
-            settlement.tokenAmount = amount;
+        settlement.tokenId = _tokenId;
+        settlement.tokenAmount = amount;
+        settlement.creditor = _account;
+
+        if (_tokenId.isPhysical() && settlement.debt != 0 && settlement.payout != 0) {
             settlement.debtor = msg.sender;
-            settlement.creditor = _account;
 
             IPhysicalSettlement(settlement.engine).settlePhysicalToken(settlement);
-        } else if (settlement.payout != 0) {
+        } else if (_tokenId.isCash() && settlement.payout != 0) {
             address payoutAsset = assets[settlement.payoutAssetId].addr;
-            IMarginEngine(settlement.engine).sendPayoutValue(payoutAsset, _account, settlement.payout);
+            ICashSettlement(settlement.engine).settleCashToken(payoutAsset, _account, settlement.payout);
         }
     }
 
@@ -491,7 +493,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         address engine = engines[_tokenId.parseEngineId()];
 
         if (settlementType == SettlementType.CASH) {
-            settlement.payoutPerToken = IMarginEngine(engine).getCashSettlementPerToken(_tokenId);
+            settlement.payoutPerToken = ICashSettlement(engine).getCashSettlementPerToken(_tokenId);
 
             if (settlement.payoutPerToken != 0) settlement.payoutAssetId = _tokenId.parseCollateralId();
         } else if (settlementType == SettlementType.PHYSICAL) {

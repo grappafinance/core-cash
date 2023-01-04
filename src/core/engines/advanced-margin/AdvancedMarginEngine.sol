@@ -7,22 +7,24 @@ import {SafeERC20} from "openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import {Ownable} from "openzeppelin/access/Ownable.sol";
 import {ReentrancyGuard} from "solmate/utils/ReentrancyGuard.sol";
 import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
+import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
 
 // inheriting contracts
 import {BaseEngine} from "../BaseEngine.sol";
+import {CashSettlement} from "../mixins/CashSettlement.sol";
 import {DebitSpread} from "../mixins/DebitSpread.sol";
-import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
 
 // interfaces
-import {IOracle} from "../../../interfaces/IOracle.sol";
+import {ICashSettlement} from "../../../interfaces/ICashSettlement.sol";
 import {IMarginEngine} from "../../../interfaces/IMarginEngine.sol";
+import {IOracle} from "../../../interfaces/IOracle.sol";
 import {IVolOracle} from "../../../interfaces/IVolOracle.sol";
 
 // librarise
-import {TokenIdUtil} from "../../../libraries/TokenIdUtil.sol";
-import {NumberUtil} from "../../../libraries/NumberUtil.sol";
-import {AdvancedMarginMath} from "./AdvancedMarginMath.sol";
 import {AdvancedMarginLib} from "./AdvancedMarginLib.sol";
+import {AdvancedMarginMath} from "./AdvancedMarginMath.sol";
+import {NumberUtil} from "../../../libraries/NumberUtil.sol";
+import {TokenIdUtil} from "../../../libraries/TokenIdUtil.sol";
 
 // constants and types
 import "./types.sol";
@@ -42,7 +44,15 @@ import "../../../config/errors.sol";
  *             Interacts with VolOracle to read vol
  */
 
-contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable, ReentrancyGuard {
+contract AdvancedMarginEngine is
+    IMarginEngine,
+    ICashSettlement,
+    BaseEngine,
+    CashSettlement,
+    DebitSpread,
+    Ownable,
+    ReentrancyGuard
+{
     using AdvancedMarginMath for AdvancedMarginDetail;
     using AdvancedMarginLib for AdvancedMarginAccount;
     using SafeERC20 for IERC20;
@@ -202,8 +212,15 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
         delete marginAccounts[_subAccount];
     }
 
-    function sendPayoutValue(address _asset, address _recipient, uint256 _amount) public override (BaseEngine, IMarginEngine) {
-        BaseEngine.sendPayoutValue(_asset, _recipient, _amount);
+    /**
+     * @notice payout to user on settlement.
+     * @dev this can only triggered by Grappa, would only be called on settlement.
+     * @param _asset asset to transfer
+     * @param _recipient receiber
+     * @param _amount amount
+     */
+    function settleCashToken(address _asset, address _recipient, uint256 _amount) external override {
+        _settleCashToken(_asset, _recipient, _amount);
     }
 
     /**
@@ -211,13 +228,8 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
      * @param _tokenId  token id of option token
      * @return payoutPerToken amount paid
      */
-    function getCashSettlementPerToken(uint256 _tokenId)
-        public
-        view
-        override (BaseEngine, DebitSpread, IMarginEngine)
-        returns (uint256)
-    {
-        return DebitSpread.getCashSettlementPerToken(_tokenId);
+    function getCashSettlementPerToken(uint256 _tokenId) external view override returns (uint256) {
+        return _getCashSettlementPerToken(_tokenId);
     }
 
     /**
@@ -253,9 +265,23 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
 
     /**
      * ======================================================== *
-     *               Override Base Engine functions             *
+     *            Override Abstract Contract functions          *
      * ======================================================== *
      */
+
+    /**
+     * @dev calculate the cash settled payout for one option token
+     * @param _tokenId  token id of option token
+     * @return payoutPerToken amount paid
+     */
+    function _getCashSettlementPerToken(uint256 _tokenId)
+        internal
+        view
+        override (CashSettlement, DebitSpread)
+        returns (uint256 payoutPerToken)
+    {
+        return DebitSpread._getCashSettlementPerToken(_tokenId);
+    }
 
     /**
      * @notice override _removeCollateral in BaseEngine to handle settlement with expired short positions.

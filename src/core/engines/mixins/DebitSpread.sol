@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 
 // inheriting contracts
 import {BaseEngine} from "../BaseEngine.sol";
+import {CashSettlement} from "./CashSettlement.sol";
 
 // imported contracts and libraries
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
@@ -23,7 +24,7 @@ import "../../../config/errors.sol";
  * @author  @antoncoding, @dsshap
  * @notice  util functions for MarginEngines to support debit spreads
  */
-abstract contract DebitSpread is BaseEngine {
+abstract contract DebitSpread is BaseEngine, CashSettlement {
     using FixedPointMathLib for uint256;
     using NumberUtil for uint256;
     using TokenIdUtil for uint256;
@@ -43,11 +44,11 @@ abstract contract DebitSpread is BaseEngine {
      * @param _tokenId  token id of option token
      * @return payoutPerToken amount paid
      */
-    function getCashSettlementPerToken(uint256 _tokenId)
-        public
+    function _getCashSettlementPerToken(uint256 _tokenId)
+        internal
         view
         virtual
-        override (BaseEngine)
+        override (CashSettlement)
         returns (uint256 payoutPerToken)
     {
         (TokenType tokenType,, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) =

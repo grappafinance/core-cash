@@ -3,23 +3,24 @@ pragma solidity ^0.8.0;
 
 // imported contracts and libraries
 import {ReentrancyGuard} from "solmate/utils/ReentrancyGuard.sol";
+import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
 
 // inheriting contracts
 import {BaseEngine} from "../BaseEngine.sol";
+import {CashSettlement} from "../mixins/CashSettlement.sol";
 import {DebitSpread} from "../mixins/DebitSpread.sol";
-import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
 
 // interfaces
-import {IOracle} from "../../../interfaces/IOracle.sol";
+import {ICashSettlement} from "../../../interfaces/ICashSettlement.sol";
 import {IGrappa} from "../../../interfaces/IGrappa.sol";
 import {IMarginEngine} from "../../../interfaces/IMarginEngine.sol";
+import {IOracle} from "../../../interfaces/IOracle.sol";
 
 // librarise
-import {TokenIdUtil} from "../../../libraries/TokenIdUtil.sol";
-import {ProductIdUtil} from "../../../libraries/ProductIdUtil.sol";
-
 import {FullMarginMath} from "./FullMarginMath.sol";
 import {FullMarginLib} from "./FullMarginLib.sol";
+import {ProductIdUtil} from "../../../libraries/ProductIdUtil.sol";
+import {TokenIdUtil} from "../../../libraries/TokenIdUtil.sol";
 
 // constants and types
 import "../../../config/types.sol";
@@ -39,7 +40,7 @@ import "./errors.sol";
  *             Interacts with OptionToken to mint / burn
  *             Interacts with grappa to fetch registered asset info
  */
-contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyGuard {
+contract FullMarginEngine is IMarginEngine, ICashSettlement, BaseEngine, CashSettlement, DebitSpread, ReentrancyGuard {
     using FullMarginLib for FullMarginAccount;
     using FullMarginMath for FullMarginDetail;
     using TokenIdUtil for uint256;
@@ -90,8 +91,8 @@ contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyG
      * @param _recipient receiber
      * @param _amount amount
      */
-    function sendPayoutValue(address _asset, address _recipient, uint256 _amount) public override (BaseEngine, IMarginEngine) {
-        BaseEngine.sendPayoutValue(_asset, _recipient, _amount);
+    function settleCashToken(address _asset, address _recipient, uint256 _amount) external override {
+        _settleCashToken(_asset, _recipient, _amount);
     }
 
     /**
@@ -99,13 +100,8 @@ contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyG
      * @param _tokenId  token id of option token
      * @return payoutPerToken amount paid
      */
-    function getCashSettlementPerToken(uint256 _tokenId)
-        public
-        view
-        override (BaseEngine, DebitSpread, IMarginEngine)
-        returns (uint256)
-    {
-        return DebitSpread.getCashSettlementPerToken(_tokenId);
+    function getCashSettlementPerToken(uint256 _tokenId) external view override returns (uint256) {
+        return _getCashSettlementPerToken(_tokenId);
     }
 
     /**
@@ -132,6 +128,26 @@ contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyG
         marginAccounts[_newSubAccount] = marginAccounts[_subAccount];
 
         delete marginAccounts[_subAccount];
+    }
+
+    /**
+     * ======================================================== *
+     *            Override Abstract Contract functions          *
+     * ======================================================== *
+     */
+
+    /**
+     * @dev calculate the cash settled payout for one option token
+     * @param _tokenId  token id of option token
+     * @return payoutPerToken amount paid
+     */
+    function _getCashSettlementPerToken(uint256 _tokenId)
+        internal
+        view
+        override (CashSettlement, DebitSpread)
+        returns (uint256 payoutPerToken)
+    {
+        return DebitSpread._getCashSettlementPerToken(_tokenId);
     }
 
     /**

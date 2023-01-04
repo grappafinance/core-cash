@@ -5,6 +5,7 @@ pragma solidity ^0.8.0;
 
 import {IMarginEngine} from "../../interfaces/IMarginEngine.sol";
 import {BaseEngine} from "../../core/engines/BaseEngine.sol";
+import {CashSettlement} from "../../core/engines/mixins/CashSettlement.sol";
 import {DebitSpread} from "../../core/engines/mixins/DebitSpread.sol";
 import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin/token/ERC20/utils/SafeERC20.sol";
@@ -18,7 +19,7 @@ import "../../config/errors.sol";
  * @title   MockEngine
  * @notice  Implement execute to test all flow in BaseEngine
  */
-contract MockEngine is BaseEngine, DebitSpread, ReentrancyGuard {
+contract MockEngine is BaseEngine, CashSettlement, DebitSpread, ReentrancyGuard {
     bool public isAboveWater;
 
     uint80 public mockPayout;
@@ -81,8 +82,21 @@ contract MockEngine is BaseEngine, DebitSpread, ReentrancyGuard {
         if (!_isAccountAboveWater(_subAccount)) revert BM_AccountUnderwater();
     }
 
-    function getCashSettlementPerToken(uint256 _tokenId) public view override (DebitSpread, BaseEngine) returns (uint256) {
-        return DebitSpread.getCashSettlementPerToken(_tokenId);
+    function settleCashToken(address _asset, address _recipient, uint256 _amount) external {
+        _settleCashToken(_asset, _recipient, _amount);
+    }
+
+    function getCashSettlementPerToken(uint256 _tokenId) external view returns (uint256) {
+        return _getCashSettlementPerToken(_tokenId);
+    }
+
+    function _getCashSettlementPerToken(uint256 _tokenId)
+        internal
+        view
+        override (CashSettlement, DebitSpread)
+        returns (uint256 payoutPerToken)
+    {
+        return DebitSpread._getCashSettlementPerToken(_tokenId);
     }
 
     function _isAccountAboveWater(address /*_subAccount*/ ) internal view override returns (bool) {

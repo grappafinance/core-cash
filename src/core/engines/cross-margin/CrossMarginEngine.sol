@@ -5,15 +5,17 @@ pragma solidity ^0.8.0;
 import {UUPSUpgradeable} from "openzeppelin/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "openzeppelin-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
 
 // inheriting contracts
 import {BaseEngine} from "../BaseEngine.sol";
 import {PhysicalSettlement} from "../mixins/PhysicalSettlement.sol";
-import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
+import {CashSettlement} from "../mixins/CashSettlement.sol";
 
 // interfaces
-import {IOracle} from "../../../interfaces/IOracle.sol";
+import {ICashSettlement} from "../../../interfaces/ICashSettlement.sol";
 import {IMarginEngine} from "../../../interfaces/IMarginEngine.sol";
+import {IOracle} from "../../../interfaces/IOracle.sol";
 import {IPhysicalSettlement} from "../../../interfaces/IPhysicalSettlement.sol";
 import {IWhitelist} from "../../../interfaces/IWhitelist.sol";
 
@@ -25,8 +27,8 @@ import {ArrayUtil} from "../../../libraries/ArrayUtil.sol";
 
 // Cross margin libraries
 import {AccountUtil} from "./AccountUtil.sol";
-import {CrossMarginMath} from "./CrossMarginMath.sol";
 import {CrossMarginLib} from "./CrossMarginLib.sol";
+import {CrossMarginMath} from "./CrossMarginMath.sol";
 
 // Cross margin types
 import "./types.sol";
@@ -46,10 +48,12 @@ import "../../../config/errors.sol";
  *             Interacts with grappa to fetch registered asset info
  */
 contract CrossMarginEngine is
-    BaseEngine,
-    PhysicalSettlement,
     IMarginEngine,
+    ICashSettlement,
     IPhysicalSettlement,
+    BaseEngine,
+    CashSettlement,
+    PhysicalSettlement,
     OwnableUpgradeable,
     ReentrancyGuardUpgradeable,
     UUPSUpgradeable
@@ -74,7 +78,7 @@ contract CrossMarginEngine is
     ///@dev contract that verifys permissions
     ///     if not set allows anyone to transact
     ///     checks msg.sender on execute & batchExecute
-    ///     checks receipient on sendPayoutValue
+    ///     checks debtors and creditors on token settlement
     IWhitelist public whitelist;
 
     /*///////////////////////////////////////////////////////////////
@@ -175,13 +179,13 @@ contract CrossMarginEngine is
      * @notice payout to user on settlement.
      * @dev this can only triggered by Grappa, would only be called on settlement.
      * @param _asset asset to transfer
-     * @param _recipient receiver
+     * @param _recipient receiber
      * @param _amount amount
      */
-    function sendPayoutValue(address _asset, address _recipient, uint256 _amount) public override (BaseEngine, IMarginEngine) {
+    function settleCashToken(address _asset, address _recipient, uint256 _amount) external override {
         _checkPermissioned(_recipient);
 
-        BaseEngine.sendPayoutValue(_asset, _recipient, _amount);
+        _settleCashToken(_asset, _recipient, _amount);
     }
 
     /**
@@ -189,8 +193,8 @@ contract CrossMarginEngine is
      * @param _tokenId the token id
      * @return payoutPerToken amount paid
      */
-    function getCashSettlementPerToken(uint256 _tokenId) public view override (BaseEngine, IMarginEngine) returns (uint256) {
-        return BaseEngine.getCashSettlementPerToken(_tokenId);
+    function getCashSettlementPerToken(uint256 _tokenId) external view override returns (uint256) {
+        return _getCashSettlementPerToken(_tokenId);
     }
 
     /**
@@ -200,6 +204,7 @@ contract CrossMarginEngine is
      */
     function settlePhysicalToken(Settlement calldata _settlement) public override (IPhysicalSettlement) {
         _checkPermissioned(_settlement.debtor);
+        _checkPermissioned(_settlement.creditor);
 
         _settlePhysicalToken(_settlement);
     }
@@ -209,12 +214,7 @@ contract CrossMarginEngine is
      * @param _tokenId  the gtoken id
      * @return settlement struct
      */
-    function getPhysicalSettlementPerToken(uint256 _tokenId)
-        external
-        view
-        override (IPhysicalSettlement)
-        returns (Settlement memory)
-    {
+    function getPhysicalSettlementPerToken(uint256 _tokenId) external view override returns (Settlement memory) {
         return _getPhysicalSettlementPerToken(_tokenId);
     }
 

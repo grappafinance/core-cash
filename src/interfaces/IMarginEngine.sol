@@ -7,8 +7,4 @@ interface IMarginEngine {
     // function getMinCollateral(address _subAccount) external view returns (uint256);
 
     function execute(address _subAccount, ActionArgs[] calldata actions) external;
-
-    function sendPayoutValue(address _asset, address _recipient, uint256 _amount) external;
-
-    function getCashSettlementPerToken(uint256 _tokenId) external view returns (uint256 payoutPerToken);
 }

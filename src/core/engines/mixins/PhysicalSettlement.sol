@@ -11,9 +11,9 @@ import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 import {BaseEngine} from "../BaseEngine.sol";
 
 // librarise
+import {NumberUtil} from "../../../libraries/NumberUtil.sol";
 import {ProductIdUtil} from "../../../libraries/ProductIdUtil.sol";
 import {TokenIdUtil} from "../../../libraries/TokenIdUtil.sol";
-import {NumberUtil} from "../../../libraries/NumberUtil.sol";
 
 // // constants and types
 import "../../../config/constants.sol";
@@ -24,7 +24,7 @@ import "../../../config/types.sol";
 /**
  * @title   PhysicalSettlement
  * @author  @dsshap
- * @notice  util functions for MarginEngines to support physically settled options
+ * @notice  util functions for MarginEngines to support physically settled tokens
  */
 abstract contract PhysicalSettlement is BaseEngine {
     using FixedPointMathLib for uint256;
@@ -44,22 +44,16 @@ abstract contract PhysicalSettlement is BaseEngine {
     /// @dev token => count
     mapping(uint256 => uint64) public physicalSettlementTokensExercised;
 
+    /**
+     * @dev This empty reserved space is put in place to allow future versions to add new
+     * variables without shifting down storage in the inheritance chain.
+     * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+     */
+    uint256[50] private __gap;
+
     /*///////////////////////////////////////////////////////////////
                             External Functions
     //////////////////////////////////////////////////////////////*/
-
-    /**
-     * @notice payout to user on settlement.
-     * @dev this can only triggered by Grappa, would only be called on settlement.
-     * @param _asset asset to transfer
-     * @param _sender sender of debt
-     * @param _amount amount
-     */
-    function receiveDebtValue(address _asset, address _sender, uint256 _amount) public virtual {
-        _checkIsGrappa();
-
-        if (_sender != address(this)) IERC20(_asset).safeTransferFrom(_sender, address(this), _amount);
-    }
 
     /**
      * @dev gets current settlement window
@@ -115,11 +109,11 @@ abstract contract PhysicalSettlement is BaseEngine {
 
         // issuer of option gets underlying asset (PUT) or strike asset (CALL)
         (address debtAsset,) = grappa.assets(_settlement.debtAssetId);
-        receiveDebtValue(debtAsset, _settlement.debtor, _settlement.debt);
+        _receiveDebtValue(debtAsset, _settlement.debtor, _settlement.debt);
 
         // option owner gets collateral
         (address payoutAsset,) = grappa.assets(_settlement.payoutAssetId);
-        sendPayoutValue(payoutAsset, _settlement.creditor, _settlement.payout);
+        _sendPayoutValue(payoutAsset, _settlement.creditor, _settlement.payout);
     }
 
     /**
@@ -171,6 +165,28 @@ abstract contract PhysicalSettlement is BaseEngine {
             settlement.payoutAssetId = strikeId;
             settlement.payoutPerToken = strikeAmount;
         }
+    }
+
+    /**
+     * @notice payout to user on settlement.
+     * @dev this can only triggered by Grappa, would only be called on settlement.
+     * @param _asset asset to transfer
+     * @param _sender sender of debt
+     * @param _amount amount
+     */
+    function _receiveDebtValue(address _asset, address _sender, uint256 _amount) internal virtual {
+        if (_sender != address(this)) IERC20(_asset).safeTransferFrom(_sender, address(this), _amount);
+    }
+
+    /**
+     * @notice payout to user on settlement.
+     * @dev this can only triggered by Grappa, would only be called on settlement.
+     * @param _asset asset to transfer
+     * @param _recipient receiver
+     * @param _amount amount
+     */
+    function _sendPayoutValue(address _asset, address _recipient, uint256 _amount) internal virtual {
+        if (_recipient != address(this)) IERC20(_asset).safeTransfer(_recipient, _amount);
     }
 
     /**
