@@ -22,7 +22,7 @@ import "../../../config/errors.sol";
 import "../../../config/types.sol";
 
 /**
- * @title   DebitSpread
+ * @title   PhysicalSettlement
  * @author  @dsshap
  * @notice  util functions for MarginEngines to support physically settled options
  */
