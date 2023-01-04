@@ -425,7 +425,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         returns (Settlement memory settlement)
     {
         uint64 amount = _amount.toUint64();
-        
+
         settlement = getSettlement(_tokenId, amount);
 
         if (_dryRun) return settlement;

@@ -54,7 +54,7 @@ contract ChainlinkOracleDisputable is ChainlinkOracle {
 
         if (entry.isDisputed) revert OC_PriceDisputed();
 
-        if (entry.reportAt + disputePeriod[_base][_quote] < block.timestamp) revert OC_DisputePeriodOver();
+        if (entry.reportAt + disputePeriod[_base][_quote] <= block.timestamp) revert OC_DisputePeriodOver();
 
         expiryPrices[_base][_quote][_expiry] = ExpiryPrice(true, uint64(block.timestamp), _newPrice.safeCastTo128());
 
