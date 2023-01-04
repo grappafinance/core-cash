@@ -99,8 +99,20 @@ library TokenIdUtil {
     function parseEngineId(uint256 tokenId) internal pure returns (uint8 engineId) {
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            // collateralId is the last bits of productId
             engineId := shr(216, tokenId) // 192 to get product id, another 24 to get engineId
+        }
+    }
+
+    /**
+     * @notice parse oracle id from tokenId
+     * @dev more efficient than parsing tokenId and than parse productId
+     * @param tokenId token id
+     * @return oracleId
+     */
+    function parseOracleId(uint256 tokenId) internal pure returns (uint8 oracleId) {
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            oracleId := shr(224, tokenId) // 192 to get product id, another 32 to get oracleId
         }
     }
 

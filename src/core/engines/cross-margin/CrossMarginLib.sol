@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {IGrappa} from "../../../interfaces/IGrappa.sol";
+import {IOracle} from "../../../interfaces/IOracle.sol";
 import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 
 import "../../../libraries/TokenIdUtil.sol";
@@ -142,20 +143,25 @@ library CrossMarginLib {
 
     ///@dev Settles the accounts longs and shorts
     ///@param account CrossMarginAccount storage that will be updated in-place
-    function settleAtExpiry(CrossMarginAccount storage account, IGrappa grappa, uint256 physicalSettlementWindow)
+    function settleAtExpiry(CrossMarginAccount storage account, IGrappa grappa, uint256 settlementWindow)
         external
-        returns (Balance[] memory longDebts, Balance[] memory longPayouts, Balance[] memory shortPayouts)
+        returns (
+            Balance[] memory longDebts,
+            Balance[] memory longPayouts,
+            Balance[] memory shortDebts,
+            Balance[] memory shortPayouts
+        )
     {
         // settling longs first as they can only increase collateral
-        (longDebts, longPayouts) = _settleLongs(grappa, account, physicalSettlementWindow);
+        (longDebts, longPayouts) = _settleLongs(grappa, account, settlementWindow);
         // settling shorts last as they can only reduce collateral
-        shortPayouts = _settleShorts(grappa, account, physicalSettlementWindow);
+        (shortDebts, shortPayouts) = _settleShorts(grappa, account, settlementWindow);
     }
 
     ///@dev Settles the accounts longs, adding collateral to balances
     ///@param grappa interface to settle long options in a batch call
     ///@param account CrossMarginAccount memory that will be updated in-place
-    function _settleLongs(IGrappa grappa, CrossMarginAccount storage account, uint256 physicalSettlementWindow)
+    function _settleLongs(IGrappa grappa, CrossMarginAccount storage account, uint256 settlementWindow)
         public
         returns (Balance[] memory debts, Balance[] memory payouts)
     {
@@ -168,22 +174,17 @@ library CrossMarginLib {
 
             (, SettlementType settlementType,, uint64 expiry,,) = tokenId.parseTokenId();
 
-            bool expired = block.timestamp >= expiry;
-            bool isPhysical = settlementType == SettlementType.PHYSICAL;
+            bool isCash = settlementType == SettlementType.CASH;
             bool canSettle = true;
 
-            // can only settle long physical options before the end of the settlement window
-            if (expired && isPhysical && block.timestamp > expiry + physicalSettlementWindow) {
+            // can only settle long cash options after the the dispute window
+            if (isCash && block.timestamp < expiry + settlementWindow) {
                 canSettle = false;
             }
 
-            if (expired) {
-                // if physical options still exists but is outside settlement window
-                // we dont try to settle, we just remove it
-                if (!isPhysical || (isPhysical && canSettle)) {
-                    tokenIds = tokenIds.append(tokenId);
-                    amounts = amounts.append(account.longs[i].amount);
-                }
+            if (block.timestamp >= expiry && canSettle) {
+                tokenIds = tokenIds.append(tokenId);
+                amounts = amounts.append(account.longs[i].amount);
 
                 account.longs.removeAt(i);
             } else {
@@ -229,9 +230,9 @@ library CrossMarginLib {
     ///@dev Settles the accounts shorts, reserving collateral for ITM options
     ///@param grappa interface to get short option payouts in a batch call
     ///@param account CrossMarginAccount memory that will be updated in-place
-    function _settleShorts(IGrappa grappa, CrossMarginAccount storage account, uint256 physicalSettlementWindow)
+    function _settleShorts(IGrappa grappa, CrossMarginAccount storage account, uint256 settlementWindow)
         public
-        returns (Balance[] memory payouts)
+        returns (Balance[] memory debts, Balance[] memory payouts)
     {
         uint256 i;
         uint256[] memory tokenIds;
@@ -242,22 +243,17 @@ library CrossMarginLib {
 
             (, SettlementType settlementType,, uint64 expiry,,) = tokenId.parseTokenId();
 
-            bool expired = block.timestamp >= expiry;
             bool isPhysical = settlementType == SettlementType.PHYSICAL;
             bool canSettle = true;
 
             // can only settle short physical options after the settlement window
-            if (expired && isPhysical && block.timestamp < expiry + physicalSettlementWindow) {
+            if (isPhysical && block.timestamp < expiry + settlementWindow) {
                 canSettle = false;
             }
 
-            if (expired && canSettle) {
-                // if physical options still exists it means it wasnt exercised
-                // so we dont try to settle, we just remove it
-                if (!isPhysical) {
-                    tokenIds = tokenIds.append(tokenId);
-                    amounts = amounts.append(account.shorts[i].amount);
-                }
+            if (block.timestamp >= expiry && canSettle) {
+                tokenIds = tokenIds.append(tokenId);
+                amounts = amounts.append(account.shorts[i].amount);
 
                 account.shorts.removeAt(i);
             } else {
@@ -268,10 +264,24 @@ library CrossMarginLib {
         }
 
         if (tokenIds.length > 0) {
-            // only concerned with payouts of cash settled options
-            // physical options will payout in full or not at all.
-            // simulating a batch settlement to get payouts
-            (, payouts) = grappa.batchSettle(address(this), tokenIds, amounts, true);
+            // debts is what was sent to the issuer of a physical option
+            // payouts is the collateral that the option was settled for
+            // debts[i] > 0 for physical settled options
+            // debts[i] = 0 for cash settled options
+            // payouts[i] = 0 for OTM cash settled,
+            // payouts[i] > 0 for physical settled options
+            (debts, payouts) = grappa.batchSettle(address(this), tokenIds, amounts, true);
+
+            for (i = 0; i < debts.length;) {
+                if (debts[i].amount != 0) {
+                    // add the collateral in the account storage.
+                    addCollateral(account, debts[i].collateralId, debts[i].amount);
+                }
+
+                unchecked {
+                    ++i;
+                }
+            }
 
             for (i = 0; i < payouts.length;) {
                 if (payouts[i].amount != 0) {

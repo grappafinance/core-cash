@@ -57,9 +57,7 @@ contract TestMint_CM is CrossMarginFixture {
         uint256 strikePrice = 4000 * UNIT;
         uint256 amount = 1 * UNIT;
 
-        uint16 issuerId = engine.registerIssuer(address(this));
-
-        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strikePrice, issuerId);
+        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
@@ -73,24 +71,6 @@ contract TestMint_CM is CrossMarginFixture {
         assertEq(shorts[0].amount, amount);
 
         assertEq(option.balanceOf(address(this), tokenId), amount);
-    }
-
-    function testCannotMintCallPhysicalSettlementWithIncorrectIssuerSet() public {
-        uint256 depositAmount = 1 * 1e18;
-
-        uint256 strikePrice = 4000 * UNIT;
-        uint256 amount = 1 * UNIT;
-
-        uint16 issuerId = engine.registerIssuer(address(this));
-
-        uint256 tokenId = getTokenId(TokenType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strikePrice, issuerId + 1);
-
-        ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
-        actions[1] = createMintAction(tokenId, address(this), amount);
-
-        vm.expectRevert(PS_InvalidIssuerAddress.selector);
-        engine.execute(address(this), actions);
     }
 
     function testCannotMintCallWithUsdcCollateral() public {
