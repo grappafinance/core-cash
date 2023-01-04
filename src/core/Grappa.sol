@@ -430,21 +430,18 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
 
         if (_dryRun) return settlement;
 
-        uint256 debt = settlement.debt;
-        uint256 payout = settlement.payout;
+        emit OptionSettled(_account, _tokenId, _amount, settlement.debt, settlement.payout);
 
-        emit OptionSettled(_account, _tokenId, _amount, debt, payout);
-
-        if (debt != 0 && payout != 0) {
+        if (settlement.debt != 0 && settlement.payout != 0) {
             settlement.tokenId = _tokenId;
             settlement.tokenAmount = amount;
             settlement.debtor = msg.sender;
             settlement.creditor = _account;
 
             IPhysicalSettlement(settlement.engine).settlePhysicalToken(settlement);
-        } else if (payout != 0) {
+        } else if (settlement.payout != 0) {
             address payoutAsset = assets[settlement.payoutAssetId].addr;
-            IMarginEngine(settlement.engine).sendPayoutValue(payoutAsset, _account, payout);
+            IMarginEngine(settlement.engine).sendPayoutValue(payoutAsset, _account, settlement.payout);
         }
     }
 
