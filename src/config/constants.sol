@@ -13,11 +13,5 @@ int256 constant sUNIT = int256(10 ** 6);
 ///@dev basis point for 100%.
 uint256 constant BPS = 10000;
 
-///@dev uint zero
-uint256 constant ZERO = 0;
-
-/// @dev int zero
-int256 constant sZERO = int256(0);
-
 ///@dev maximum dispute period for oracle
 uint256 constant MAX_DISPUTE_PERIOD = 6 hours;

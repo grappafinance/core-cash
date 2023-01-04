@@ -308,14 +308,14 @@ contract CrossMarginEngine is BaseEngine, IMarginEngine, OwnableUpgradeable, Ree
      * @param tokenId tokenId
      */
     function _verifyLongTokenIdToAdd(uint256 tokenId) internal view override {
-        (TokenType optionType, uint40 productId, uint64 expiry,,) = tokenId.parseTokenId();
+        (TokenType optionType,, uint64 expiry,,) = tokenId.parseTokenId();
 
         // engine only supports calls and puts
         if (optionType != TokenType.CALL && optionType != TokenType.PUT) revert CM_UnsupportedTokenType();
 
         if (block.timestamp > expiry) revert CM_Option_Expired();
 
-        (, uint8 engineId,,,) = productId.parseProductId();
+        uint8 engineId = tokenId.parseEngineId();
 
         // in the future reference a whitelist of engines
         if (engineId != grappa.engineIds(address(this))) revert CM_Not_Authorized_Engine();

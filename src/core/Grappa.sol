@@ -55,7 +55,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
 
     /// @dev next id used to represent an address
     /// invariant:  any id in tokenId not greater than this number
-    uint8 public nextengineId;
+    uint8 public nextEngineId;
 
     /// @dev next id used to represent an address
     /// invariant:  any id in tokenId not greater than this number
@@ -382,7 +382,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
 
         if (engineIds[_engine] != 0) revert GP_EngineAlreadyRegistered();
 
-        id = ++nextengineId;
+        id = ++nextEngineId;
         engines[id] = _engine;
 
         engineIds[_engine] = id;

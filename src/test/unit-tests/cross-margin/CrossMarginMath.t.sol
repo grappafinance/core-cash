@@ -119,7 +119,7 @@ contract TestStructures_CMM is Test {
 
         (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
         assertEq(numeraireNeeded, 28000 * UNIT);
-        assertEq(underlyingNeeded, ZERO);
+        assertEq(underlyingNeeded, 0);
     }
 
     function testMarginRequirement2() public {
@@ -139,7 +139,7 @@ contract TestStructures_CMM is Test {
 
         (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
         assertEq(numeraireNeeded, 28000 * UNIT);
-        assertEq(underlyingNeeded, ZERO);
+        assertEq(underlyingNeeded, 0);
     }
 
     function testMarginRequirement3() public {
@@ -180,7 +180,7 @@ contract TestStructures_CMM is Test {
 
         (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
         assertEq(numeraireNeeded, 33000 * UNIT);
-        assertEq(underlyingNeeded, ZERO);
+        assertEq(underlyingNeeded, 0);
     }
 
     function testMarginUnsortedStrikes() public {
@@ -214,7 +214,7 @@ contract TestStructures_CMM is Test {
 
         (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
         assertEq(numeraireNeeded, 28000 * UNIT);
-        assertEq(underlyingNeeded, ZERO);
+        assertEq(underlyingNeeded, 0);
     }
 
     function testMarginSimpleITMPut() public {
@@ -241,7 +241,7 @@ contract TestStructures_CMM is Test {
 
         (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
         assertEq(numeraireNeeded, putStrikes[0]);
-        assertEq(underlyingNeeded, ZERO);
+        assertEq(underlyingNeeded, 0);
     }
 
     function testMarginSimpleOTMPut() public {
@@ -268,7 +268,7 @@ contract TestStructures_CMM is Test {
 
         (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
         assertEq(numeraireNeeded, putStrikes[0]);
-        assertEq(underlyingNeeded, ZERO);
+        assertEq(underlyingNeeded, 0);
     }
 
     function testMarginSimpleITMCall() public {
@@ -294,7 +294,7 @@ contract TestStructures_CMM is Test {
         });
 
         (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(numeraireNeeded, ZERO);
+        assertEq(numeraireNeeded, 0);
         assertEq(underlyingNeeded, 1 * UNIT);
     }
 
@@ -321,7 +321,7 @@ contract TestStructures_CMM is Test {
         });
 
         (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(numeraireNeeded, ZERO);
+        assertEq(numeraireNeeded, 0);
         assertEq(underlyingNeeded, 1 * UNIT);
     }
 
@@ -351,7 +351,7 @@ contract TestStructures_CMM is Test {
 
         (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
         assertEq(numeraireNeeded, 1);
-        assertEq(underlyingNeeded, ZERO);
+        assertEq(underlyingNeeded, 0);
     }
 
     function testMarginLongBinaryPut() public {
@@ -379,8 +379,8 @@ contract TestStructures_CMM is Test {
         });
 
         (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(numeraireNeeded, ZERO);
-        assertEq(underlyingNeeded, ZERO);
+        assertEq(numeraireNeeded, 0);
+        assertEq(underlyingNeeded, 0);
     }
 
     function testMarginShortBinaryPut() public {
@@ -409,7 +409,7 @@ contract TestStructures_CMM is Test {
 
         (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
         assertEq(numeraireNeeded, 1);
-        assertEq(underlyingNeeded, ZERO);
+        assertEq(underlyingNeeded, 0);
     }
 
     function testMarginCallSpreadSameUnderlyingCollateral() public {
@@ -437,7 +437,7 @@ contract TestStructures_CMM is Test {
         });
 
         (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(numeraireNeeded, ZERO);
+        assertEq(numeraireNeeded, 0);
         assertEq(underlyingNeeded, (1 * UNIT) / 22000);
     }
 
@@ -466,7 +466,7 @@ contract TestStructures_CMM is Test {
         });
 
         (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(numeraireNeeded, ZERO);
+        assertEq(numeraireNeeded, 0);
         assertEq(underlyingNeeded, (1000_00000 * UNIT) / 22000);
     }
 
@@ -495,8 +495,8 @@ contract TestStructures_CMM is Test {
         });
 
         (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(numeraireNeeded, ZERO);
-        assertEq(underlyingNeeded, ZERO);
+        assertEq(numeraireNeeded, 0);
+        assertEq(underlyingNeeded, 0);
     }
 
     // not possible to mint calls with with anything other than underlying
@@ -526,7 +526,7 @@ contract TestStructures_CMM is Test {
 
     //     (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
     //     assertEq(numeraireNeeded, 1000 * UNIT);
-    //     assertEq(underlyingNeeded, ZERO);
+    //     assertEq(underlyingNeeded, 0);
     // }
 
     function testConversion() public {
@@ -612,7 +612,7 @@ contract TestVanillaCall_CMM is Test {
         });
 
         (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(numeraireNeeded, ZERO);
+        assertEq(numeraireNeeded, 0);
         assertEq(underlyingNeeded, 1 * UNIT);
     }
 }
@@ -653,7 +653,7 @@ contract TestVanillaPut_CMM is Test {
 
         (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
         assertEq(numeraireNeeded, 18000 * UNIT);
-        assertEq(underlyingNeeded, ZERO);
+        assertEq(underlyingNeeded, 0);
     }
 }
 
@@ -714,8 +714,8 @@ contract TestStrangles is Test {
         });
 
         (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(numeraireNeeded, ZERO);
-        assertEq(underlyingNeeded, ZERO);
+        assertEq(numeraireNeeded, 0);
+        assertEq(underlyingNeeded, 0);
     }
 
     function testStrangleSpread() public {
@@ -749,7 +749,7 @@ contract TestStrangles is Test {
 
         (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
         assertEq(numeraireNeeded, putStrikes[0] - putStrikes[1]);
-        assertEq(underlyingNeeded, ZERO);
+        assertEq(underlyingNeeded, 0);
     }
 }
 
@@ -797,7 +797,7 @@ contract TestCornerCases_CMM is Test {
         });
 
         (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
-        assertEq(numeraireNeeded, ZERO);
+        assertEq(numeraireNeeded, 0);
         assertEq(underlyingNeeded, 1 * UNIT);
     }
 
@@ -818,7 +818,7 @@ contract TestCornerCases_CMM is Test {
 
         (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
         assertEq(underlyingNeeded, 1 * UNIT);
-        assertEq(numeraireNeeded, ZERO);
+        assertEq(numeraireNeeded, 0);
     }
 
     function testPotentialBreakOnZeroWeight() public {
@@ -856,7 +856,7 @@ contract TestCornerCases_CMM is Test {
 
         (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
         assertEq(numeraireNeeded, putStrikes[1] - 1000 * UNIT);
-        assertEq(underlyingNeeded, ZERO);
+        assertEq(underlyingNeeded, 0);
     }
 
     function testIronCondor() public {
@@ -898,7 +898,7 @@ contract TestCornerCases_CMM is Test {
         (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
         uint256 cashRequired = uint256(-putWeights[1]) * putStrikes[1] - uint256(putWeights[0]) * putStrikes[0];
         assertEq(numeraireNeeded, cashRequired);
-        assertEq(underlyingNeeded, ZERO);
+        assertEq(underlyingNeeded, 0);
     }
 
     function testUpAndDown2() public {
@@ -921,7 +921,7 @@ contract TestCornerCases_CMM is Test {
         (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
         uint256 cashRequired = uint256(-putWeights[1]) * putStrikes[1] - uint256(putWeights[0]) * putStrikes[0];
         assertEq(numeraireNeeded, cashRequired / UNIT);
-        assertEq(underlyingNeeded, ZERO);
+        assertEq(underlyingNeeded, 0);
     }
 
     function testUpAndDown3() public {
@@ -947,7 +947,7 @@ contract TestCornerCases_CMM is Test {
         (uint256 numeraireNeeded, uint256 underlyingNeeded) = detail.getMinCollateral();
         uint256 cashRequired = uint256(-putWeights[1]) * putStrikes[1] - uint256(putWeights[0]) * putStrikes[0];
         assertEq(numeraireNeeded, cashRequired / UNIT);
-        assertEq(underlyingNeeded, ZERO);
+        assertEq(underlyingNeeded, 0);
     }
 
     function testUpAndDown4() public {
