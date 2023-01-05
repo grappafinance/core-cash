@@ -298,8 +298,6 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         if (_tokenIds.length == 0) return (debts, payouts);
 
         for (uint256 i; i < _tokenIds.length;) {
-            uint8 debtId;
-            uint256 debt;
             uint8 payoutId;
             uint256 payout;
 
@@ -312,19 +310,15 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
             } else if (_tokenId.isPhysical()) {
                 Settlement memory settlement = _getPhysicalSettlement(_tokenId, _amounts[i].toUint64());
 
-                debtId = settlement.debtId;
-                debt = settlement.debt;
                 payoutId = settlement.payoutId;
                 payout = settlement.payout;
+
+                if (settlement.debt != 0) {
+                    debts = _addToBalances(debts, settlement.debtId, settlement.debt);
+                }
             }
 
-            if (debt != 0) {
-                debts = _addToBalances(debts, debtId, debt);
-            }
-
-            if (payout != 0) {
-                payouts = _addToBalances(payouts, payoutId, payout);
-            }
+            if (payout != 0) payouts = _addToBalances(payouts, payoutId, payout);
 
             unchecked {
                 ++i;
