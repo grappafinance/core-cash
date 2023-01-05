@@ -70,4 +70,13 @@ interface IGrappa {
         external
         view
         returns (Balance[] memory debts, Balance[] memory payouts);
+
+    /**
+     * @notice registers a new issuance of a physical settled token
+     * @dev if isMinted is false, it will deduct the issuance
+     * @param _tokenId physical token id
+     * @param _update amount thats changed
+     * @param _isMint was minted or burned
+     */
+    function trackTokenIssuance(uint256 _tokenId, uint64 _update, bool _isMint) external;
 }

@@ -59,27 +59,24 @@ struct AssetDetail {
 
 /**
  * @param engine
- * @param tokenId
- * @param tokenAmount
- * @param debtor that will provide debt collateral
- * @param debtAssetId asset id to pay debt with
+ * @param debtId asset id to pay debt with
  * @param debtPerToken amount owed per token
  * @param debt amount owed total
- * @param creditor the address of the receiver of the payout
- * @param payoutAssetId asset id to receive payout with
+ * @param payoutId asset id to receive payout with
  * @param payoutPerToken amount paid per token
  * @param payout amount paid total
  */
 struct Settlement {
     address engine;
-    uint256 tokenId;
-    uint64 tokenAmount;
-    address debtor;
-    uint8 debtAssetId;
+    uint8 debtId;
     uint256 debtPerToken;
     uint256 debt;
-    address creditor;
-    uint8 payoutAssetId;
+    uint8 payoutId;
     uint256 payoutPerToken;
     uint256 payout;
+}
+
+struct TokenTracker {
+    uint64 issued;
+    uint64 exercised;
 }

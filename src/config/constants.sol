@@ -21,3 +21,5 @@ int256 constant sZERO = int256(0);
 
 ///@dev maximum dispute period for oracle
 uint256 constant MAX_DISPUTE_PERIOD = 6 hours;
+
+uint256 constant MIN_SETTLEMENT_WINDOW = 15 minutes;

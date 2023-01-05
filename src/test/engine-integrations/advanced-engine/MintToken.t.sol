@@ -129,7 +129,7 @@ contract TestMintVanillaOption is AdvancedFixture {
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
-        vm.expectRevert(GP_Not_Authorized_Engine.selector);
+        vm.expectRevert(GP_NotAuthorizedEngine.selector);
         engine.execute(address(this), actions);
     }
 

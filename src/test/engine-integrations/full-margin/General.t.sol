@@ -38,7 +38,7 @@ contract FullMarginEngineGeneral is FullMarginFixture {
 
     function testCannotCallPayoutFromAnybody() public {
         vm.expectRevert(NoAccess.selector);
-        engine.settleCashToken(address(usdc), address(this), UNIT);
+        engine.sendPayoutValue(address(usdc), address(this), UNIT);
     }
 
     function testGetMinCollateral() public {

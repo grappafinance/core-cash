@@ -11,7 +11,6 @@ import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
 
 // inheriting contracts
 import {BaseEngine} from "../BaseEngine.sol";
-import {CashSettlement} from "../mixins/CashSettlement.sol";
 import {DebitSpread} from "../mixins/DebitSpread.sol";
 
 // interfaces
@@ -44,15 +43,7 @@ import "../../../config/errors.sol";
  *             Interacts with VolOracle to read vol
  */
 
-contract AdvancedMarginEngine is
-    IMarginEngine,
-    ICashSettlement,
-    BaseEngine,
-    CashSettlement,
-    DebitSpread,
-    Ownable,
-    ReentrancyGuard
-{
+contract AdvancedMarginEngine is IMarginEngine, ICashSettlement, BaseEngine, DebitSpread, Ownable, ReentrancyGuard {
     using AdvancedMarginMath for AdvancedMarginDetail;
     using AdvancedMarginLib for AdvancedMarginAccount;
     using SafeERC20 for IERC20;
@@ -216,20 +207,11 @@ contract AdvancedMarginEngine is
      * @notice payout to user on settlement.
      * @dev this can only triggered by Grappa, would only be called on settlement.
      * @param _asset asset to transfer
-     * @param _recipient receiber
+     * @param _recipient receiver
      * @param _amount amount
      */
-    function settleCashToken(address _asset, address _recipient, uint256 _amount) external override {
-        _settleCashToken(_asset, _recipient, _amount);
-    }
-
-    /**
-     * @dev calculate the debt and payout for one option token
-     * @param _tokenId  token id of option token
-     * @return payoutPerToken amount paid
-     */
-    function getCashSettlementPerToken(uint256 _tokenId) external view override returns (uint256) {
-        return _getCashSettlementPerToken(_tokenId);
+    function sendPayoutValue(address _asset, address _recipient, uint256 _amount) external override {
+        _sendPayoutValue(_asset, _recipient, _amount);
     }
 
     /**
@@ -268,20 +250,6 @@ contract AdvancedMarginEngine is
      *            Override Abstract Contract functions          *
      * ======================================================== *
      */
-
-    /**
-     * @dev calculate the cash settled payout for one option token
-     * @param _tokenId  token id of option token
-     * @return payoutPerToken amount paid
-     */
-    function _getCashSettlementPerToken(uint256 _tokenId)
-        internal
-        view
-        override (CashSettlement, DebitSpread)
-        returns (uint256 payoutPerToken)
-    {
-        return DebitSpread._getCashSettlementPerToken(_tokenId);
-    }
 
     /**
      * @notice override _removeCollateral in BaseEngine to handle settlement with expired short positions.

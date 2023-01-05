@@ -7,7 +7,6 @@ import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
 
 // inheriting contracts
 import {BaseEngine} from "../BaseEngine.sol";
-import {CashSettlement} from "../mixins/CashSettlement.sol";
 import {DebitSpread} from "../mixins/DebitSpread.sol";
 
 // interfaces
@@ -40,7 +39,7 @@ import "./errors.sol";
  *             Interacts with OptionToken to mint / burn
  *             Interacts with grappa to fetch registered asset info
  */
-contract FullMarginEngine is IMarginEngine, ICashSettlement, BaseEngine, CashSettlement, DebitSpread, ReentrancyGuard {
+contract FullMarginEngine is IMarginEngine, ICashSettlement, BaseEngine, DebitSpread, ReentrancyGuard {
     using FullMarginLib for FullMarginAccount;
     using FullMarginMath for FullMarginDetail;
     using TokenIdUtil for uint256;
@@ -88,20 +87,11 @@ contract FullMarginEngine is IMarginEngine, ICashSettlement, BaseEngine, CashSet
      * @notice payout to user on settlement.
      * @dev this can only triggered by Grappa, would only be called on settlement.
      * @param _asset asset to transfer
-     * @param _recipient receiber
+     * @param _recipient receiver
      * @param _amount amount
      */
-    function settleCashToken(address _asset, address _recipient, uint256 _amount) external override {
-        _settleCashToken(_asset, _recipient, _amount);
-    }
-
-    /**
-     * @dev calculate the debt and payout for one option token
-     * @param _tokenId  token id of option token
-     * @return payoutPerToken amount paid
-     */
-    function getCashSettlementPerToken(uint256 _tokenId) external view override returns (uint256) {
-        return _getCashSettlementPerToken(_tokenId);
+    function sendPayoutValue(address _asset, address _recipient, uint256 _amount) external override {
+        _sendPayoutValue(_asset, _recipient, _amount);
     }
 
     /**
@@ -128,26 +118,6 @@ contract FullMarginEngine is IMarginEngine, ICashSettlement, BaseEngine, CashSet
         marginAccounts[_newSubAccount] = marginAccounts[_subAccount];
 
         delete marginAccounts[_subAccount];
-    }
-
-    /**
-     * ======================================================== *
-     *            Override Abstract Contract functions          *
-     * ======================================================== *
-     */
-
-    /**
-     * @dev calculate the cash settled payout for one option token
-     * @param _tokenId  token id of option token
-     * @return payoutPerToken amount paid
-     */
-    function _getCashSettlementPerToken(uint256 _tokenId)
-        internal
-        view
-        override (CashSettlement, DebitSpread)
-        returns (uint256 payoutPerToken)
-    {
-        return DebitSpread._getCashSettlementPerToken(_tokenId);
     }
 
     /**

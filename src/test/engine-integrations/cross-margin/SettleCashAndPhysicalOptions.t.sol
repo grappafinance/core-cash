@@ -47,7 +47,7 @@ contract TestSettleCashAndPhysicalLongPositions_CM is CrossMarginFixture {
         _mintTokens(physicalToken, wethId, wethDepositAmount);
         _mintTokens(cashToken, wethId, wethDepositAmount);
 
-        vm.warp(expiry + engine.settlementWindow());
+        vm.warp(expiry + engine.getSettlementWindow());
 
         oracle.setExpiryPrice(address(weth), address(usdc), 5000 * UNIT);
 
@@ -94,7 +94,7 @@ contract TestSettleCashAndPhysicalLongPositions_CM is CrossMarginFixture {
         assertEq(collaterals[0].collateralId, wethId);
         assertEq(collaterals[0].amount, wethDepositAmount);
 
-        vm.warp(expiry + engine.settlementWindow());
+        vm.warp(expiry + engine.getSettlementWindow());
 
         actions = new ActionArgs[](1);
         actions[0] = createSettleAction();
@@ -115,7 +115,7 @@ contract TestSettleCashAndPhysicalLongPositions_CM is CrossMarginFixture {
         _mintTokens(physicalToken, usdcId, usdcDepositAmount);
         _mintTokens(cashToken, usdcId, usdcDepositAmount);
 
-        vm.warp(expiry + engine.settlementWindow());
+        vm.warp(expiry + engine.getSettlementWindow());
 
         oracle.setExpiryPrice(address(weth), address(usdc), 3000 * UNIT);
 
@@ -162,7 +162,7 @@ contract TestSettleCashAndPhysicalLongPositions_CM is CrossMarginFixture {
         assertEq(collaterals[0].collateralId, usdcId);
         assertEq(collaterals[0].amount, usdcDepositAmount);
 
-        vm.warp(expiry + engine.settlementWindow());
+        vm.warp(expiry + engine.getSettlementWindow());
 
         actions = new ActionArgs[](1);
         actions[0] = createSettleAction();
@@ -271,7 +271,7 @@ contract TestSettleCashAndPhysicalShortPositions_CM is CrossMarginFixture {
         grappa.settle(alice, physicalToken, amount / 2);
         vm.stopPrank();
 
-        vm.warp(expiry + engine.settlementWindow());
+        vm.warp(expiry + engine.getSettlementWindow());
 
         // settle marginaccount
         actions = new ActionArgs[](1);
@@ -350,7 +350,7 @@ contract TestSettleCashAndPhysicalShortPositions_CM is CrossMarginFixture {
         grappa.settle(alice, physicalToken, amount / 2);
         vm.stopPrank();
 
-        vm.warp(expiry + engine.settlementWindow());
+        vm.warp(expiry + engine.getSettlementWindow());
 
         // settle marginaccount
         actions = new ActionArgs[](1);

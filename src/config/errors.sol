@@ -48,7 +48,10 @@ error GP_BadCashSettledStrikes();
 error GP_BadPhysicalSettlementToken();
 
 /// @dev burn or mint can only be called by corresponding engine.
-error GP_Not_Authorized_Engine();
+error GP_NotAuthorizedEngine();
+
+/// @dev cannot exercise more token than were issued
+error GP_ExceedsIssuedTokens();
 
 /* ---------------------------- *
  *   Common BaseEngine Errors   *
@@ -65,9 +68,6 @@ error BM_AccountUnderwater();
 
 /// @dev msg.sender is not authorized to ask margin account to pull token from {from} address
 error BM_InvalidFromAddress();
-
-/// @dev invalid settlement type
-error BM_InvalidSettlementType();
 
 /* ----------------------------- *
  *      Debit Spreads Errors     *
@@ -92,7 +92,5 @@ error DS_MergeWithSameStrike();
  *   Physcially Settled Errors   *
  * ----------------------------- */
 
-/// @dev invalid settlement type
-error PS_InvalidSettlementType();
-
+/// @dev invalid settlement window provided
 error PS_InvalidSettlementWindow();

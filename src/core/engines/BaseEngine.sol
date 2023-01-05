@@ -329,6 +329,32 @@ abstract contract BaseEngine {
     }
 
     /**
+     * @notice payout to user on settlement.
+     * @dev this can only triggered by Grappa, would only be called on settlement.
+     * @param _asset asset to transfer
+     * @param _sender sender of debt
+     * @param _amount amount
+     */
+    function _receiveDebtValue(address _asset, address _sender, uint256 _amount) internal virtual {
+        _checkIsGrappa();
+
+        if (_sender != address(this)) IERC20(_asset).safeTransferFrom(_sender, address(this), _amount);
+    }
+
+    /**
+     * @notice payout to user on settlement.
+     * @dev this can only triggered by Grappa, would only be called on settlement.
+     * @param _asset asset to transfer
+     * @param _recipient receiver
+     * @param _amount amount
+     */
+    function _sendPayoutValue(address _asset, address _recipient, uint256 _amount) internal virtual {
+        _checkIsGrappa();
+
+        if (_recipient != address(this)) IERC20(_asset).safeTransfer(_recipient, _amount);
+    }
+
+    /**
      * ========================================================= **
      *                State changing functions to override
      * ========================================================= *

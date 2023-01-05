@@ -10,7 +10,6 @@ import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
 // inheriting contracts
 import {BaseEngine} from "../BaseEngine.sol";
 import {PhysicalSettlement} from "../mixins/PhysicalSettlement.sol";
-import {CashSettlement} from "../mixins/CashSettlement.sol";
 
 // interfaces
 import {ICashSettlement} from "../../../interfaces/ICashSettlement.sol";
@@ -52,7 +51,6 @@ contract CrossMarginEngine is
     ICashSettlement,
     IPhysicalSettlement,
     BaseEngine,
-    CashSettlement,
     PhysicalSettlement,
     OwnableUpgradeable,
     ReentrancyGuardUpgradeable,
@@ -125,12 +123,19 @@ contract CrossMarginEngine is
 
     /**
      * @dev set new settlement window
-     * @param _window is the time from expiry that the option can be exercised
+     * @param _window is the time from expiry that the token can be exercised
      */
     function setSettlementWindow(uint256 _window) external override {
         _checkOwner();
 
         PhysicalSettlement._setSettlementWindow(_window);
+    }
+
+    /**
+     * @dev gets current settlement window
+     */
+    function getSettlementWindow() external view override returns (uint256) {
+        return _getSettlementWindow();
     }
 
     /**
@@ -179,43 +184,29 @@ contract CrossMarginEngine is
      * @notice payout to user on settlement.
      * @dev this can only triggered by Grappa, would only be called on settlement.
      * @param _asset asset to transfer
-     * @param _recipient receiber
+     * @param _sender sender of debt
      * @param _amount amount
      */
-    function settleCashToken(address _asset, address _recipient, uint256 _amount) external override {
+    function receiveDebtValue(address _asset, address _sender, uint256 _amount) external virtual {
+        _checkPermissioned(_sender);
+
+        _receiveDebtValue(_asset, _sender, _amount);
+    }
+
+    /**
+     * @notice payout to user on settlement.
+     * @dev this can only triggered by Grappa, would only be called on settlement.
+     * @param _asset asset to transfer
+     * @param _recipient receiver
+     * @param _amount amount
+     */
+    function sendPayoutValue(address _asset, address _recipient, uint256 _amount)
+        external
+        override (ICashSettlement, IPhysicalSettlement)
+    {
         _checkPermissioned(_recipient);
 
-        _settleCashToken(_asset, _recipient, _amount);
-    }
-
-    /**
-     * @dev calculate the payout for one token
-     * @param _tokenId the token id
-     * @return payoutPerToken amount paid
-     */
-    function getCashSettlementPerToken(uint256 _tokenId) external view override returns (uint256) {
-        return _getCashSettlementPerToken(_tokenId);
-    }
-
-    /**
-     * @notice settlement of physical token.
-     * @dev this can only triggered by Grappa, would only be called on settlement.
-     * @param _settlement struct
-     */
-    function settlePhysicalToken(Settlement calldata _settlement) public override (IPhysicalSettlement) {
-        _checkPermissioned(_settlement.debtor);
-        _checkPermissioned(_settlement.creditor);
-
-        _settlePhysicalToken(_settlement);
-    }
-
-    /**
-     * @dev calculate the debt and payout for one cash settled token
-     * @param _tokenId  the gtoken id
-     * @return settlement struct
-     */
-    function getPhysicalSettlementPerToken(uint256 _tokenId) external view override returns (Settlement memory) {
-        return _getPhysicalSettlementPerToken(_tokenId);
+        _sendPayoutValue(_asset, _recipient, _amount);
     }
 
     /**
@@ -287,7 +278,7 @@ contract CrossMarginEngine is
     function _settle(address _subAccount) internal override {
         // update the account in state
         (Balance[] memory longDebts,,, Balance[] memory shortPayouts) =
-            accounts[_subAccount].settleAtExpiry(grappa, settlementWindow());
+            accounts[_subAccount].settleAtExpiry(grappa, _getSettlementWindow());
         emit AccountSettled(_subAccount, longDebts, shortPayouts);
     }
 
@@ -307,8 +298,11 @@ contract CrossMarginEngine is
         virtual
         override (BaseEngine, PhysicalSettlement)
     {
-        // ensuring physical options are properly created
         PhysicalSettlement._mintOptionIntoAccount(_subAccount, _data);
+    }
+
+    function _burnOption(address _subAccount, bytes calldata _data) internal virtual override (BaseEngine, PhysicalSettlement) {
+        PhysicalSettlement._burnOption(_subAccount, _data);
     }
 
     function _addCollateralToAccount(address _subAccount, uint8 collateralId, uint80 amount) internal override {

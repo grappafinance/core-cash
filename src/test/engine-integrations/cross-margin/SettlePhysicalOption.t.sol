@@ -30,29 +30,22 @@ contract TestSettlePhysicalOption_CM is CrossMarginFixture {
         strike = uint64(4000 * UNIT);
     }
 
-    function testCannotGetPhysicalSettlementPerTokenForCashSettledToken() public {
-        tokenId = getTokenId(TokenType.CALL, SettlementType.CASH, pidEthCollat, expiry, strike, 0);
-
-        vm.expectRevert(PS_InvalidSettlementType.selector);
-        engine.getPhysicalSettlementPerToken(tokenId);
-    }
-
     function testGetsNothingFromOptionPastSettlementWindow() public {
         tokenId = getTokenId(TokenType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, 0);
 
         vm.warp(expiry + 14 minutes);
 
-        Settlement memory settlement = engine.getPhysicalSettlementPerToken(tokenId);
+        (uint256 debt, uint256 payout) = grappa.getSettlement(tokenId, UNIT);
 
-        assertEq(settlement.debtPerToken, uint256(strike));
-        assertEq(settlement.payoutPerToken, depositAmount);
+        assertEq(debt, uint256(strike));
+        assertEq(payout, depositAmount);
 
         vm.warp(expiry + 16 minutes);
 
-        settlement = engine.getPhysicalSettlementPerToken(tokenId);
+        (debt, payout) = grappa.getSettlement(tokenId, UNIT);
 
-        assertEq(settlement.debtPerToken, 0);
-        assertEq(settlement.payoutPerToken, 0);
+        assertEq(debt, 0);
+        assertEq(payout, 0);
     }
 
     function testGetsNothingFromOptionPastCustomSettlementWindow() public {
@@ -62,17 +55,17 @@ contract TestSettlePhysicalOption_CM is CrossMarginFixture {
 
         vm.warp(expiry + 16 minutes);
 
-        Settlement memory settlement = engine.getPhysicalSettlementPerToken(tokenId);
+        (uint256 debt, uint256 payout) = grappa.getSettlement(tokenId, UNIT);
 
-        assertEq(settlement.debtPerToken, uint256(strike));
-        assertEq(settlement.payoutPerToken, depositAmount);
+        assertEq(debt, uint256(strike));
+        assertEq(payout, depositAmount);
 
         vm.warp(expiry + 61 minutes);
 
-        settlement = engine.getPhysicalSettlementPerToken(tokenId);
+        (debt, payout) = grappa.getSettlement(tokenId, UNIT);
 
-        assertEq(settlement.debtPerToken, 0);
-        assertEq(settlement.payoutPerToken, 0);
+        assertEq(debt, 0);
+        assertEq(payout, 0);
     }
 }
 
@@ -299,7 +292,7 @@ contract TestSettlePhysicalShortPositions_CM is CrossMarginFixture {
 
         _mintTokens(tokenId, wethId, wethDepositAmount);
 
-        vm.warp(expiry + engine.settlementWindow());
+        vm.warp(expiry + engine.getSettlementWindow());
 
         (,, Balance[] memory collateralsBefore) = engine.marginAccounts(address(this));
 
@@ -330,7 +323,7 @@ contract TestSettlePhysicalShortPositions_CM is CrossMarginFixture {
         grappa.settle(alice, tokenId, amount / 2);
         vm.stopPrank();
 
-        vm.warp(expiry + engine.settlementWindow());
+        vm.warp(expiry + engine.getSettlementWindow());
 
         (,, Balance[] memory collateralsBefore) = engine.marginAccounts(address(this));
 
@@ -371,7 +364,7 @@ contract TestSettlePhysicalShortPositions_CM is CrossMarginFixture {
 
         _mintTokens(tokenId, usdcId, usdcDepositAmount);
 
-        vm.warp(expiry + engine.settlementWindow());
+        vm.warp(expiry + engine.getSettlementWindow());
 
         (,, Balance[] memory collateralsBefore) = engine.marginAccounts(address(this));
 
@@ -402,7 +395,7 @@ contract TestSettlePhysicalShortPositions_CM is CrossMarginFixture {
         grappa.settle(alice, tokenId, amount / 2);
         vm.stopPrank();
 
-        vm.warp(expiry + engine.settlementWindow());
+        vm.warp(expiry + engine.getSettlementWindow());
 
         (,, Balance[] memory collateralsBefore) = engine.marginAccounts(address(this));
 
@@ -466,7 +459,7 @@ contract TestSettlePhysicalLongPositions_CM is CrossMarginFixture {
 
         _mintTokens(tokenId, wethId, wethDepositAmount);
 
-        vm.warp(expiry + engine.settlementWindow());
+        vm.warp(expiry + engine.getSettlementWindow());
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -504,7 +497,7 @@ contract TestSettlePhysicalLongPositions_CM is CrossMarginFixture {
 
         _mintTokens(tokenId, usdcId, usdcDepositAmount);
 
-        vm.warp(expiry + engine.settlementWindow());
+        vm.warp(expiry + engine.getSettlementWindow());
 
         // settle marginaccount
         ActionArgs[] memory actions = new ActionArgs[](1);

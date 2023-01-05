@@ -13,32 +13,6 @@ import "../../../config/errors.sol";
 import "../../../core/engines/cross-margin/types.sol";
 
 // solhint-disable-next-line contract-name-camelcase
-contract TestSettleCash_CM is CrossMarginFixture {
-    uint256 public expiry;
-
-    uint64 private amount = uint64(1 * UNIT);
-    uint256 private tokenId;
-    uint64 private strike;
-    uint256 private depositAmount = 1 ether;
-
-    function setUp() public {
-        weth.mint(address(this), 1000 * 1e18);
-        weth.approve(address(engine), type(uint256).max);
-
-        expiry = block.timestamp + 14 days;
-
-        strike = uint64(4000 * UNIT);
-    }
-
-    function testCannotGetCashSettlementPerTokenForPhysicalSettledToken() public {
-        tokenId = getTokenId(TokenType.CALL, SettlementType.PHYSICAL, pidEthCollat, expiry, strike, 0);
-
-        vm.expectRevert(BM_InvalidSettlementType.selector);
-        engine.getCashSettlementPerToken(tokenId);
-    }
-}
-
-// solhint-disable-next-line contract-name-camelcase
 contract TestSettleCashCoveredCall_CM is CrossMarginFixture {
     uint256 public expiry;
 
@@ -86,7 +60,7 @@ contract TestSettleCashCoveredCall_CM is CrossMarginFixture {
         assertEq(optionBefore, optionAfter + amount);
     }
 
-    function testShouldGetPayoutIfExpiresIMT() public {
+    function testShouldGetCallPayoutIfExpiresIMT() public {
         // expires in the money
         uint256 expiryPrice = 5000 * UNIT;
         oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
@@ -99,6 +73,7 @@ contract TestSettleCashCoveredCall_CM is CrossMarginFixture {
 
         uint256 wethAfter = weth.balanceOf(alice);
         uint256 optionAfter = option.balanceOf(alice, tokenId);
+
         assertEq(wethAfter, wethBefore + expectedPayout);
         assertEq(optionBefore, optionAfter + amount);
     }
@@ -289,7 +264,7 @@ contract TestSettleCashCollateralizedPut_CM is CrossMarginFixture {
         assertEq(optionBefore, optionAfter + amount);
     }
 
-    function testShouldGetPayoutIfExpiresIMT() public {
+    function testShouldGetPutPayoutIfExpiresIMT() public {
         // expires in the money
         uint256 expiryPrice = 1000 * UNIT;
         oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
@@ -426,7 +401,7 @@ contract TestSettleCashLongShort_CM is CrossMarginFixture {
         engine.execute(address(this), selfActions);
 
         // expire option & set expiry price
-        vm.warp(expiry + engine.settlementWindow());
+        vm.warp(expiry + engine.getSettlementWindow());
         oracle.setExpiryPrice(address(weth), address(usdc), 1000 * UNIT);
 
         //settle option
@@ -476,7 +451,7 @@ contract TestSettleCashLongCalls_CM is CrossMarginFixture {
         actions[0] = createAddLongAction(tokenId, amount, address(this));
         engine.execute(address(this), actions);
 
-        vm.warp(expiry + engine.settlementWindow());
+        vm.warp(expiry + engine.getSettlementWindow());
     }
 
     function testSettleLongCallITMIncreasesCollateral() public {
@@ -516,7 +491,7 @@ contract TestSettleCashLongCalls_CM is CrossMarginFixture {
         _actions[1] = createMintIntoAccountAction(tokenId2, address(this), amount);
         engine.execute(alice, _actions);
 
-        vm.warp(expiry + engine.settlementWindow());
+        vm.warp(expiry + engine.getSettlementWindow());
 
         oracle.setExpiryPrice(address(weth), address(usdc), 8000 * UNIT);
 
@@ -578,7 +553,7 @@ contract TestSettleCashLongCalls_CM is CrossMarginFixture {
         _actions[1] = createMintIntoAccountAction(tokenId2, address(this), amount);
         engine.execute(alice, _actions);
 
-        vm.warp(expiry + engine.settlementWindow());
+        vm.warp(expiry + engine.getSettlementWindow());
 
         oracle.setExpiryPrice(address(weth), address(usdc), 3000 * UNIT);
 
@@ -614,7 +589,7 @@ contract TestSettleCashLongCalls_CM is CrossMarginFixture {
         _actions[1] = createMintIntoAccountAction(tokenId2, address(this), amount);
         engine.execute(alice, _actions);
 
-        vm.warp(expiry + engine.settlementWindow());
+        vm.warp(expiry + engine.getSettlementWindow());
 
         oracle.setExpiryPrice(address(weth), address(usdc), 3000 * UNIT);
 
@@ -682,7 +657,7 @@ contract TestSettleCashLongPuts_CM is CrossMarginFixture {
         actions[0] = createAddLongAction(tokenId, amount, address(this));
         engine.execute(address(this), actions);
 
-        vm.warp(expiry + engine.settlementWindow());
+        vm.warp(expiry + engine.getSettlementWindow());
     }
 
     function testSettleLongCallITMIncreasesCollateral() public {

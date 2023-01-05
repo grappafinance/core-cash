@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 // imported contracts and libraries
+import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
 import {UUPSUpgradeable} from "openzeppelin/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
@@ -18,6 +19,8 @@ import {IPhysicalSettlement} from "../interfaces/IPhysicalSettlement.sol";
 
 // librarise
 import {BalanceUtil} from "../libraries/BalanceUtil.sol";
+import {MoneynessLib} from "../libraries/MoneynessLib.sol";
+import {NumberUtil} from "../libraries/NumberUtil.sol";
 import {ProductIdUtil} from "../libraries/ProductIdUtil.sol";
 import {TokenIdUtil} from "../libraries/TokenIdUtil.sol";
 
@@ -34,6 +37,8 @@ import "../config/types.sol";
  */
 contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
     using BalanceUtil for Balance[];
+    using FixedPointMathLib for uint256;
+    using NumberUtil for uint256;
     using ProductIdUtil for uint40;
     using SafeCast for uint256;
     using TokenIdUtil for uint256;
@@ -74,6 +79,9 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
 
     /// @dev address => oracleId
     mapping(address => uint8) public oracleIds;
+
+    /// @dev token => total
+    mapping(uint256 => TokenTracker) public tokenTracker;
 
     /*///////////////////////////////////////////////////////////////
                                 Events
@@ -227,9 +235,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     {
         optionToken.burnGrappaOnly(_account, _tokenId, _amount);
 
-        Settlement memory settlement = _settle(_account, _tokenId, _amount);
-
-        return (settlement.debt, settlement.payout);
+        (debt, payout) = _settle(_account, _tokenId, _amount.toUint64());
     }
 
     /**
@@ -249,7 +255,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         optionToken.batchBurnGrappaOnly(_account, _tokenIds, _amounts);
 
         for (uint256 i; i < _tokenIds.length;) {
-            _settle(_account, _tokenIds[i], _amounts[i]);
+            _settle(_account, _tokenIds[i], _amounts[i].toUint64());
 
             unchecked {
                 ++i;
@@ -267,9 +273,13 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      *
      */
     function getSettlement(uint256 _tokenId, uint256 _amount) external view returns (uint256 debt, uint256 payout) {
-        Settlement memory settlement = _getSettlement(_tokenId, _amount.toUint64());
+        if (_tokenId.isCash()) {
+            (,, payout) = _getCashSettlement(_tokenId, _amount.toUint64());
+        } else if (_tokenId.isPhysical()) {
+            Settlement memory settlement = _getPhysicalSettlement(_tokenId, _amount.toUint64());
 
-        return (settlement.debt, settlement.payout);
+            return (settlement.debt, settlement.payout);
+        }
     }
 
     /**
@@ -288,14 +298,32 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         if (_tokenIds.length == 0) return (debts, payouts);
 
         for (uint256 i; i < _tokenIds.length;) {
-            Settlement memory settlement = _getSettlement(_tokenIds[i], _amounts[i].toUint64());
+            uint8 debtId;
+            uint256 debt;
+            uint8 payoutId;
+            uint256 payout;
 
-            if (settlement.debt != 0) {
-                debts = _addToBalances(debts, settlement.debtAssetId, settlement.debt);
+            uint256 _tokenId = _tokenIds[i];
+
+            if (_tokenId.isCash()) {
+                (,, payout) = _getCashSettlement(_tokenId, _amounts[i].toUint64());
+
+                payoutId = _tokenId.parseCollateralId();
+            } else if (_tokenId.isPhysical()) {
+                Settlement memory settlement = _getPhysicalSettlement(_tokenId, _amounts[i].toUint64());
+
+                debtId = settlement.debtId;
+                debt = settlement.debt;
+                payoutId = settlement.payoutId;
+                payout = settlement.payout;
             }
 
-            if (settlement.payout != 0) {
-                payouts = _addToBalances(payouts, settlement.payoutAssetId, settlement.payout);
+            if (debt != 0) {
+                debts = _addToBalances(debts, debtId, debt);
+            }
+
+            if (payout != 0) {
+                payouts = _addToBalances(payouts, payoutId, payout);
             }
 
             unchecked {
@@ -309,10 +337,10 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      * @param _tokenId tokenid
      * @param _engine address intending to mint / burn
      */
-    function checkEngineAccess(uint256 _tokenId, address _engine) external view {
+    function checkEngineAccess(uint256 _tokenId, address _engine) public view {
         // create check engine access
         uint8 engineId = TokenIdUtil.parseEngineId(_tokenId);
-        if (_engine != engines[engineId]) revert GP_Not_Authorized_Engine();
+        if (_engine != engines[engineId]) revert GP_NotAuthorizedEngine();
     }
 
     /**
@@ -326,7 +354,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
 
         //  check engine access
         uint8 engineId = _tokenId.parseEngineId();
-        if (_engine != engines[engineId]) revert GP_Not_Authorized_Engine();
+        if (_engine != engines[engineId]) revert GP_NotAuthorizedEngine();
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -391,6 +419,15 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         emit OracleRegistered(_oracle, id);
     }
 
+    function trackTokenIssuance(uint256 _tokenId, uint64 _update, bool _isMint) external {
+        checkEngineAccess(_tokenId, msg.sender);
+
+        if (_tokenId.isExpired()) revert GP_InvalidExpiry();
+
+        if (_isMint) tokenTracker[_tokenId].issued += _update;
+        else tokenTracker[_tokenId].issued -= _update;
+    }
+
     /* =====================================
      *          Internal Functions
      * ====================================**/
@@ -429,44 +466,111 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
 
     /**
      * @notice settles token
+     * @param _account  who to settle for
+     * @param _tokenId  tokenId of option token to burn
+     * @param _amount   amount to settle
+     * @return debt what is owed
+     * @return payout what is being received
+     */
+    function _settle(address _account, uint256 _tokenId, uint64 _amount) internal returns (uint256 debt, uint256 payout) {
+        if (_tokenId.isCash()) payout = _settleCashToken(_account, _tokenId, _amount);
+        else if (_tokenId.isPhysical()) return _settlePhysicalToken(_account, _tokenId, _amount);
+    }
+
+    /**
+     * @notice settles cash token
+     * @param _account  who to settle for
+     * @param _tokenId  tokenId of option token to burn
+     * @param _amount   amount to settle
+     * @return payout what is being received
+     */
+    function _settleCashToken(address _account, uint256 _tokenId, uint64 _amount) internal returns (uint256 payout) {
+        address engine;
+        address collateral;
+
+        (engine, collateral, payout) = _getCashSettlement(_tokenId, _amount);
+
+        emit OptionSettled(_account, _tokenId, _amount, 0, payout);
+
+        // option owner gets collateral
+        if (payout != 0) ICashSettlement(engine).sendPayoutValue(collateral, _account, payout);
+    }
+
+    /**
+     * @notice settles physical token
      *
      * @param _account  who to settle for
      * @param _tokenId  tokenId of option token to burn
      * @param _amount   amount to settle
-     * @return settlement struct
+     * @return debt what is owed
+     * @return payout what is being received
      */
-    function _settle(address _account, uint256 _tokenId, uint256 _amount) internal returns (Settlement memory settlement) {
-        uint64 amount = _amount.toUint64();
-
-        settlement = _getSettlement(_tokenId, amount);
+    function _settlePhysicalToken(address _account, uint256 _tokenId, uint64 _amount)
+        internal
+        returns (uint256 debt, uint256 payout)
+    {
+        Settlement memory settlement = _getPhysicalSettlement(_tokenId, _amount);
 
         emit OptionSettled(_account, _tokenId, _amount, settlement.debt, settlement.payout);
 
-        settlement.tokenId = _tokenId;
-        settlement.tokenAmount = amount;
-        settlement.creditor = _account;
+        if (settlement.debt != 0 && settlement.payout != 0) {
+            IPhysicalSettlement engine = IPhysicalSettlement(settlement.engine);
 
-        if (_tokenId.isPhysical() && settlement.debt != 0 && settlement.payout != 0) {
-            settlement.debtor = msg.sender;
+            (,,, uint64 expiry,,) = _tokenId.parseTokenId();
 
-            IPhysicalSettlement(settlement.engine).settlePhysicalToken(settlement);
-        } else if (_tokenId.isCash() && settlement.payout != 0) {
-            address payoutAsset = assets[settlement.payoutAssetId].addr;
-            ICashSettlement(settlement.engine).settleCashToken(payoutAsset, _account, settlement.payout);
+            // if settlement window closed do nothing
+            if (block.timestamp > expiry + engine.getSettlementWindow()) return (0, 0);
+
+            TokenTracker storage tracker = tokenTracker[_tokenId];
+
+            // incrementing number of exercised token
+            tracker.exercised += _amount;
+
+            if (tracker.exercised > tracker.issued) revert GP_ExceedsIssuedTokens();
+
+            // issuer of option gets underlying asset (PUT) or strike asset (CALL)
+            engine.receiveDebtValue(assets[settlement.debtId].addr, msg.sender, settlement.debt);
+
+            // option owner gets collateral
+            engine.sendPayoutValue(assets[settlement.payoutId].addr, _account, settlement.payout);
+        }
+
+        return (settlement.debt, settlement.payout);
+    }
+
+    /**
+     * @dev returns payout for one cash settled token
+     * @param _tokenId  id of token
+     * @param _amount   amount to settle
+     * @return engine engine paying out
+     * @return collateral asset of payout
+     * @return payout what is being received
+     *
+     */
+    function _getCashSettlement(uint256 _tokenId, uint64 _amount)
+        internal
+        view
+        returns (address engine, address collateral, uint256 payout)
+    {
+        uint256 payoutPerToken;
+        (engine, collateral, payoutPerToken) = _getCashSettlementPerToken(_tokenId);
+
+        payout = payoutPerToken * _amount;
+
+        unchecked {
+            payout = payout / UNIT;
         }
     }
 
     /**
-     * @dev populates a settlement structure for one token
-     *
+     * @dev returns settlement structure for one physically settled token
      * @param _tokenId  id of token
      * @param _amount   amount to settle
-     *
      * @return settlement struct
      *
      */
-    function _getSettlement(uint256 _tokenId, uint64 _amount) internal view returns (Settlement memory settlement) {
-        settlement = _getSettlementPerToken(_tokenId);
+    function _getPhysicalSettlement(uint256 _tokenId, uint64 _amount) internal view returns (Settlement memory settlement) {
+        settlement = _getPhysicalSettlementPerToken(_tokenId);
 
         settlement.debt = settlement.debtPerToken * _amount;
         settlement.payout = settlement.payoutPerToken * _amount;
@@ -478,29 +582,120 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     }
 
     /**
-     * @dev calculate the debt and payout for one option token
-     *
+     * @dev calculate the cash settled payout for one option token
      * @param _tokenId  token id of option token
-     *
-     * @return settlement struct
-     *
+     * @return payoutPerToken amount paid
      */
-    function _getSettlementPerToken(uint256 _tokenId) internal view returns (Settlement memory settlement) {
-        (, SettlementType settlementType,, uint64 expiry,,) = TokenIdUtil.parseTokenId(_tokenId);
+    function _getCashSettlementPerToken(uint256 _tokenId)
+        internal
+        view
+        virtual
+        returns (address, address, uint256 payoutPerToken)
+    {
+        (TokenType tokenType,, uint40 productId, uint64 expiry, uint64 strikePrice, uint64 reserved) =
+            TokenIdUtil.parseTokenId(_tokenId);
 
         if (block.timestamp < expiry) revert GP_NotExpired();
 
-        address engine = engines[_tokenId.parseEngineId()];
+        (address oracle, address engine, address underlying,, address strike,, address collateral, uint8 collateralDecimals) =
+            getDetailFromProductId(productId);
 
-        if (settlementType == SettlementType.CASH) {
-            settlement.payoutPerToken = ICashSettlement(engine).getCashSettlementPerToken(_tokenId);
+        // expiry price of underlying, denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
+        uint256 expiryPrice = _getCashSettlementPrice(oracle, underlying, strike, expiry);
 
-            if (settlement.payoutPerToken != 0) settlement.payoutAssetId = _tokenId.parseCollateralId();
-        } else if (settlementType == SettlementType.PHYSICAL) {
-            settlement = IPhysicalSettlement(engine).getPhysicalSettlementPerToken(_tokenId);
+        // cash value denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
+        uint256 cashValue;
+        if (tokenType == TokenType.CALL) {
+            cashValue = MoneynessLib.getCallCashValue(expiryPrice, strikePrice);
+        } else if (tokenType == TokenType.PUT) {
+            cashValue = MoneynessLib.getPutCashValue(expiryPrice, strikePrice);
+        } else if (tokenType == TokenType.CALL_SPREAD) {
+            cashValue = MoneynessLib.getCashValueDebitCallSpread(expiryPrice, strikePrice, reserved);
+        } else if (tokenType == TokenType.PUT_SPREAD) {
+            cashValue = MoneynessLib.getCashValueDebitPutSpread(expiryPrice, strikePrice, reserved);
         }
 
-        settlement.engine = engine;
+        // the following logic convert cash value (amount worth) if collateral is not strike:
+        if (collateral == underlying) {
+            // collateral is underlying. payout should be devided by underlying price
+            cashValue = cashValue.mulDivDown(UNIT, expiryPrice);
+        } else if (collateral != strike) {
+            // collateral is not underlying nor strike
+            uint256 collateralPrice = _getCashSettlementPrice(oracle, collateral, strike, expiry);
+            cashValue = cashValue.mulDivDown(UNIT, collateralPrice);
+        }
+
+        payoutPerToken = cashValue.convertDecimals(UNIT_DECIMALS, collateralDecimals);
+
+        return (engine, collateral, payoutPerToken);
+    }
+
+    /**
+     * @dev calculate the debt and payout for one physically settled option token
+     * @param _tokenId  token id of option token
+     * @return settlement struct
+     */
+    function _getPhysicalSettlementPerToken(uint256 _tokenId) internal view virtual returns (Settlement memory settlement) {
+        (TokenType tokenType,, uint40 productId, uint64 expiry, uint64 strikePrice,) = _tokenId.parseTokenId();
+
+        if (block.timestamp < expiry) revert GP_NotExpired();
+
+        (, uint8 engineId, uint8 underlyingId, uint8 strikeId,) = ProductIdUtil.parseProductId(productId);
+
+        // puts can only be collateralized in strike
+        uint256 strikeAmount = uint256(strikePrice).convertDecimals(UNIT_DECIMALS, assets[strikeId].decimals);
+
+        // calls can only be collateralized in underlying
+        uint256 underlyingAmount = UNIT.convertDecimals(UNIT_DECIMALS, assets[underlyingId].decimals);
+
+        settlement.engine = engines[engineId];
+
+        IPhysicalSettlement engine = IPhysicalSettlement(settlement.engine);
+
+        // if settlement window closed, return final debts/payouts for short accounts to settle against
+        if (block.timestamp >= expiry + engine.getSettlementWindow()) {
+            TokenTracker memory tracker = tokenTracker[_tokenId];
+
+            if (tracker.issued > 0) {
+                strikeAmount = strikeAmount.mulDivDown(tracker.exercised, tracker.issued);
+                underlyingAmount = underlyingAmount.mulDivDown(tracker.exercised, tracker.issued);
+            } else {
+                // No issuance of this particular tokenId
+                strikeAmount = 0;
+                underlyingAmount = 0;
+            }
+        }
+
+        if (tokenType == TokenType.CALL) {
+            settlement.debtId = strikeId;
+            settlement.debtPerToken = strikeAmount;
+
+            settlement.payoutId = underlyingId;
+            settlement.payoutPerToken = underlyingAmount;
+        } else if (tokenType == TokenType.PUT) {
+            settlement.debtId = underlyingId;
+            settlement.debtPerToken = underlyingAmount;
+
+            settlement.payoutId = strikeId;
+            settlement.payoutPerToken = strikeAmount;
+        }
+    }
+
+    /**
+     * @dev check settlement price is finalized from oracle, and return price
+     * @param _oracle oracle contract address
+     * @param _base base asset (ETH is base asset while requesting ETH / USD)
+     * @param _quote quote asset (USD is base asset while requesting ETH / USD)
+     * @param _expiry expiry timestamp
+     */
+    function _getCashSettlementPrice(address _oracle, address _base, address _quote, uint256 _expiry)
+        internal
+        view
+        returns (uint256)
+    {
+        (uint256 price, bool isFinalized) = IOracle(_oracle).getPriceAtExpiry(_base, _quote, _expiry);
+        if (!isFinalized) revert GP_PriceNotFinalized();
+        return price;
     }
 
     /**
