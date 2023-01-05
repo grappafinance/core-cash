@@ -80,7 +80,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     /// @dev address => oracleId
     mapping(address => uint8) public oracleIds;
 
-    /// @dev token => total
+    /// @dev token => TokenTracker
     mapping(uint256 => TokenTracker) public tokenTracker;
 
     /*///////////////////////////////////////////////////////////////

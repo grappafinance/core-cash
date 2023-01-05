@@ -58,6 +58,8 @@ struct AssetDetail {
 }
 
 /**
+ * @dev struct to calculate settlement
+ *      only used for physically settled tokens
  * @param engine
  * @param debtId asset id to pay debt with
  * @param debtPerToken amount owed per token
@@ -76,6 +78,12 @@ struct Settlement {
     uint256 payout;
 }
 
+/**
+ * @dev struct to track issued and exercised tokens
+ *      used for physically settled tokens to socialize debts and payouts
+ * @param issued number of tokens mints
+ * @param exercised amount exercised within settlement window
+ */
 struct TokenTracker {
     uint64 issued;
     uint64 exercised;
