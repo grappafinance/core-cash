@@ -533,7 +533,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     }
 
     /**
-     * @dev returns payout for one cash settled token
+     * @dev returns payout for cash settled tokens
      * @param _tokenId  id of token
      * @param _amount   amount to settle
      * @return engine engine paying out
@@ -557,7 +557,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     }
 
     /**
-     * @dev returns settlement structure for one physically settled token
+     * @dev returns settlement structure for physically settled tokens
      * @param _tokenId  id of token
      * @param _amount   amount to settle
      * @return settlement struct
