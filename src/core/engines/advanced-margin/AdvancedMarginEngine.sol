@@ -202,7 +202,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
         delete marginAccounts[_subAccount];
     }
 
-    function payCashValue(address _asset, address _recipient, uint256 _amount) public override (BaseEngine, IMarginEngine) {
+    function payCashValue(address _asset, address _recipient, uint256 _amount) public override(BaseEngine, IMarginEngine) {
         BaseEngine.payCashValue(_asset, _recipient, _amount);
     }
 
