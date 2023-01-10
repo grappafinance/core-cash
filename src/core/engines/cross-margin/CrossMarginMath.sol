@@ -2,6 +2,8 @@
 pragma solidity ^0.8.0;
 
 import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
+import {UintArrayLib} from "array-lib/UintArrayLib.sol";
+import {IntArrayLib} from "array-lib/IntArrayLib.sol";
 
 import {IGrappa} from "../../../interfaces/IGrappa.sol";
 import {IOracle} from "../../../interfaces/IOracle.sol";
@@ -11,7 +13,7 @@ import {NumberUtil} from "../../../libraries/NumberUtil.sol";
 import {ProductIdUtil} from "../../../libraries/ProductIdUtil.sol";
 import {TokenIdUtil} from "../../../libraries/TokenIdUtil.sol";
 import {BalanceUtil} from "../../../libraries/BalanceUtil.sol";
-import {ArrayUtil} from "../../../libraries/ArrayUtil.sol";
+import {BytesArrayUtil} from "../../../libraries/BytesArrayUtil.sol";
 
 // cross margin libraries
 import {AccountUtil} from "./AccountUtil.sol";
@@ -33,8 +35,8 @@ library CrossMarginMath {
     using AccountUtil for CrossMarginDetail[];
     using AccountUtil for Position[];
     using AccountUtil for PositionOptim[];
-    using ArrayUtil for uint256[];
-    using ArrayUtil for int256[];
+    using UintArrayLib for uint256[];
+    using IntArrayLib for int256[];
     using SafeCast for int256;
     using SafeCast for uint256;
     using TokenIdUtil for uint256;
@@ -350,14 +352,14 @@ library CrossMarginMath {
 
             bytes32 pos = keccak256(abi.encode(product.underlyingId, product.strikeId, expiry));
 
-            (bool found, uint256 index) = ArrayUtil.indexOf(usceLookUp, pos);
+            (bool found, uint256 index) = BytesArrayUtil.indexOf(usceLookUp, pos);
 
             CrossMarginDetail memory detail;
 
             if (found) {
                 detail = details[index];
             } else {
-                usceLookUp = ArrayUtil.append(usceLookUp, pos);
+                usceLookUp = BytesArrayUtil.append(usceLookUp, pos);
 
                 detail.underlyingId = product.underlyingId;
                 detail.underlyingDecimals = product.underlyingDecimals;
