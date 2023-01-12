@@ -171,7 +171,8 @@ library CrossMarginMath {
         bool hasPuts = _detail.putStrikes.length > 0;
         bool hasCalls = _detail.callStrikes.length > 0;
 
-        scenarios = _detail.putStrikes.concat(_detail.callStrikes).sort();
+        scenarios = _detail.putStrikes.concat(_detail.callStrikes);
+        scenarios.quickSort(); // sort in memory
 
         // payouts at each scenario (strike)
         payouts = new int256[](scenarios.length);
