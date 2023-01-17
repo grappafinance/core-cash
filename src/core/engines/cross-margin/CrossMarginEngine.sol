@@ -19,7 +19,6 @@ import {IWhitelist} from "../../../interfaces/IWhitelist.sol";
 import {TokenIdUtil} from "../../../libraries/TokenIdUtil.sol";
 import {ProductIdUtil} from "../../../libraries/ProductIdUtil.sol";
 import {BalanceUtil} from "../../../libraries/BalanceUtil.sol";
-import {ArrayUtil} from "../../../libraries/ArrayUtil.sol";
 
 // Cross margin libraries
 import {AccountUtil} from "./AccountUtil.sol";
@@ -159,7 +158,7 @@ contract CrossMarginEngine is BaseEngine, IMarginEngine, OwnableUpgradeable, Ree
      * @param _recipient receiver
      * @param _amount amount
      */
-    function payCashValue(address _asset, address _recipient, uint256 _amount) public override (BaseEngine, IMarginEngine) {
+    function payCashValue(address _asset, address _recipient, uint256 _amount) public override(BaseEngine, IMarginEngine) {
         _checkPermissioned(_recipient);
 
         BaseEngine.payCashValue(_asset, _recipient, _amount);

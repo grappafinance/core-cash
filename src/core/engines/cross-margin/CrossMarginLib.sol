@@ -3,11 +3,11 @@ pragma solidity ^0.8.0;
 
 import {IGrappa} from "../../../interfaces/IGrappa.sol";
 import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
+import {UintArrayLib} from "array-lib/UintArrayLib.sol";
 
 import "../../../libraries/TokenIdUtil.sol";
 import "../../../libraries/ProductIdUtil.sol";
 import "../../../libraries/BalanceUtil.sol";
-import "../../../libraries/ArrayUtil.sol";
 
 import "../../../config/types.sol";
 import "../../../config/constants.sol";
@@ -25,7 +25,7 @@ library CrossMarginLib {
     using BalanceUtil for Balance[];
     using AccountUtil for Position[];
     using AccountUtil for PositionOptim[];
-    using ArrayUtil for uint256[];
+    using UintArrayLib for uint256[];
     using ProductIdUtil for uint40;
     using TokenIdUtil for uint256;
     using TokenIdUtil for uint192;
