@@ -248,7 +248,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     function batchSettle(address _account, uint256[] memory _tokenIds, uint256[] memory _amounts) external nonReentrant 
     // returns (Balance[] memory debts, Balance[] memory payouts)
     {
-        // (debts, payouts) = getBatchSettlement(_tokenIds, _amounts);
+        if (_tokenIds.length != _amounts.length) revert GP_WrongArgumentLength();
 
         optionToken.batchBurnGrappaOnly(_account, _tokenIds, _amounts);
 
@@ -621,7 +621,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
 
         // settlement window closed: you get nothing
         IPhysicalSettlement engine = IPhysicalSettlement(engines[engineId]);
-        if (block.timestamp > expiry + engine.getSettlementWindow()) return settlement;
+        if (block.timestamp >= expiry + engine.getSettlementWindow()) return settlement;
 
         // puts can only be collateralized in strike
         uint256 strikeAmount = uint256(strikePrice).convertDecimals(UNIT_DECIMALS, assets[strikeId].decimals);

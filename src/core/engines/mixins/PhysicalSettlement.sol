@@ -81,17 +81,13 @@ abstract contract PhysicalSettlement is BaseEngine {
 
         if (tokenType == TokenType.CALL) {
             debt.collateralId = strikeId;
-            debt.amount = (tracker.totalDebt * shortAmount / tracker.issued).toUint80();
-
             payout.collateralId = underlyingId;
-            payout.amount = (tracker.totalCollateralPaid * shortAmount / tracker.issued).toUint80();
         } else if (tokenType == TokenType.PUT) {
             debt.collateralId = underlyingId;
-            debt.amount = (tracker.totalCollateralPaid * shortAmount / tracker.issued).toUint80();
-
             payout.collateralId = strikeId;
-            payout.amount = (tracker.totalDebt * shortAmount / tracker.issued).toUint80();
         }
+        debt.amount = (tracker.totalDebt * shortAmount / tracker.issued).toUint80();
+        payout.amount = (tracker.totalCollateralPaid * shortAmount / tracker.issued).toUint80();
     }
 
     function handleExercise(

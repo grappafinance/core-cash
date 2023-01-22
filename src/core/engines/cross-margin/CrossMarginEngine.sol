@@ -272,12 +272,11 @@ contract CrossMarginEngine is
      * @dev     this update the account storage
      */
     function _settle(address _subAccount) internal override {
-        // update the account in state
+        // todo: add which longs to settle, add returned data to a new event
+        accounts[_subAccount].settleLongAtExpiry(grappa, _getSettlementWindow());
+
         (Balance[] memory shortDebts, Balance[] memory shortPayouts) =
             accounts[_subAccount].settleShortAtExpiry(IPhysicalSettlement(address(this)), _getSettlementWindow());
-
-        // todo: add which longs to settle
-        accounts[_subAccount].settleLongAtExpiry(grappa, _getSettlementWindow());
         emit AccountSettled(_subAccount, shortDebts, shortPayouts);
     }
 
