@@ -499,23 +499,18 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         IPhysicalSettlement engine = IPhysicalSettlement(settlement.engine);
 
         // todo: encode settlement windoow
-        {
-            (,,, uint64 expiry,,) = _tokenId.parseTokenId();
-            if (block.timestamp > expiry + engine.getSettlementWindow()) return (0, 0);
+        if (settlement.debt > 0) {
+            engine.handleExercise(
+                _tokenId,
+                _amount, // amount exercised
+                assets[settlement.debtId].addr, // will be transfer to engine
+                settlement.debt, // amount transfer to engine
+                msg.sender, // get debt asset from from
+                assets[settlement.payoutId].addr,
+                settlement.payout,
+                _account
+            );
         }
-
-        // issuer of option gets underlying asset (PUT) or strike asset (CALL)
-        // todo: this have to trigger engine to record amount exercised too
-        engine.handleExercise(
-            _tokenId,
-            _amount, // amount exercised
-            assets[settlement.debtId].addr, // will be transfer to engine
-            settlement.debt, // amount transfer to engine
-            msg.sender, // get debt asset from from
-            assets[settlement.payoutId].addr,
-            settlement.payout,
-            _account
-        );
 
         return (settlement.debt, settlement.payout);
     }
@@ -623,6 +618,10 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         if (block.timestamp < expiry) revert GP_NotExpired();
 
         (, uint8 engineId, uint8 underlyingId, uint8 strikeId,) = ProductIdUtil.parseProductId(productId);
+
+        // settlement window closed: you get nothing
+        IPhysicalSettlement engine = IPhysicalSettlement(engines[engineId]);
+        if (block.timestamp > expiry + engine.getSettlementWindow()) return settlement;
 
         // puts can only be collateralized in strike
         uint256 strikeAmount = uint256(strikePrice).convertDecimals(UNIT_DECIMALS, assets[strikeId].decimals);

@@ -7,7 +7,10 @@ import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 
 // inheriting contracts
 import {BaseEngine} from "../BaseEngine.sol";
+import {BalanceUtil} from "../../../libraries/BalanceUtil.sol";
 import {IPhysicalSettlement} from "../../../interfaces/IPhysicalSettlement.sol";
+import {ProductIdUtil} from "../../../libraries/ProductIdUtil.sol";
+import {TokenIdUtil} from "../../../libraries/TokenIdUtil.sol";
 
 // // constants and types
 import "../../../config/constants.sol";
@@ -21,14 +24,15 @@ import "../../../config/types.sol";
  * @notice  util functions for MarginEngines to support physically settled tokens
  */
 abstract contract PhysicalSettlement is BaseEngine {
+    using BalanceUtil for Balance[];
     using FixedPointMathLib for uint256;
     using SafeCast for uint256;
 
     /// @dev window to exercise physical token
     uint256 private _settlementWindow;
 
-    /// @dev token => TokenTracker
-    mapping(uint256 => TokenTracker) public tokenTracker;
+    /// @dev token => PhysicalSettlementTracker
+    mapping(uint256 => PhysicalSettlementTracker) public tokenTracker;
 
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new
@@ -46,16 +50,19 @@ abstract contract PhysicalSettlement is BaseEngine {
         view
         returns (Balance[] memory debts, Balance[] memory payouts)
     {
+        // payouts and debts will be 0 for physical settlement options because it has
+        // passed the settlement window
         (debts, payouts) = grappa.getBatchSettlement(_tokenIds, _amounts);
 
-        for (uint256 i; i < debts.length;) {
-            TokenTracker memory tracker = tokenTracker[_tokenIds[i]];
+        // add socialized physical settlement
+        for (uint256 i; i < _tokenIds.length;) {
+            PhysicalSettlementTracker memory tracker = tokenTracker[_tokenIds[i]];
 
-            // if the token is physical settled, tracker.issued will be positive
-            // total amount exercised will be recorded and should be socialized to all short
-            if (tracker.issued > 0) {
-                debts[i].amount = uint256(debts[i].amount).mulDivDown(tracker.exercised, tracker.issued).toUint80();
-                payouts[i].amount = uint256(payouts[i].amount).mulDivDown(tracker.exercised, tracker.issued).toUint80();
+            // if the token is physical settled and someone exercised prior to exercise window
+            if (tracker.totalDebt > 0) {
+                (Balance memory debt, Balance memory payout) = _socializeSettlement(tracker, _tokenIds[i], _amounts[i]);
+                debts = _addToBalances(debts, debt.collateralId, debt.amount);
+                payouts = _addToBalances(payouts, payout.collateralId, payout.amount);
             }
 
             unchecked {
@@ -64,19 +71,46 @@ abstract contract PhysicalSettlement is BaseEngine {
         }
     }
 
+    function _socializeSettlement(PhysicalSettlementTracker memory tracker, uint256 tokenId, uint256 shortAmount)
+        internal
+        pure
+        returns (Balance memory debt, Balance memory payout)
+    {
+        (TokenType tokenType,, uint40 productId,,,) = TokenIdUtil.parseTokenId(tokenId);
+        (,, uint8 underlyingId, uint8 strikeId,) = ProductIdUtil.parseProductId(productId);
+
+        if (tokenType == TokenType.CALL) {
+            debt.collateralId = strikeId;
+            debt.amount = (tracker.totalDebt * shortAmount / tracker.issued).toUint80();
+
+            payout.collateralId = underlyingId;
+            payout.amount = (tracker.totalCollateralPaid * shortAmount / tracker.issued).toUint80();
+        } else if (tokenType == TokenType.PUT) {
+            debt.collateralId = underlyingId;
+            debt.amount = (tracker.totalCollateralPaid * shortAmount / tracker.issued).toUint80();
+
+            payout.collateralId = strikeId;
+            payout.amount = (tracker.totalDebt * shortAmount / tracker.issued).toUint80();
+        }
+    }
+
     function handleExercise(
         uint256 _tokenId,
-        uint256 _tokenExercised,
+        uint256, /*_tokenExercised*/
         address _inAsset,
         uint256 _inAmount,
         address _from,
         address _outAsset,
-        uint256 outAmount,
+        uint256 _outAmount,
         address _to
     ) external {
-        tokenTracker[_tokenId].exercised += _tokenExercised.toUint64();
+        // tokenTracker[_tokenId].exercised += _tokenExercised.toUint64();
+        tokenTracker[_tokenId].totalDebt += _inAmount;
+        tokenTracker[_tokenId].totalCollateralPaid += _outAmount;
+
         _receiveDebtValue(_inAsset, _from, _inAmount);
-        _sendPayoutValue(_outAsset, _to, outAmount);
+
+        _sendPayoutValue(_outAsset, _to, _outAmount);
     }
 
     /**
@@ -138,5 +172,26 @@ abstract contract PhysicalSettlement is BaseEngine {
      */
     function _getSettlementWindow() internal view returns (uint256) {
         return _settlementWindow != 0 ? _settlementWindow : MIN_SETTLEMENT_WINDOW;
+    }
+
+    /**
+     * @dev add an entry to array of Balance
+     * @param balances existing payout array
+     * @param _asset new collateralId
+     * @param _amount new payout
+     */
+    function _addToBalances(Balance[] memory balances, uint8 _asset, uint256 _amount)
+        internal
+        pure
+        returns (Balance[] memory newBalances)
+    {
+        (bool found, uint256 index) = balances.indexOf(_asset);
+
+        uint80 balance = _amount.toUint80();
+
+        if (!found) balances = balances.append(Balance(_asset, balance));
+        else balances[index].amount += balance;
+
+        return balances;
     }
 }

@@ -84,7 +84,11 @@ struct Settlement {
  * @param issued number of tokens mints
  * @param exercised amount exercised within settlement window
  */
-struct TokenTracker {
+struct PhysicalSettlementTracker {
     uint64 issued;
     uint64 exercised;
+    // address debtAsset;
+    // address collateralAsset;
+    uint256 totalDebt;
+    uint256 totalCollateralPaid;
 }
