@@ -146,10 +146,7 @@ library CrossMarginLib {
     ///@param account CrossMarginAccount storage that will be updated in-place
     function settleLongAtExpiry(CrossMarginAccount storage account, IGrappa grappa, uint256 settlementWindow)
         external
-        returns (
-            Balance[] memory longDebts,
-            Balance[] memory longPayouts
-        )
+        returns (Balance[] memory longDebts, Balance[] memory longPayouts)
     {
         // settling longs first as they can only increase collateral
         (longDebts, longPayouts) = _settleLongs(grappa, account, settlementWindow);
@@ -159,10 +156,7 @@ library CrossMarginLib {
     ///@param account CrossMarginAccount storage that will be updated in-place
     function settleShortAtExpiry(CrossMarginAccount storage account, IPhysicalSettlement engine, uint256 settlementWindow)
         external
-        returns (
-            Balance[] memory shortDebts,
-            Balance[] memory shortPayouts
-        )
+        returns (Balance[] memory shortDebts, Balance[] memory shortPayouts)
     {
         // settling shorts last as they can only reduce collateral
         (shortDebts, shortPayouts) = _settleShorts(engine, account, settlementWindow);
@@ -178,7 +172,7 @@ library CrossMarginLib {
         uint256[] memory tokenIds;
         uint256[] memory amounts;
 
-        for (uint256 i; i < account.longs.length; ) {
+        for (uint256 i; i < account.longs.length;) {
             uint256 tokenId = account.longs[i].tokenId;
 
             (, SettlementType settlementType,, uint64 expiry,,) = tokenId.parseTokenId();
@@ -197,14 +191,16 @@ library CrossMarginLib {
 
                 account.longs.removeAt(i);
             } else {
-                unchecked { ++i; }
+                unchecked {
+                    ++i;
+                }
             }
         }
 
         if (tokenIds.length > 0) {
             // todo: only settle selected ids
             (debts, payouts) = grappa.getBatchSettlement(tokenIds, amounts);
-            
+
             grappa.batchSettle(address(this), tokenIds, amounts);
 
             for (uint256 i; i < debts.length;) {
@@ -212,15 +208,19 @@ library CrossMarginLib {
                     // remove the collateral in the account storage.
                     removeCollateral(account, debts[i].collateralId, debts[i].amount);
                 }
-                unchecked { ++i; }
+                unchecked {
+                    ++i;
+                }
             }
-            for(uint256 i; i < payouts.length; ) {
+            for (uint256 i; i < payouts.length;) {
                 if (payouts[i].amount != 0) {
                     // add to collateral in the account storage.
                     addCollateral(account, payouts[i].collateralId, payouts[i].amount);
                 }
 
-                unchecked { ++i; }
+                unchecked {
+                    ++i;
+                }
             }
         }
     }
@@ -228,18 +228,14 @@ library CrossMarginLib {
     ///@dev Settles the accounts shorts, reserving collateral for ITM options
     ///@param engine interface to get short option payouts in a batch call
     ///@param account CrossMarginAccount memory that will be updated in-place
-    function _settleShorts(
-        IPhysicalSettlement engine, 
-        CrossMarginAccount storage account,
-        uint256 settlementWindow
-    )
+    function _settleShorts(IPhysicalSettlement engine, CrossMarginAccount storage account, uint256 settlementWindow)
         public
         returns (Balance[] memory debts, Balance[] memory payouts)
     {
         uint256[] memory tokenIds;
         uint256[] memory amounts;
 
-        for (uint256 i = 0; i < account.shorts.length; ) {
+        for (uint256 i = 0; i < account.shorts.length;) {
             uint256 tokenId = account.shorts[i].tokenId;
 
             (, SettlementType settlementType,, uint64 expiry,,) = tokenId.parseTokenId();
@@ -256,22 +252,25 @@ library CrossMarginLib {
                 tokenIds = tokenIds.append(tokenId);
                 amounts = amounts.append(account.shorts[i].amount);
                 account.shorts.removeAt(i);
+            } else {
+                unchecked {
+                    ++i;
+                }
             }
-            
-            unchecked { ++i; }
-            
         }
 
         if (tokenIds.length > 0) {
             // the engine will socialized the debt and payout for physical settled options
             (debts, payouts) = engine.getBatchSettlementForShorts(tokenIds, amounts);
-            
+
             for (uint256 i = 0; i < payouts.length;) {
                 if (payouts[i].amount != 0) {
                     // remove the collateral in the account storage.
                     removeCollateral(account, payouts[i].collateralId, payouts[i].amount);
                 }
-                unchecked { ++i; }
+                unchecked {
+                    ++i;
+                }
             }
 
             for (uint256 i = 0; i < debts.length;) {
@@ -279,9 +278,10 @@ library CrossMarginLib {
                     // add to what is paid from exerciser
                     addCollateral(account, debts[i].collateralId, debts[i].amount);
                 }
-                unchecked { ++i; }
+                unchecked {
+                    ++i;
+                }
             }
         }
     }
-
 }

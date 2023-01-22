@@ -179,18 +179,18 @@ contract CrossMarginEngine is
         if (!_isAccountAboveWater(_subAccount)) revert BM_AccountUnderwater();
     }
 
-    /**
-     * @notice payout to user on settlement.
-     * @dev this can only triggered by Grappa, would only be called on settlement.
-     * @param _asset asset to transfer
-     * @param _sender sender of debt
-     * @param _amount amount
-     */
-    function receiveDebtValue(address _asset, address _sender, uint256 _amount) external virtual {
-        _checkPermissioned(_sender);
+    // /**
+    //  * @notice payout to user on settlement.
+    //  * @dev this can only triggered by Grappa, would only be called on settlement.
+    //  * @param _asset asset to transfer
+    //  * @param _sender sender of debt
+    //  * @param _amount amount
+    //  */
+    // function receiveDebtValue(address _asset, address _sender, uint256 _amount) external virtual {
+    //     _checkPermissioned(_sender);
 
-        _receiveDebtValue(_asset, _sender, _amount);
-    }
+    //     _receiveDebtValue(_asset, _sender, _amount);
+    // }
 
     /**
      * @notice payout to user on settlement.
@@ -199,10 +199,7 @@ contract CrossMarginEngine is
      * @param _recipient receiver
      * @param _amount amount
      */
-    function sendPayoutValue(address _asset, address _recipient, uint256 _amount)
-        external
-        override (ICashSettlement)
-    {
+    function sendPayoutValue(address _asset, address _recipient, uint256 _amount) external override(ICashSettlement) {
         _checkPermissioned(_recipient);
 
         _sendPayoutValue(_asset, _recipient, _amount);
@@ -290,7 +287,7 @@ contract CrossMarginEngine is
      * ========================================================= *
      */
 
-    function _mintOption(address _subAccount, bytes calldata _data) internal override (BaseEngine, PhysicalSettlement) {
+    function _mintOption(address _subAccount, bytes calldata _data) internal override(BaseEngine, PhysicalSettlement) {
         // ensuring physical options are properly created
         PhysicalSettlement._mintOption(_subAccount, _data);
     }
@@ -298,12 +295,12 @@ contract CrossMarginEngine is
     function _mintOptionIntoAccount(address _subAccount, bytes calldata _data)
         internal
         virtual
-        override (BaseEngine, PhysicalSettlement)
+        override(BaseEngine, PhysicalSettlement)
     {
         PhysicalSettlement._mintOptionIntoAccount(_subAccount, _data);
     }
 
-    function _burnOption(address _subAccount, bytes calldata _data) internal virtual override (BaseEngine, PhysicalSettlement) {
+    function _burnOption(address _subAccount, bytes calldata _data) internal virtual override(BaseEngine, PhysicalSettlement) {
         PhysicalSettlement._burnOption(_subAccount, _data);
     }
 

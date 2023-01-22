@@ -71,10 +71,10 @@ struct AssetDetail {
 struct Settlement {
     address engine;
     uint8 debtId;
-    uint256 debtPerToken;
+    // uint256 debtPerToken;
     uint256 debt;
     uint8 payoutId;
-    uint256 payoutPerToken;
+    // uint256 payoutPerToken;
     uint256 payout;
 }
 

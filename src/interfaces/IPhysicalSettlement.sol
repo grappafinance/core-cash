@@ -4,9 +4,20 @@ pragma solidity ^0.8.0;
 import {Settlement, Balance} from "../config/types.sol";
 
 interface IPhysicalSettlement {
-    function receiveDebtValue(address _asset, address _recipient, uint256 _amount) external;
+    function handleExercise(
+        uint256 _tokenExercised,
+        uint256 _tokenid,
+        address _inAsset,
+        uint256 _inAmount,
+        address _from,
+        address _toAsset,
+        uint256 _toAmount,
+        address _to
+    ) external;
 
-    function sendPayoutValue(address _asset, address _recipient, uint256 _amount) external;
+    // function receiveDebtValue(address _asset, address _recipient, uint256 _amount) external;
+
+    // function sendPayoutValue(address _asset, address _recipient, uint256 _amount) external;
 
     function getSettlementWindow() external view returns (uint256 window);
 
@@ -15,8 +26,8 @@ interface IPhysicalSettlement {
     /**
      * how the short should be settled
      */
-    function getBatchSettlementForShorts(uint256 [] calldata _tokenIds, uint256[] calldata _amounts) external view returns (
-        Balance[] memory debts, 
-        Balance[] memory payouts
-    );
+    function getBatchSettlementForShorts(uint256[] calldata _tokenIds, uint256[] calldata _amounts)
+        external
+        view
+        returns (Balance[] memory debts, Balance[] memory payouts);
 }

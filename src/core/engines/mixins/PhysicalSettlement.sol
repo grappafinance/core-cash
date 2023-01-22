@@ -41,13 +41,14 @@ abstract contract PhysicalSettlement is BaseEngine {
                         Override Internal Functions
     //////////////////////////////////////////////////////////////*/
 
-    function getBatchSettlementForShorts(uint256 [] calldata _tokenIds, uint256[] calldata _amounts) external view returns (
-        Balance[] memory debts, 
-        Balance[] memory payouts
-    ) {
+    function getBatchSettlementForShorts(uint256[] calldata _tokenIds, uint256[] calldata _amounts)
+        external
+        view
+        returns (Balance[] memory debts, Balance[] memory payouts)
+    {
         (debts, payouts) = grappa.getBatchSettlement(_tokenIds, _amounts);
 
-        for (uint i; i < debts.length; ) {
+        for (uint256 i; i < debts.length;) {
             TokenTracker memory tracker = tokenTracker[_tokenIds[i]];
 
             // if the token is physical settled, tracker.issued will be positive
@@ -55,10 +56,27 @@ abstract contract PhysicalSettlement is BaseEngine {
             if (tracker.issued > 0) {
                 debts[i].amount = uint256(debts[i].amount).mulDivDown(tracker.exercised, tracker.issued).toUint80();
                 payouts[i].amount = uint256(payouts[i].amount).mulDivDown(tracker.exercised, tracker.issued).toUint80();
-            } 
+            }
 
-            unchecked { ++i; }
+            unchecked {
+                ++i;
+            }
         }
+    }
+
+    function handleExercise(
+        uint256 _tokenId,
+        uint256 _tokenExercised,
+        address _inAsset,
+        uint256 _inAmount,
+        address _from,
+        address _outAsset,
+        uint256 outAmount,
+        address _to
+    ) external {
+        tokenTracker[_tokenId].exercised += _tokenExercised.toUint64();
+        _receiveDebtValue(_inAsset, _from, _inAmount);
+        _sendPayoutValue(_outAsset, _to, outAmount);
     }
 
     /**

@@ -68,5 +68,4 @@ interface IGrappa {
         external
         view
         returns (Balance[] memory debts, Balance[] memory payouts);
-
 }
