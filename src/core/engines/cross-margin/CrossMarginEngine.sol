@@ -179,18 +179,18 @@ contract CrossMarginEngine is
         if (!_isAccountAboveWater(_subAccount)) revert BM_AccountUnderwater();
     }
 
-    // /**
-    //  * @notice payout to user on settlement.
-    //  * @dev this can only triggered by Grappa, would only be called on settlement.
-    //  * @param _asset asset to transfer
-    //  * @param _sender sender of debt
-    //  * @param _amount amount
-    //  */
-    // function receiveDebtValue(address _asset, address _sender, uint256 _amount) external virtual {
-    //     _checkPermissioned(_sender);
+    /**
+     * @notice payout to user on settlement.
+     * @dev this can only triggered by Grappa, would only be called on settlement.
+     * @param _asset asset to transfer
+     * @param _sender sender of debt
+     * @param _amount amount
+     */
+    function receiveDebtValue(address _asset, address _sender, uint256 _amount) external virtual {
+        _checkPermissioned(_sender);
 
-    //     _receiveDebtValue(_asset, _sender, _amount);
-    // }
+        _receiveDebtValue(_asset, _sender, _amount);
+    }
 
     /**
      * @notice payout to user on settlement.

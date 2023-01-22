@@ -69,12 +69,10 @@ struct AssetDetail {
  * @param payout amount paid total
  */
 struct Settlement {
-    address engine;
+    address engine; //todo: can be removed if we encode exercise window in tokenId
     uint8 debtId;
-    // uint256 debtPerToken;
     uint256 debt;
     uint8 payoutId;
-    // uint256 payoutPerToken;
     uint256 payout;
 }
 
@@ -87,8 +85,6 @@ struct Settlement {
 struct PhysicalSettlementTracker {
     uint64 issued;
     uint64 exercised;
-    // address debtAsset;
-    // address collateralAsset;
     uint256 totalDebt;
     uint256 totalCollateralPaid;
 }

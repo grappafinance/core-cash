@@ -45,6 +45,10 @@ abstract contract PhysicalSettlement is BaseEngine {
                         Override Internal Functions
     //////////////////////////////////////////////////////////////*/
 
+    /**
+     * @dev gets the amount of debts and payouts that should be recorded for given short position amounts
+     * @dev this function should only be used after expiry to properly socialise all exercised amount to all physical settled options
+     */
     function getBatchSettlementForShorts(uint256[] calldata _tokenIds, uint256[] calldata _amounts)
         external
         view
@@ -54,11 +58,11 @@ abstract contract PhysicalSettlement is BaseEngine {
         // passed the settlement window
         (debts, payouts) = grappa.getBatchSettlement(_tokenIds, _amounts);
 
-        // add socialized physical settlement
         for (uint256 i; i < _tokenIds.length;) {
             PhysicalSettlementTracker memory tracker = tokenTracker[_tokenIds[i]];
 
             // if the token is physical settled and someone exercised prior to exercise window
+            // we socialized the payout and debt (total amount paid out and received during exercise window)
             if (tracker.totalDebt > 0) {
                 (Balance memory debt, Balance memory payout) = _socializeSettlement(tracker, _tokenIds[i], _amounts[i]);
                 debts = _addToBalances(debts, debt.collateralId, debt.amount);
@@ -90,23 +94,12 @@ abstract contract PhysicalSettlement is BaseEngine {
         payout.amount = (tracker.totalCollateralPaid * shortAmount / tracker.issued).toUint80();
     }
 
-    function handleExercise(
-        uint256 _tokenId,
-        uint256, /*_tokenExercised*/
-        address _inAsset,
-        uint256 _inAmount,
-        address _from,
-        address _outAsset,
-        uint256 _outAmount,
-        address _to
-    ) external {
-        // tokenTracker[_tokenId].exercised += _tokenExercised.toUint64();
-        tokenTracker[_tokenId].totalDebt += _inAmount;
-        tokenTracker[_tokenId].totalCollateralPaid += _outAmount;
-
-        _receiveDebtValue(_inAsset, _from, _inAmount);
-
-        _sendPayoutValue(_outAsset, _to, _outAmount);
+    /**
+     * @dev hook to be invoked by Grappa to handle custom logic of settlement
+     */
+    function handleExercise(uint256 _tokenId, uint256 _debtPaid, uint256 _amountPaidOut) external {
+        tokenTracker[_tokenId].totalDebt += _debtPaid;
+        tokenTracker[_tokenId].totalCollateralPaid += _amountPaidOut;
     }
 
     /**
