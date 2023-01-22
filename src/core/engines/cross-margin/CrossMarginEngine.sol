@@ -49,7 +49,6 @@ import "../../../config/errors.sol";
 contract CrossMarginEngine is
     IMarginEngine,
     ICashSettlement,
-    IPhysicalSettlement,
     BaseEngine,
     PhysicalSettlement,
     OwnableUpgradeable,
@@ -125,7 +124,7 @@ contract CrossMarginEngine is
      * @dev set new settlement window
      * @param _window is the time from expiry that the token can be exercised
      */
-    function setSettlementWindow(uint256 _window) external override {
+    function setSettlementWindow(uint256 _window) external {
         _checkOwner();
 
         PhysicalSettlement._setSettlementWindow(_window);
@@ -134,7 +133,7 @@ contract CrossMarginEngine is
     /**
      * @dev gets current settlement window
      */
-    function getSettlementWindow() external view override returns (uint256) {
+    function getSettlementWindow() external view returns (uint256) {
         return _getSettlementWindow();
     }
 
@@ -202,7 +201,7 @@ contract CrossMarginEngine is
      */
     function sendPayoutValue(address _asset, address _recipient, uint256 _amount)
         external
-        override (ICashSettlement, IPhysicalSettlement)
+        override (ICashSettlement)
     {
         _checkPermissioned(_recipient);
 
@@ -277,9 +276,12 @@ contract CrossMarginEngine is
      */
     function _settle(address _subAccount) internal override {
         // update the account in state
-        (Balance[] memory longDebts,,, Balance[] memory shortPayouts) =
-            accounts[_subAccount].settleAtExpiry(grappa, _getSettlementWindow());
-        emit AccountSettled(_subAccount, longDebts, shortPayouts);
+        (Balance[] memory shortDebts, Balance[] memory shortPayouts) =
+            accounts[_subAccount].settleShortAtExpiry(IPhysicalSettlement(address(this)), _getSettlementWindow());
+
+        // todo: add which longs to settle
+        accounts[_subAccount].settleLongAtExpiry(grappa, _getSettlementWindow());
+        emit AccountSettled(_subAccount, shortDebts, shortPayouts);
     }
 
     /**

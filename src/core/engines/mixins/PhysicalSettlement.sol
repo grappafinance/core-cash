@@ -2,8 +2,12 @@
 // solhint-disable no-empty-blocks
 pragma solidity ^0.8.0;
 
+import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
+import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
+
 // inheriting contracts
 import {BaseEngine} from "../BaseEngine.sol";
+import {IPhysicalSettlement} from "../../../interfaces/IPhysicalSettlement.sol";
 
 // // constants and types
 import "../../../config/constants.sol";
@@ -17,8 +21,14 @@ import "../../../config/types.sol";
  * @notice  util functions for MarginEngines to support physically settled tokens
  */
 abstract contract PhysicalSettlement is BaseEngine {
+    using FixedPointMathLib for uint256;
+    using SafeCast for uint256;
+
     /// @dev window to exercise physical token
     uint256 private _settlementWindow;
+
+    /// @dev token => TokenTracker
+    mapping(uint256 => TokenTracker) public tokenTracker;
 
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new
@@ -31,6 +41,26 @@ abstract contract PhysicalSettlement is BaseEngine {
                         Override Internal Functions
     //////////////////////////////////////////////////////////////*/
 
+    function getBatchSettlementForShorts(uint256 [] calldata _tokenIds, uint256[] calldata _amounts) external view returns (
+        Balance[] memory debts, 
+        Balance[] memory payouts
+    ) {
+        (debts, payouts) = grappa.getBatchSettlement(_tokenIds, _amounts);
+
+        for (uint i; i < debts.length; ) {
+            TokenTracker memory tracker = tokenTracker[_tokenIds[i]];
+
+            // if the token is physical settled, tracker.issued will be positive
+            // total amount exercised will be recorded and should be socialized to all short
+            if (tracker.issued > 0) {
+                debts[i].amount = uint256(debts[i].amount).mulDivDown(tracker.exercised, tracker.issued).toUint80();
+                payouts[i].amount = uint256(payouts[i].amount).mulDivDown(tracker.exercised, tracker.issued).toUint80();
+            } 
+
+            unchecked { ++i; }
+        }
+    }
+
     /**
      * @dev mint option token to _subAccount, increase tracker issuance
      * @param _data bytes data to decode
@@ -41,7 +71,7 @@ abstract contract PhysicalSettlement is BaseEngine {
         // decode tokenId
         (uint256 tokenId,, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
 
-        grappa.trackTokenIssuance(tokenId, amount, true);
+        tokenTracker[tokenId].issued += amount;
     }
 
     /**
@@ -54,7 +84,8 @@ abstract contract PhysicalSettlement is BaseEngine {
         // decode tokenId
         (uint256 tokenId,, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
 
-        grappa.trackTokenIssuance(tokenId, amount, true);
+        // grappa.trackTokenIssuance(tokenId, amount, true);
+        tokenTracker[tokenId].issued += amount;
     }
 
     /**
@@ -67,7 +98,7 @@ abstract contract PhysicalSettlement is BaseEngine {
         // decode parameters
         (uint256 tokenId,, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
 
-        grappa.trackTokenIssuance(tokenId, amount, false);
+        tokenTracker[tokenId].issued -= amount;
     }
 
     /*///////////////////////////////////////////////////////////////

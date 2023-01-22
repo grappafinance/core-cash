@@ -81,7 +81,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     mapping(address => uint8) public oracleIds;
 
     /// @dev token => TokenTracker
-    mapping(uint256 => TokenTracker) public tokenTracker;
+    // mapping(uint256 => TokenTracker) public tokenTracker;
 
     /*///////////////////////////////////////////////////////////////
                                 Events
@@ -248,9 +248,9 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     function batchSettle(address _account, uint256[] memory _tokenIds, uint256[] memory _amounts)
         external
         nonReentrant
-        returns (Balance[] memory debts, Balance[] memory payouts)
+        // returns (Balance[] memory debts, Balance[] memory payouts)
     {
-        (debts, payouts) = getBatchSettlement(_tokenIds, _amounts);
+        // (debts, payouts) = getBatchSettlement(_tokenIds, _amounts);
 
         optionToken.batchBurnGrappaOnly(_account, _tokenIds, _amounts);
 
@@ -413,15 +413,6 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         emit OracleRegistered(_oracle, id);
     }
 
-    function trackTokenIssuance(uint256 _tokenId, uint64 _update, bool _isMint) external {
-        checkEngineAccess(_tokenId, msg.sender);
-
-        if (_tokenId.isExpired()) revert GP_InvalidExpiry();
-
-        if (_isMint) tokenTracker[_tokenId].issued += _update;
-        else tokenTracker[_tokenId].issued -= _update;
-    }
-
     /* =====================================
      *          Internal Functions
      * ====================================**/
@@ -515,14 +506,9 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
             // if settlement window closed do nothing
             if (block.timestamp > expiry + engine.getSettlementWindow()) return (0, 0);
 
-            TokenTracker storage tracker = tokenTracker[_tokenId];
-
-            // incrementing number of exercised token
-            tracker.exercised += _amount;
-
-            if (tracker.exercised > tracker.issued) revert GP_ExceedsIssuedTokens();
-
+            
             // issuer of option gets underlying asset (PUT) or strike asset (CALL)
+            // todo: this have to trigger engine to record amount exercised too
             engine.receiveDebtValue(assets[settlement.debtId].addr, msg.sender, settlement.debt);
 
             // option owner gets collateral
@@ -643,22 +629,6 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         uint256 underlyingAmount = UNIT.convertDecimals(UNIT_DECIMALS, assets[underlyingId].decimals);
 
         settlement.engine = engines[engineId];
-
-        IPhysicalSettlement engine = IPhysicalSettlement(settlement.engine);
-
-        // if settlement window closed, return final debts/payouts for short accounts to settle against
-        if (block.timestamp >= expiry + engine.getSettlementWindow()) {
-            TokenTracker memory tracker = tokenTracker[_tokenId];
-
-            if (tracker.issued > 0) {
-                strikeAmount = strikeAmount.mulDivDown(tracker.exercised, tracker.issued);
-                underlyingAmount = underlyingAmount.mulDivDown(tracker.exercised, tracker.issued);
-            } else {
-                // No issuance of this particular tokenId
-                strikeAmount = 0;
-                underlyingAmount = 0;
-            }
-        }
 
         if (tokenType == TokenType.CALL) {
             settlement.debtId = strikeId;

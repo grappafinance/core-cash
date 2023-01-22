@@ -57,9 +57,7 @@ interface IGrappa {
      * @param _tokenIds array of tokenIds to burn
      * @param _amounts array of amounts to burn
      */
-    function batchSettle(address _account, uint256[] memory _tokenIds, uint256[] memory _amounts)
-        external
-        returns (Balance[] memory debts, Balance[] memory payouts);
+    function batchSettle(address _account, uint256[] memory _tokenIds, uint256[] memory _amounts) external;
 
     /**
      * @notice calculate array of tokens settlement at expiry
@@ -71,12 +69,4 @@ interface IGrappa {
         view
         returns (Balance[] memory debts, Balance[] memory payouts);
 
-    /**
-     * @notice registers a new issuance of a physical settled token
-     * @dev if isMinted is false, it will deduct the issuance
-     * @param _tokenId physical token id
-     * @param _update amount thats changed
-     * @param _isMint was minted or burned
-     */
-    function trackTokenIssuance(uint256 _tokenId, uint64 _update, bool _isMint) external;
 }
