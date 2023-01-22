@@ -98,6 +98,7 @@ abstract contract PhysicalSettlement is BaseEngine {
      * @dev hook to be invoked by Grappa to handle custom logic of settlement
      */
     function handleExercise(uint256 _tokenId, uint256 _debtPaid, uint256 _amountPaidOut) external {
+        _checkIsGrappa();
         tokenTracker[_tokenId].totalDebt += _debtPaid;
         tokenTracker[_tokenId].totalCollateralPaid += _amountPaidOut;
     }
