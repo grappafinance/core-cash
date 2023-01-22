@@ -80,9 +80,6 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     /// @dev address => oracleId
     mapping(address => uint8) public oracleIds;
 
-    /// @dev token => TokenTracker
-    // mapping(uint256 => TokenTracker) public tokenTracker;
-
     /*///////////////////////////////////////////////////////////////
                                 Events
     //////////////////////////////////////////////////////////////*/
@@ -245,9 +242,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      * @param _tokenIds array of tokenIds to burn
      * @param _amounts array of amounts to burn
      */
-    function batchSettle(address _account, uint256[] memory _tokenIds, uint256[] memory _amounts) external nonReentrant 
-    // returns (Balance[] memory debts, Balance[] memory payouts)
-    {
+    function batchSettle(address _account, uint256[] memory _tokenIds, uint256[] memory _amounts) external nonReentrant {
         if (_tokenIds.length != _amounts.length) revert GP_WrongArgumentLength();
 
         optionToken.batchBurnGrappaOnly(_account, _tokenIds, _amounts);
