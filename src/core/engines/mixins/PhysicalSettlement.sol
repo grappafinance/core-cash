@@ -61,7 +61,7 @@ abstract contract PhysicalSettlement is BaseEngine {
         for (uint256 i; i < _tokenIds.length;) {
             PhysicalSettlementTracker memory tracker = tokenTracker[_tokenIds[i]];
 
-            // if the token is physical settled and someone exercised prior to exercise window
+            // if the token is physical settled and someone exercised within exercise window
             // we socialized the payout and debt (total amount paid out and received during exercise window)
             if (tracker.totalDebt > 0) {
                 (Balance memory debt, Balance memory payout) = _socializeSettlement(tracker, _tokenIds[i], _amounts[i]);
@@ -91,7 +91,7 @@ abstract contract PhysicalSettlement is BaseEngine {
             payout.collateralId = strikeId;
         }
         debt.amount = (tracker.totalDebt * shortAmount / tracker.issued).toUint80();
-        payout.amount = (tracker.totalCollateralPaid * shortAmount / tracker.issued).toUint80();
+        payout.amount = (tracker.totalPaid * shortAmount / tracker.issued).toUint80();
     }
 
     /**
@@ -99,8 +99,8 @@ abstract contract PhysicalSettlement is BaseEngine {
      */
     function handleExercise(uint256 _tokenId, uint256 _debtPaid, uint256 _amountPaidOut) external {
         _checkIsGrappa();
-        tokenTracker[_tokenId].totalDebt += _debtPaid;
-        tokenTracker[_tokenId].totalCollateralPaid += _amountPaidOut;
+        tokenTracker[_tokenId].totalDebt += _debtPaid.toUint80();
+        tokenTracker[_tokenId].totalPaid += _amountPaidOut.toUint80();
     }
 
     /**

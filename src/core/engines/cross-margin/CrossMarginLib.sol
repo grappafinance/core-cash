@@ -142,7 +142,7 @@ library CrossMarginLib {
         }
     }
 
-    ///@dev Settles the accounts longs and shorts
+    ///@dev Settles the accounts longs
     ///@param account CrossMarginAccount storage that will be updated in-place
     function settleLongAtExpiry(CrossMarginAccount storage account, IGrappa grappa, uint256 settlementWindow)
         external
@@ -152,14 +152,14 @@ library CrossMarginLib {
         (longDebts, longPayouts) = _settleLongs(grappa, account, settlementWindow);
     }
 
-    ///@dev Settles the accounts longs and shorts
+    ///@dev Settles the accounts shorts
     ///@param account CrossMarginAccount storage that will be updated in-place
-    function settleShortAtExpiry(CrossMarginAccount storage account, IPhysicalSettlement engine, uint256 settlementWindow)
+    function settleShortAtExpiry(CrossMarginAccount storage account, uint256 settlementWindow)
         external
         returns (Balance[] memory shortDebts, Balance[] memory shortPayouts)
     {
         // settling shorts last as they can only reduce collateral
-        (shortDebts, shortPayouts) = _settleShorts(engine, account, settlementWindow);
+        (shortDebts, shortPayouts) = _settleShorts(account, settlementWindow);
     }
 
     ///@dev Settles the accounts longs, adding collateral to balances
@@ -169,10 +169,11 @@ library CrossMarginLib {
         public
         returns (Balance[] memory debts, Balance[] memory payouts)
     {
+        uint256 i;
         uint256[] memory tokenIds;
         uint256[] memory amounts;
 
-        for (uint256 i; i < account.longs.length;) {
+        for (i; i < account.longs.length;) {
             uint256 tokenId = account.longs[i].tokenId;
 
             (, SettlementType settlementType,, uint64 expiry,,) = tokenId.parseTokenId();
@@ -203,8 +204,8 @@ library CrossMarginLib {
 
             grappa.batchSettle(address(this), tokenIds, amounts);
 
-            for (uint256 i; i < debts.length;) {
-                if (debts[i].amount != 0) {
+            for (i = 0; i < debts.length;) {
+                if (debts[i].amount > 0) {
                     // remove the collateral in the account storage.
                     removeCollateral(account, debts[i].collateralId, debts[i].amount);
                 }
@@ -212,8 +213,8 @@ library CrossMarginLib {
                     ++i;
                 }
             }
-            for (uint256 i; i < payouts.length;) {
-                if (payouts[i].amount != 0) {
+            for (i = 0; i < payouts.length;) {
+                if (payouts[i].amount > 0) {
                     // add to collateral in the account storage.
                     addCollateral(account, payouts[i].collateralId, payouts[i].amount);
                 }
@@ -226,16 +227,17 @@ library CrossMarginLib {
     }
 
     ///@dev Settles the accounts shorts, reserving collateral for ITM options
-    ///@param engine interface to get short option payouts in a batch call
     ///@param account CrossMarginAccount memory that will be updated in-place
-    function _settleShorts(IPhysicalSettlement engine, CrossMarginAccount storage account, uint256 settlementWindow)
+    ///@param settlementWindow duration in which physical options can be exercised
+    function _settleShorts(CrossMarginAccount storage account, uint256 settlementWindow)
         public
         returns (Balance[] memory debts, Balance[] memory payouts)
     {
+        uint256 i;
         uint256[] memory tokenIds;
         uint256[] memory amounts;
 
-        for (uint256 i = 0; i < account.shorts.length;) {
+        for (i; i < account.shorts.length;) {
             uint256 tokenId = account.shorts[i].tokenId;
 
             (, SettlementType settlementType,, uint64 expiry,,) = tokenId.parseTokenId();
@@ -259,12 +261,14 @@ library CrossMarginLib {
             }
         }
 
+        IPhysicalSettlement physcialSettlement = IPhysicalSettlement(address(this));
+
         if (tokenIds.length > 0) {
             // the engine will socialized the debt and payout for physical settled options
-            (debts, payouts) = engine.getBatchSettlementForShorts(tokenIds, amounts);
+            (debts, payouts) = physcialSettlement.getBatchSettlementForShorts(tokenIds, amounts);
 
-            for (uint256 i = 0; i < payouts.length;) {
-                if (payouts[i].amount != 0) {
+            for (i = 0; i < payouts.length;) {
+                if (payouts[i].amount > 0) {
                     // remove the collateral in the account storage.
                     removeCollateral(account, payouts[i].collateralId, payouts[i].amount);
                 }
@@ -273,8 +277,8 @@ library CrossMarginLib {
                 }
             }
 
-            for (uint256 i = 0; i < debts.length;) {
-                if (debts[i].amount != 0) {
+            for (i = 0; i < debts.length;) {
+                if (debts[i].amount > 0) {
                     // add to what is paid from exerciser
                     addCollateral(account, debts[i].collateralId, debts[i].amount);
                 }

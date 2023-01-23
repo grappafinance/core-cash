@@ -84,7 +84,6 @@ struct Settlement {
  */
 struct PhysicalSettlementTracker {
     uint64 issued;
-    uint64 exercised;
-    uint256 totalDebt;
-    uint256 totalCollateralPaid;
+    uint80 totalDebt;
+    uint80 totalPaid;
 }

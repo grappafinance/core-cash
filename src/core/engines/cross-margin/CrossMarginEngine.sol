@@ -48,7 +48,6 @@ import "../../../config/errors.sol";
  */
 contract CrossMarginEngine is
     IMarginEngine,
-    ICashSettlement,
     BaseEngine,
     PhysicalSettlement,
     OwnableUpgradeable,
@@ -199,7 +198,7 @@ contract CrossMarginEngine is
      * @param _recipient receiver
      * @param _amount amount
      */
-    function sendPayoutValue(address _asset, address _recipient, uint256 _amount) external override(ICashSettlement) {
+    function sendPayoutValue(address _asset, address _recipient, uint256 _amount) external {
         _checkPermissioned(_recipient);
 
         _sendPayoutValue(_asset, _recipient, _amount);
@@ -276,7 +275,7 @@ contract CrossMarginEngine is
         accounts[_subAccount].settleLongAtExpiry(grappa, _getSettlementWindow());
 
         (Balance[] memory shortDebts, Balance[] memory shortPayouts) =
-            accounts[_subAccount].settleShortAtExpiry(IPhysicalSettlement(address(this)), _getSettlementWindow());
+            accounts[_subAccount].settleShortAtExpiry(_getSettlementWindow());
         emit AccountSettled(_subAccount, shortDebts, shortPayouts);
     }
 

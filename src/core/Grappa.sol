@@ -306,7 +306,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
                 payoutId = settlement.payoutId;
                 payout = settlement.payout;
 
-                if (settlement.debt != 0) {
+                if (settlement.debt > 0) {
                     debts = _addToBalances(debts, settlement.debtId, settlement.debt);
                 }
             }

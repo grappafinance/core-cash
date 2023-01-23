@@ -50,9 +50,6 @@ error GP_BadPhysicalSettlementToken();
 /// @dev burn or mint can only be called by corresponding engine.
 error GP_NotAuthorizedEngine();
 
-/// @dev cannot exercise more token than were issued
-error GP_ExceedsIssuedTokens();
-
 /* ---------------------------- *
  *   Common BaseEngine Errors   *
  * ---------------------------  */

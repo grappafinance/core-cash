@@ -401,7 +401,7 @@ contract TestSettleCashLongShort_CM is CrossMarginFixture {
         engine.execute(address(this), selfActions);
 
         // expire option & set expiry price
-        vm.warp(expiry + engine.getSettlementWindow() + 1);
+        vm.warp(expiry + engine.getSettlementWindow());
         oracle.setExpiryPrice(address(weth), address(usdc), 1000 * UNIT);
 
         //settle option

@@ -12,8 +12,6 @@ interface IPhysicalSettlement {
 
     function getSettlementWindow() external view returns (uint256 window);
 
-    function setSettlementWindow(uint256 _window) external;
-
     /**
      * how the short should be settled
      */
