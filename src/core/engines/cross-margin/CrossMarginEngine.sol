@@ -44,7 +44,6 @@ import "../../../config/errors.sol";
  */
 contract CrossMarginEngine is BaseEngine, IMarginEngine, OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
     using AccountUtil for Position[];
-    using AccountUtil for PositionOptim[];
     using BalanceUtil for Balance[];
     using CrossMarginLib for CrossMarginAccount;
     using ProductIdUtil for uint40;
@@ -199,7 +198,7 @@ contract CrossMarginEngine is BaseEngine, IMarginEngine, OwnableUpgradeable, Ree
     {
         CrossMarginAccount memory account = accounts[_subAccount];
 
-        return (account.shorts.getPositions(), account.longs.getPositions(), account.collaterals);
+        return (account.shorts, account.longs, account.collaterals);
     }
 
     /**
@@ -211,8 +210,8 @@ contract CrossMarginEngine is BaseEngine, IMarginEngine, OwnableUpgradeable, Ree
     function previewMinCollateral(Position[] memory shorts, Position[] memory longs) external view returns (Balance[] memory) {
         CrossMarginAccount memory account;
 
-        account.shorts = shorts.getPositionOptims();
-        account.longs = longs.getPositionOptims();
+        account.shorts = shorts;
+        account.longs = longs;
 
         return _getMinCollateral(account);
     }
@@ -381,6 +380,6 @@ contract CrossMarginEngine is BaseEngine, IMarginEngine, OwnableUpgradeable, Ree
      * @dev get minimum collateral requirement for an account
      */
     function _getMinCollateral(CrossMarginAccount memory account) internal view returns (Balance[] memory) {
-        return CrossMarginMath.getMinCollateralForPositions(grappa, account.shorts.getPositions(), account.longs.getPositions());
+        return CrossMarginMath.getMinCollateralForPositions(grappa, account.shorts, account.longs);
     }
 }

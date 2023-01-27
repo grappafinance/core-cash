@@ -34,8 +34,8 @@ contract BalanceUtilTester {
         BalanceUtil.remove(balances, y);
     }
 
-    function sum(Balance[] memory x) external pure returns (uint80) {
-        uint80 result = BalanceUtil.sum(x);
+    function isEmpty(Balance[] memory x) external pure returns (bool) {
+        bool result = BalanceUtil.isEmpty(x);
         return result;
     }
 }
@@ -107,10 +107,10 @@ contract BalanceUtilTest is Test {
         assertEq(index6, 5); // index that points to nothing
     }
 
-    function testSum() public {
+    function testIsEmpty() public {
         Balance[] memory defaultArr = _getDefaultBalanceArray();
-        uint256 sum = tester.sum(defaultArr);
-        assertEq(sum, 15_000_000);
+        bool empty = tester.isEmpty(defaultArr);
+        assertEq(empty, false);
     }
 
     function testRemoveStorage() public {
