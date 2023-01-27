@@ -81,7 +81,7 @@ library AccountUtil {
     function isEmpty(Position[] memory x) internal pure returns (bool e) {
         e = true;
         for (uint256 i; i < x.length;) {
-            if (x[i].amount > 0 ) {
+            if (x[i].amount > 0) {
                 e = false;
                 break;
             }
