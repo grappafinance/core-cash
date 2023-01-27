@@ -13,7 +13,6 @@ import {ReentrancyGuardUpgradeable} from "openzeppelin-upgradeable/security/Reen
 import {IERC20Metadata} from "openzeppelin/token/ERC20/extensions/IERC20Metadata.sol";
 import {IOracle} from "../interfaces/IOracle.sol";
 import {IOptionToken} from "../interfaces/IOptionToken.sol";
-import {IGrappa} from "../interfaces/IGrappa.sol";
 import {IMarginEngine} from "../interfaces/IMarginEngine.sol";
 
 // librarise
@@ -54,11 +53,11 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     uint8 public nextAssetId;
 
     /// @dev next id used to represent an address
-    /// invariant:  any id in tokenId not greater than this number
+    /// invariant:  any id in engineId not greater than this number
     uint8 public nextEngineId;
 
     /// @dev next id used to represent an address
-    /// invariant:  any id in tokenId not greater than this number
+    /// invariant:  any id in oracleId not greater than this number
     uint8 public nextOracleId;
 
     /// @dev assetId => asset address
@@ -508,7 +507,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      * @dev check settlement price is finalized from oracle, and return price
      * @param _oracle oracle contract address
      * @param _base base asset (ETH is base asset while requesting ETH / USD)
-     * @param _quote quote asset (USD is base asset while requesting ETH / USD)
+     * @param _quote quote asset (USD is quote asset while requesting ETH / USD)
      * @param _expiry expiry timestamp
      */
     function _getSettlementPrice(address _oracle, address _base, address _quote, uint256 _expiry)

@@ -9,9 +9,6 @@ import {IOptionToken} from "../interfaces/IOptionToken.sol";
 import {IGrappa} from "../interfaces/IGrappa.sol";
 import {IOptionTokenDescriptor} from "../interfaces/IOptionTokenDescriptor.sol";
 
-import {TokenIdUtil} from "../libraries/TokenIdUtil.sol";
-import {ProductIdUtil} from "../libraries/ProductIdUtil.sol";
-
 // constants and types
 import "../config/enums.sol";
 import "../config/constants.sol";

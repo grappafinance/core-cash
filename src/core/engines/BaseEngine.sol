@@ -11,7 +11,6 @@ import {IERC1155} from "openzeppelin/token/ERC1155/IERC1155.sol";
 // interfaces
 import {IGrappa} from "../../interfaces/IGrappa.sol";
 import {IOptionToken} from "../../interfaces/IOptionToken.sol";
-import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 
 // librarise
 import {TokenIdUtil} from "../../libraries/TokenIdUtil.sol";
@@ -36,7 +35,7 @@ abstract contract BaseEngine {
 
     ///@dev maskedAccount => operator => allowedExecutionLeft
     ///     every account can authorize any amount of addresses to modify all sub-accounts he controls.
-    ///     allowedExecutionLeft referres to the time left the grantee can update the sub-accounts.
+    ///     allowedExecutionLeft referres to how many times remain that the grantee can update the sub-accounts.
     mapping(uint160 => mapping(address => uint256)) public allowedExecutionLeft;
 
     /// Events

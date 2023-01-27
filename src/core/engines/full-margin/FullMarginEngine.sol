@@ -90,7 +90,7 @@ contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyG
      * @param _recipient receiber
      * @param _amount amount
      */
-    function payCashValue(address _asset, address _recipient, uint256 _amount) public override(BaseEngine, IMarginEngine) {
+    function payCashValue(address _asset, address _recipient, uint256 _amount) public override (BaseEngine, IMarginEngine) {
         BaseEngine.payCashValue(_asset, _recipient, _amount);
     }
 
