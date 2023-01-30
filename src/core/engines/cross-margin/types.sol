@@ -12,8 +12,8 @@ import "../../../config/types.sol";
  * @param collaterals an array of collateral balances
  */
 struct CrossMarginAccount {
-    PositionOptim[] shorts;
-    PositionOptim[] longs;
+    Position[] shorts;
+    Position[] longs;
     Balance[] collaterals;
 }
 
@@ -42,16 +42,6 @@ struct CrossMarginDetail {
     uint8 numeraireId;
     uint8 numeraireDecimals;
     uint256 expiry;
-}
-
-/**
- * @dev a compressed Position struct, compresses tokenId to save storage space
- * @param tokenId option token
- * @param amount number option tokens
- */
-struct PositionOptim {
-    uint192 tokenId;
-    uint64 amount;
 }
 
 /**

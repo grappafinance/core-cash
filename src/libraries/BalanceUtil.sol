@@ -77,11 +77,15 @@ library BalanceUtil {
     }
 
     /**
-     * @dev add up all amount in an Balance array
+     * @dev checks if balances are empty
      */
-    function sum(Balance[] memory x) internal pure returns (uint80 s) {
+    function isEmpty(Balance[] memory x) internal pure returns (bool e) {
+        e = true;
         for (uint256 i; i < x.length;) {
-            s += x[i].amount;
+            if (x[i].amount > 0) {
+                e = false;
+                break;
+            }
             unchecked {
                 ++i;
             }

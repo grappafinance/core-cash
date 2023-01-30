@@ -24,17 +24,15 @@ import "./errors.sol";
 library CrossMarginLib {
     using BalanceUtil for Balance[];
     using AccountUtil for Position[];
-    using AccountUtil for PositionOptim[];
     using UintArrayLib for uint256[];
     using ProductIdUtil for uint40;
     using TokenIdUtil for uint256;
-    using TokenIdUtil for uint192;
 
     /**
      * @dev return true if the account has no short,long positions nor collateral
      */
     function isEmpty(CrossMarginAccount storage account) external view returns (bool) {
-        return account.shorts.sum() == 0 && account.longs.sum() == 0 && account.collaterals.sum() == 0;
+        return account.shorts.isEmpty() && account.longs.isEmpty() && account.collaterals.isEmpty();
     }
 
     ///@dev Increase the collateral in the account
@@ -90,9 +88,9 @@ library CrossMarginLib {
         // put can only be collateralized by strike
         if ((optionType == TokenType.PUT) && strikeId != collateralId) revert CM_CannotMintOptionWithThisCollateral();
 
-        (bool found, uint256 index) = account.shorts.getPositions().indexOf(tokenId);
+        (bool found, uint256 index) = account.shorts.indexOf(tokenId);
         if (!found) {
-            account.shorts.pushPosition(Position(tokenId, amount));
+            account.shorts.push(Position(tokenId, amount));
         } else {
             account.shorts[index].amount += amount;
         }
@@ -101,13 +99,13 @@ library CrossMarginLib {
     ///@dev Remove the amount of short call or put (debt) of the account
     ///@param account CrossMarginAccount storage that will be updated in-place
     function burnOption(CrossMarginAccount storage account, uint256 tokenId, uint64 amount) external {
-        (bool found, PositionOptim memory position, uint256 index) = account.shorts.find(tokenId.compress());
+        (bool found, Position memory position, uint256 index) = account.shorts.find(tokenId);
 
         if (!found) revert CM_InvalidToken();
 
         uint64 newShortAmount = position.amount - amount;
         if (newShortAmount == 0) {
-            account.shorts.removePositionAt(index);
+            account.shorts.removeAt(index);
         } else {
             account.shorts[index].amount = newShortAmount;
         }
@@ -118,10 +116,10 @@ library CrossMarginLib {
     function addOption(CrossMarginAccount storage account, uint256 tokenId, uint64 amount) external {
         if (amount == 0) return;
 
-        (bool found, uint256 index) = account.longs.indexOf(tokenId.compress());
+        (bool found, uint256 index) = account.longs.indexOf(tokenId);
 
         if (!found) {
-            account.longs.pushPosition(Position(tokenId, amount));
+            account.longs.push(Position(tokenId, amount));
         } else {
             account.longs[index].amount += amount;
         }
@@ -130,13 +128,13 @@ library CrossMarginLib {
     ///@dev Remove the amount of long call or put held by the account
     ///@param account CrossMarginAccount storage that will be updated in-place
     function removeOption(CrossMarginAccount storage account, uint256 tokenId, uint64 amount) external {
-        (bool found, PositionOptim memory position, uint256 index) = account.longs.find(tokenId.compress());
+        (bool found, Position memory position, uint256 index) = account.longs.find(tokenId);
 
         if (!found) revert CM_InvalidToken();
 
         uint64 newLongAmount = position.amount - amount;
         if (newLongAmount == 0) {
-            account.longs.removePositionAt(index);
+            account.longs.removeAt(index);
         } else {
             account.longs[index].amount = newLongAmount;
         }
@@ -163,13 +161,13 @@ library CrossMarginLib {
         uint256[] memory amounts;
 
         while (i < account.longs.length) {
-            uint256 tokenId = account.longs[i].tokenId.expand();
+            uint256 tokenId = account.longs[i].tokenId;
 
             if (tokenId.isExpired()) {
                 tokenIds = tokenIds.append(tokenId);
                 amounts = amounts.append(account.longs[i].amount);
 
-                account.longs.removePositionAt(i);
+                account.longs.removeAt(i);
             } else {
                 unchecked {
                     ++i;
@@ -200,13 +198,13 @@ library CrossMarginLib {
         uint256[] memory amounts;
 
         while (i < account.shorts.length) {
-            uint256 tokenId = account.shorts[i].tokenId.expand();
+            uint256 tokenId = account.shorts[i].tokenId;
 
             if (tokenId.isExpired()) {
                 tokenIds = tokenIds.append(tokenId);
                 amounts = amounts.append(account.shorts[i].amount);
 
-                account.shorts.removePositionAt(i);
+                account.shorts.removeAt(i);
             } else {
                 unchecked {
                     ++i;
