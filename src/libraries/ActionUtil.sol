@@ -79,7 +79,7 @@ library ActionUtil {
      * @param amount amount of token to mint (6 decimals)
      * @param recipient account to receive minted option
      */
-    function createTranferLongAction(uint256 tokenId, uint256 amount, address recipient)
+    function createTransferLongAction(uint256 tokenId, uint256 amount, address recipient)
         internal
         pure
         returns (ActionArgs memory action)
@@ -92,7 +92,7 @@ library ActionUtil {
      * @param amount amount of token to mint (6 decimals)
      * @param recipient account to receive minted option
      */
-    function createTranferShortAction(uint256 tokenId, uint256 amount, address recipient)
+    function createTransferShortAction(uint256 tokenId, uint256 amount, address recipient)
         internal
         pure
         returns (ActionArgs memory action)
@@ -126,7 +126,7 @@ library ActionUtil {
     /**
      * @param spreadId current shorted "spread option id"
      * @param amount amount to split
-     * @param recipient address to receive the "splited" long option token.
+     * @param recipient address to receive the "split" long option token.
      */
     function createSplitAction(uint256 spreadId, uint256 amount, address recipient)
         internal
@@ -166,7 +166,7 @@ library ActionUtil {
      * @dev create action to settle an account
      */
     function createSettleAction() internal pure returns (ActionArgs memory action) {
-        action = ActionArgs({action: ActionType.SettleAccount, data: abi.encode(0)});
+        action = ActionArgs({action: ActionType.SettleAccount, data: ""});
     }
 
     function concat(ActionArgs[] memory x, ActionArgs[] memory v) internal pure returns (ActionArgs[] memory y) {

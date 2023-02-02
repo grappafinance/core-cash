@@ -68,20 +68,20 @@ abstract contract ActionHelper {
         return ActionUtil.createBurnAction(tokenId, amount, from);
     }
 
-    function createTranferLongAction(uint256 tokenId, address recipient, uint256 amount)
+    function createTransferLongAction(uint256 tokenId, address recipient, uint256 amount)
         internal
         pure
         returns (ActionArgs memory action)
     {
-        return ActionUtil.createTranferLongAction(tokenId, amount, recipient);
+        return ActionUtil.createTransferLongAction(tokenId, amount, recipient);
     }
 
-    function createTranferShortAction(uint256 tokenId, address recipient, uint256 amount)
+    function createTransferShortAction(uint256 tokenId, address recipient, uint256 amount)
         internal
         pure
         returns (ActionArgs memory action)
     {
-        return ActionUtil.createTranferShortAction(tokenId, amount, recipient);
+        return ActionUtil.createTransferShortAction(tokenId, amount, recipient);
     }
 
     function createMergeAction(uint256 tokenId, uint256 shortId, address from, uint256 amount)
