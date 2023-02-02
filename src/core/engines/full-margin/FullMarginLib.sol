@@ -80,7 +80,7 @@ library FullMarginLib {
         if (cacheCollatId == 0) {
             account.collateralId = collateralId;
         } else {
-            if (cacheCollatId != collateralId) revert FM_CollateraliMisMatch();
+            if (cacheCollatId != collateralId) revert FM_CollateralMisMatch();
         }
 
         uint256 cacheTokenId = account.tokenId;
@@ -111,7 +111,7 @@ library FullMarginLib {
         // get token attribute for incoming token
         (,,, uint64 mergingStrike,) = longId.parseTokenId();
 
-        if (account.tokenId != shortId) revert FM_ShortDoesnotExist();
+        if (account.tokenId != shortId) revert FM_ShortDoesNotExist();
         if (account.shortAmount != amount) revert FM_MergeAmountMisMatch();
 
         // this can make the vault in either credit spread of debit spread position

@@ -81,7 +81,7 @@ library AdvancedMarginLib {
     function burnOption(AdvancedMarginAccount storage account, uint256 tokenId, uint64 amount) internal {
         TokenType optionType = tokenId.parseTokenType();
         if (optionType == TokenType.CALL || optionType == TokenType.CALL_SPREAD) {
-            // burnning a call or call spread
+            // burning a call or call spread
             if (account.shortCallId != tokenId) revert AM_InvalidToken();
             account.shortCallAmount -= amount;
             if (account.shortCallAmount == 0) account.shortCallId = 0;
@@ -93,32 +93,32 @@ library AdvancedMarginLib {
         }
     }
 
-    ///@dev merge an OptionToken into the accunt, changing existing short to spread
+    ///@dev merge an OptionToken into the account, changing existing short to spread
     ///@dev shortId and longId already have the same optionType, productId, expiry
     ///@param account AdvancedMarginAccount storage that will be updated in-place
     ///@param shortId existing short position to be converted into spread
-    ///@param longId token to be "added" into the account. This is expected to have the same time of the exisiting short type.
-    ///               e.g: if the account currenly have short call, we can added another "call token" into the account
+    ///@param longId token to be "added" into the account. This is expected to have the same time of the existing short type.
+    ///               e.g: if the account currently have short call, we can added another "call token" into the account
     ///               and convert the short position to a spread.
     function merge(AdvancedMarginAccount storage account, uint256 shortId, uint256 longId, uint64 amount) internal {
         // get token attribute for incoming token
         (TokenType optionType,,, uint64 mergingStrike,) = longId.parseTokenId();
 
         if (optionType == TokenType.CALL) {
-            if (account.shortCallId != shortId) revert AM_ShortDoesnotExist();
+            if (account.shortCallId != shortId) revert AM_ShortDoesNotExist();
             if (account.shortCallAmount != amount) revert AM_MergeAmountMisMatch();
             // adding the "strike of the adding token" to the "short strike" field of the existing "option token"
             account.shortCallId = TokenIdUtil.convertToSpreadId(shortId, mergingStrike);
         } else {
             // adding the "strike of the adding token" to the "short strike" field of the existing "option token"
-            if (account.shortPutId != shortId) revert AM_ShortDoesnotExist();
+            if (account.shortPutId != shortId) revert AM_ShortDoesNotExist();
             if (account.shortPutAmount != amount) revert AM_MergeAmountMisMatch();
 
             account.shortPutId = TokenIdUtil.convertToSpreadId(shortId, mergingStrike);
         }
     }
 
-    ///@dev split an accunt's spread position into short + 1 token
+    ///@dev split an account's spread position into short + 1 token
     ///@param account AdvancedMarginAccount storage that will be updated in-place
     ///@param spreadId id of spread to be parsed
     function split(AdvancedMarginAccount storage account, uint256 spreadId, uint64 amount) internal {
@@ -126,14 +126,14 @@ library AdvancedMarginLib {
         TokenType spreadType = spreadId.parseTokenType();
 
         // check the existing short position
-        bool isSplitingCallSpread = spreadType == TokenType.CALL_SPREAD;
+        bool isSplittingCallSpread = spreadType == TokenType.CALL_SPREAD;
 
-        uint256 spreadIdInAccount = isSplitingCallSpread ? account.shortCallId : account.shortPutId;
+        uint256 spreadIdInAccount = isSplittingCallSpread ? account.shortCallId : account.shortPutId;
 
         // passed in spreadId should match the one in account (shortCallId or shortPutId)
         if (spreadId != spreadIdInAccount) revert AM_InvalidToken();
 
-        if (isSplitingCallSpread) {
+        if (isSplittingCallSpread) {
             if (amount != account.shortCallAmount) revert AM_SplitAmountMisMatch();
 
             // convert to call: remove the "short strike" and update "tokenType" field

@@ -19,8 +19,8 @@ error FM_WrongCollateralId();
 /// @dev invalid tokenId specify to mint / burn actions
 error FM_InvalidToken();
 
-/// @dev trying to merge an long with a non-existant short position
-error FM_ShortDoesnotExist();
+/// @dev trying to merge an long with a non-existent short position
+error FM_ShortDoesNotExist();
 
 /// @dev can only merge same amount of long and short
 error FM_MergeAmountMisMatch();
@@ -29,7 +29,7 @@ error FM_MergeAmountMisMatch();
 error FM_SplitAmountMisMatch();
 
 /// @dev trying to collateralized the position with different collateral than specified in productId
-error FM_CollateraliMisMatch();
+error FM_CollateralMisMatch();
 
 /// @dev cannot override a non-empty subaccount id
 error FM_AccountIsNotEmpty();

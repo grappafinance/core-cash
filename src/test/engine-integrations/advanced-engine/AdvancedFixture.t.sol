@@ -20,8 +20,6 @@ import "../../utils/Utilities.sol";
 
 import {ActionHelper} from "../../shared/ActionHelper.sol";
 
-// solhint-disable max-states-count
-
 abstract contract AdvancedFixture is Test, ActionHelper, Utilities {
     AdvancedMarginEngine internal engine;
     Grappa internal grappa;
@@ -59,12 +57,12 @@ abstract contract AdvancedFixture is Test, ActionHelper, Utilities {
 
         oracle = new MockOracle(); // nonce: 3
 
-        // predit address of margin account and use it here
+        // predict address of margin account and use it here
         address grappaAddr = predictAddress(address(this), 6);
 
         option = new OptionToken(grappaAddr, address(0)); // nonce: 4
 
-        // predit address of margin account and use it here
+        // predict address of margin account and use it here
         address grappaImplementation = address(new Grappa(address(option))); // nonce: 5
 
         bytes memory data = abi.encode(Grappa.initialize.selector);

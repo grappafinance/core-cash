@@ -35,7 +35,7 @@ abstract contract BaseEngine {
 
     ///@dev maskedAccount => operator => allowedExecutionLeft
     ///     every account can authorize any amount of addresses to modify all sub-accounts he controls.
-    ///     allowedExecutionLeft referres to how many times remain that the grantee can update the sub-accounts.
+    ///     allowedExecutionLeft refers to how many times remain that the grantee can update the sub-accounts.
     mapping(uint160 => mapping(address => uint256)) public allowedExecutionLeft;
 
     /// Events
@@ -45,7 +45,7 @@ abstract contract BaseEngine {
 
     event CollateralRemoved(address subAccount, address collateral, uint256 amount);
 
-    event CollateralTransfered(address from, address to, uint8 collateralId, uint256 amount);
+    event CollateralTransferred(address from, address to, uint8 collateralId, uint256 amount);
 
     event OptionTokenMinted(address subAccount, uint256 tokenId, uint256 amount);
 
@@ -55,7 +55,7 @@ abstract contract BaseEngine {
 
     event OptionTokenRemoved(address subAccount, uint256 tokenId, uint64 amount);
 
-    event OptionTokenTransfered(address from, address to, uint256 tokenId, uint64 amount);
+    event OptionTokenTransferred(address from, address to, uint256 tokenId, uint64 amount);
 
     event AccountSettled(address subAccount, Balance[] payouts);
 
@@ -81,8 +81,8 @@ abstract contract BaseEngine {
      * @dev     expected to be call by account owner
      *          usually user should only give access to helper contracts
      * @param   _account account to update authorization
-     * @param   _allowedExecutions how many times the account is authrized to update your accounts.
-     *          set to max(uint256) to allow premanent access
+     * @param   _allowedExecutions how many times the account is authorized to update your accounts.
+     *          set to max(uint256) to allow permanent access
      */
     function setAccountAccess(address _account, uint256 _allowedExecutions) external {
         uint160 maskedId = uint160(msg.sender) | 0xFF;
@@ -106,7 +106,7 @@ abstract contract BaseEngine {
      * @notice payout to user on settlement.
      * @dev this can only triggered by Grappa, would only be called on settlement.
      * @param _asset asset to transfer
-     * @param _recipient receiber
+     * @param _recipient receiver address
      * @param _amount amount
      */
     function payCashValue(address _asset, address _recipient, uint256 _amount) public virtual {
@@ -283,7 +283,7 @@ abstract contract BaseEngine {
         _removeCollateralFromAccount(_subAccount, collateralId, amount);
         _addCollateralToAccount(to, collateralId, amount);
 
-        emit CollateralTransfered(_subAccount, to, collateralId, amount);
+        emit CollateralTransferred(_subAccount, to, collateralId, amount);
     }
 
     /**
@@ -300,7 +300,7 @@ abstract contract BaseEngine {
         _decreaseShortInAccount(_subAccount, tokenId, amount);
         _increaseShortInAccount(to, tokenId, amount);
 
-        emit OptionTokenTransfered(_subAccount, to, tokenId, amount);
+        emit OptionTokenTransferred(_subAccount, to, tokenId, amount);
 
         if (!_isAccountAboveWater(to)) revert BM_AccountUnderwater();
     }
@@ -317,7 +317,7 @@ abstract contract BaseEngine {
         _decreaseLongInAccount(_subAccount, tokenId, amount);
         _increaseLongInAccount(to, tokenId, amount);
 
-        emit OptionTokenTransfered(_subAccount, to, tokenId, amount);
+        emit OptionTokenTransferred(_subAccount, to, tokenId, amount);
     }
 
     /**

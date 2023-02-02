@@ -82,7 +82,7 @@ contract ChainlinkOracleDisputable is ChainlinkOracle {
      * @dev set the dispute period for a specific base / quote asset
      * @param _base base asset
      * @param _quote quote asset
-     * @param _period dispute period. Cannot be set to a vlue longer than 6 hours
+     * @param _period dispute period. Cannot be set to a value longer than 6 hours
      */
     function setDisputePeriod(address _base, address _quote, uint256 _period) external onlyOwner {
         if (_period > MAX_DISPUTE_PERIOD) revert OC_InvalidDisputePeriod();
@@ -94,7 +94,7 @@ contract ChainlinkOracleDisputable is ChainlinkOracle {
 
     /**
      * @dev overrides _isExpiryPriceFinalized() from ChainlinkOracle to check if dispute period is over
-     *      if true, getPriceAtExpiry will retrun (price, true)
+     *      if true, getPriceAtExpiry will return (price, true)
      */
     function _isExpiryPriceFinalized(address _base, address _quote, uint256 _expiry) internal view override returns (bool) {
         ExpiryPrice memory entry = expiryPrices[_base][_quote][_expiry];

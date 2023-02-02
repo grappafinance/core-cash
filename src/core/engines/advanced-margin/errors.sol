@@ -12,7 +12,7 @@ error AM_UnsupportedAction();
 error AM_WrongCollateralId();
 
 /// @dev trying to merge an long with a non-existant short position
-error AM_ShortDoesnotExist();
+error AM_ShortDoesNotExist();
 
 /// @dev can only merge same amount of long and short
 error AM_MergeAmountMisMatch();
