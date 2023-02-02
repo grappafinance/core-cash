@@ -76,7 +76,7 @@ contract TestMint_FM is FullMarginFixture {
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         actions[1] = createMintAction(tokenId, address(this), amount);
 
-        vm.expectRevert(FM_CollateraliMisMatch.selector);
+        vm.expectRevert(FM_CollateralMisMatch.selector);
         engine.execute(address(this), actions);
 
         ActionArgs[] memory actions2 = new ActionArgs[](2);

@@ -11,7 +11,7 @@ import {IOptionTokenDescriptor} from "../interfaces/IOptionTokenDescriptor.sol";
 /**
  * @title   OptionTokenDescriptor
  * @author  @antoncoding, @dsshap
- * @dev     While OptionToken is fully permissionless, OptionTokenDescriptor is upgradable and can
+ * @dev     While OptionToken is fully permission-less, OptionTokenDescriptor is upgradable and can
  *          be upgraded to a better version to reflect Option position for users.
  */
 contract OptionTokenDescriptor is OwnableUpgradeable, UUPSUpgradeable, IOptionTokenDescriptor {

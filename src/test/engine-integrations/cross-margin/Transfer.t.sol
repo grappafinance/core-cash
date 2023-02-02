@@ -59,8 +59,8 @@ contract TestTransfer_CM is CrossMarginFixture {
     function testTransferCollateral() public {
         ActionArgs[] memory actions = new ActionArgs[](3);
         actions[0] = createTransferCollateralAction(depositAmount / 5, wethId, alice);
-        actions[1] = createTranferLongAction(c5000, alice, amount);
-        actions[2] = createTranferShortAction(c4000, alice, amount);
+        actions[1] = createTransferLongAction(c5000, alice, amount);
+        actions[2] = createTransferShortAction(c4000, alice, amount);
         engine.execute(address(this), actions);
 
         (Position[] memory aliceShorts, Position[] memory aliceLongs, Balance[] memory aliceCollaterals) =
@@ -98,7 +98,7 @@ contract TestTransfer_CM is CrossMarginFixture {
 
     function testCannotTransferLongWhenTooLittleCollateral() public {
         ActionArgs[] memory actions = new ActionArgs[](1);
-        actions[0] = createTranferLongAction(c5000, bob, amount);
+        actions[0] = createTransferLongAction(c5000, bob, amount);
 
         vm.expectRevert(BM_AccountUnderwater.selector);
         engine.execute(address(this), actions);
@@ -106,7 +106,7 @@ contract TestTransfer_CM is CrossMarginFixture {
 
     function testCannotTransferShortWhenReceiverHasTooLittleCollateral() public {
         ActionArgs[] memory actions = new ActionArgs[](1);
-        actions[0] = createTranferShortAction(c4000, alice, amount);
+        actions[0] = createTransferShortAction(c4000, alice, amount);
 
         vm.expectRevert(BM_AccountUnderwater.selector);
         engine.execute(address(this), actions);
@@ -114,7 +114,7 @@ contract TestTransfer_CM is CrossMarginFixture {
 
     function testCannotTransferShortWithNoAccess() public {
         ActionArgs[] memory actions = new ActionArgs[](1);
-        actions[0] = createTranferShortAction(c4000, bob, amount);
+        actions[0] = createTransferShortAction(c4000, bob, amount);
 
         vm.expectRevert(NoAccess.selector);
         engine.execute(address(this), actions);

@@ -71,7 +71,7 @@ library CrossMarginMath {
         for (uint256 i; i < details.length;) {
             CrossMarginDetail memory detail = details[i];
 
-            // checks that the combination has positions, otherwiser skips
+            // checks that the combination has positions, otherwise skips
             if (detail.callWeights.length != 0 || detail.putWeights.length != 0) {
                 // gets the amount of numeraire and underlying needed
                 (uint256 numeraireNeeded, uint256 underlyingNeeded) = getMinCollateral(detail);
@@ -119,7 +119,7 @@ library CrossMarginMath {
 
         (numeraireNeeded, underlyingNeeded) = _getCollateralNeeds(_detail, scenarios, payouts);
 
-        // if options collateralizied in underlying, forcing numeraire to be converted to underlying
+        // if options collateralized in underlying, forcing numeraire to be converted to underlying
         // only applied to calls since puts cannot be collateralized in underlying
         if (numeraireNeeded > 0 && _detail.putStrikes.length == 0) {
             numeraireNeeded = 0;
@@ -235,7 +235,7 @@ library CrossMarginMath {
      * @dev only called if there are put options, usually denominated in cash
      * @param minPayout minimum payout across scenarios
      * @param putStrikes put option strikes
-     * @param putWeights number of put options at a coorisponding strike
+     * @param putWeights number of put options at a corresponding strike
      * @return numeraireNeeded amount of numeraire asset needed
      */
     function _getNumeraireNeeded(int256 minPayout, uint256[] memory putStrikes, int256[] memory putWeights)
@@ -270,7 +270,7 @@ library CrossMarginMath {
      * @param minPayoutIndex minimum payout across scenarios index
      * @param numeraireNeeded current numeraire needed
      * @param underlyingNeeded underlying needed
-     * @return numeraireNeeded adjusted numerarie needed
+     * @return numeraireNeeded adjusted numeraire needed
      */
     function _getUnderlyingAdjustedNumeraireNeeded(
         uint256[] memory scenarios,
@@ -297,10 +297,10 @@ library CrossMarginMath {
     }
 
     /**
-     * @notice converts numerarie needed entirely in underlying
-     * @dev only used if options collateralizied in underlying
+     * @notice converts numeraire needed entirely in underlying
+     * @dev only used if options collateralized in underlying
      * @param scenarios of all the options
-     * @param payouts payouts at coorisponding scenarios
+     * @param payouts payouts at corresponding scenarios
      * @param underlyingNeeded current underlying needed
      * @return underlyingOnlyNeeded adjusted underlying needed
      */

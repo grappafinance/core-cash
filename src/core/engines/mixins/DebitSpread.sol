@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 // inheriting contracts
 import {BaseEngine} from "../BaseEngine.sol";
 
-// librarise
+// libraries
 import {TokenIdUtil} from "../../../libraries/TokenIdUtil.sol";
 
 // // constants and types
@@ -50,7 +50,7 @@ abstract contract DebitSpread is BaseEngine {
 
         emit OptionTokenMerged(_subAccount, longTokenId, shortTokenId, amount);
 
-        // this line will revert if usre is trying to burn an un-authrized tokenId
+        // this line will revert if user is trying to burn an un-authorized tokenId
         optionToken.burn(from, longTokenId, amount);
     }
 

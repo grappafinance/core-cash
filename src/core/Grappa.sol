@@ -13,7 +13,6 @@ import {ReentrancyGuardUpgradeable} from "openzeppelin-upgradeable/security/Reen
 import {IERC20Metadata} from "openzeppelin/token/ERC20/extensions/IERC20Metadata.sol";
 import {IOracle} from "../interfaces/IOracle.sol";
 import {IOptionToken} from "../interfaces/IOptionToken.sol";
-import {IGrappa} from "../interfaces/IGrappa.sol";
 import {IMarginEngine} from "../interfaces/IMarginEngine.sol";
 
 // librarise
@@ -49,17 +48,14 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
                          State Variables V1
     //////////////////////////////////////////////////////////////*/
 
-    /// @dev next id used to represent an address
-    /// invariant:  any id in tokenId not greater than this number
-    uint8 public nextAssetId;
+    /// @dev last id used to represent an address address
+    uint8 public lastAssetId;
 
-    /// @dev next id used to represent an address
-    /// invariant:  any id in tokenId not greater than this number
-    uint8 public nextEngineId;
+    /// @dev last id used to represent an engine address
+    uint8 public lastEngineId;
 
-    /// @dev next id used to represent an address
-    /// invariant:  any id in tokenId not greater than this number
-    uint8 public nextOracleId;
+    /// @dev last id used to represent an oracle address
+    uint8 public lastOracleId;
 
     /// @dev assetId => asset address
     mapping(uint8 => AssetDetail) public assets;
@@ -93,7 +89,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     //////////////////////////////////////////////////////////////*/
 
     /// @dev set immutables in constructor
-    /// @dev also set the implemention contract to initialized = true
+    /// @dev also set the implementation contract to initialized = true
     constructor(address _optionToken) initializer {
         optionToken = IOptionToken(_optionToken);
     }
@@ -326,7 +322,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
 
     /**
      * @dev revert if _engine doesn't have access to mint / burn a tokenId;
-     * @param _tokenId tokenid
+     * @param _tokenId tokenId
      * @param _engine address intending to mint / burn
      */
     function checkEngineAccess(uint256 _tokenId, address _engine) external view {
@@ -337,7 +333,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
 
     /**
      * @dev revert if _engine doesn't have access to mint or the tokenId is invalid.
-     * @param _tokenId tokenid
+     * @param _tokenId tokenId
      * @param _engine address intending to mint / burn
      */
     function checkEngineAccessAndTokenId(uint256 _tokenId, address _engine) external view {
@@ -356,7 +352,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     /**
      * @dev register an asset to be used as strike/underlying
      * @param _asset address to add
-     *
+     * @return id asset ID
      */
     function registerAsset(address _asset) external returns (uint8 id) {
         _checkOwner();
@@ -365,7 +361,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
 
         uint8 decimals = IERC20Metadata(_asset).decimals();
 
-        id = ++nextAssetId;
+        id = ++lastAssetId;
         assets[id] = AssetDetail({addr: _asset, decimals: decimals});
         assetIds[_asset] = id;
 
@@ -375,14 +371,14 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     /**
      * @dev register an engine to create / settle options
      * @param _engine address of the new margin engine
-     *
+     * @return id engine ID
      */
     function registerEngine(address _engine) external returns (uint8 id) {
         _checkOwner();
 
         if (engineIds[_engine] != 0) revert GP_EngineAlreadyRegistered();
 
-        id = ++nextEngineId;
+        id = ++lastEngineId;
         engines[id] = _engine;
 
         engineIds[_engine] = id;
@@ -393,7 +389,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     /**
      * @dev register an oracle to report prices
      * @param _oracle address of the new oracle
-     *
+     * @return id oracle ID
      */
     function registerOracle(address _oracle) external returns (uint8 id) {
         _checkOwner();
@@ -403,7 +399,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         // this is a soft check on whether an oracle is suitable to be used.
         if (IOracle(_oracle).maxDisputePeriod() > MAX_DISPUTE_PERIOD) revert GP_BadOracle();
 
-        id = ++nextOracleId;
+        id = ++lastOracleId;
         oracles[id] = _oracle;
 
         oracleIds[_oracle] = id;
@@ -422,7 +418,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         (TokenType optionType,, uint64 expiry, uint64 longStrike, uint64 shortStrike) = _tokenId.parseTokenId();
 
         // check option type and strikes
-        // check that vanilla options doesnt have a shortStrike argument
+        // check that vanilla options doesn't have a shortStrike argument
         if ((optionType == TokenType.CALL || optionType == TokenType.PUT) && (shortStrike != 0)) revert GP_BadStrikes();
 
         // check that you cannot mint a "credit spread" token
@@ -469,7 +465,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
 
         // the following logic convert cash value (amount worth) if collateral is not strike:
         if (collateral == underlying) {
-            // collateral is underlying. payout should be devided by underlying price
+            // collateral is underlying. payout should be divided by underlying price
             cashValue = cashValue.mulDivDown(UNIT, expiryPrice);
         } else if (collateral != strike) {
             // collateral is not underlying nor strike
@@ -508,7 +504,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      * @dev check settlement price is finalized from oracle, and return price
      * @param _oracle oracle contract address
      * @param _base base asset (ETH is base asset while requesting ETH / USD)
-     * @param _quote quote asset (USD is base asset while requesting ETH / USD)
+     * @param _quote quote asset (USD is quote asset while requesting ETH / USD)
      * @param _expiry expiry timestamp
      */
     function _getSettlementPrice(address _oracle, address _base, address _quote, uint256 _expiry)

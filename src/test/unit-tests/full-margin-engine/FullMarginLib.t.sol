@@ -162,7 +162,7 @@ contract FullMarginLibTest is Test {
         uint256 id = TokenIdUtil.getTokenId(TokenType.CALL, productId, expiry, 100, 0);
 
         // cannot mint this token!
-        vm.expectRevert(FM_CollateraliMisMatch.selector);
+        vm.expectRevert(FM_CollateralMisMatch.selector);
         tester.mintOption(id, 100);
     }
 
@@ -226,7 +226,7 @@ contract FullMarginLibTest is Test {
         tester.mintOption(shortId, 100);
 
         // cannot merge if short is different then what the account holds
-        vm.expectRevert(FM_ShortDoesnotExist.selector);
+        vm.expectRevert(FM_ShortDoesNotExist.selector);
         tester.merge(shortId + 1, longId, 100);
 
         // cannot merge with diff amount

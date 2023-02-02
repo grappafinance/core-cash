@@ -55,7 +55,7 @@ library AdvancedMarginMath {
 
         if (_assets.collateral == _assets.strike) return minCollatValueInStrike;
 
-        // if collateral is not strike, calculate how much collateral needed by devidede by collat price.
+        // if collateral is not strike, calculate how much collateral needed by divided by collat price.
         // will revert if _spotCollateralStrike is 0.
         minCollatUnit = minCollatValueInStrike.mulDivUp(UNIT, _spotCollateralStrike);
     }
@@ -135,7 +135,7 @@ library AdvancedMarginMath {
             getMinCollateralForShortCall(_account.callAmount, _account.shortCallStrike, _account.expiry, _spot, _vol, params);
         if (_account.longCallStrike == 0) return minCollateralShortCall;
 
-        // we calculate the max loss of spread, dominated in strke asset (usually USD)
+        // we calculate the max loss of spread, dominated in strike asset (usually USD)
         unchecked {
             uint256 maxLoss = (_account.longCallStrike - _account.shortCallStrike).mul(_account.callAmount) / UNIT;
             return min(maxLoss, minCollateralShortCall);

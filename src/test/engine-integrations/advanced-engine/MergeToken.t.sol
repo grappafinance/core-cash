@@ -81,7 +81,7 @@ contract TestMergeOption is AdvancedFixture {
         uint256 wrongShort = getTokenId(TokenType.CALL, productId, expiry, 2000 * UNIT, 0);
         actions[0] = createMergeAction(newTokenId, wrongShort, address(this), amount);
 
-        vm.expectRevert(AM_ShortDoesnotExist.selector);
+        vm.expectRevert(AM_ShortDoesNotExist.selector);
         engine.execute(address(this), actions);
     }
 

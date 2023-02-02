@@ -87,7 +87,7 @@ contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyG
      * @notice payout to user on settlement.
      * @dev this can only triggered by Grappa, would only be called on settlement.
      * @param _asset asset to transfer
-     * @param _recipient receiber
+     * @param _recipient receiver
      * @param _amount amount
      */
     function payCashValue(address _asset, address _recipient, uint256 _amount) public override(BaseEngine, IMarginEngine) {
@@ -108,7 +108,7 @@ contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyG
     /**
      * @notice  move an account to someone else
      * @dev     expected to be call by account owner
-     * @param _subAccount the id of subaccount to trnasfer
+     * @param _subAccount the id of subaccount to transfer
      * @param _newSubAccount the id of receiving account
      */
     function transferAccount(address _subAccount, address _newSubAccount) external {

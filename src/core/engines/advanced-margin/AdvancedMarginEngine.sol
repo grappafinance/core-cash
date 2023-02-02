@@ -18,7 +18,7 @@ import {IOracle} from "../../../interfaces/IOracle.sol";
 import {IMarginEngine} from "../../../interfaces/IMarginEngine.sol";
 import {IVolOracle} from "../../../interfaces/IVolOracle.sol";
 
-// librarise
+// libraries
 import {TokenIdUtil} from "../../../libraries/TokenIdUtil.sol";
 import {NumberUtil} from "../../../libraries/NumberUtil.sol";
 import {AdvancedMarginMath} from "./AdvancedMarginMath.sol";
@@ -139,7 +139,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
         bool hasShortPut = account.shortPutAmount != 0;
 
         // compute portion of the collateral the liquidator is repaying, in BPS.
-        // @note: expected to lost precision becuase of performing division before multiplication
+        // @note: expected to lost precision because of performing division before multiplication
         uint256 portionBPS;
         unchecked {
             // use uncheck because
@@ -190,7 +190,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
     /**
      * @notice  move an account to someone else
      * @dev     expected to be call by account owner
-     * @param _subAccount the id of subaccount to trnasfer
+     * @param _subAccount the id of subaccount to transfer
      * @param _newSubAccount the id of receiving account
      */
     function transferAccount(address _subAccount, address _newSubAccount) external {
@@ -251,13 +251,13 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
     function _removeCollateral(address _subAccount, bytes calldata _data) internal override {
         // check if there is an expired short still in the account, if there is then collateral cant be removed
         // until the position is settled
-        AdvancedMarginAccount storage accout = marginAccounts[_subAccount];
+        AdvancedMarginAccount storage account = marginAccounts[_subAccount];
 
-        if (accout.shortCallAmount > 0) {
-            (,, uint64 expiry,,) = TokenIdUtil.parseTokenId(accout.shortCallId);
+        if (account.shortCallAmount > 0) {
+            (,, uint64 expiry,,) = TokenIdUtil.parseTokenId(account.shortCallId);
             if (expiry <= block.timestamp) revert AM_ExpiredShortInAccount();
-        } else if (accout.shortPutAmount > 0) {
-            (,, uint64 expiry,,) = TokenIdUtil.parseTokenId(accout.shortPutId);
+        } else if (account.shortPutAmount > 0) {
+            (,, uint64 expiry,,) = TokenIdUtil.parseTokenId(account.shortPutId);
             if (expiry <= block.timestamp) revert AM_ExpiredShortInAccount();
         }
 
@@ -344,7 +344,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
 
     /**
      * @notice get minimum collateral needed for a margin account
-     * @param detail account memory dtail
+     * @param detail account memory detail
      * @return minCollateral minimum collateral required, in collateral asset's decimals
      */
     function _getMinCollateral(AdvancedMarginDetail memory detail) internal view returns (uint256 minCollateral) {
@@ -416,7 +416,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
     }
 
     /**
-     * @dev get a struct that stores all relevent token addresses, along with collateral asset decimals
+     * @dev get a struct that stores all relevant token addresses, along with collateral asset decimals
      */
     function _getProductDetails(uint40 _productId) internal view returns (ProductDetails memory info) {
         (address oracle,, address underlying,, address strike,, address collateral, uint8 collatDecimals) =

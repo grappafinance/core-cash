@@ -92,7 +92,7 @@ contract TestMergeOption_FM is FullMarginFixture {
         uint256 wrongShort = getTokenId(TokenType.CALL, pidEthCollat, expiry, 2000 * UNIT, 0);
         actions[0] = createMergeAction(newTokenId, wrongShort, address(this), amount);
 
-        vm.expectRevert(FM_ShortDoesnotExist.selector);
+        vm.expectRevert(FM_ShortDoesNotExist.selector);
         engine.execute(address(this), actions);
     }
 

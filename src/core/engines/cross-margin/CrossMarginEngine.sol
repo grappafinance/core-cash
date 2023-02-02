@@ -11,11 +11,10 @@ import {BaseEngine} from "../BaseEngine.sol";
 import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
 
 // interfaces
-import {IOracle} from "../../../interfaces/IOracle.sol";
 import {IMarginEngine} from "../../../interfaces/IMarginEngine.sol";
 import {IWhitelist} from "../../../interfaces/IWhitelist.sol";
 
-// librarise
+// libraries
 import {TokenIdUtil} from "../../../libraries/TokenIdUtil.sol";
 import {ProductIdUtil} from "../../../libraries/ProductIdUtil.sol";
 import {BalanceUtil} from "../../../libraries/BalanceUtil.sol";
@@ -60,10 +59,10 @@ contract CrossMarginEngine is BaseEngine, IMarginEngine, OwnableUpgradeable, Ree
     ///     this give every account access to 256 sub-accounts
     mapping(address => CrossMarginAccount) internal accounts;
 
-    ///@dev contract that verifys permissions
+    ///@dev contract that verifies permissions
     ///     if not set allows anyone to transact
     ///     checks msg.sender on execute & batchExecute
-    ///     checks receipient on payCashValue
+    ///     checks recipient on payCashValue
     IWhitelist public whitelist;
 
     /*///////////////////////////////////////////////////////////////
@@ -176,7 +175,7 @@ contract CrossMarginEngine is BaseEngine, IMarginEngine, OwnableUpgradeable, Ree
     /**
      * @notice  move an account to someone else
      * @dev     expected to be call by account owner
-     * @param _subAccount the id of subaccount to trnasfer
+     * @param _subAccount the id of subaccount to transfer
      * @param _newSubAccount the id of receiving account
      */
     function transferAccount(address _subAccount, address _newSubAccount) external {
