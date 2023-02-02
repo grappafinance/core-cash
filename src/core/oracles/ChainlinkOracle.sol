@@ -155,7 +155,7 @@ contract ChainlinkOracle is IOracle, Ownable {
             if (baseMulDecimals > 0) {
                 price = _basePrice.mulDivUp(10 ** uint8(baseMulDecimals), _quotePrice);
             } else {
-                price = _basePrice / (10 ** uint8(-baseMulDecimals)) / _quotePrice;
+                price = _basePrice / (_quotePrice * (10 ** uint8(-baseMulDecimals)));
             }
         }
     }
