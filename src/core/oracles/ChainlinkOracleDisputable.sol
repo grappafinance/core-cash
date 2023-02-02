@@ -61,7 +61,7 @@ contract ChainlinkOracleDisputable is ChainlinkOracle {
     }
 
     /**
-     * @dev owner can set a price if the the price has not been pushed for at least 1 day
+     * @dev owner can set a price if the the price has not been pushed for at least 36 hours
      * @param _base base asset
      * @param _quote quote asset
      * @param _expiry expiry timestamp
