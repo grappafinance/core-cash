@@ -1,10 +1,11 @@
 name: Slither Analysis
 
-on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+# temporarily disabled because of the action bug
+# on:
+#   push:
+#     branches: [ master ]
+#   pull_request:
+#     branches: [ master ]
 
 jobs:
   analyze-core:
