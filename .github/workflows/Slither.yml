@@ -1,6 +1,6 @@
 name: Slither Analysis (bypassed)
 
-temporarily disabled because of the action bug
+# temporarily disabled because of the action bug
 on:
   push:
     branches: [ master ]
