@@ -4,6 +4,8 @@
   "solc_remaps": [
     "openzeppelin/=lib/openzeppelin-contracts/contracts/",
     "forge-std/=lib/forge-std/src/",
-    "solmate/=lib/solmate/src/"
+    "solmate/=lib/solmate/src/",
+    "openzeppelin-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/",
+    "array-lib=lib/array-lib/src"
   ]
 }
