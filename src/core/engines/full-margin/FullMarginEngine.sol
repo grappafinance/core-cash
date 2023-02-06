@@ -14,7 +14,7 @@ import {IOracle} from "../../../interfaces/IOracle.sol";
 import {IGrappa} from "../../../interfaces/IGrappa.sol";
 import {IMarginEngine} from "../../../interfaces/IMarginEngine.sol";
 
-// librarise
+// libraries
 import {TokenIdUtil} from "../../../libraries/TokenIdUtil.sol";
 import {ProductIdUtil} from "../../../libraries/ProductIdUtil.sol";
 
@@ -39,7 +39,7 @@ import "./errors.sol";
  *             Interacts with OptionToken to mint / burn
  *             Interacts with grappa to fetch registered asset info
  */
-contract FullMarginEngine is BaseEngine, DebitSpread, IMarginEngine, ReentrancyGuard {
+contract FullMarginEngine is DebitSpread, IMarginEngine, ReentrancyGuard {
     using FullMarginLib for FullMarginAccount;
     using FullMarginMath for FullMarginDetail;
     using TokenIdUtil for uint256;

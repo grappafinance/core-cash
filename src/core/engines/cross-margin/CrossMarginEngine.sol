@@ -7,7 +7,7 @@ import {OwnableUpgradeable} from "openzeppelin-upgradeable/access/OwnableUpgrade
 import {ReentrancyGuardUpgradeable} from "openzeppelin-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 // inheriting contracts
-import {TransferBaseEngine} from "../mixins/BaseEngineTransferable.sol";
+import {BaseEngineTransferable} from "../mixins/BaseEngineTransferable.sol";
 import {BaseEngine} from "../BaseEngine.sol";
 import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
 
@@ -43,7 +43,7 @@ import "../../../config/errors.sol";
  *             Interacts with grappa to fetch registered asset info
  */
 contract CrossMarginEngine is
-    TransferBaseEngine,
+    BaseEngineTransferable,
     IMarginEngine,
     OwnableUpgradeable,
     ReentrancyGuardUpgradeable,
@@ -77,7 +77,7 @@ contract CrossMarginEngine is
     //////////////////////////////////////////////////////////////*/
 
     // solhint-disable-next-line no-empty-blocks
-    constructor(address _grappa, address _optionToken) TransferBaseEngine(_grappa, _optionToken) initializer {}
+    constructor(address _grappa, address _optionToken) BaseEngine(_grappa, _optionToken) initializer {}
 
     /*///////////////////////////////////////////////////////////////
                             Initializer

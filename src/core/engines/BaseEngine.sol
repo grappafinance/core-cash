@@ -45,8 +45,6 @@ abstract contract BaseEngine {
 
     event CollateralRemoved(address subAccount, address collateral, uint256 amount);
 
-    event CollateralTransferred(address from, address to, uint8 collateralId, uint256 amount);
-
     event OptionTokenMinted(address subAccount, uint256 tokenId, uint256 amount);
 
     event OptionTokenBurned(address subAccount, uint256 tokenId, uint256 amount);
@@ -54,8 +52,6 @@ abstract contract BaseEngine {
     event OptionTokenAdded(address subAccount, uint256 tokenId, uint64 amount);
 
     event OptionTokenRemoved(address subAccount, uint256 tokenId, uint64 amount);
-
-    event OptionTokenTransferred(address from, address to, uint256 tokenId, uint64 amount);
 
     event AccountSettled(address subAccount, Balance[] payouts);
 

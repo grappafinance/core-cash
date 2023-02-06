@@ -13,12 +13,14 @@ import "../../../config/enums.sol";
 import "../../../config/errors.sol";
 
 /**
- * @title   DebitSpread
- * @author  @antoncoding, @dsshap
- * @notice  util functions for MarginEngines to support debit spreads
+ * @title   BaseEngineTransferable
+ * @author  @dsshap
+ * @notice  util functions to transfer positions between accounts without moving tokens externally
  */
-abstract contract TransferBaseEngine is BaseEngine {
-    constructor(address _grappa, address _optionToken) BaseEngine(_grappa, _optionToken) {}
+abstract contract BaseEngineTransferable is BaseEngine {
+    event CollateralTransferred(address from, address to, uint8 collateralId, uint256 amount);
+
+    event OptionTokenTransferred(address from, address to, uint256 tokenId, uint64 amount);
 
     /**
      * @dev Transfers collateral to another account.
