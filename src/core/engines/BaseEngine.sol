@@ -12,7 +12,7 @@ import {IERC1155} from "openzeppelin/token/ERC1155/IERC1155.sol";
 import {IGrappa} from "../../interfaces/IGrappa.sol";
 import {IOptionToken} from "../../interfaces/IOptionToken.sol";
 
-// librarise
+// libraries
 import {TokenIdUtil} from "../../libraries/TokenIdUtil.sol";
 
 // constants and types
@@ -271,55 +271,7 @@ abstract contract BaseEngine {
         IERC1155(address(optionToken)).safeTransferFrom(address(this), to, tokenId, amount, "");
     }
 
-    /**
-     * @dev Transfers collateral to another account.
-     * @param _subAccount subaccount that will be update in place
-     */
-    function _transferCollateral(address _subAccount, bytes calldata _data) internal virtual {
-        // decode parameters
-        (uint80 amount, address to, uint8 collateralId) = abi.decode(_data, (uint80, address, uint8));
-
-        // update the account in state
-        _removeCollateralFromAccount(_subAccount, collateralId, amount);
-        _addCollateralToAccount(to, collateralId, amount);
-
-        emit CollateralTransferred(_subAccount, to, collateralId, amount);
-    }
-
-    /**
-     * @dev Transfers short tokens to another account.
-     * @param _subAccount subaccount that will be update in place
-     */
-    function _transferShort(address _subAccount, bytes calldata _data) internal virtual {
-        // decode parameters
-        (uint256 tokenId, address to, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
-
-        _assertCallerHasAccess(to);
-
-        // update the account in state
-        _decreaseShortInAccount(_subAccount, tokenId, amount);
-        _increaseShortInAccount(to, tokenId, amount);
-
-        emit OptionTokenTransferred(_subAccount, to, tokenId, amount);
-
-        if (!_isAccountAboveWater(to)) revert BM_AccountUnderwater();
-    }
-
-    /**
-     * @dev Transfers long tokens to another account.
-     * @param _subAccount subaccount that will be update in place
-     */
-    function _transferLong(address _subAccount, bytes calldata _data) internal virtual {
-        // decode parameters
-        (uint256 tokenId, address to, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
-
-        // update the account in state
-        _decreaseLongInAccount(_subAccount, tokenId, amount);
-        _increaseLongInAccount(to, tokenId, amount);
-
-        emit OptionTokenTransferred(_subAccount, to, tokenId, amount);
-    }
-
+    
     /**
      * @notice  settle the margin account at expiry
      * @dev     this update the account storage
