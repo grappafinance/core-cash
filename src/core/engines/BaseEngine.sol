@@ -271,7 +271,6 @@ abstract contract BaseEngine {
         IERC1155(address(optionToken)).safeTransferFrom(address(this), to, tokenId, amount, "");
     }
 
-    
     /**
      * @notice  settle the margin account at expiry
      * @dev     this update the account storage

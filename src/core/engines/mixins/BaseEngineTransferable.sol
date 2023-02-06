@@ -18,8 +18,7 @@ import "../../../config/errors.sol";
  * @notice  util functions for MarginEngines to support debit spreads
  */
 abstract contract TransferBaseEngine is BaseEngine {
-    
-    constructor(address _grappa, address _optionToken) BaseEngine(_grappa, _optionToken){}
+    constructor(address _grappa, address _optionToken) BaseEngine(_grappa, _optionToken) {}
 
     /**
      * @dev Transfers collateral to another account.
@@ -69,5 +68,4 @@ abstract contract TransferBaseEngine is BaseEngine {
 
         emit OptionTokenTransferred(_subAccount, to, tokenId, amount);
     }
-
 }
