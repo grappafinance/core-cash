@@ -10,7 +10,6 @@ import {DebitSpread} from "../mixins/DebitSpread.sol";
 import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
 
 // interfaces
-import {IOracle} from "../../../interfaces/IOracle.sol";
 import {IGrappa} from "../../../interfaces/IGrappa.sol";
 import {IMarginEngine} from "../../../interfaces/IMarginEngine.sol";
 
@@ -54,13 +53,16 @@ contract FullMarginEngine is DebitSpread, IMarginEngine, ReentrancyGuard {
     ///     this give every account access to 256 sub-accounts
     mapping(address => FullMarginAccount) public marginAccounts;
 
-    // solhint-disable-next-line no-empty-blocks
     constructor(address _grappa, address _optionToken) BaseEngine(_grappa, _optionToken) {}
 
     /*///////////////////////////////////////////////////////////////
                         External Functions
     //////////////////////////////////////////////////////////////*/
 
+    /**
+     * @notice main entry point of execute bunch of instructions to an account
+     * @dev whether an account is above margin requirement is only checked once at the end
+     */
     function execute(address _subAccount, ActionArgs[] calldata actions) public override nonReentrant {
         _assertCallerHasAccess(_subAccount);
 
@@ -75,7 +77,6 @@ contract FullMarginEngine is DebitSpread, IMarginEngine, ReentrancyGuard {
             else if (actions[i].action == ActionType.SettleAccount) _settle(_subAccount);
             else revert FM_UnsupportedAction();
 
-            // increase i without checking overflow
             unchecked {
                 ++i;
             }
@@ -88,7 +89,7 @@ contract FullMarginEngine is DebitSpread, IMarginEngine, ReentrancyGuard {
      * @dev this can only triggered by Grappa, would only be called on settlement.
      * @param _asset asset to transfer
      * @param _recipient receiver
-     * @param _amount amount
+     * @param _amount amount of asset in its native decimal
      */
     function payCashValue(address _asset, address _recipient, uint256 _amount) public override(BaseEngine, IMarginEngine) {
         BaseEngine.payCashValue(_asset, _recipient, _amount);
@@ -101,8 +102,7 @@ contract FullMarginEngine is DebitSpread, IMarginEngine, ReentrancyGuard {
      */
     function getMinCollateral(address _subAccount) external view returns (uint256 minCollateral) {
         FullMarginAccount memory account = marginAccounts[_subAccount];
-        FullMarginDetail memory detail = _getAccountDetail(account);
-        minCollateral = detail.getMinCollateral();
+        return _getMinCollateral(account);
     }
 
     /**
@@ -121,9 +121,9 @@ contract FullMarginEngine is DebitSpread, IMarginEngine, ReentrancyGuard {
     }
 
     /**
-     * ========================================================= **
-     *               Override Sate changing functions             *
-     * ========================================================= **
+     * ========================================================= *
+     *      Override Sate changing functions in BaseMargin       *
+     * ========================================================= *
      */
 
     function _addCollateralToAccount(address _subAccount, uint8 collateralId, uint80 amount) internal override {
@@ -142,6 +142,16 @@ contract FullMarginEngine is DebitSpread, IMarginEngine, ReentrancyGuard {
         marginAccounts[_subAccount].burnOption(tokenId, amount);
     }
 
+    function _settleAccount(address _subAccount, uint80 payout) internal override {
+        marginAccounts[_subAccount].settleAtExpiry(payout);
+    }
+
+    /**
+     * ========================================================= *
+     *      Override Sate changing functions in DebitSpread       *
+     * ========================================================= *
+     */
+
     function _mergeLongIntoSpread(address _subAccount, uint256 shortTokenId, uint256 longTokenId, uint64 amount)
         internal
         override
@@ -151,10 +161,6 @@ contract FullMarginEngine is DebitSpread, IMarginEngine, ReentrancyGuard {
 
     function _splitSpreadInAccount(address _subAccount, uint256 spreadId, uint64 amount) internal override {
         marginAccounts[_subAccount].split(spreadId, amount);
-    }
-
-    function _settleAccount(address _subAccount, uint80 payout) internal override {
-        marginAccounts[_subAccount].settleAtExpiry(payout);
     }
 
     /**
@@ -192,13 +198,18 @@ contract FullMarginEngine is DebitSpread, IMarginEngine, ReentrancyGuard {
      * ========================================================= *
      */
 
+    /**
+     * @notice calculate minimum collateral
+     * @return collateral amount in the asset's native collateral
+     */
     function _getMinCollateral(FullMarginAccount memory account) internal view returns (uint256) {
         FullMarginDetail memory detail = _getAccountDetail(account);
         return detail.getMinCollateral();
     }
 
     /**
-     * @notice  convert Account struct from storage to in-memory detail struct
+     * @dev convert Account struct from storage to in-memory detail struct
+     * @param account account in struct it is stored
      */
     function _getAccountDetail(FullMarginAccount memory account) internal view returns (FullMarginDetail memory detail) {
         (TokenType tokenType, uint40 productId,, uint64 longStrike, uint64 shortStrike) = account.tokenId.parseTokenId();
