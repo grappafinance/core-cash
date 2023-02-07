@@ -18,7 +18,7 @@ import "../../config/errors.sol";
  * @title   MockEngine
  * @notice  Implement execute to test all flow in BaseEngine
  */
-contract MockEngine is BaseEngine, DebitSpread, ReentrancyGuard {
+contract MockDebitSpreadEngine is BaseEngine, DebitSpread, ReentrancyGuard {
     bool public isAboveWater;
 
     uint80 public mockPayout;

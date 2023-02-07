@@ -6,7 +6,7 @@ import "forge-std/Test.sol";
 import "../../mocks/MockERC20.sol";
 import "../../mocks/MockOracle.sol";
 import "../../mocks/MockChainlinkAggregator.sol";
-import "../../mocks/MockEngine.sol";
+import "../../mocks/MockDebitSpreadEngine.sol";
 
 // import "../../../core/engines/.sol";
 import "../../../core/engines/advanced-margin/VolOracle.sol";
@@ -22,9 +22,8 @@ import "../../utils/Utilities.sol";
 import {ActionHelper} from "../../shared/ActionHelper.sol";
 
 // solhint-disable max-states-count
-
-abstract contract BaseEngineSetup is Test, ActionHelper, Utilities {
-    MockEngine internal engine;
+abstract contract MockedBaseEngineSetup is Test, ActionHelper, Utilities {
+    MockDebitSpreadEngine internal engine;
     Grappa internal grappa;
     OptionToken internal option;
 
@@ -52,7 +51,7 @@ abstract contract BaseEngineSetup is Test, ActionHelper, Utilities {
 
         oracle = new MockOracle(); // nonce: 3
 
-        // predit address of margin account and use it here
+        // predict address of margin account and use it here
         address grappaAddr = predictAddress(address(this), 6);
 
         option = new OptionToken(grappaAddr, address(0)); // nonce: 4
@@ -63,14 +62,13 @@ abstract contract BaseEngineSetup is Test, ActionHelper, Utilities {
 
         grappa = Grappa(address(new GrappaProxy(grappaImplementation, data))); // 6
 
-        engine = new MockEngine(address(grappa), address(option)); // nonce 7
+        engine = new MockDebitSpreadEngine(address(grappa), address(option)); // nonce 7
 
         // register products
         usdcId = grappa.registerAsset(address(usdc));
         wethId = grappa.registerAsset(address(weth));
 
         engineId = grappa.registerEngine(address(engine));
-
         oracleId = grappa.registerOracle(address(oracle));
 
         productId = grappa.getProductId(address(oracle), address(engine), address(weth), address(usdc), address(usdc));
