@@ -64,13 +64,13 @@ library TokenIdUtil {
      * @notice parse collateral id from tokenId
      * @dev more efficient than parsing tokenId and than parse productId
      * @param tokenId token id
-     * @return collatearlId
+     * @return collateralId
      */
-    function parseCollateralId(uint256 tokenId) internal pure returns (uint8 collatearlId) {
+    function parseCollateralId(uint256 tokenId) internal pure returns (uint8 collateralId) {
         // solhint-disable-next-line no-inline-assembly
         assembly {
             // collateralId is the last bits of productId
-            collatearlId := shr(192, tokenId)
+            collateralId := shr(192, tokenId)
         }
     }
 

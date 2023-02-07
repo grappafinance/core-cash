@@ -47,7 +47,7 @@ library BalanceUtil {
     }
 
     /**
-     * @dev return the index of an elemnt balance array
+     * @dev return the index of an element balance array
      * @param x balance array
      * @param v collateral id to search
      * @return f true if found
