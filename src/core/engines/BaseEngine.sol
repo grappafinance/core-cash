@@ -22,9 +22,9 @@ import "../../config/constants.sol";
 import "../../config/errors.sol";
 
 /**
- * @title   MarginBase
+ * @title   BaeEngine
  * @author  @antoncoding, @dsshap
- * @notice  util functions for MarginEngines
+ * @dev  common functions / flow that can be shared among MarginEngines
  */
 abstract contract BaseEngine {
     using SafeERC20 for IERC20;
@@ -56,8 +56,8 @@ abstract contract BaseEngine {
     event AccountSettled(address subAccount, Balance[] payouts);
 
     /**
-     * ========================================================= **
-     *                         External Functions
+     * ========================================================= *
+     *                       Constructor
      * ========================================================= *
      */
 
@@ -67,7 +67,7 @@ abstract contract BaseEngine {
     }
 
     /**
-     * ========================================================= **
+     * ========================================================= *
      *                         External Functions
      * ========================================================= *
      */
@@ -123,7 +123,7 @@ abstract contract BaseEngine {
     }
 
     /**
-     * ========================================================= **
+     * ========================================================= *
      *                Internal Functions For Each Action
      * ========================================================= *
      */
@@ -182,30 +182,6 @@ abstract contract BaseEngine {
 
         // mint option token
         optionToken.mint(recipient, tokenId, amount);
-    }
-
-    /**
-     * @dev mint option token into account, increase short position (debt) and increase long position in storage
-     * @param _data bytes data to decode
-     */
-    function _mintOptionIntoAccount(address _subAccount, bytes calldata _data) internal virtual {
-        // decode parameters
-        (uint256 tokenId, address recipientSubAccount, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
-
-        // update the account in state
-        _increaseShortInAccount(_subAccount, tokenId, amount);
-
-        emit OptionTokenMinted(_subAccount, tokenId, amount);
-
-        _verifyLongTokenIdToAdd(tokenId);
-
-        // update the account in state
-        _increaseLongInAccount(recipientSubAccount, tokenId, amount);
-
-        emit OptionTokenAdded(recipientSubAccount, tokenId, amount);
-
-        // mint option token
-        optionToken.mint(address(this), tokenId, amount);
     }
 
     /**
@@ -284,7 +260,7 @@ abstract contract BaseEngine {
     }
 
     /**
-     * ========================================================= **
+     * ========================================================= *
      *                State changing functions to override
      * ========================================================= *
      */
@@ -303,7 +279,7 @@ abstract contract BaseEngine {
     function _settleAccount(address _subAccount, uint80 payout) internal virtual {}
 
     /**
-     * ========================================================= **
+     * ========================================================= *
      *                View functions to override
      * ========================================================= *
      */
@@ -313,14 +289,14 @@ abstract contract BaseEngine {
      * @dev     this function will revert when called before expiry
      * @param _subAccount account id
      */
-    function _getAccountPayout(address _subAccount) internal view virtual returns (uint8 collateralId, uint80 payout);
+    function _getAccountPayout(address _subAccount) internal view virtual returns (uint8 collateralId, uint80 payout) {}
 
     /**
      * @dev [MUST Implement] return whether if an account is healthy.
      * @param _subAccount subaccount id
      * @return isHealthy true if account is in good condition, false if it's underwater (liquidatable)
      */
-    function _isAccountAboveWater(address _subAccount) internal view virtual returns (bool);
+    function _isAccountAboveWater(address _subAccount) internal view virtual returns (bool) {}
 
     /**
      * @dev reverts if the account cannot add this token into the margin account.

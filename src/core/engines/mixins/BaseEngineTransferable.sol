@@ -70,4 +70,30 @@ abstract contract BaseEngineTransferable is BaseEngine {
 
         emit OptionTokenTransferred(_subAccount, to, tokenId, amount);
     }
+
+    /**
+     * @dev mint option token into another account
+     * @dev increase short position (debt) in the current account
+     * @dev increase long position another account's storage
+     * @param _data bytes data to decode
+     */
+    function _mintOptionIntoAccount(address _subAccount, bytes calldata _data) internal virtual {
+        // decode parameters
+        (uint256 tokenId, address recipientSubAccount, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
+
+        // update the account in state
+        _increaseShortInAccount(_subAccount, tokenId, amount);
+
+        emit OptionTokenMinted(_subAccount, tokenId, amount);
+
+        _verifyLongTokenIdToAdd(tokenId);
+
+        // update the account in state
+        _increaseLongInAccount(recipientSubAccount, tokenId, amount);
+
+        emit OptionTokenAdded(recipientSubAccount, tokenId, amount);
+
+        // mint option token
+        optionToken.mint(address(this), tokenId, amount);
+    }
 }

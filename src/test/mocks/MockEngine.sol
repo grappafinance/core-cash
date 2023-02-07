@@ -57,8 +57,6 @@ contract MockEngine is BaseEngine, DebitSpread, ReentrancyGuard {
                 _removeCollateral(_subAccount, actions[i].data);
             } else if (actions[i].action == ActionType.MintShort) {
                 _mintOption(_subAccount, actions[i].data);
-            } else if (actions[i].action == ActionType.MintShortIntoAccount) {
-                _mintOptionIntoAccount(_subAccount, actions[i].data);
             } else if (actions[i].action == ActionType.BurnShort) {
                 _burnOption(_subAccount, actions[i].data);
             } else if (actions[i].action == ActionType.MergeOptionToken) {
