@@ -19,15 +19,15 @@ import "../../config/constants.sol";
 /**
  * @dev test on implementation contract
  */
-contract GrappaProxyTest is Test {
+contract OptionProxyTest is Test {
     OptionTokenDescriptor public implementation;
-    OptionTokenDescriptor public desciptor;
+    OptionTokenDescriptor public descriptor;
 
     constructor() {
         implementation = new OptionTokenDescriptor();
         bytes memory data = abi.encode(OptionTokenDescriptor.initialize.selector);
 
-        desciptor = OptionTokenDescriptor(address(new ERC1967Proxy(address(implementation), data)));
+        descriptor = OptionTokenDescriptor(address(new ERC1967Proxy(address(implementation), data)));
     }
 
     function testImplementationContractOwnerIsZero() public {
@@ -40,31 +40,31 @@ contract GrappaProxyTest is Test {
     }
 
     function testProxyOwnerIsCorrect() public {
-        assertEq(desciptor.owner(), address(this));
+        assertEq(descriptor.owner(), address(this));
     }
 
     function testProxyIsInitialized() public {
         vm.expectRevert("Initializable: contract is already initialized");
-        desciptor.initialize();
+        descriptor.initialize();
     }
 
     function testCannotUpgradeFromNonOwner() public {
         vm.prank(address(0xaa));
         vm.expectRevert("Ownable: caller is not the owner");
-        desciptor.upgradeTo(address(1));
+        descriptor.upgradeTo(address(1));
     }
 
     function testGetUrl() public {
-        assertEq(desciptor.tokenURI(0), "https://grappa.finance/token/0");
-        assertEq(desciptor.tokenURI(200), "https://grappa.finance/token/200");
+        assertEq(descriptor.tokenURI(0), "https://grappa.finance/token/0");
+        assertEq(descriptor.tokenURI(200), "https://grappa.finance/token/200");
     }
 
     function testCanUpgradeToAnotherUUPSContract() public {
         MockTokenDescriptorV2 v2 = new MockTokenDescriptorV2();
 
-        desciptor.upgradeTo(address(v2));
+        descriptor.upgradeTo(address(v2));
 
-        assertEq(desciptor.tokenURI(0), "https://grappa.finance/token/v2/0");
-        assertEq(desciptor.tokenURI(200), "https://grappa.finance/token/v2/200");
+        assertEq(descriptor.tokenURI(0), "https://grappa.finance/token/v2/0");
+        assertEq(descriptor.tokenURI(200), "https://grappa.finance/token/v2/200");
     }
 }
