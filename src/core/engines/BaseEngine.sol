@@ -240,7 +240,7 @@ abstract contract BaseEngine {
         // decode parameters
         (uint256 tokenId, uint64 amount, address from) = abi.decode(_data, (uint256, uint64, address));
 
-        // token being burn must come from caller or the primary account for this subAccount
+        // token being added must come from caller or the primary account for this subAccount
         if (from != msg.sender && !_isPrimaryAccountFor(from, _subAccount)) revert BM_InvalidFromAddress();
 
         _verifyLongTokenIdToAdd(tokenId);
@@ -267,7 +267,7 @@ abstract contract BaseEngine {
 
         emit OptionTokenRemoved(_subAccount, tokenId, amount);
 
-        // transfer the option token in
+        // transfer the option token out
         IERC1155(address(optionToken)).safeTransferFrom(address(this), to, tokenId, amount, "");
     }
 
