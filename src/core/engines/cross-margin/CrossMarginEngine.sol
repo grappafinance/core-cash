@@ -7,6 +7,7 @@ import {OwnableUpgradeable} from "openzeppelin-upgradeable/access/OwnableUpgrade
 import {ReentrancyGuardUpgradeable} from "openzeppelin-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 // inheriting contracts
+import {OptionTransferable} from "../mixins/OptionTransferable.sol";
 import {BaseEngine} from "../BaseEngine.sol";
 import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
 
@@ -41,7 +42,13 @@ import "../../../config/errors.sol";
  *             Interacts with OptionToken to mint / burn
  *             Interacts with grappa to fetch registered asset info
  */
-contract CrossMarginEngine is BaseEngine, IMarginEngine, OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
+contract CrossMarginEngine is
+    OptionTransferable,
+    IMarginEngine,
+    OwnableUpgradeable,
+    ReentrancyGuardUpgradeable,
+    UUPSUpgradeable
+{
     using AccountUtil for Position[];
     using BalanceUtil for Balance[];
     using CrossMarginLib for CrossMarginAccount;

@@ -12,7 +12,7 @@ import {IERC1155} from "openzeppelin/token/ERC1155/IERC1155.sol";
 import {IGrappa} from "../../interfaces/IGrappa.sol";
 import {IOptionToken} from "../../interfaces/IOptionToken.sol";
 
-// librarise
+// libraries
 import {TokenIdUtil} from "../../libraries/TokenIdUtil.sol";
 
 // constants and types
@@ -22,9 +22,9 @@ import "../../config/constants.sol";
 import "../../config/errors.sol";
 
 /**
- * @title   MarginBase
+ * @title   BaeEngine
  * @author  @antoncoding, @dsshap
- * @notice  util functions for MarginEngines
+ * @dev  common functions / flow that can be shared among MarginEngines
  */
 abstract contract BaseEngine {
     using SafeERC20 for IERC20;
@@ -45,8 +45,6 @@ abstract contract BaseEngine {
 
     event CollateralRemoved(address subAccount, address collateral, uint256 amount);
 
-    event CollateralTransferred(address from, address to, uint8 collateralId, uint256 amount);
-
     event OptionTokenMinted(address subAccount, uint256 tokenId, uint256 amount);
 
     event OptionTokenBurned(address subAccount, uint256 tokenId, uint256 amount);
@@ -55,13 +53,11 @@ abstract contract BaseEngine {
 
     event OptionTokenRemoved(address subAccount, uint256 tokenId, uint64 amount);
 
-    event OptionTokenTransferred(address from, address to, uint256 tokenId, uint64 amount);
-
     event AccountSettled(address subAccount, Balance[] payouts);
 
     /**
-     * ========================================================= **
-     *                         External Functions
+     * ========================================================= *
+     *                       Constructor
      * ========================================================= *
      */
 
@@ -71,7 +67,7 @@ abstract contract BaseEngine {
     }
 
     /**
-     * ========================================================= **
+     * ========================================================= *
      *                         External Functions
      * ========================================================= *
      */
@@ -127,7 +123,7 @@ abstract contract BaseEngine {
     }
 
     /**
-     * ========================================================= **
+     * ========================================================= *
      *                Internal Functions For Each Action
      * ========================================================= *
      */
@@ -186,30 +182,6 @@ abstract contract BaseEngine {
 
         // mint option token
         optionToken.mint(recipient, tokenId, amount);
-    }
-
-    /**
-     * @dev mint option token into account, increase short position (debt) and increase long position in storage
-     * @param _data bytes data to decode
-     */
-    function _mintOptionIntoAccount(address _subAccount, bytes calldata _data) internal virtual {
-        // decode parameters
-        (uint256 tokenId, address recipientSubAccount, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
-
-        // update the account in state
-        _increaseShortInAccount(_subAccount, tokenId, amount);
-
-        emit OptionTokenMinted(_subAccount, tokenId, amount);
-
-        _verifyLongTokenIdToAdd(tokenId);
-
-        // update the account in state
-        _increaseLongInAccount(recipientSubAccount, tokenId, amount);
-
-        emit OptionTokenAdded(recipientSubAccount, tokenId, amount);
-
-        // mint option token
-        optionToken.mint(address(this), tokenId, amount);
     }
 
     /**
@@ -272,55 +244,6 @@ abstract contract BaseEngine {
     }
 
     /**
-     * @dev Transfers collateral to another account.
-     * @param _subAccount subaccount that will be update in place
-     */
-    function _transferCollateral(address _subAccount, bytes calldata _data) internal virtual {
-        // decode parameters
-        (uint80 amount, address to, uint8 collateralId) = abi.decode(_data, (uint80, address, uint8));
-
-        // update the account in state
-        _removeCollateralFromAccount(_subAccount, collateralId, amount);
-        _addCollateralToAccount(to, collateralId, amount);
-
-        emit CollateralTransferred(_subAccount, to, collateralId, amount);
-    }
-
-    /**
-     * @dev Transfers short tokens to another account.
-     * @param _subAccount subaccount that will be update in place
-     */
-    function _transferShort(address _subAccount, bytes calldata _data) internal virtual {
-        // decode parameters
-        (uint256 tokenId, address to, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
-
-        _assertCallerHasAccess(to);
-
-        // update the account in state
-        _decreaseShortInAccount(_subAccount, tokenId, amount);
-        _increaseShortInAccount(to, tokenId, amount);
-
-        emit OptionTokenTransferred(_subAccount, to, tokenId, amount);
-
-        if (!_isAccountAboveWater(to)) revert BM_AccountUnderwater();
-    }
-
-    /**
-     * @dev Transfers long tokens to another account.
-     * @param _subAccount subaccount that will be update in place
-     */
-    function _transferLong(address _subAccount, bytes calldata _data) internal virtual {
-        // decode parameters
-        (uint256 tokenId, address to, uint64 amount) = abi.decode(_data, (uint256, address, uint64));
-
-        // update the account in state
-        _decreaseLongInAccount(_subAccount, tokenId, amount);
-        _increaseLongInAccount(to, tokenId, amount);
-
-        emit OptionTokenTransferred(_subAccount, to, tokenId, amount);
-    }
-
-    /**
      * @notice  settle the margin account at expiry
      * @dev     this update the account storage
      */
@@ -337,7 +260,7 @@ abstract contract BaseEngine {
     }
 
     /**
-     * ========================================================= **
+     * ========================================================= *
      *                State changing functions to override
      * ========================================================= *
      */
@@ -356,7 +279,7 @@ abstract contract BaseEngine {
     function _settleAccount(address _subAccount, uint80 payout) internal virtual {}
 
     /**
-     * ========================================================= **
+     * ========================================================= *
      *                View functions to override
      * ========================================================= *
      */
@@ -366,14 +289,14 @@ abstract contract BaseEngine {
      * @dev     this function will revert when called before expiry
      * @param _subAccount account id
      */
-    function _getAccountPayout(address _subAccount) internal view virtual returns (uint8 collateralId, uint80 payout);
+    function _getAccountPayout(address _subAccount) internal view virtual returns (uint8 collateralId, uint80 payout) {}
 
     /**
      * @dev [MUST Implement] return whether if an account is healthy.
      * @param _subAccount subaccount id
      * @return isHealthy true if account is in good condition, false if it's underwater (liquidatable)
      */
-    function _isAccountAboveWater(address _subAccount) internal view virtual returns (bool);
+    function _isAccountAboveWater(address _subAccount) internal view virtual returns (bool) {}
 
     /**
      * @dev reverts if the account cannot add this token into the margin account.

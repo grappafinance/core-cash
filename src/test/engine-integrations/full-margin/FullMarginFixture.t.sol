@@ -57,12 +57,12 @@ contract FullMarginFixture is Test, ActionHelper, Utilities {
 
         oracle = new MockOracle(); // nonce: 3
 
-        // predit address of margin account and use it here
+        // predict address of margin account and use it here
         address grappaAddr = predictAddress(address(this), 6);
 
         option = new OptionToken(grappaAddr, address(0)); // nonce: 4
 
-        // predit address of margin account and use it here
+        // predict address of margin account and use it here
         address grappaImplementation = address(new Grappa(address(option))); // nonce: 5
 
         bytes memory data = abi.encode(Grappa.initialize.selector);

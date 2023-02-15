@@ -41,7 +41,7 @@ library MoneynessLib {
 
     /**
      * @notice  get the cash value of a debit call spread
-     * @dev     retuns min(max(spot - strike, 0), shortStrike - longStrike)
+     * @dev     returns min(max(spot - strike, 0), shortStrike - longStrike)
      * @dev     expect long strike to be lower than short strike
      * @param spot spot price
      * @param longStrike strike price of the long call
@@ -60,7 +60,7 @@ library MoneynessLib {
 
     /**
      * @notice  get the cash value of a debit put spread
-     * @dev     retuns min(max(strike - spot, 0), longStrike - shortStrike)
+     * @dev     returns min(max(strike - spot, 0), longStrike - shortStrike)
      * @dev     expect long strike to be higher than short strike
      * @param spot spot price
      * @param longStrike strike price of the long put

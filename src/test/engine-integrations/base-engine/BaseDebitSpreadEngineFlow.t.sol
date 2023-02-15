@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 // import test base and helpers.
-import {BaseEngineSetup} from "./BaseEngineSetup.t.sol";
+import {MockedBaseEngineSetup} from "./MockedBaseEngineSetup.sol";
 import {stdError} from "forge-std/Test.sol";
 
 import "../../../config/enums.sol";
@@ -10,7 +10,7 @@ import "../../../config/types.sol";
 import "../../../config/constants.sol";
 import "../../../config/errors.sol";
 
-contract BaseEngineFlow is BaseEngineSetup {
+contract BaseDebitSpreadEngineFlow is MockedBaseEngineSetup {
     address public random = address(0xaabb);
 
     event AccountSettled(address subAccount, Balance[] payouts);
@@ -34,8 +34,8 @@ contract BaseEngineFlow is BaseEngineSetup {
     }
 
     function testAddCollateralMoveBalance() public {
-        uint256 engineBalanceBefoe = usdc.balanceOf(address(engine));
-        uint256 myBalanceBefoe = usdc.balanceOf(address(this));
+        uint256 engineBalanceBefore = usdc.balanceOf(address(engine));
+        uint256 myBalanceBefore = usdc.balanceOf(address(this));
         uint256 depositAmount = 1000 * 1e6;
 
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -45,8 +45,8 @@ contract BaseEngineFlow is BaseEngineSetup {
         uint256 engineBalanceAfter = usdc.balanceOf(address(engine));
         uint256 myBalanceAfter = usdc.balanceOf(address(this));
 
-        assertEq(myBalanceBefoe - myBalanceAfter, depositAmount);
-        assertEq(engineBalanceAfter - engineBalanceBefoe, depositAmount);
+        assertEq(myBalanceBefore - myBalanceAfter, depositAmount);
+        assertEq(engineBalanceAfter - engineBalanceBefore, depositAmount);
     }
 
     function testCannotAddCollatFromOthers() public {
@@ -64,8 +64,8 @@ contract BaseEngineFlow is BaseEngineSetup {
         engine.execute(address(this), _actions);
 
         // check before
-        uint256 engineBalanceBefoe = usdc.balanceOf(address(engine));
-        uint256 myBalanceBefoe = usdc.balanceOf(address(this));
+        uint256 engineBalanceBefore = usdc.balanceOf(address(engine));
+        uint256 myBalanceBefore = usdc.balanceOf(address(this));
 
         // remove collateral
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -75,8 +75,8 @@ contract BaseEngineFlow is BaseEngineSetup {
         uint256 engineBalanceAfter = usdc.balanceOf(address(engine));
         uint256 myBalanceAfter = usdc.balanceOf(address(this));
 
-        assertEq(myBalanceAfter - myBalanceBefoe, depositAmount);
-        assertEq(engineBalanceBefoe - engineBalanceAfter, depositAmount);
+        assertEq(myBalanceAfter - myBalanceBefore, depositAmount);
+        assertEq(engineBalanceBefore - engineBalanceAfter, depositAmount);
     }
 
     function testCannotRemoveMoreThanEngineHas() public {
@@ -94,12 +94,8 @@ contract BaseEngineFlow is BaseEngineSetup {
     }
 
     function testMintActionShouldMintOption() public {
-        uint256 expiry = block.timestamp + 1 days;
-
-        uint256 strikePrice = 4000 * UNIT;
         uint256 amount = 1 * UNIT;
-
-        uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
+        uint256 tokenId = _getDefaultCallId();
 
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createMintAction(tokenId, address(this), amount);
@@ -108,29 +104,9 @@ contract BaseEngineFlow is BaseEngineSetup {
         assertEq(option.balanceOf(address(this), tokenId), amount);
     }
 
-    function testMintIntoAccountActionShouldMintOptionIntoAccount() public {
-        uint256 expiry = block.timestamp + 1 days;
-
-        uint256 strikePrice = 4000 * UNIT;
-        uint256 amount = 1 * UNIT;
-
-        uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
-
-        ActionArgs[] memory actions = new ActionArgs[](1);
-        actions[0] = createMintIntoAccountAction(tokenId, address(this), amount);
-        engine.execute(address(this), actions);
-
-        assertEq(option.balanceOf(address(this), tokenId), 0);
-        assertEq(option.balanceOf(address(engine), tokenId), amount);
-    }
-
     function testBurnActionShouldBurnOption() public {
-        uint256 expiry = block.timestamp + 1 days;
-
-        uint256 strikePrice = 4000 * UNIT;
         uint256 amount = 1 * UNIT;
-
-        uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
+        uint256 tokenId = _getDefaultCallId();
 
         // prepare mint tokens
         ActionArgs[] memory _actions = new ActionArgs[](1);
@@ -146,11 +122,8 @@ contract BaseEngineFlow is BaseEngineSetup {
     }
 
     function testCannotBurnFromOthers() public {
-        uint256 expiry = block.timestamp + 1 days;
-
-        uint256 strikePrice = 4000 * UNIT;
         uint256 amount = 1 * UNIT;
-        uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
+        uint256 tokenId = _getDefaultCallId();
 
         // burn
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -161,37 +134,34 @@ contract BaseEngineFlow is BaseEngineSetup {
 
     function testSplitActionShouldMintToken() public {
         uint256 expiry = block.timestamp + 1 days;
-
         uint256 strikePrice = 4000 * UNIT;
         uint256 strikePriceHigher = 5000 * UNIT;
         uint256 amount = 1 * UNIT;
 
         uint256 spreadId = getTokenId(TokenType.CALL_SPREAD, productId, expiry, strikePrice, strikePriceHigher);
 
-        uint256 expecetedLong = getTokenId(TokenType.CALL, productId, expiry, strikePriceHigher, 0);
+        uint256 expectedLong = getTokenId(TokenType.CALL, productId, expiry, strikePriceHigher, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSplitAction(spreadId, amount, address(this));
         engine.execute(address(this), actions);
 
-        assertEq(option.balanceOf(address(this), expecetedLong), amount);
+        assertEq(option.balanceOf(address(this), expectedLong), amount);
     }
 
     function testMergeActionShouldBurnToken() public {
         uint256 expiry = block.timestamp + 1 days;
-
         uint256 strikePrice = 4000 * UNIT;
         uint256 amount = 1 * UNIT;
         uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
         uint256 shortId = getTokenId(TokenType.CALL, productId, expiry, strikePrice + 1, 0);
 
-        // prepare: mint tokens
+        // prepare: mint 4000 call option to this address
         ActionArgs[] memory _actions = new ActionArgs[](1);
         _actions[0] = createMintAction(tokenId, address(this), amount);
         engine.execute(address(this), _actions);
 
         // execute merge
-
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createMergeAction(tokenId, shortId, address(this), amount);
         engine.execute(address(this), actions);
@@ -200,11 +170,8 @@ contract BaseEngineFlow is BaseEngineSetup {
     }
 
     function testCannotMergeWithSameStrike() public {
-        uint256 expiry = block.timestamp + 1 days;
-
-        uint256 strikePrice = 4000 * UNIT;
         uint256 amount = 1 * UNIT;
-        uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
+        uint256 tokenId = _getDefaultCallId();
 
         // execute merge
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -214,11 +181,8 @@ contract BaseEngineFlow is BaseEngineSetup {
     }
 
     function testCannotAddLongFromOthers() public {
-        uint256 expiry = block.timestamp + 1 days;
-
-        uint256 strikePrice = 4000 * UNIT;
         uint256 amount = 1 * UNIT;
-        uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
+        uint256 tokenId = _getDefaultCallId();
 
         // execute add long
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -229,11 +193,8 @@ contract BaseEngineFlow is BaseEngineSetup {
     }
 
     function testAddLongShouldMoveToken() public {
-        uint256 expiry = block.timestamp + 1 days;
-
-        uint256 strikePrice = 4000 * UNIT;
         uint256 amount = 1 * UNIT;
-        uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
+        uint256 tokenId = _getDefaultCallId();
 
         // prepare: mint tokens
         ActionArgs[] memory _actions = new ActionArgs[](1);
@@ -242,7 +203,7 @@ contract BaseEngineFlow is BaseEngineSetup {
 
         option.setApprovalForAll(address(engine), true);
 
-        // add long
+        // add long into the account
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createAddLongAction(tokenId, amount, address(this));
         engine.execute(address(this), actions);
@@ -252,11 +213,8 @@ contract BaseEngineFlow is BaseEngineSetup {
     }
 
     function testRemoveLongShouldPullToken() public {
-        uint256 expiry = block.timestamp + 1 days;
-
-        uint256 strikePrice = 4000 * UNIT;
         uint256 amount = 1 * UNIT;
-        uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
+        uint256 tokenId = _getDefaultCallId();
 
         // prepare: mint tokens to engine
         ActionArgs[] memory _actions = new ActionArgs[](1);
@@ -290,5 +248,11 @@ contract BaseEngineFlow is BaseEngineSetup {
         vm.expectEmit(false, false, false, true, address(engine));
         emit AccountSettled(address(this), balances);
         engine.execute(address(this), actions);
+    }
+
+    function _getDefaultCallId() internal view returns (uint256 tokenId) {
+        uint256 expiry = block.timestamp + 1 days;
+        uint256 strikePrice = 4000 * UNIT;
+        tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
     }
 }

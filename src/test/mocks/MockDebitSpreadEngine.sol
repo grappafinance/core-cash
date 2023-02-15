@@ -18,7 +18,7 @@ import "../../config/errors.sol";
  * @title   MockEngine
  * @notice  Implement execute to test all flow in BaseEngine
  */
-contract MockEngine is BaseEngine, DebitSpread, ReentrancyGuard {
+contract MockDebitSpreadEngine is BaseEngine, DebitSpread, ReentrancyGuard {
     bool public isAboveWater;
 
     uint80 public mockPayout;
@@ -57,8 +57,6 @@ contract MockEngine is BaseEngine, DebitSpread, ReentrancyGuard {
                 _removeCollateral(_subAccount, actions[i].data);
             } else if (actions[i].action == ActionType.MintShort) {
                 _mintOption(_subAccount, actions[i].data);
-            } else if (actions[i].action == ActionType.MintShortIntoAccount) {
-                _mintOptionIntoAccount(_subAccount, actions[i].data);
             } else if (actions[i].action == ActionType.BurnShort) {
                 _burnOption(_subAccount, actions[i].data);
             } else if (actions[i].action == ActionType.MergeOptionToken) {
