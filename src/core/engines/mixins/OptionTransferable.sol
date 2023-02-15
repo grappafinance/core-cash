@@ -13,11 +13,11 @@ import "../../../config/enums.sol";
 import "../../../config/errors.sol";
 
 /**
- * @title   BaseEngineTransferable
+ * @title   OptionTransferable
  * @author  @dsshap
- * @notice  util functions to transfer positions between accounts without moving tokens externally
+ * @notice  util functions to transfer positions between accounts "without" moving tokens externally
  */
-abstract contract BaseEngineTransferable is BaseEngine {
+abstract contract OptionTransferable is BaseEngine {
     event CollateralTransferred(address from, address to, uint8 collateralId, uint256 amount);
 
     event OptionTokenTransferred(address from, address to, uint256 tokenId, uint64 amount);
