@@ -16,13 +16,11 @@ enum ActionType {
     RemoveCollateral,
     MintShort,
     BurnShort,
+    MergeOptionToken, // These actions are defined in "DebitSpread"
+    SplitOptionToken, // These actions are defined in "DebitSpread"
     AddLong,
     RemoveLong,
     SettleAccount,
-    // actions related to converting between vanilla option and spread position
-    // These actions are defined in "DebitSpread"
-    MergeOptionToken,
-    SplitOptionToken,
     // actions that influence more than one subAccounts:
     // These actions are defined in "OptionTransferable"
     MintShortIntoAccount, // increase short (debt) position in one subAccount, increase long token directly to another subAccount

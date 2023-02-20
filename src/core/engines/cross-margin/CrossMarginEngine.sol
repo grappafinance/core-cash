@@ -164,7 +164,7 @@ contract CrossMarginEngine is
      * @param _amount amount
      */
     function payCashValue(address _asset, address _recipient, uint256 _amount) public override(BaseEngine, IMarginEngine) {
-        _checkPermissioned(_recipient);
+        if (_recipient != address(this)) _checkPermissioned(_recipient);
 
         BaseEngine.payCashValue(_asset, _recipient, _amount);
     }
