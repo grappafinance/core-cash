@@ -56,8 +56,10 @@ abstract contract CrossMarginFixture is Test, ActionHelper, Utilities {
 
     constructor() {
         usdc = new MockERC20("USDC", "USDC", 6); // nonce: 1
+        vm.label(address(usdc), "USDC");
 
         weth = new MockERC20("WETH", "WETH", 18); // nonce: 2
+        vm.label(address(weth), "WETH");
 
         oracle = new MockOracle(); // nonce: 3
 
