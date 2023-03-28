@@ -79,9 +79,8 @@ contract CrossMarginEngine is
                          State Variables V2
     //////////////////////////////////////////////////////////////*/
 
-    ///@dev Token asset id a => asset id b mask
-    ///     Partial Margin Mask is a bitmap of asset that are marginable
-    ///     1 is marginable, zero is not
+    ///@dev Partial Margin Mask is a bitmap of asset that are marginable
+    ///     assetId => assetId mask
     mapping(uint256 => uint256) public partialMarginMask;
 
     /*///////////////////////////////////////////////////////////////
