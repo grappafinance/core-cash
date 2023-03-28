@@ -45,16 +45,14 @@ contract TestMintWithPartialMarginBeta_CM is CrossMarginFixture {
         lsEthId = grappa.registerAsset(address(lsEth));
         usdtId = grappa.registerAsset(address(usdt));
 
-        engine.setCollateralMask(address(weth), address(lsEth), true);
-        engine.setCollateralMask(address(lsEth), address(weth), true);
-        engine.setCollateralMask(address(usdc), address(mmc), true);
-        engine.setCollateralMask(address(usdc), address(usdt), true);
-        engine.setCollateralMask(address(usdt), address(mmc), true);
+        engine.setMarginMask(address(weth), address(lsEth), true);
+        engine.setMarginMask(address(lsEth), address(weth), true);
+        engine.setMarginMask(address(usdc), address(mmc), true);
+        engine.setMarginMask(address(usdc), address(usdt), true);
+        engine.setMarginMask(address(usdt), address(mmc), true);
 
         pidMmcCollat = grappa.getProductId(address(oracle), address(engine), address(weth), address(usdc), address(mmc));
-
         pidUsdtMmcCollat = grappa.getProductId(address(oracle), address(engine), address(weth), address(usdt), address(mmc));
-
         pidLsEthCollat = grappa.getProductId(address(oracle), address(engine), address(weth), address(usdc), address(lsEth));
 
         mmc.mint(address(this), 1000_000 * 1e6);

@@ -78,15 +78,15 @@ contract CrossMarginEngine is
     //////////////////////////////////////////////////////////////*/
 
     ///@dev Token type => asset id a => asset id b => uint256
-    ///     CollateralizedMaskMap stores asset pairs that are similar for margining
+    ///     collateral Margin Mask stores asset pairs that are similar for margining
     ///     1 is marginable, zero is not
-    mapping(uint8 => mapping(uint8 => uint256)) public cmm;
+    mapping(uint8 => mapping(uint8 => uint256)) public marginMask;
 
     /*///////////////////////////////////////////////////////////////
                             Events
     //////////////////////////////////////////////////////////////*/
 
-    event CollateralMaskSet(address assetX, address assetY, bool mask);
+    event MarginMaskSet(address assetX, address assetY, bool mask);
 
     /*///////////////////////////////////////////////////////////////
                 Constructor for implementation Contract
@@ -213,18 +213,18 @@ contract CrossMarginEngine is
     }
 
     /**
-     * @notice  sets the Collateral Partial Margin Mask Map a pair of assets
+     * @notice  sets the Margin Mask Map a pair of assets
      * @dev     expected to be call by account owner
      * @param _assetX the id of the asset a
      * @param _assetY the id of the asset b
      * @param _mask is similar enough for margining
      */
-    function setCollateralMask(address _assetX, address _assetY, bool _mask) external {
+    function setMarginMask(address _assetX, address _assetY, bool _mask) external {
         _checkOwner();
 
-        cmm[grappa.assetIds(_assetX)][grappa.assetIds(_assetY)] = _mask ? 1 : 0;
+        marginMask[grappa.assetIds(_assetX)][grappa.assetIds(_assetY)] = _mask ? 1 : 0;
 
-        emit CollateralMaskSet(_assetX, _assetY, _mask);
+        emit MarginMaskSet(_assetX, _assetY, _mask);
     }
 
     /**
@@ -328,38 +328,41 @@ contract CrossMarginEngine is
 
         uint256[] memory masks;
         uint256[] memory amounts;
-        uint256 collateralLength = collaterals.length;
 
         unchecked {
             for (uint256 x; x < requirements.length; ++x) {
                 uint8 reqCollateralId = requirements[x].collateralId;
                 uint256 reqAmount = requirements[x].amount;
 
-                masks = new uint256[](collateralLength);
-                amounts = new uint256[](collateralLength);
+                masks = new uint256[](collaterals.length);
+                amounts = new uint256[](collaterals.length);
                 uint256 y;
 
-                for (y; y < collateralLength; ++y) {
+                for (y; y < collaterals.length; ++y) {
                     uint8 collateralId = collaterals[y].collateralId;
 
+                    // setting mask to 1 if collateralId is
                     if (reqCollateralId == collateralId) masks[y] = 1;
-                    else masks[y] = cmm[reqCollateralId][collateralId];
+                    else masks[y] = marginMask[reqCollateralId][collateralId];
 
                     if (masks[y] > 0) amounts[y] = collaterals[y].amount;
                 }
 
-                uint256 marginValue = UintArrayLib.dot(masks, amounts);
+                uint256 marginValue = UintArrayLib.dot(amounts, masks);
 
+                // not enough collateral posted
                 if (marginValue < reqAmount) return false;
 
                 // reserving collateral to prevent double counting
-                for (y = 0; y < collateralLength; ++y) {
+                for (y = 0; y < collaterals.length; ++y) {
                     if (masks[y] > 0) {
                         if (reqAmount > amounts[y]) {
                             reqAmount = reqAmount - amounts[y];
                             collaterals[y].amount = 0;
                         } else {
                             collaterals[y].amount = uint80(amounts[y] - reqAmount);
+                            // reqAmount would now be set to zero,
+                            // no longer need to reserve, so breaking
                             break;
                         }
                     }
