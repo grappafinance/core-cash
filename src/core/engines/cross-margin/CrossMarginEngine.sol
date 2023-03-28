@@ -85,7 +85,7 @@ contract CrossMarginEngine is
                             Events
     //////////////////////////////////////////////////////////////*/
 
-    event PartialMarginMaskSet(address assetX, address assetY, bool mask);
+    event PartialMarginMaskSet(address assetX, address assetY, bool value);
 
     /*///////////////////////////////////////////////////////////////
                 Constructor for implementation Contract
@@ -215,18 +215,18 @@ contract CrossMarginEngine is
      * @notice  sets the Partial Margin Mask for a pair of assets
      * @param _assetX the id of the asset a
      * @param _assetY the id of the asset b
-     * @param _mask is margin-able
+     * @param _value is margin-able
      */
-    function setPartialMarginMask(address _assetX, address _assetY, bool _mask) external {
+    function setPartialMarginMask(address _assetX, address _assetY, bool _value) external {
         _checkOwner();
 
         uint256 collateralId = grappa.assetIds(_assetX);
         uint256 mask = 1 << (grappa.assetIds(_assetY) & 0xff);
 
-        if (_mask) partialMarginMasks[collateralId] |= mask;
+        if (_value) partialMarginMasks[collateralId] |= mask;
         else partialMarginMasks[collateralId] &= ~mask;
 
-        emit PartialMarginMaskSet(_assetX, _assetY, _mask);
+        emit PartialMarginMaskSet(_assetX, _assetY, _value);
     }
 
     /**
