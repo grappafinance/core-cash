@@ -412,7 +412,7 @@ contract CrossMarginEngine is
      * @param _address address
      */
     function _checkPermissioned(address _address) internal view {
-        if (address(whitelist) != address(0) && !whitelist.engineAccess(_address)) revert NoAccess();
+        if (address(whitelist) != address(0) && !whitelist.isAllowed(_address)) revert NoAccess();
     }
 
     /**
