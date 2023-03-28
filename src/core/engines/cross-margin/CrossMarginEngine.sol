@@ -35,8 +35,6 @@ import "../../../config/enums.sol";
 import "../../../config/constants.sol";
 import "../../../config/errors.sol";
 
-import "forge-std/console2.sol";
-
 /**
  * @title   CrossMarginEngine
  * @author  @dsshap, @antoncoding
@@ -79,9 +77,9 @@ contract CrossMarginEngine is
                          State Variables V2
     //////////////////////////////////////////////////////////////*/
 
-    ///@dev Partial Margin Mask is a bitmap of asset that are marginable
-    ///     assetId => assetId mask
-    mapping(uint256 => uint256) public partialMarginMask;
+    ///@dev A bitmap of asset that are marginable
+    ///     assetId => assetId masks
+    mapping(uint256 => uint256) private partialMarginMasks;
 
     /*///////////////////////////////////////////////////////////////
                             Events
@@ -217,7 +215,7 @@ contract CrossMarginEngine is
      * @notice  sets the Partial Margin Mask for a pair of assets
      * @param _assetX the id of the asset a
      * @param _assetY the id of the asset b
-     * @param _mask is similar enough for margining
+     * @param _mask is margin-able
      */
     function setPartialMarginMask(address _assetX, address _assetY, bool _mask) external {
         _checkOwner();
@@ -225,8 +223,8 @@ contract CrossMarginEngine is
         uint256 collateralId = grappa.assetIds(_assetX);
         uint256 mask = 1 << (grappa.assetIds(_assetY) & 0xff);
 
-        if (_mask) partialMarginMask[collateralId] |= mask;
-        else partialMarginMask[collateralId] &= ~mask;
+        if (_mask) partialMarginMasks[collateralId] |= mask;
+        else partialMarginMasks[collateralId] &= ~mask;
 
         emit PartialMarginMaskSet(_assetX, _assetY, _mask);
     }
@@ -318,7 +316,7 @@ contract CrossMarginEngine is
 
     /**
      * ========================================================= **
-     *                 Override view functions for BaseEngine
+     *          Override view functions for BaseEngine
      * ========================================================= *
      */
 
@@ -467,12 +465,12 @@ contract CrossMarginEngine is
     }
 
     /**
-     * @dev gets partial margin mask for a pair of assets
+     * @dev gets partial margin mask for a pair of assetIds
      */
     function _getPartialMarginMask(uint8 _assetIdX, uint8 _assetIdY) internal view returns (bool) {
         if (_assetIdX == _assetIdY) return true;
 
         uint256 mask = 1 << (_assetIdY & 0xff);
-        return partialMarginMask[_assetIdX] & mask != 0;
+        return partialMarginMasks[_assetIdX] & mask != 0;
     }
 }
