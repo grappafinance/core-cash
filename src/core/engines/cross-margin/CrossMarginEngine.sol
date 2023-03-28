@@ -78,15 +78,15 @@ contract CrossMarginEngine is
     //////////////////////////////////////////////////////////////*/
 
     ///@dev Token type => asset id a => asset id b => uint256
-    ///     collateral Margin Mask stores asset pairs that are similar for margining
+    ///     Partial Margin Mask stores asset pairs that are similar for margining
     ///     1 is marginable, zero is not
-    mapping(uint8 => mapping(uint8 => uint256)) public marginMask;
+    mapping(uint8 => mapping(uint8 => uint256)) public partialMarginMask;
 
     /*///////////////////////////////////////////////////////////////
                             Events
     //////////////////////////////////////////////////////////////*/
 
-    event MarginMaskSet(address assetX, address assetY, bool mask);
+    event PartialMarginMaskSet(address assetX, address assetY, bool mask);
 
     /*///////////////////////////////////////////////////////////////
                 Constructor for implementation Contract
@@ -219,12 +219,12 @@ contract CrossMarginEngine is
      * @param _assetY the id of the asset b
      * @param _mask is similar enough for margining
      */
-    function setMarginMask(address _assetX, address _assetY, bool _mask) external {
+    function setPartialMarginMask(address _assetX, address _assetY, bool _mask) external {
         _checkOwner();
 
-        marginMask[grappa.assetIds(_assetX)][grappa.assetIds(_assetY)] = _mask ? 1 : 0;
+        partialMarginMask[grappa.assetIds(_assetX)][grappa.assetIds(_assetY)] = _mask ? 1 : 0;
 
-        emit MarginMaskSet(_assetX, _assetY, _mask);
+        emit PartialMarginMaskSet(_assetX, _assetY, _mask);
     }
 
     /**
@@ -326,26 +326,25 @@ contract CrossMarginEngine is
         Balance[] memory collaterals = account.collaterals;
         Balance[] memory requirements = _getMinCollateral(account);
 
-        uint256[] memory masks;
-        uint256[] memory amounts;
+        uint256[] memory masks = new uint256[](collaterals.length);
+        uint256[] memory amounts = new uint256[](collaterals.length);
 
         unchecked {
             for (uint256 x; x < requirements.length; ++x) {
                 uint8 reqCollateralId = requirements[x].collateralId;
                 uint256 reqAmount = requirements[x].amount;
 
-                masks = new uint256[](collaterals.length);
-                amounts = new uint256[](collaterals.length);
                 uint256 y;
 
                 for (y; y < collaterals.length; ++y) {
+                    // only setting amount on first pass, dont need to repeat each inner loop
+                    if (x == 0) amounts[y] = collaterals[y].amount;
+
                     uint8 collateralId = collaterals[y].collateralId;
 
                     // setting mask to 1 if collateralId is
                     if (reqCollateralId == collateralId) masks[y] = 1;
-                    else masks[y] = marginMask[reqCollateralId][collateralId];
-
-                    if (masks[y] > 0) amounts[y] = collaterals[y].amount;
+                    else masks[y] = partialMarginMask[reqCollateralId][collateralId];
                 }
 
                 uint256 marginValue = UintArrayLib.dot(amounts, masks);
@@ -355,16 +354,16 @@ contract CrossMarginEngine is
 
                 // reserving collateral to prevent double counting
                 for (y = 0; y < collaterals.length; ++y) {
-                    if (masks[y] > 0) {
-                        if (reqAmount > amounts[y]) {
-                            reqAmount = reqAmount - amounts[y];
-                            collaterals[y].amount = 0;
-                        } else {
-                            collaterals[y].amount = uint80(amounts[y] - reqAmount);
-                            // reqAmount would now be set to zero,
-                            // no longer need to reserve, so breaking
-                            break;
-                        }
+                    if (masks[y] == 0) continue;
+
+                    if (reqAmount > amounts[y]) {
+                        reqAmount = reqAmount - amounts[y];
+                        amounts[y] = 0;
+                    } else {
+                        amounts[y] = uint80(amounts[y] - reqAmount);
+                        // reqAmount would now be set to zero,
+                        // no longer need to reserve, so breaking
+                        break;
                     }
                 }
             }

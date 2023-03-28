@@ -45,11 +45,11 @@ contract TestMintWithPartialMarginBeta_CM is CrossMarginFixture {
         lsEthId = grappa.registerAsset(address(lsEth));
         usdtId = grappa.registerAsset(address(usdt));
 
-        engine.setMarginMask(address(weth), address(lsEth), true);
-        engine.setMarginMask(address(lsEth), address(weth), true);
-        engine.setMarginMask(address(usdc), address(mmc), true);
-        engine.setMarginMask(address(usdc), address(usdt), true);
-        engine.setMarginMask(address(usdt), address(mmc), true);
+        engine.setPartialMarginMask(address(weth), address(lsEth), true);
+        engine.setPartialMarginMask(address(lsEth), address(weth), true);
+        engine.setPartialMarginMask(address(usdc), address(mmc), true);
+        engine.setPartialMarginMask(address(usdc), address(usdt), true);
+        engine.setPartialMarginMask(address(usdt), address(mmc), true);
 
         pidMmcCollat = grappa.getProductId(address(oracle), address(engine), address(weth), address(usdc), address(mmc));
         pidUsdtMmcCollat = grappa.getProductId(address(oracle), address(engine), address(weth), address(usdt), address(mmc));
@@ -172,21 +172,32 @@ contract TestMintWithPartialMarginBeta_CM is CrossMarginFixture {
 
         uint256 tokenId1 = getTokenId(TokenType.PUT, pidUsdcCollat, expiry, 1000 * UNIT, 0);
         uint256 tokenId2 = getTokenId(TokenType.PUT, pidUsdtMmcCollat, expiry, 2000 * UNIT, 0);
+
+        ActionArgs[] memory actions = new ActionArgs[](4);
+        actions[0] = createAddCollateralAction(usdtId, address(this), 900 * 1e6);
+        actions[1] = createAddCollateralAction(mmcId, address(this), 1200 * 1e6);
+        actions[2] = createMintAction(tokenId1, address(this), amount);
+        actions[3] = createMintAction(tokenId2, address(this), amount);
+
+        vm.expectRevert(BM_AccountUnderwater.selector);
+
+        engine.execute(address(this), actions);
+    }
+
+    function testMintMixedBag() public {
+        uint256 amount = 1 * UNIT;
+
+        uint256 tokenId1 = getTokenId(TokenType.PUT, pidUsdcCollat, expiry, 1000 * UNIT, 0);
+        uint256 tokenId2 = getTokenId(TokenType.PUT, pidUsdtMmcCollat, expiry, 2000 * UNIT, 0);
         uint256 tokenId3 = getTokenId(TokenType.CALL, pidEthCollat, expiry, 3000 * UNIT, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](6);
-        actions[0] = createAddCollateralAction(usdtId, address(this), 900 * 1e6);
+        actions[0] = createAddCollateralAction(usdtId, address(this), 1800 * 1e6);
         actions[1] = createAddCollateralAction(mmcId, address(this), 1200 * 1e6);
         actions[2] = createAddCollateralAction(lsEthId, address(this), 1 * 1e18);
         actions[3] = createMintAction(tokenId1, address(this), amount);
         actions[4] = createMintAction(tokenId2, address(this), amount);
         actions[5] = createMintAction(tokenId3, address(this), amount);
-
-        vm.expectRevert(BM_AccountUnderwater.selector);
-
-        engine.execute(address(this), actions);
-
-        actions[0] = createAddCollateralAction(usdtId, address(this), 1800 * 1e6);
         engine.execute(address(this), actions);
 
         (Position[] memory shorts,,) = engine.marginAccounts(address(this));
