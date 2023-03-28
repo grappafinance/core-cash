@@ -16,9 +16,10 @@ import {IMarginEngine} from "../../../interfaces/IMarginEngine.sol";
 import {IWhitelist} from "../../../interfaces/IWhitelist.sol";
 
 // libraries
-import {TokenIdUtil} from "../../../libraries/TokenIdUtil.sol";
-import {ProductIdUtil} from "../../../libraries/ProductIdUtil.sol";
 import {BalanceUtil} from "../../../libraries/BalanceUtil.sol";
+import {ProductIdUtil} from "../../../libraries/ProductIdUtil.sol";
+import {TokenIdUtil} from "../../../libraries/TokenIdUtil.sol";
+import {UintArrayLib} from "array-lib/UintArrayLib.sol";
 
 // Cross margin libraries
 import {AccountUtil} from "./AccountUtil.sol";
@@ -71,6 +72,21 @@ contract CrossMarginEngine is
     ///     checks msg.sender on execute & batchExecute
     ///     checks recipient on payCashValue
     IWhitelist public whitelist;
+
+    /*///////////////////////////////////////////////////////////////
+                         State Variables V2
+    //////////////////////////////////////////////////////////////*/
+
+    ///@dev Token type => asset id a => asset id b => uint256
+    ///     CollateralizedMaskMap stores asset pairs that are similar for margining
+    ///     1 is marginable, zero is not
+    mapping(uint8 => mapping(uint8 => uint256)) public cmm;
+
+    /*///////////////////////////////////////////////////////////////
+                            Events
+    //////////////////////////////////////////////////////////////*/
+
+    event CollateralMaskSet(address assetX, address assetY, bool mask);
 
     /*///////////////////////////////////////////////////////////////
                 Constructor for implementation Contract
@@ -197,6 +213,21 @@ contract CrossMarginEngine is
     }
 
     /**
+     * @notice  sets the Collateral Partial Margin Mask Map a pair of assets
+     * @dev     expected to be call by account owner
+     * @param _assetX the id of the asset a
+     * @param _assetY the id of the asset b
+     * @param _mask is similar enough for margining
+     */
+    function setCollateralMask(address _assetX, address _assetY, bool _mask) external {
+        _checkOwner();
+
+        cmm[grappa.assetIds(_assetX)][grappa.assetIds(_assetY)] = _mask ? 1 : 0;
+
+        emit CollateralMaskSet(_assetX, _assetY, _mask);
+    }
+
+    /**
      * @dev view function to get all shorts, longs and collaterals
      */
     function marginAccounts(address _subAccount)
@@ -292,17 +323,47 @@ contract CrossMarginEngine is
     function _isAccountAboveWater(address _subAccount) internal view override returns (bool) {
         CrossMarginAccount memory account = accounts[_subAccount];
 
-        Balance[] memory balances = account.collaterals;
+        Balance[] memory collaterals = account.collaterals;
+        Balance[] memory requirements = _getMinCollateral(account);
 
-        Balance[] memory minCollateralAmounts = _getMinCollateral(account);
+        uint256[] memory masks;
+        uint256[] memory amounts;
+        uint256 collateralLength = collaterals.length;
 
-        for (uint256 i; i < minCollateralAmounts.length;) {
-            (, Balance memory balance,) = balances.find(minCollateralAmounts[i].collateralId);
+        unchecked {
+            for (uint256 x; x < requirements.length; ++x) {
+                uint8 reqCollateralId = requirements[x].collateralId;
+                uint256 reqAmount = requirements[x].amount;
 
-            if (balance.amount < minCollateralAmounts[i].amount) return false;
+                masks = new uint256[](collateralLength);
+                amounts = new uint256[](collateralLength);
+                uint256 y;
 
-            unchecked {
-                ++i;
+                for (y; y < collateralLength; ++y) {
+                    uint8 collateralId = collaterals[y].collateralId;
+
+                    if (reqCollateralId == collateralId) masks[y] = 1;
+                    else masks[y] = cmm[reqCollateralId][collateralId];
+
+                    if (masks[y] > 0) amounts[y] = collaterals[y].amount;
+                }
+
+                uint256 marginValue = UintArrayLib.dot(masks, amounts);
+
+                if (marginValue < reqAmount) return false;
+
+                // reserving collateral to prevent double counting
+                for (y = 0; y < collateralLength; ++y) {
+                    if (masks[y] > 0) {
+                        if (reqAmount > amounts[y]) {
+                            reqAmount = reqAmount - amounts[y];
+                            collaterals[y].amount = 0;
+                        } else {
+                            collaterals[y].amount = uint80(amounts[y] - reqAmount);
+                            break;
+                        }
+                    }
+                }
             }
         }
 

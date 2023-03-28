@@ -51,22 +51,6 @@ contract TestMint_CM is CrossMarginFixture {
         assertEq(option.balanceOf(address(this), tokenId), amount);
     }
 
-    function testCannotMintCallWithUsdcCollateral() public {
-        uint256 depositAmount = 1000 * UNIT;
-
-        uint256 strikePrice = 4000 * UNIT;
-        uint256 amount = 1 * UNIT;
-
-        uint256 tokenId = getTokenId(TokenType.CALL, pidUsdcCollat, expiry, strikePrice, 0);
-
-        ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
-        actions[1] = createMintAction(tokenId, address(this), amount);
-
-        vm.expectRevert(CM_CannotMintOptionWithThisCollateral.selector);
-        engine.execute(address(this), actions);
-    }
-
     function testMintPut() public {
         uint256 depositAmount = 2000 * 1e6;
 
@@ -141,22 +125,6 @@ contract TestMint_CM is CrossMarginFixture {
         actions[0] = createMintAction(tokenId, address(this), amount);
 
         vm.expectRevert(GP_InvalidExpiry.selector);
-        engine.execute(address(this), actions);
-    }
-
-    function testCannotMintPutWithETHCollateral() public {
-        uint256 depositAmount = 1 * 1e18;
-
-        uint256 strikePrice = 4000 * UNIT;
-        uint256 amount = 1 * UNIT;
-
-        uint256 tokenId = getTokenId(TokenType.PUT, pidEthCollat, expiry, strikePrice, 0);
-
-        ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
-        actions[1] = createMintAction(tokenId, address(this), amount);
-
-        vm.expectRevert(CM_CannotMintOptionWithThisCollateral.selector);
         engine.execute(address(this), actions);
     }
 
