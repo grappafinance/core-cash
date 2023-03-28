@@ -35,6 +35,8 @@ import "../../../config/enums.sol";
 import "../../../config/constants.sol";
 import "../../../config/errors.sol";
 
+import "forge-std/console2.sol";
+
 /**
  * @title   CrossMarginEngine
  * @author  @dsshap, @antoncoding
@@ -77,10 +79,10 @@ contract CrossMarginEngine is
                          State Variables V2
     //////////////////////////////////////////////////////////////*/
 
-    ///@dev Token type => asset id a => asset id b => uint256
-    ///     Partial Margin Mask stores asset pairs that are similar for margining
+    ///@dev Token asset id a => asset id b mask
+    ///     Partial Margin Mask is a bitmap of asset that are marginable
     ///     1 is marginable, zero is not
-    mapping(uint8 => mapping(uint8 => uint256)) public partialMarginMask;
+    mapping(uint256 => uint256) public partialMarginMask;
 
     /*///////////////////////////////////////////////////////////////
                             Events
@@ -213,8 +215,7 @@ contract CrossMarginEngine is
     }
 
     /**
-     * @notice  sets the Margin Mask Map a pair of assets
-     * @dev     expected to be call by account owner
+     * @notice  sets the Partial Margin Mask for a pair of assets
      * @param _assetX the id of the asset a
      * @param _assetY the id of the asset b
      * @param _mask is similar enough for margining
@@ -222,7 +223,11 @@ contract CrossMarginEngine is
     function setPartialMarginMask(address _assetX, address _assetY, bool _mask) external {
         _checkOwner();
 
-        partialMarginMask[grappa.assetIds(_assetX)][grappa.assetIds(_assetY)] = _mask ? 1 : 0;
+        uint256 collateralId = grappa.assetIds(_assetX);
+        uint256 mask = 1 << (grappa.assetIds(_assetY) & 0xff);
+
+        if (_mask) partialMarginMask[collateralId] |= mask;
+        else partialMarginMask[collateralId] &= ~mask;
 
         emit PartialMarginMaskSet(_assetX, _assetY, _mask);
     }
@@ -256,6 +261,15 @@ contract CrossMarginEngine is
     }
 
     /**
+     * @notice  gets the Partial Margin Mask for a pair of assets
+     * @param _assetX the id of an asset
+     * @param _assetY the id of an asset
+     */
+    function getPartialMarginMask(address _assetX, address _assetY) external view returns (bool) {
+        return _getPartialMarginMask(grappa.assetIds(_assetX), grappa.assetIds(_assetY));
+    }
+
+    /**
      * ========================================================= **
      *             Override Internal Functions For Each Action
      * ========================================================= *
@@ -264,7 +278,7 @@ contract CrossMarginEngine is
     /**
      * @notice  settle the margin account at expiry
      * @dev     override this function from BaseEngine
-     *             because we get the payout while updating the storage during settlement
+     *          because we get the payout while updating the storage during settlement
      * @dev     this update the account storage
      */
     function _settle(address _subAccount) internal override {
@@ -343,8 +357,7 @@ contract CrossMarginEngine is
                     uint8 collateralId = collaterals[y].collateralId;
 
                     // setting mask to 1 if collateralId is
-                    if (reqCollateralId == collateralId) masks[y] = 1;
-                    else masks[y] = partialMarginMask[reqCollateralId][collateralId];
+                    if (_getPartialMarginMask(reqCollateralId, collateralId)) masks[y] = 1;
                 }
 
                 uint256 marginValue = UintArrayLib.dot(amounts, masks);
@@ -452,5 +465,15 @@ contract CrossMarginEngine is
      */
     function _getMinCollateral(CrossMarginAccount memory account) internal view returns (Balance[] memory) {
         return CrossMarginMath.getMinCollateralForPositions(grappa, account.shorts, account.longs);
+    }
+
+    /**
+     * @dev gets partial margin mask for a pair of assets
+     */
+    function _getPartialMarginMask(uint8 _assetIdX, uint8 _assetIdY) internal view returns (bool) {
+        if (_assetIdX == _assetIdY) return true;
+
+        uint256 mask = 1 << (_assetIdY & 0xff);
+        return partialMarginMask[_assetIdX] & mask != 0;
     }
 }

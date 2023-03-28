@@ -69,6 +69,18 @@ contract TestMintWithPartialMarginBeta_CM is CrossMarginFixture {
         oracle.setSpotPrice(address(weth), 3000 * UNIT);
     }
 
+    function testRemovePartialMarginMask() public {
+        assertEq(engine.getPartialMarginMask(address(weth), address(lsEth)), true);
+
+        engine.setPartialMarginMask(address(weth), address(lsEth), false);
+
+        assertEq(engine.getPartialMarginMask(address(weth), address(lsEth)), false);
+    }
+
+    function testSameAssetPartialMarginMask() public {
+        assertEq(engine.getPartialMarginMask(address(weth), address(weth)), true);
+    }
+
     function testMintCall() public {
         uint256 depositAmount = 1 * 1e18;
 
