@@ -37,6 +37,16 @@ interface IGrappa {
         view
         returns (address engine, address collateral, uint256 payout);
 
+    function getProductId(address oracle, address engine, address underlying, address strike, address collateral)
+        external
+        view
+        returns (uint40 id);
+
+    function getTokenId(TokenType tokenType, uint40 productId, uint256 expiry, uint256 longStrike, uint256 shortStrike)
+        external
+        view
+        returns (uint256 id);
+
     /**
      * @notice burn option token and get out cash value at expiry
      * @param _account who to settle for
