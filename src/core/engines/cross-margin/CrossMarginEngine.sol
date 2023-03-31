@@ -353,7 +353,7 @@ contract CrossMarginEngine is
 
                     uint8 collateralId = collaterals[y].collateralId;
 
-                    // setting mask to 1 if collateralId is
+                    // setting mask to 1 if reqCollateralId is collateralId
                     if (_getPartialMarginMask(reqCollateralId, collateralId)) masks[y] = 1;
                 }
 

@@ -75,6 +75,10 @@ contract TestMintWithPartialMarginBeta_CM is CrossMarginFixture {
         engine.setPartialMarginMask(address(weth), address(lsEth), false);
 
         assertEq(engine.getPartialMarginMask(address(weth), address(lsEth)), false);
+        assertEq(engine.getPartialMarginMask(address(lsEth), address(weth)), true);
+        assertEq(engine.getPartialMarginMask(address(usdc), address(mmc)), true);
+        assertEq(engine.getPartialMarginMask(address(usdc), address(usdt)), true);
+        assertEq(engine.getPartialMarginMask(address(usdt), address(mmc)), true);
     }
 
     function testSameAssetPartialMarginMask() public {
