@@ -11,7 +11,7 @@ contract MockWhitelist is IWhitelist {
         return sactionedList[_subAccount];
     }
 
-    function engineAccess(address _subAccount) external view override returns (bool) {
+    function isAllowed(address _subAccount) external view override returns (bool) {
         return engineAccessList[_subAccount] && !sactionedList[_subAccount];
     }
 

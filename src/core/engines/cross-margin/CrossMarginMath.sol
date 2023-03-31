@@ -76,14 +76,14 @@ library CrossMarginMath {
                 // gets the amount of numeraire and underlying needed
                 (uint256 numeraireNeeded, uint256 underlyingNeeded) = getMinCollateral(detail);
 
-                if (numeraireNeeded != 0) {
+                if (numeraireNeeded > 0) {
                     (found, index) = amounts.indexOf(detail.numeraireId);
 
                     if (found) amounts[index].amount += numeraireNeeded.toUint80();
                     else amounts = amounts.append(Balance(detail.numeraireId, numeraireNeeded.toUint80()));
                 }
 
-                if (underlyingNeeded != 0) {
+                if (underlyingNeeded > 0) {
                     (found, index) = amounts.indexOf(detail.underlyingId);
 
                     if (found) amounts[index].amount += underlyingNeeded.toUint80();
@@ -367,6 +367,7 @@ library CrossMarginMath {
                 detail.underlyingDecimals = product.underlyingDecimals;
                 detail.numeraireId = product.strikeId;
                 detail.numeraireDecimals = product.strikeDecimals;
+
                 detail.expiry = expiry;
 
                 details = details.append(detail);

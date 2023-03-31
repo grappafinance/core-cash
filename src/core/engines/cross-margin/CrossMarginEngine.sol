@@ -16,9 +16,10 @@ import {IMarginEngine} from "../../../interfaces/IMarginEngine.sol";
 import {IWhitelist} from "../../../interfaces/IWhitelist.sol";
 
 // libraries
-import {TokenIdUtil} from "../../../libraries/TokenIdUtil.sol";
-import {ProductIdUtil} from "../../../libraries/ProductIdUtil.sol";
 import {BalanceUtil} from "../../../libraries/BalanceUtil.sol";
+import {ProductIdUtil} from "../../../libraries/ProductIdUtil.sol";
+import {TokenIdUtil} from "../../../libraries/TokenIdUtil.sol";
+import {UintArrayLib} from "array-lib/UintArrayLib.sol";
 
 // Cross margin libraries
 import {AccountUtil} from "./AccountUtil.sol";
@@ -71,6 +72,20 @@ contract CrossMarginEngine is
     ///     checks msg.sender on execute & batchExecute
     ///     checks recipient on payCashValue
     IWhitelist public whitelist;
+
+    /*///////////////////////////////////////////////////////////////
+                         State Variables V2
+    //////////////////////////////////////////////////////////////*/
+
+    ///@dev A bitmap of asset that are marginable
+    ///     assetId => assetId masks
+    mapping(uint256 => uint256) private partialMarginMasks;
+
+    /*///////////////////////////////////////////////////////////////
+                            Events
+    //////////////////////////////////////////////////////////////*/
+
+    event PartialMarginMaskSet(address assetX, address assetY, bool value);
 
     /*///////////////////////////////////////////////////////////////
                 Constructor for implementation Contract
@@ -197,6 +212,24 @@ contract CrossMarginEngine is
     }
 
     /**
+     * @notice  sets the Partial Margin Mask for a pair of assets
+     * @param _assetX the id of the asset a
+     * @param _assetY the id of the asset b
+     * @param _value is margin-able
+     */
+    function setPartialMarginMask(address _assetX, address _assetY, bool _value) external {
+        _checkOwner();
+
+        uint256 collateralId = grappa.assetIds(_assetX);
+        uint256 mask = 1 << (grappa.assetIds(_assetY) & 0xff);
+
+        if (_value) partialMarginMasks[collateralId] |= mask;
+        else partialMarginMasks[collateralId] &= ~mask;
+
+        emit PartialMarginMaskSet(_assetX, _assetY, _value);
+    }
+
+    /**
      * @dev view function to get all shorts, longs and collaterals
      */
     function marginAccounts(address _subAccount)
@@ -225,6 +258,15 @@ contract CrossMarginEngine is
     }
 
     /**
+     * @notice  gets the Partial Margin Mask for a pair of assets
+     * @param _assetX the id of an asset
+     * @param _assetY the id of an asset
+     */
+    function getPartialMarginMask(address _assetX, address _assetY) external view returns (bool) {
+        return _getPartialMarginMask(grappa.assetIds(_assetX), grappa.assetIds(_assetY));
+    }
+
+    /**
      * ========================================================= **
      *             Override Internal Functions For Each Action
      * ========================================================= *
@@ -233,7 +275,7 @@ contract CrossMarginEngine is
     /**
      * @notice  settle the margin account at expiry
      * @dev     override this function from BaseEngine
-     *             because we get the payout while updating the storage during settlement
+     *          because we get the payout while updating the storage during settlement
      * @dev     this update the account storage
      */
     function _settle(address _subAccount) internal override {
@@ -274,7 +316,7 @@ contract CrossMarginEngine is
 
     /**
      * ========================================================= **
-     *                 Override view functions for BaseEngine
+     *          Override view functions for BaseEngine
      * ========================================================= *
      */
 
@@ -292,17 +334,48 @@ contract CrossMarginEngine is
     function _isAccountAboveWater(address _subAccount) internal view override returns (bool) {
         CrossMarginAccount memory account = accounts[_subAccount];
 
-        Balance[] memory balances = account.collaterals;
+        Balance[] memory collaterals = account.collaterals;
+        Balance[] memory requirements = _getMinCollateral(account);
 
-        Balance[] memory minCollateralAmounts = _getMinCollateral(account);
+        uint256[] memory masks = new uint256[](collaterals.length);
+        uint256[] memory amounts = new uint256[](collaterals.length);
 
-        for (uint256 i; i < minCollateralAmounts.length;) {
-            (, Balance memory balance,) = balances.find(minCollateralAmounts[i].collateralId);
+        unchecked {
+            for (uint256 x; x < requirements.length; ++x) {
+                uint8 reqCollateralId = requirements[x].collateralId;
+                uint256 reqAmount = requirements[x].amount;
 
-            if (balance.amount < minCollateralAmounts[i].amount) return false;
+                uint256 y;
 
-            unchecked {
-                ++i;
+                for (y; y < collaterals.length; ++y) {
+                    // only setting amount on first pass, dont need to repeat each inner loop
+                    if (x == 0) amounts[y] = collaterals[y].amount;
+
+                    uint8 collateralId = collaterals[y].collateralId;
+
+                    // setting mask to 1 if reqCollateralId is collateralId
+                    if (_getPartialMarginMask(reqCollateralId, collateralId)) masks[y] = 1;
+                }
+
+                uint256 marginValue = UintArrayLib.dot(amounts, masks);
+
+                // not enough collateral posted
+                if (marginValue < reqAmount) return false;
+
+                // reserving collateral to prevent double counting
+                for (y = 0; y < collaterals.length; ++y) {
+                    if (masks[y] == 0) continue;
+
+                    if (reqAmount > amounts[y]) {
+                        reqAmount = reqAmount - amounts[y];
+                        amounts[y] = 0;
+                    } else {
+                        amounts[y] = uint80(amounts[y] - reqAmount);
+                        // reqAmount would now be set to zero,
+                        // no longer need to reserve, so breaking
+                        break;
+                    }
+                }
             }
         }
 
@@ -339,7 +412,7 @@ contract CrossMarginEngine is
      * @param _address address
      */
     function _checkPermissioned(address _address) internal view {
-        if (address(whitelist) != address(0) && !whitelist.engineAccess(_address)) revert NoAccess();
+        if (address(whitelist) != address(0) && !whitelist.isAllowed(_address)) revert NoAccess();
     }
 
     /**
@@ -389,5 +462,15 @@ contract CrossMarginEngine is
      */
     function _getMinCollateral(CrossMarginAccount memory account) internal view returns (Balance[] memory) {
         return CrossMarginMath.getMinCollateralForPositions(grappa, account.shorts, account.longs);
+    }
+
+    /**
+     * @dev gets partial margin mask for a pair of assetIds
+     */
+    function _getPartialMarginMask(uint8 _assetIdX, uint8 _assetIdY) internal view returns (bool) {
+        if (_assetIdX == _assetIdY) return true;
+
+        uint256 mask = 1 << (_assetIdY & 0xff);
+        return partialMarginMasks[_assetIdX] & mask != 0;
     }
 }
