@@ -129,5 +129,4 @@ contract TestSettleOptionPartialMargin_CM is CrossMarginFixture {
         assertEq(collateralsAfter.length, 1);
         assertEq(collateralsAfter[0].amount, depositAmount - expectedPayout);
     }
-
 }
