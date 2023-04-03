@@ -46,7 +46,6 @@ contract TestMintWithPartialMarginBeta_CM is CrossMarginFixture {
         usdtId = grappa.registerAsset(address(usdt));
 
         engine.setPartialMarginMask(address(weth), address(lsEth), true);
-        engine.setPartialMarginMask(address(lsEth), address(weth), true);
         engine.setPartialMarginMask(address(usdc), address(sdyc), true);
         engine.setPartialMarginMask(address(usdc), address(usdt), true);
         engine.setPartialMarginMask(address(usdt), address(sdyc), true);
@@ -70,6 +69,7 @@ contract TestMintWithPartialMarginBeta_CM is CrossMarginFixture {
     }
 
     function testRemovePartialMarginMask() public {
+        engine.setPartialMarginMask(address(lsEth), address(weth), true);
         assertEq(engine.getPartialMarginMask(address(weth), address(lsEth)), true);
 
         engine.setPartialMarginMask(address(weth), address(lsEth), false);
