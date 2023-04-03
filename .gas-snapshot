@@ -434,7 +434,7 @@ TestMintWithPartialMarginBeta_CM:testMintCallWithSimilarCollateral() (gas: 36382
 TestMintWithPartialMarginBeta_CM:testMintMixedBag() (gas: 620587)
 TestMintWithPartialMarginBeta_CM:testMintPut() (gas: 269367)
 TestMintWithPartialMarginBeta_CM:testMintPutWithSimilarCollateral() (gas: 362335)
-TestMintWithPartialMarginBeta_CM:testRemovePartialMarginMask() (gas: 79836)
+TestMintWithPartialMarginBeta_CM:testRemovePartialMarginMask() (gas: 106358)
 TestMintWithPartialMarginBeta_CM:testSameAssetPartialMarginMask() (gas: 24801)
 TestMintWithPartialMarginBeta_CM:testUtils() (gas: 167)
 TestMint_CM:test() (gas: 209)
