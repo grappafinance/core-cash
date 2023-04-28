@@ -41,7 +41,7 @@ contract TestLiquidateCall is AdvancedFixture {
         tokenId = getTokenId(TokenType.CALL, productId, expiry, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, alice, initialCollateral);
-        // give optoin to this address, so it can liquidate alice
+        // give option to this address, so it can liquidate alice
         actions[1] = createMintAction(tokenId, address(this), amount);
 
         // mint option
@@ -147,7 +147,7 @@ contract TestLiquidatePut is AdvancedFixture {
         tokenId = getTokenId(TokenType.PUT, productId, expiry, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, alice, initialCollateral);
-        // give optoin to this address, so it can liquidate alice
+        // give option to this address, so it can liquidate alice
         actions[1] = createMintAction(tokenId, address(this), amount);
 
         // mint option
@@ -247,7 +247,7 @@ contract TestLiquidateCallAndPut is AdvancedFixture {
         putId = getTokenId(TokenType.PUT, productId, expiry, putStrike, 0);
         ActionArgs[] memory actions = new ActionArgs[](3);
         actions[0] = createAddCollateralAction(usdcId, alice, initialCollateral);
-        // give optoins to this address, so it can liquidate alice
+        // give options to this address, so it can liquidate alice
         actions[1] = createMintAction(callId, address(this), amount);
         actions[2] = createMintAction(putId, address(this), amount);
 

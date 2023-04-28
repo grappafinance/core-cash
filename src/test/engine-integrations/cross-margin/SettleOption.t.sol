@@ -240,7 +240,7 @@ contract TestSettleCollateralizedPut_CM is CrossMarginFixture {
         tokenId = getTokenId(TokenType.PUT, pidUsdcCollat, expiry, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
-        // give optoin to alice
+        // give option to alice
         actions[1] = createMintAction(tokenId, alice, amount);
 
         // mint option

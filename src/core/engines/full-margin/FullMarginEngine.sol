@@ -188,6 +188,15 @@ contract FullMarginEngine is DebitSpread, IMarginEngine, ReentrancyGuard {
     function _getAccountPayout(address _subAccount) internal view override returns (uint8, uint80) {
         FullMarginAccount memory account = marginAccounts[_subAccount];
         uint8 collatId = account.collateralId;
+        (TokenType tokenType,,, uint64 shortStrike, uint64 longStrike) = account.tokenId.parseTokenId();
+
+        if (tokenType == TokenType.CALL_SPREAD || tokenType == TokenType.PUT_SPREAD) {
+            // if it's call spread or put spread, it's possible that minted token Id is an invalid spread token
+            //
+            // for example: if the vault is short 1100 CALL, long 1000 CALL.
+            //              the "minted" tokenId will be: (LONG-1100-CALL, SHORT-1000-CALL)
+            //              (shortStrike = 1100, longStrike = 1000)
+        }
         (,, uint256 payout) = grappa.getPayout(account.tokenId, account.shortAmount);
         return (collatId, payout.toUint80());
     }
