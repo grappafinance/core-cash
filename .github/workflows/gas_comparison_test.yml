@@ -10,6 +10,7 @@ jobs:
   gas_comparison:
     runs-on: ubuntu-latest
 
+    steps:
       - name: Run Gas Comparison
         uses: antoncoding/gas-diff-action@master
         with:
