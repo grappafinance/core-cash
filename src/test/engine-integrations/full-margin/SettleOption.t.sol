@@ -520,7 +520,7 @@ contract TestSettleDebitCallSpread_FM is FullMarginFixture {
         actions[0] = createMintAction(call5000, alice, amount); // give option to alice
         actions[1] = createMergeAction(call4000, call5000, address(this), amount);
         engine.execute(address(this), actions);
-        // // expire option
+        // expire option
         vm.warp(expiry);
     }
 
@@ -564,6 +564,89 @@ contract TestSettleDebitCallSpread_FM is FullMarginFixture {
         engine.execute(address(this), actions);
 
         // // margin account should be reset
+        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) =
+            engine.marginAccounts(address(this));
+
+        assertEq(shortId, 0);
+        assertEq(shortAmount, 0);
+        assertEq(collateralAfter - collateralBefore, expectedGainForVault);
+        assertEq(collateralIdAfter, collateralIdBefore);
+    }
+}
+
+contract TestSettleDebitPutSpread_FM is FullMarginFixture {
+    // vault is with long 2000 PUT, short 1500 PUT
+    uint256 public expiry;
+    uint64 private amount = uint64(1 * UNIT);
+
+    function setUp() public {
+        expiry = block.timestamp + 14 days;
+        oracle.setSpotPrice(address(weth), 3000 * UNIT);
+
+        usdc.mint(address(this), 10000 * UNIT);
+        usdc.approve(address(engine), type(uint256).max);
+
+        uint256 depositAmount = 2000 * UNIT;
+
+        // create a sub account vault to mint 2000 put
+        uint256 put2000 = getTokenId(TokenType.PUT, pidUsdcCollat, expiry, 2000 * UNIT, 0);
+
+        ActionArgs[] memory actions = new ActionArgs[](2);
+        address subAccount = address(uint160(address(this)) + 1);
+
+        actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
+        actions[1] = createMintAction(put2000, address(this), amount);
+        engine.execute(subAccount, actions);
+
+        // short 1500 PUT from account address(this)
+        uint256 put1500 = getTokenId(TokenType.PUT, pidUsdcCollat, expiry, 1500 * UNIT, 0);
+        actions[0] = createMintAction(put1500, alice, amount); // give option to alice
+        actions[1] = createMergeAction(put2000, put1500, address(this), amount);
+        engine.execute(address(this), actions);
+        // expire option
+        vm.warp(expiry);
+    }
+
+    function testSellerSettleShortITM() public {
+        // expires in the money
+        uint256 expiryPrice = 1800 * UNIT;
+        oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
+
+        uint256 expectedGainForVault = (200 * UNIT);
+
+        (,, uint8 collateralIdBefore, uint80 collateralBefore) = engine.marginAccounts(address(this));
+
+        // to settle
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createSettleAction();
+        engine.execute(address(this), actions);
+
+        // margin account should be reset
+        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) =
+            engine.marginAccounts(address(this));
+
+        assertEq(shortId, 0);
+        assertEq(shortAmount, 0);
+        assertEq(collateralAfter - collateralBefore, expectedGainForVault);
+        assertEq(collateralIdAfter, collateralIdBefore);
+    }
+
+    function testSellerSettlePayoutCapped() public {
+        // both 2000 and 1500 puts are ITM
+        uint256 expiryPrice = 1400 * UNIT;
+        oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
+
+        // expected payout is capped at $500
+        uint256 expectedGainForVault = 500 * UNIT;
+
+        (,, uint8 collateralIdBefore, uint80 collateralBefore) = engine.marginAccounts(address(this));
+
+        // to settle
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createSettleAction();
+        engine.execute(address(this), actions);
+
+        // margin account should be reset
         (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) =
             engine.marginAccounts(address(this));
 
