@@ -1,0 +1,30 @@
+name: Gas Comparison Test
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+
+jobs:
+  gas_comparison:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout base branch
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.base_ref }}
+
+      - name: Save base branch .gas-snapshot
+        run: cp .gas-snapshot .gas-snapshot-base
+
+      - name: Checkout PR branch
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Run Gas Comparison
+        uses: antoncoding/gas-diff-action
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
