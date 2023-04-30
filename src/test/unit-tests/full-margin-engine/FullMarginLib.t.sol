@@ -52,7 +52,7 @@ contract FullMarginLibTester {
         FullMarginLib.split(_account, spreadId, amount);
     }
 
-    function settleAtExpiry(uint80 payout) external {
+    function settleAtExpiry(int80 payout) external {
         FullMarginLib.settleAtExpiry(_account, payout);
     }
 }

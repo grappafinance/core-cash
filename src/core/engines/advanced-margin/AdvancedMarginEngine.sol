@@ -49,6 +49,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
     using NumberUtil for uint256;
     using FixedPointMathLib for uint256;
     using SafeCast for uint256;
+    using SafeCast for int256;
 
     IVolOracle public immutable volOracle;
 
@@ -297,7 +298,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
         marginAccounts[_subAccount].split(spreadId, amount);
     }
 
-    function _settleAccount(address _subAccount, uint80 payout) internal override {
+    function _settleAccount(address _subAccount, int80 payout) internal override {
         marginAccounts[_subAccount].settleAtExpiry(payout);
     }
 
@@ -324,7 +325,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
      * @dev     this function will revert when called before expiry
      * @param _subAccount account id
      */
-    function _getAccountPayout(address _subAccount) internal view override returns (uint8, uint80 payout) {
+    function _getAccountPayout(address _subAccount) internal view override returns (uint8, int80 payout) {
         (uint256 callPayout, uint256 putPayout) = (0, 0);
         AdvancedMarginAccount memory account = marginAccounts[_subAccount];
         uint8 collatId = account.collateralId;
@@ -333,7 +334,7 @@ contract AdvancedMarginEngine is IMarginEngine, BaseEngine, DebitSpread, Ownable
         }
 
         if (account.shortPutAmount > 0) (,, putPayout) = grappa.getPayout(account.shortPutId, account.shortPutAmount);
-        return (collatId, (callPayout + putPayout).toUint80());
+        return (collatId, (callPayout + putPayout).toInt256().toInt80());
     }
 
     /**

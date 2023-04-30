@@ -13,7 +13,7 @@ import "../../../config/errors.sol";
 contract BaseDebitSpreadEngineFlow is MockedBaseEngineSetup {
     address public random = address(0xaabb);
 
-    event AccountSettled(address subAccount, Balance[] payouts);
+    event AccountSettledSingle(address subAccount, uint8 collateralId, int256 payout);
 
     function setUp() public {
         usdc.mint(address(this), 10000 * 1e6);
@@ -234,7 +234,7 @@ contract BaseDebitSpreadEngineFlow is MockedBaseEngineSetup {
     }
 
     function testSettlementShouldEmitEvent() public {
-        uint80 amount = 100 * 1e6;
+        int80 amount = 100 * 1e6;
         engine.setPayout(amount);
         engine.setPayoutCollatId(usdcId);
 
@@ -242,11 +242,8 @@ contract BaseDebitSpreadEngineFlow is MockedBaseEngineSetup {
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSettleAction();
 
-        Balance[] memory balances = new Balance[](1);
-        balances[0] = Balance(usdcId, amount);
-
         vm.expectEmit(false, false, false, true, address(engine));
-        emit AccountSettled(address(this), balances);
+        emit AccountSettledSingle(address(this), usdcId, amount);
         engine.execute(address(this), actions);
     }
 

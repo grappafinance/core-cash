@@ -21,7 +21,7 @@ import "../../config/errors.sol";
 contract MockDebitSpreadEngine is BaseEngine, DebitSpread, ReentrancyGuard {
     bool public isAboveWater;
 
-    uint80 public mockPayout;
+    int80 public mockPayout;
     uint8 private mockPayoutCollatId;
 
     constructor(address _grappa, address _option) BaseEngine(_grappa, _option) {}
@@ -30,7 +30,7 @@ contract MockDebitSpreadEngine is BaseEngine, DebitSpread, ReentrancyGuard {
         isAboveWater = _isAboveWater;
     }
 
-    function setPayout(uint80 _payout) external {
+    function setPayout(int80 _payout) external {
         mockPayout = _payout;
     }
 
@@ -38,7 +38,7 @@ contract MockDebitSpreadEngine is BaseEngine, DebitSpread, ReentrancyGuard {
         mockPayoutCollatId = _id;
     }
 
-    function _getAccountPayout(address /*subAccount*/ ) internal view override returns (uint8, uint80) {
+    function _getAccountPayout(address /*subAccount*/ ) internal view override returns (uint8, int80) {
         return (mockPayoutCollatId, mockPayout);
     }
 

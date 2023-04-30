@@ -525,7 +525,7 @@ contract TestSettleDebitCallSpread_FM is FullMarginFixture {
     }
 
     function testSellerSettleShortITM() public {
-        // expires out the money
+        // expires in the money
         uint256 expiryPrice = 4100 * UNIT;
         oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
 
