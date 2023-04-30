@@ -25,6 +25,6 @@ jobs:
           ref: ${{ github.head_ref }}
 
       - name: Run Gas Comparison
-        uses: antoncoding/gas-diff-action
+        uses: antoncoding/gas-diff-action@master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
