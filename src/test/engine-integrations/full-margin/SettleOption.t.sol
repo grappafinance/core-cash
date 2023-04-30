@@ -529,9 +529,9 @@ contract TestSettleDebitCallSpread_FM is FullMarginFixture {
         uint256 expiryPrice = 4100 * UNIT;
         oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
 
-        // uint256 expectedPayout = 100 * UNIT;
+        uint256 expectedGainForVault = (100 * UNIT) / 4100 * 1e12;
 
-        // (,, uint8 collateralIdBefore, uint80 collateralBefore) = engine.marginAccounts(address(this));
+        (,, uint8 collateralIdBefore, uint80 collateralBefore) = engine.marginAccounts(address(this));
 
         // to settle
         ActionArgs[] memory actions = new ActionArgs[](1);
@@ -539,13 +539,38 @@ contract TestSettleDebitCallSpread_FM is FullMarginFixture {
         engine.execute(address(this), actions);
 
         // // margin account should be reset
-        // (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) =
-        //     engine.marginAccounts(address(this));
+        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) =
+            engine.marginAccounts(address(this));
 
-        // assertEq(shortId, 0);
-        // assertEq(shortAmount, 0);
-        // assertEq(collateralBefore - collateralAfter, expectedPayout);
-        // assertEq(collateralIdAfter, collateralIdBefore);
+        assertEq(shortId, 0);
+        assertEq(shortAmount, 0);
+        assertEq(collateralAfter - collateralBefore, expectedGainForVault);
+        assertEq(collateralIdAfter, collateralIdBefore);
+    }
+
+    function testSellerSettlePayoutCapped() public {
+        // both 4000 and 5000 calls are ITM
+        uint256 expiryPrice = 6000 * UNIT;
+        oracle.setExpiryPrice(address(weth), address(usdc), expiryPrice);
+
+        // expected payout is the difference ($1000) but in eth term
+        uint256 expectedGainForVault = 0.166667 * 1e18;
+
+        (,, uint8 collateralIdBefore, uint80 collateralBefore) = engine.marginAccounts(address(this));
+
+        // to settle
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createSettleAction();
+        engine.execute(address(this), actions);
+
+        // // margin account should be reset
+        (uint256 shortId, uint64 shortAmount, uint8 collateralIdAfter, uint80 collateralAfter) =
+            engine.marginAccounts(address(this));
+
+        assertEq(shortId, 0);
+        assertEq(shortAmount, 0);
+        assertEq(collateralAfter - collateralBefore, expectedGainForVault);
+        assertEq(collateralIdAfter, collateralIdBefore);
     }
 }
 

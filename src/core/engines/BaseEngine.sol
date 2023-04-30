@@ -252,6 +252,11 @@ abstract contract BaseEngine {
      * @dev     this update the account storage
      */
     function _settle(address _subAccount) internal virtual {
+        // if payout is positive, the "option token" this account minted worth something
+        // so some collateral should be subtracted from the account.
+        // payout can be negative because the account could have spread positions that has positive PNL at the end
+        // for example if the account short a 1000-1100 call spread, and the price is 1050
+        // the account should earn $50 at expiry
         (uint8 collateralId, int80 payout) = _getAccountPayout(_subAccount);
 
         // update the account in state

@@ -199,18 +199,27 @@ contract FullMarginEngine is DebitSpread, IMarginEngine, ReentrancyGuard {
         int256 payout;
 
         if (tokenType == TokenType.CALL_SPREAD && shortStrike > longStrike) {
-            // if it's call spread, it's possible that minted token Id is an invalid spread token
+            // if it's spread, it's possible that minted token Id is an "invalid" spread token
+            // and it will revert if we put tokenId directly to grappa.getPayout()
             //
             // for example: if the vault is short 1100 CALL, long 1000 CALL.
-            //              the "minted" tokenId will be: (LONG-1100-CALL, SHORT-1000-CALL)
-            //              (shortStrike = 1100, longStrike = 1000)
-
+            //              the "minted" tokenId will be: (LONG-1100-CALL, SHORT-1000-CALL) (invalid call spread token)
+            //              so we calculate the "net payout" for both legs
             (,, uint256 longPayout) =
                 grappa.getPayout(TokenIdUtil.getTokenId(TokenType.CALL, productId, expiry, longStrike, 0), account.shortAmount);
             (,, uint256 shortPayout) =
                 grappa.getPayout(TokenIdUtil.getTokenId(TokenType.CALL, productId, expiry, shortStrike, 0), account.shortAmount);
             payout = (shortPayout.toInt256() - longPayout.toInt256());
-        } else if (tokenType == TokenType.PUT_SPREAD && shortStrike < longStrike) {} else {
+        } else if (tokenType == TokenType.PUT_SPREAD && shortStrike < longStrike) {
+            // example put spread: if the vault is long 1000 PUT, short 900 PUT.
+            //              the "minted" tokenId will be: (LONG-900-PUT, SHORT-1000-PUT) (invalid put spread token)
+            //              so we calculate the "net payout" for both legs
+            (,, uint256 longPayout) =
+                grappa.getPayout(TokenIdUtil.getTokenId(TokenType.PUT, productId, expiry, longStrike, 0), account.shortAmount);
+            (,, uint256 shortPayout) =
+                grappa.getPayout(TokenIdUtil.getTokenId(TokenType.PUT, productId, expiry, shortStrike, 0), account.shortAmount);
+            payout = (shortPayout.toInt256() - longPayout.toInt256());
+        } else {
             (,, uint256 positivePayout) = grappa.getPayout(account.tokenId, account.shortAmount);
             payout = positivePayout.toInt256();
         }
