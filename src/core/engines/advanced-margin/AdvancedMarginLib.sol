@@ -2,6 +2,8 @@
 pragma solidity ^0.8.0;
 
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
+import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
+
 import "../../../libraries/TokenIdUtil.sol";
 import "../../../libraries/ProductIdUtil.sol";
 
@@ -20,6 +22,8 @@ import "../../../config/constants.sol";
 library AdvancedMarginLib {
     using TokenIdUtil for uint256;
     using ProductIdUtil for uint40;
+    using SafeCast for int256;
+    using SafeCast for uint256;
 
     /**
      * @dev return true if the account has no short positions nor collateral
@@ -145,16 +149,17 @@ library AdvancedMarginLib {
         }
     }
 
-    function settleAtExpiry(AdvancedMarginAccount storage account, uint80 _payout) internal {
+    function settleAtExpiry(AdvancedMarginAccount storage account, int80 _payout) internal {
         // clear all debt
         account.shortPutId = 0;
         account.shortCallId = 0;
         account.shortCallAmount = 0;
         account.shortPutAmount = 0;
 
-        if (account.collateralAmount > _payout) {
+        if (uint256(account.collateralAmount).toInt256().toInt80() > _payout) {
             unchecked {
-                account.collateralAmount = account.collateralAmount - _payout;
+                account.collateralAmount =
+                    int256(uint256(account.collateralAmount).toInt256().toInt80() - _payout).toUint256().toUint80();
             }
         } else {
             // the account doesn't have enough to payout, result in protocol loss

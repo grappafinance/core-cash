@@ -40,7 +40,7 @@ import "../../../config/errors.sol";
 //         tokenId = getTokenId(TokenType.CALL, productId, expiry, strike, 0);
 //         ActionArgs[] memory actions = new ActionArgs[](2);
 //         actions[0] = createAddCollateralAction(usdcId, alice, initialCollateral);
-//         // give optoin to this address, so it can liquidate alice
+//         // give option to this address, so it can liquidate alice
 //         actions[1] = createMintAction(tokenId, address(this), amount);
 
 //         // mint option

@@ -53,7 +53,11 @@ abstract contract BaseEngine {
 
     event OptionTokenRemoved(address subAccount, uint256 tokenId, uint64 amount);
 
+    /// @dev emitted when an account is settled, with array of payouts
     event AccountSettled(address subAccount, Balance[] payouts);
+
+    /// @dev emitted when an account is settled, with single payout
+    event AccountSettledSingle(address subAccount, uint8 collateralId, int256 payout);
 
     /**
      * ========================================================= *
@@ -248,15 +252,17 @@ abstract contract BaseEngine {
      * @dev     this update the account storage
      */
     function _settle(address _subAccount) internal virtual {
-        (uint8 collateralId, uint80 payout) = _getAccountPayout(_subAccount);
+        // if payout is positive, the "option token" this account minted worth something
+        // so some collateral should be subtracted from the account.
+        // payout can be negative because the account could have spread positions that has positive PNL at the end
+        // for example if the account short a 1000-1100 call spread, and the price is 1050
+        // the account should earn $50 at expiry
+        (uint8 collateralId, int80 payout) = _getAccountPayout(_subAccount);
 
         // update the account in state
         _settleAccount(_subAccount, payout);
 
-        Balance[] memory balances = new Balance[](1);
-        balances[0] = Balance(collateralId, payout);
-
-        emit AccountSettled(_subAccount, balances);
+        emit AccountSettledSingle(_subAccount, collateralId, payout);
     }
 
     /**
@@ -276,7 +282,7 @@ abstract contract BaseEngine {
 
     function _decreaseLongInAccount(address _subAccount, uint256 tokenId, uint64 amount) internal virtual {}
 
-    function _settleAccount(address _subAccount, uint80 payout) internal virtual {}
+    function _settleAccount(address _subAccount, int80 payout) internal virtual {}
 
     /**
      * ========================================================= *
@@ -285,11 +291,14 @@ abstract contract BaseEngine {
      */
 
     /**
-     * @notice [MUST Implement] return amount of collateral that should be reserved to payout long positions
-     * @dev     this function will revert when called before expiry
+     * @notice [MUST Implement] return amount of collateral that should be reserved to payout the counterparty
+     * @dev    if payout is positive: the account need to payout, the amount will be subtracted from collateral
+     *         if payout is negative: the account will receive payout, the amount will be added to collateral
+     *
+     * @dev    this function will revert when called before expiry
      * @param _subAccount account id
      */
-    function _getAccountPayout(address _subAccount) internal view virtual returns (uint8 collateralId, uint80 payout) {}
+    function _getAccountPayout(address _subAccount) internal view virtual returns (uint8 collateralId, int80 payout) {}
 
     /**
      * @dev [MUST Implement] return whether if an account is healthy.

@@ -96,7 +96,7 @@ contract TestRemoveCollateral_FM is FullMarginFixture {
 
         // if user is trying to remove collateral before settlement
         // the tx will revert because the vault has insufficient collateral to cover payout
-        vm.expectRevert(stdError.arithmeticError);
+        vm.expectRevert(bytes("SafeCast: value must be positive"));
         engine.execute(address(this), actions2);
     }
 

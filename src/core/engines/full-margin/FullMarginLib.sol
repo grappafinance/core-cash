@@ -2,6 +2,8 @@
 pragma solidity ^0.8.0;
 
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
+import {SafeCast} from "openzeppelin/utils/math/SafeCast.sol";
+
 import "../../../libraries/TokenIdUtil.sol";
 import "../../../libraries/ProductIdUtil.sol";
 
@@ -21,6 +23,8 @@ import "./errors.sol";
 library FullMarginLib {
     using TokenIdUtil for uint256;
     using ProductIdUtil for uint40;
+    using SafeCast for int256;
+    using SafeCast for uint256;
 
     /**
      * @dev return true if the account has no short positions nor collateral
@@ -147,14 +151,16 @@ library FullMarginLib {
      * @param account FullMarginAccount storage that will be updated
      * @param payout amount of payout for minted options
      */
-    function settleAtExpiry(FullMarginAccount storage account, uint80 payout) internal {
+    function settleAtExpiry(FullMarginAccount storage account, int80 payout) internal {
         // clear all debt
         account.tokenId = 0;
         account.shortAmount = 0;
 
+        int256 collateral = int256(uint256(account.collateralAmount));
+
         // this line should not underflow because collateral should always be enough
         // but keeping the underflow check to make sure
-        account.collateralAmount = account.collateralAmount - payout;
+        account.collateralAmount = (collateral - payout).toUint256().toUint80();
 
         // do not check ending collateral amount (and reset collateral id) because it is very
         // unlikely the payout is the exact amount in the account

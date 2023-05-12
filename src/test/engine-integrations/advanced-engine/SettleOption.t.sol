@@ -33,7 +33,7 @@ contract TestSettleCall is AdvancedFixture {
         tokenId = getTokenId(TokenType.CALL, productId, expiry, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
-        // give optoin to alice
+        // give option to alice
         actions[1] = createMintAction(tokenId, alice, amount);
 
         // mint option
@@ -161,7 +161,7 @@ contract TestSettleCoveredCall is AdvancedFixture {
         tokenId = getTokenId(TokenType.CALL, productIdEthCollat, expiry, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
-        // give optoin to alice
+        // give option to alice
         actions[1] = createMintAction(tokenId, alice, amount);
 
         // mint option
@@ -275,7 +275,7 @@ contract TestSettlePut is AdvancedFixture {
         tokenId = getTokenId(TokenType.PUT, productId, expiry, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
-        // give optoin to alice
+        // give option to alice
         actions[1] = createMintAction(tokenId, alice, amount);
 
         // mint option
@@ -405,7 +405,7 @@ contract TestSettleETHCollateralizedPut is AdvancedFixture {
         tokenId = getTokenId(TokenType.PUT, productIdEthCollat, expiry, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
-        // give optoin to alice
+        // give option to alice
         actions[1] = createMintAction(tokenId, alice, amount);
 
         // mint option
@@ -518,7 +518,7 @@ contract TestSettleCallSpread is AdvancedFixture {
         tokenId = getTokenId(TokenType.CALL_SPREAD, productId, expiry, longStrike, shortStrike);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
-        // give optoin to alice
+        // give option to alice
         actions[1] = createMintAction(tokenId, alice, amount);
 
         // mint option
@@ -674,7 +674,7 @@ contract TestSettlePutSpread is AdvancedFixture {
         tokenId = getTokenId(TokenType.PUT_SPREAD, productId, expiry, longStrike, shortStrike);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
-        // give optoin to alice
+        // give option to alice
         actions[1] = createMintAction(tokenId, alice, amount);
 
         // mint option
@@ -841,7 +841,7 @@ contract TestSettleShortCondor is AdvancedFixture {
 
         ActionArgs[] memory actions = new ActionArgs[](3);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
-        // give optoin to alice
+        // give option to alice
         actions[1] = createMintAction(callSpreadTokenId, alice, amount);
         actions[2] = createMintAction(putSpreadTokenId, alice, amount);
 
@@ -938,7 +938,7 @@ contract TestSettleBTCCollateralizedCall is AdvancedFixture {
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wbtcId, address(this), depositAmount);
-        // give optoin to alice
+        // give option to alice
         actions[1] = createMintAction(wbtcbackedTokenId, alice, amount);
 
         // mint option
@@ -1027,7 +1027,7 @@ contract TestBatchSettleCall is AdvancedFixture {
 
             ActionArgs[] memory actions = new ActionArgs[](2);
             actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
-            // give optoin to alice
+            // give option to alice
             actions[1] = createMintAction(tokenIds[i], alice, amount);
             // mint option
             engine.execute(address(uint160(address(this)) + i), actions);
@@ -1152,7 +1152,7 @@ contract TestBatchSettleMultipleProduct is AdvancedFixture {
             uint256 depositAmount_ = i == 0 ? 1e18 : depositAmount;
 
             actions[0] = createAddCollateralAction(assetId, address(this), depositAmount_);
-            // give optoin to alice
+            // give option to alice
             actions[1] = createMintAction(tokenIds[i], alice, amount);
             // mint option
             engine.execute(address(uint160(address(this)) + i), actions);
@@ -1236,7 +1236,7 @@ contract TestSettlementEdgeCase is AdvancedFixture {
         tokenId = getTokenId(TokenType.CALL, productId, expiry, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
-        // give optoin to alice
+        // give option to alice
         actions[1] = createMintAction(tokenId, alice, amount);
 
         // mint option

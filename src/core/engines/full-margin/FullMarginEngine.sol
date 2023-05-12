@@ -30,6 +30,8 @@ import "../../../config/errors.sol";
 import "./types.sol";
 import "./errors.sol";
 
+import "forge-std/console2.sol";
+
 /**
  * @title   FullMarginEngine
  * @author  @antoncoding
@@ -43,6 +45,7 @@ contract FullMarginEngine is DebitSpread, IMarginEngine, ReentrancyGuard {
     using FullMarginMath for FullMarginDetail;
     using TokenIdUtil for uint256;
     using SafeCast for uint256;
+    using SafeCast for int256;
 
     /*///////////////////////////////////////////////////////////////
                                   Variables
@@ -142,7 +145,7 @@ contract FullMarginEngine is DebitSpread, IMarginEngine, ReentrancyGuard {
         marginAccounts[_subAccount].burnOption(tokenId, amount);
     }
 
-    function _settleAccount(address _subAccount, uint80 payout) internal override {
+    function _settleAccount(address _subAccount, int80 payout) internal override {
         marginAccounts[_subAccount].settleAtExpiry(payout);
     }
 
@@ -185,11 +188,43 @@ contract FullMarginEngine is DebitSpread, IMarginEngine, ReentrancyGuard {
      * @dev     this function will revert when called before expiry
      * @param _subAccount account id
      */
-    function _getAccountPayout(address _subAccount) internal view override returns (uint8, uint80) {
+    function _getAccountPayout(address _subAccount) internal view override returns (uint8, int80) {
         FullMarginAccount memory account = marginAccounts[_subAccount];
         uint8 collatId = account.collateralId;
-        (,, uint256 payout) = grappa.getPayout(account.tokenId, account.shortAmount);
-        return (collatId, payout.toUint80());
+
+        // short strike: the strike price this account is shorting
+        (TokenType tokenType, uint40 productId, uint64 expiry, uint64 shortStrike, uint64 longStrike) =
+            account.tokenId.parseTokenId();
+
+        int256 payout;
+
+        if (tokenType == TokenType.CALL_SPREAD && shortStrike > longStrike) {
+            // if it's spread, it's possible that minted token Id is an "invalid" spread token
+            // and it will revert if we put tokenId directly to grappa.getPayout()
+            //
+            // for example: if the vault is short 1100 CALL, long 1000 CALL.
+            //              the "minted" tokenId will be: (LONG-1100-CALL, SHORT-1000-CALL) (invalid call spread token)
+            //              so we calculate the "net payout" for both legs
+            (,, uint256 longPayout) =
+                grappa.getPayout(TokenIdUtil.getTokenId(TokenType.CALL, productId, expiry, longStrike, 0), account.shortAmount);
+            (,, uint256 shortPayout) =
+                grappa.getPayout(TokenIdUtil.getTokenId(TokenType.CALL, productId, expiry, shortStrike, 0), account.shortAmount);
+            payout = (shortPayout.toInt256() - longPayout.toInt256());
+        } else if (tokenType == TokenType.PUT_SPREAD && shortStrike < longStrike) {
+            // example put spread: if the vault is long 1000 PUT, short 900 PUT.
+            //              the "minted" tokenId will be: (LONG-900-PUT, SHORT-1000-PUT) (invalid put spread token)
+            //              so we calculate the "net payout" for both legs
+            (,, uint256 longPayout) =
+                grappa.getPayout(TokenIdUtil.getTokenId(TokenType.PUT, productId, expiry, longStrike, 0), account.shortAmount);
+            (,, uint256 shortPayout) =
+                grappa.getPayout(TokenIdUtil.getTokenId(TokenType.PUT, productId, expiry, shortStrike, 0), account.shortAmount);
+            payout = (shortPayout.toInt256() - longPayout.toInt256());
+        } else {
+            (,, uint256 positivePayout) = grappa.getPayout(account.tokenId, account.shortAmount);
+            payout = positivePayout.toInt256();
+        }
+
+        return (collatId, payout.toInt80());
     }
 
     /**
