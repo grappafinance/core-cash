@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 
 // for easier import
 import "../core/oracles/errors.sol";
-import "../core/engines/full-margin/errors.sol";
 import "../core/engines/advanced-margin/errors.sol";
 import "../core/engines/cross-margin/errors.sol";
 
