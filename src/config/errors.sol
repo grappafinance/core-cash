@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 // for easier import
 import "../core/oracles/errors.sol";
 
-
 /* ------------------------ *
  *      Shared Errors       *
  * -----------------------  */
