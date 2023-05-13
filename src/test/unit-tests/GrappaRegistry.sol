@@ -85,7 +85,7 @@ contract GrappaRegistry is Test {
         uint40 product = grappa.getProductId(address(0), address(0), address(weth), address(0), address(weth));
         uint256 token = grappa.getTokenId(TokenType.CALL, product, expiryTimestamp, strikePrice, 0);
 
-        (TokenType tokenType, uint40 productId, uint256 expiry, uint256 longStrike, uint256 shortStrike) =
+        (TokenType tokenType, uint40 productId, uint256 expiry, uint256 strike, uint256 reserved) =
             grappa.getDetailFromTokenId(token);
 
         assertEq(uint8(tokenType), uint8(TokenType.CALL));
@@ -93,8 +93,8 @@ contract GrappaRegistry is Test {
 
         // strike is empty
         assertEq(expiry, expiryTimestamp);
-        assertEq(longStrike, strikePrice);
-        assertEq(shortStrike, 0);
+        assertEq(strike, strikePrice);
+        assertEq(reserved, 0);
     }
 }
 

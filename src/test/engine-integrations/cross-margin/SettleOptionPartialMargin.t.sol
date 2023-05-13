@@ -61,7 +61,7 @@ contract TestSettleOptionPartialMargin_CM is CrossMarginFixture {
         uint256 amount = 1 * UNIT;
         uint256 depositAmount = 1 * 1e18;
 
-        uint256 tokenId = getTokenId(TokenType.CALL, pidLsEthCollat, expiry, strikePrice, 0);
+        uint256 tokenId = getTokenId(SettlementType.CASH, TokenType.CALL, pidLsEthCollat, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(lsEthId, address(this), depositAmount);
@@ -98,7 +98,7 @@ contract TestSettleOptionPartialMargin_CM is CrossMarginFixture {
         uint256 amount = 1 * UNIT;
         uint256 depositAmount = 2000 * 1e6;
 
-        uint256 tokenId = getTokenId(TokenType.PUT, pidSdycCollat, expiry, strikePrice, 0);
+        uint256 tokenId = getTokenId(SettlementType.CASH, TokenType.PUT, pidSdycCollat, expiry, strikePrice, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(sdycId, address(this), depositAmount);

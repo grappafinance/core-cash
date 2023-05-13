@@ -29,7 +29,7 @@ contract TestSettleCoveredCall_FM is FullMarginFixture {
 
         strike = uint64(4000 * UNIT);
 
-        tokenId = getTokenId(TokenType.CALL, pidEthCollat, expiry, strike, 0);
+        tokenId = getTokenId(SettlementType.CASH, TokenType.CALL, pidEthCollat, expiry, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         // give option to alice
@@ -149,7 +149,7 @@ contract TestSettlePut_FM is FullMarginFixture {
 
         uint256 depositAmount = 2000 * 1e6;
 
-        tokenId = getTokenId(TokenType.PUT, pidUsdcCollat, expiry, strike, 0);
+        tokenId = getTokenId(SettlementType.CASH, TokenType.PUT, pidUsdcCollat, expiry, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         // give option to alice
@@ -266,7 +266,7 @@ contract TestSettleCallSpread_FM is FullMarginFixture {
         longStrike = uint64(4000 * UNIT);
         shortStrike = uint64(5000 * UNIT);
 
-        tokenId = getTokenId(TokenType.CALL_SPREAD, pidEthCollat, expiry, longStrike, shortStrike);
+        tokenId = getTokenId(SettlementType.CASH, TokenType.CALL_SPREAD, pidEthCollat, expiry, longStrike, shortStrike);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
         // give option to alice
@@ -401,7 +401,7 @@ contract TestSettleCreditCallSpread_FM is FullMarginFixture {
         longStrike = uint64(4000 * UNIT);
         shortStrike = uint64(5000 * UNIT);
 
-        tokenId = getTokenId(TokenType.CALL_SPREAD, pidUsdcCollat, expiry, longStrike, shortStrike);
+        tokenId = getTokenId(SettlementType.CASH, TokenType.CALL_SPREAD, pidUsdcCollat, expiry, longStrike, shortStrike);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         // give option to alice
@@ -506,7 +506,7 @@ contract TestSettleDebitCallSpread_FM is FullMarginFixture {
         uint256 depositAmount = 1 ether;
 
         // create a sub account vault to mint 4000 call
-        uint256 call4000 = getTokenId(TokenType.CALL, pidEthCollat, expiry, 4000 * UNIT, 0);
+        uint256 call4000 = getTokenId(SettlementType.CASH, TokenType.CALL, pidEthCollat, expiry, 4000 * UNIT, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         address subAccount = address(uint160(address(this)) + 1);
@@ -516,7 +516,7 @@ contract TestSettleDebitCallSpread_FM is FullMarginFixture {
         engine.execute(subAccount, actions);
 
         // short 5000 from account address(this)
-        uint256 call5000 = getTokenId(TokenType.CALL, pidEthCollat, expiry, 5000 * UNIT, 0);
+        uint256 call5000 = getTokenId(SettlementType.CASH, TokenType.CALL, pidEthCollat, expiry, 5000 * UNIT, 0);
         actions[0] = createMintAction(call5000, alice, amount); // give option to alice
         actions[1] = createMergeAction(call4000, call5000, address(this), amount);
         engine.execute(address(this), actions);
@@ -589,7 +589,7 @@ contract TestSettleDebitPutSpread_FM is FullMarginFixture {
         uint256 depositAmount = 2000 * UNIT;
 
         // create a sub account vault to mint 2000 put
-        uint256 put2000 = getTokenId(TokenType.PUT, pidUsdcCollat, expiry, 2000 * UNIT, 0);
+        uint256 put2000 = getTokenId(SettlementType.CASH, TokenType.PUT, pidUsdcCollat, expiry, 2000 * UNIT, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         address subAccount = address(uint160(address(this)) + 1);
@@ -599,7 +599,7 @@ contract TestSettleDebitPutSpread_FM is FullMarginFixture {
         engine.execute(subAccount, actions);
 
         // short 1500 PUT from account address(this)
-        uint256 put1500 = getTokenId(TokenType.PUT, pidUsdcCollat, expiry, 1500 * UNIT, 0);
+        uint256 put1500 = getTokenId(SettlementType.CASH, TokenType.PUT, pidUsdcCollat, expiry, 1500 * UNIT, 0);
         actions[0] = createMintAction(put1500, alice, amount); // give option to alice
         actions[1] = createMergeAction(put2000, put1500, address(this), amount);
         engine.execute(address(this), actions);
@@ -680,7 +680,7 @@ contract TestSettlePutSpread_FM is FullMarginFixture {
         longStrike = uint64(2000 * UNIT);
         shortStrike = uint64(1800 * UNIT);
 
-        tokenId = getTokenId(TokenType.PUT_SPREAD, pidUsdcCollat, expiry, longStrike, shortStrike);
+        tokenId = getTokenId(SettlementType.CASH, TokenType.PUT_SPREAD, pidUsdcCollat, expiry, longStrike, shortStrike);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
         // give option to alice

@@ -57,7 +57,7 @@ library AdvancedMarginLib {
     ///@dev Increase the amount of short call or put (debt) of the account
     ///@param account AdvancedMarginAccount storage that will be updated in-place
     function mintOption(AdvancedMarginAccount storage account, uint256 tokenId, uint64 amount) internal {
-        (TokenType optionType, uint40 productId,,,) = tokenId.parseTokenId();
+        (, TokenType optionType, uint40 productId,,,) = tokenId.parseTokenId();
 
         // assign collateralId or check collateral id is the same
         uint8 collateralId = productId.getCollateralId();
@@ -106,7 +106,7 @@ library AdvancedMarginLib {
     ///               and convert the short position to a spread.
     function merge(AdvancedMarginAccount storage account, uint256 shortId, uint256 longId, uint64 amount) internal {
         // get token attribute for incoming token
-        (TokenType optionType,,, uint64 mergingStrike,) = longId.parseTokenId();
+        (, TokenType optionType,,, uint64 mergingStrike,) = longId.parseTokenId();
 
         if (optionType == TokenType.CALL) {
             if (account.shortCallId != shortId) revert AM_ShortDoesNotExist();

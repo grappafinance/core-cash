@@ -66,7 +66,7 @@ library FullMarginLib {
      * @param account FullMarginAccount storage that will be updated
      */
     function mintOption(FullMarginAccount storage account, uint256 tokenId, uint64 amount) internal {
-        (TokenType optionType, uint40 productId,,,) = tokenId.parseTokenId();
+        (, TokenType optionType, uint40 productId,,,) = tokenId.parseTokenId();
 
         // assign collateralId or check collateral id is the same
         (,, uint8 underlyingId, uint8 strikeId, uint8 collateralId) = productId.parseProductId();
@@ -123,7 +123,7 @@ library FullMarginLib {
      */
     function merge(FullMarginAccount storage account, uint256 shortId, uint256 longId, uint64 amount) internal {
         // get token attribute for incoming token
-        (,,, uint64 mergingStrike,) = longId.parseTokenId();
+        (,,,, uint64 mergingStrike,) = longId.parseTokenId();
 
         if (account.tokenId != shortId) revert FM_ShortDoesNotExist();
         if (account.shortAmount != amount) revert FM_MergeAmountMisMatch();

@@ -193,7 +193,7 @@ contract FullMarginEngine is DebitSpread, IMarginEngine, ReentrancyGuard {
         uint8 collatId = account.collateralId;
 
         // short strike: the strike price this account is shorting
-        (TokenType tokenType, uint40 productId, uint64 expiry, uint64 shortStrike, uint64 longStrike) =
+        (, TokenType tokenType, uint40 productId, uint64 expiry, uint64 shortStrike, uint64 longStrike) =
             account.tokenId.parseTokenId();
 
         int256 payout;
@@ -205,19 +205,24 @@ contract FullMarginEngine is DebitSpread, IMarginEngine, ReentrancyGuard {
             // for example: if the vault is short 1100 CALL, long 1000 CALL.
             //              the "minted" tokenId will be: (LONG-1100-CALL, SHORT-1000-CALL) (invalid call spread token)
             //              so we calculate the "net payout" for both legs
-            (,, uint256 longPayout) =
-                grappa.getPayout(TokenIdUtil.getTokenId(TokenType.CALL, productId, expiry, longStrike, 0), account.shortAmount);
-            (,, uint256 shortPayout) =
-                grappa.getPayout(TokenIdUtil.getTokenId(TokenType.CALL, productId, expiry, shortStrike, 0), account.shortAmount);
+            (,, uint256 longPayout) = grappa.getPayout(
+                TokenIdUtil.getTokenId(SettlementType.CASH, TokenType.CALL, productId, expiry, longStrike, 0), account.shortAmount
+            );
+            (,, uint256 shortPayout) = grappa.getPayout(
+                TokenIdUtil.getTokenId(SettlementType.CASH, TokenType.CALL, productId, expiry, shortStrike, 0),
+                account.shortAmount
+            );
             payout = (shortPayout.toInt256() - longPayout.toInt256());
         } else if (tokenType == TokenType.PUT_SPREAD && shortStrike < longStrike) {
             // example put spread: if the vault is long 1000 PUT, short 900 PUT.
             //              the "minted" tokenId will be: (LONG-900-PUT, SHORT-1000-PUT) (invalid put spread token)
             //              so we calculate the "net payout" for both legs
-            (,, uint256 longPayout) =
-                grappa.getPayout(TokenIdUtil.getTokenId(TokenType.PUT, productId, expiry, longStrike, 0), account.shortAmount);
-            (,, uint256 shortPayout) =
-                grappa.getPayout(TokenIdUtil.getTokenId(TokenType.PUT, productId, expiry, shortStrike, 0), account.shortAmount);
+            (,, uint256 longPayout) = grappa.getPayout(
+                TokenIdUtil.getTokenId(SettlementType.CASH, TokenType.PUT, productId, expiry, longStrike, 0), account.shortAmount
+            );
+            (,, uint256 shortPayout) = grappa.getPayout(
+                TokenIdUtil.getTokenId(SettlementType.CASH, TokenType.PUT, productId, expiry, shortStrike, 0), account.shortAmount
+            );
             payout = (shortPayout.toInt256() - longPayout.toInt256());
         } else {
             (,, uint256 positivePayout) = grappa.getPayout(account.tokenId, account.shortAmount);
@@ -247,7 +252,7 @@ contract FullMarginEngine is DebitSpread, IMarginEngine, ReentrancyGuard {
      * @param account account in struct it is stored
      */
     function _getAccountDetail(FullMarginAccount memory account) internal view returns (FullMarginDetail memory detail) {
-        (TokenType tokenType, uint40 productId,, uint64 longStrike, uint64 shortStrike) = account.tokenId.parseTokenId();
+        (, TokenType tokenType, uint40 productId,, uint64 longStrike, uint64 shortStrike) = account.tokenId.parseTokenId();
 
         (,,, uint8 strikeId, uint8 collateralId) = ProductIdUtil.parseProductId(productId);
 

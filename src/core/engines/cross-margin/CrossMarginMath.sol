@@ -348,7 +348,7 @@ library CrossMarginMath {
         uint256 shortLength = shorts.length;
 
         for (uint256 i; i < positions.length;) {
-            (, uint40 productId, uint64 expiry,,) = positions[i].tokenId.parseTokenId();
+            (,, uint40 productId, uint64 expiry,,) = positions[i].tokenId.parseTokenId();
 
             ProductDetails memory product = _getProductDetails(grappa, productId);
 
@@ -390,7 +390,7 @@ library CrossMarginMath {
      * @dev if weight turns into zero, we remove it from the set
      */
     function _processDetailWithToken(CrossMarginDetail memory detail, uint256 tokenId, int256 amount) internal pure {
-        (TokenType tokenType,,, uint64 strike,) = tokenId.parseTokenId();
+        (, TokenType tokenType,,, uint64 strike,) = tokenId.parseTokenId();
 
         bool found;
         uint256 index;

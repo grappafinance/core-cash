@@ -25,7 +25,7 @@ contract TestSplitCallSpread_FM is FullMarginFixture {
         expiry = block.timestamp + 7 days;
 
         // mint a 4000-5000 debit spread
-        spreadId = getTokenId(TokenType.CALL_SPREAD, pidEthCollat, expiry, strikePriceLow, strikePriceHigh);
+        spreadId = getTokenId(SettlementType.CASH, TokenType.CALL_SPREAD, pidEthCollat, expiry, strikePriceLow, strikePriceHigh);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(wethId, address(this), depositAmount);
@@ -43,7 +43,7 @@ contract TestSplitCallSpread_FM is FullMarginFixture {
 
         // check result
         (uint256 shortId, uint64 shortAmount,,) = engine.marginAccounts(address(this));
-        (TokenType tokenType,,, uint64 longStrike, uint64 shortStrike) = parseTokenId(shortId);
+        (, TokenType tokenType,,, uint64 longStrike, uint64 shortStrike) = parseTokenId(shortId);
 
         assertEq(uint8(tokenType), uint8(TokenType.CALL));
         assertEq(longStrike, strikePriceLow);
@@ -60,7 +60,7 @@ contract TestSplitCallSpread_FM is FullMarginFixture {
         engine.execute(address(this), actions);
 
         // check result
-        uint256 expectedTokenId = getTokenId(TokenType.CALL, pidEthCollat, expiry, strikePriceHigh, 0);
+        uint256 expectedTokenId = getTokenId(SettlementType.CASH, TokenType.CALL, pidEthCollat, expiry, strikePriceHigh, 0);
 
         assertEq(option.balanceOf(address(this), expectedTokenId), amount);
     }
@@ -93,7 +93,7 @@ contract TestSplitPutSpread_FM is FullMarginFixture {
         oracle.setSpotPrice(address(weth), 3000 * UNIT);
 
         // mint a 2000-1900 debit spread
-        spreadId = getTokenId(TokenType.PUT_SPREAD, pidUsdcCollat, expiry, strikePriceHigh, strikePriceLow);
+        spreadId = getTokenId(SettlementType.CASH, TokenType.PUT_SPREAD, pidUsdcCollat, expiry, strikePriceHigh, strikePriceLow);
 
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);
@@ -111,7 +111,7 @@ contract TestSplitPutSpread_FM is FullMarginFixture {
 
         // check result
         (uint256 shortId,,,) = engine.marginAccounts(address(this));
-        (TokenType tokenType,,, uint64 longStrike, uint64 shortStrike) = parseTokenId(shortId);
+        (, TokenType tokenType,,, uint64 longStrike, uint64 shortStrike) = parseTokenId(shortId);
 
         assertEq(uint8(tokenType), uint8(TokenType.PUT));
         assertEq(longStrike, strikePriceHigh);
@@ -127,7 +127,7 @@ contract TestSplitPutSpread_FM is FullMarginFixture {
         engine.execute(address(this), actions);
 
         // check result
-        uint256 expectedTokenId = getTokenId(TokenType.PUT, pidUsdcCollat, expiry, strikePriceLow, 0);
+        uint256 expectedTokenId = getTokenId(SettlementType.CASH, TokenType.PUT, pidUsdcCollat, expiry, strikePriceLow, 0);
 
         assertEq(option.balanceOf(address(this), expectedTokenId), amount);
     }
@@ -143,7 +143,7 @@ contract TestSplitPutSpread_FM is FullMarginFixture {
 
     function testCannotSplitNonExistingSpreadId() public {
         uint256 fakeLongStrike = strikePriceHigh - (50 * UNIT);
-        uint256 fakeSpreadId = getTokenId(TokenType.PUT_SPREAD, pidEthCollat, expiry, fakeLongStrike, strikePriceLow);
+        uint256 fakeSpreadId = getTokenId(SettlementType.CASH, TokenType.PUT_SPREAD, pidEthCollat, expiry, fakeLongStrike, strikePriceLow);
 
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSplitAction(fakeSpreadId, amount, address(this));

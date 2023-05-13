@@ -31,7 +31,7 @@ import "../config/errors.sol";
 /**
  * @title   Grappa
  * @author  @antoncoding, @dsshap
- * @dev     This contract serves as the registry of the system who system.
+ * @dev     This contract serves as the registry of the whole system.
  */
 contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
     using BalanceUtil for Balance[];
@@ -161,9 +161,9 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     function getDetailFromTokenId(uint256 _tokenId)
         external
         pure
-        returns (TokenType tokenType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike)
+        returns (TokenType tokenType, uint40 productId, uint64 expiry, uint64 strike, uint64 reserved)
     {
-        return TokenIdUtil.parseTokenId(_tokenId);
+        (, tokenType, productId, expiry, strike, reserved) = TokenIdUtil.parseTokenId(_tokenId);
     }
 
     /**
@@ -189,15 +189,17 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      * @param _tokenType TokenType enum
      * @param _productId if of the product
      * @param _expiry timestamp of option expiry
-     * @param _longStrike strike price of the long option, with 6 decimals
-     * @param _shortStrike strike price of the short (upper bond for call and lower bond for put) if this is a spread. 6 decimals
+     * @param _strike strike price of the long option, with 6 decimals
+     * @param _reserved reserved data section to store margin engine specific logic
      */
-    function getTokenId(TokenType _tokenType, uint40 _productId, uint256 _expiry, uint256 _longStrike, uint256 _shortStrike)
+    function getTokenId(TokenType _tokenType, uint40 _productId, uint256 _expiry, uint256 _strike, uint256 _reserved)
         external
         pure
         returns (uint256 id)
     {
-        id = TokenIdUtil.getTokenId(_tokenType, _productId, uint64(_expiry), uint64(_longStrike), uint64(_shortStrike));
+        id = TokenIdUtil.getTokenId(
+            SettlementType.CASH, _tokenType, _productId, uint64(_expiry), uint64(_strike), uint64(_reserved)
+        );
     }
 
     /**
@@ -415,15 +417,19 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      * @dev make sure that the tokenId make sense
      */
     function _isValidTokenIdToMint(uint256 _tokenId) internal view {
-        (TokenType optionType,, uint64 expiry, uint64 longStrike, uint64 shortStrike) = _tokenId.parseTokenId();
+        (SettlementType settlementType, TokenType optionType,, uint64 expiry, uint64 strike, uint64 reserved) =
+            _tokenId.parseTokenId();
+
+        // checks that token is cash settled
+        if (settlementType != SettlementType.CASH) revert GP_InvalidSettlement();
 
         // check option type and strikes
-        // check that vanilla options doesn't have a shortStrike argument
-        if ((optionType == TokenType.CALL || optionType == TokenType.PUT) && (shortStrike != 0)) revert GP_BadStrikes();
+        // check that vanilla options doesn't have a reserved argument
+        if ((optionType == TokenType.CALL || optionType == TokenType.PUT) && (reserved != 0)) revert GP_BadStrikes();
 
         // check that you cannot mint a "credit spread" token
-        if (optionType == TokenType.CALL_SPREAD && (shortStrike < longStrike)) revert GP_BadStrikes();
-        if (optionType == TokenType.PUT_SPREAD && (shortStrike > longStrike)) revert GP_BadStrikes();
+        if (optionType == TokenType.CALL_SPREAD && (reserved < strike)) revert GP_BadStrikes();
+        if (optionType == TokenType.PUT_SPREAD && (reserved > strike)) revert GP_BadStrikes();
 
         // check expiry
         if (expiry <= block.timestamp) revert GP_InvalidExpiry();
@@ -440,8 +446,16 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      *
      */
     function _getPayoutPerToken(uint256 _tokenId) internal view returns (address, address, uint256 payoutPerOption) {
-        (TokenType tokenType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike) =
-            TokenIdUtil.parseTokenId(_tokenId);
+        (
+            SettlementType settlementType,
+            TokenType tokenType,
+            uint40 productId,
+            uint64 expiry,
+            uint64 strikePrice,
+            uint64 reserved
+        ) = TokenIdUtil.parseTokenId(_tokenId);
+
+        if (settlementType != SettlementType.CASH) revert GP_InvalidSettlement();
 
         if (block.timestamp < expiry) revert GP_NotExpired();
 
@@ -451,28 +465,30 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
         // expiry price of underlying, denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
         uint256 expiryPrice = _getSettlementPrice(oracle, underlying, strike, expiry);
 
-        // cash value denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
-        uint256 cashValue;
-        if (tokenType == TokenType.CALL) {
-            cashValue = MoneynessLib.getCallCashValue(expiryPrice, longStrike);
-        } else if (tokenType == TokenType.CALL_SPREAD) {
-            cashValue = MoneynessLib.getCashValueDebitCallSpread(expiryPrice, longStrike, shortStrike);
-        } else if (tokenType == TokenType.PUT) {
-            cashValue = MoneynessLib.getPutCashValue(expiryPrice, longStrike);
-        } else if (tokenType == TokenType.PUT_SPREAD) {
-            cashValue = MoneynessLib.getCashValueDebitPutSpread(expiryPrice, longStrike, shortStrike);
-        }
+        {
+            // cash value denominated in strike (usually USD), with {UNIT_DECIMALS} decimals
+            uint256 cashValue;
+            if (tokenType == TokenType.CALL) {
+                cashValue = MoneynessLib.getCallCashValue(expiryPrice, strikePrice);
+            } else if (tokenType == TokenType.CALL_SPREAD) {
+                cashValue = MoneynessLib.getCashValueDebitCallSpread(expiryPrice, strikePrice, reserved);
+            } else if (tokenType == TokenType.PUT) {
+                cashValue = MoneynessLib.getPutCashValue(expiryPrice, strikePrice);
+            } else if (tokenType == TokenType.PUT_SPREAD) {
+                cashValue = MoneynessLib.getCashValueDebitPutSpread(expiryPrice, strikePrice, reserved);
+            }
 
-        // the following logic convert cash value (amount worth) if collateral is not strike:
-        if (collateral == underlying) {
-            // collateral is underlying. payout should be divided by underlying price
-            cashValue = cashValue.mulDivDown(UNIT, expiryPrice);
-        } else if (collateral != strike) {
-            // collateral is not underlying nor strike
-            uint256 collateralPrice = _getSettlementPrice(oracle, collateral, strike, expiry);
-            cashValue = cashValue.mulDivDown(UNIT, collateralPrice);
+            // the following logic convert cash value (amount worth) if collateral is not strike:
+            if (collateral == underlying) {
+                // collateral is underlying. payout should be divided by underlying price
+                cashValue = cashValue.mulDivDown(UNIT, expiryPrice);
+            } else if (collateral != strike) {
+                // collateral is not underlying nor strike
+                uint256 collateralPrice = _getSettlementPrice(oracle, collateral, strike, expiry);
+                cashValue = cashValue.mulDivDown(UNIT, collateralPrice);
+            }
+            payoutPerOption = cashValue.convertDecimals(UNIT_DECIMALS, collateralDecimals);
         }
-        payoutPerOption = cashValue.convertDecimals(UNIT_DECIMALS, collateralDecimals);
 
         return (engine, collateral, payoutPerOption);
     }

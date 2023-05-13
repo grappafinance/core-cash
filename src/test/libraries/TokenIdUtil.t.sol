@@ -12,12 +12,12 @@ import "../../config/types.sol";
  * @dev tester contract to make coverage works
  */
 contract TokenIdUtilTester {
-    function getTokenId(TokenType tokenType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike)
+    function getTokenId(SettlementType settlementType, TokenType tokenType, uint40 productId, uint64 expiry, uint64 strike, uint64 reserved)
         external
         pure
         returns (uint256 tokenId)
     {
-        uint256 result = TokenIdUtil.getTokenId(tokenType, productId, expiry, longStrike, shortStrike);
+        uint256 result = TokenIdUtil.getTokenId(settlementType, tokenType, productId, expiry, strike, reserved);
         return result;
     }
 
@@ -43,11 +43,11 @@ contract TokenIdLibTest is Test {
         vm.warp(1671840000);
 
         uint64 expiry = uint64(block.timestamp + 1);
-        uint256 tokenId = tester.getTokenId(TokenType.PUT, 0, expiry, 0, 0);
+        uint256 tokenId = tester.getTokenId(SettlementType.CASH, TokenType.PUT, 0, expiry, 0, 0);
         assertEq(tester.isExpired(tokenId), false);
 
         uint64 expiry2 = uint64(block.timestamp - 1);
-        uint256 tokenId2 = tester.getTokenId(TokenType.PUT, 0, expiry2, 0, 0);
+        uint256 tokenId2 = tester.getTokenId(SettlementType.CASH, TokenType.PUT, 0, expiry2, 0, 0);
         assertEq(tester.isExpired(tokenId2), true);
     }
 }

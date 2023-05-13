@@ -37,7 +37,7 @@ import "../../../config/errors.sol";
 
 //         accountId = alice;
 
-//         tokenId = getTokenId(TokenType.CALL, productId, expiry, strike, 0);
+//         tokenId = getTokenId(SettlementType.CASH, TokenType.CALL, productId, expiry, strike, 0);
 //         ActionArgs[] memory actions = new ActionArgs[](2);
 //         actions[0] = createAddCollateralAction(usdcId, alice, initialCollateral);
 //         // give option to this address, so it can liquidate alice

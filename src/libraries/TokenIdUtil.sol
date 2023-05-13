@@ -9,55 +9,71 @@ import "../config/errors.sol";
 /**
  * Token ID =
  *
- *  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
- *  | tokenType (24 bits) | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) | reserved    (64 bits) |
- *  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
+ *  * ------------------------ | ------------------ | ------------------- | ---------------- | ---------------- | ------------------ *
+ *  | settlementType (16 bits) | tokenType (8 bits) | productId (40 bits) | expiry (64 bits) | strike (64 bits) | reserved (64 bits) |
+ *  * ------------------------ | ------------------ | ------------------- | ---------------- | ---------------- | ------------------ *
  */
-
 library TokenIdUtil {
     /**
      * @notice calculate ERC1155 token id for given option parameters. See table above for tokenId
+     * @param settlementType SettlementType enum
      * @param tokenType TokenType enum
-     * @param productId if of the product
+     * @param productId id of the product
      * @param expiry timestamp of option expiry
-     * @param longStrike strike price of the long option, with 6 decimals
-     * @param reserved strike price of the short (upper bond for call and lower bond for put) if this is a spread. 6 decimals
+     * @param strike strike price of the option, with 6 decimals
+     * @param reserved allocated space for additional data
      * @return tokenId token id
      */
-    function getTokenId(TokenType tokenType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 reserved)
-        internal
-        pure
-        returns (uint256 tokenId)
-    {
+    function getTokenId(
+        SettlementType settlementType,
+        TokenType tokenType,
+        uint40 productId,
+        uint64 expiry,
+        uint64 strike,
+        uint64 reserved
+    ) internal pure returns (uint256 tokenId) {
         unchecked {
-            tokenId = (uint256(tokenType) << 232) + (uint256(productId) << 192) + (uint256(expiry) << 128)
-                + (uint256(longStrike) << 64) + uint256(reserved);
+            tokenId = (uint256(settlementType) << 240) + (uint256(tokenType) << 232) + (uint256(productId) << 192)
+                + (uint256(expiry) << 128) + (uint256(strike) << 64) + uint256(reserved);
         }
     }
 
     /**
-     * @notice derive option, product, expiry and strike price from ERC1155 token id
+     * @notice derive option, settlement, product, expiry and strike price from ERC1155 token id
      * @dev    See table above for tokenId composition
      * @param tokenId token id
+     * @return settlementType SettlementType enum
      * @return tokenType TokenType enum
-     * @return productId 32 bits product id
+     * @return productId 40 bits product id
      * @return expiry timestamp of option expiry
-     * @return longStrike strike price of the long option, with 6 decimals
-     * @return reserved strike price of the short (upper bond for call and lower bond for put) if this is a spread. 6 decimals
+     * @return strike strike price of the option, with 6 decimals
+     * @return reserved allocated space for additional data
      */
     function parseTokenId(uint256 tokenId)
         internal
         pure
-        returns (TokenType tokenType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 reserved)
+        returns (
+            SettlementType settlementType,
+            TokenType tokenType,
+            uint40 productId,
+            uint64 expiry,
+            uint64 strike,
+            uint64 reserved
+        )
     {
+        uint8 _tokenType;
+
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            tokenType := shr(232, tokenId)
+            settlementType := shr(240, tokenId)
+            _tokenType := shr(232, tokenId)
             productId := shr(192, tokenId)
             expiry := shr(128, tokenId)
-            longStrike := shr(64, tokenId)
+            strike := shr(64, tokenId)
             reserved := tokenId
         }
+
+        tokenType = TokenType(_tokenType);
     }
 
     /**
@@ -83,25 +99,71 @@ library TokenIdUtil {
     function parseEngineId(uint256 tokenId) internal pure returns (uint8 engineId) {
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            // collateralId is the last bits of productId
             engineId := shr(216, tokenId) // 192 to get product id, another 24 to get engineId
         }
     }
 
     /**
-     * @notice derive option type from ERC1155 token id
+     * @notice parse oracle id from tokenId
+     * @dev more efficient than parsing tokenId and than parse productId
      * @param tokenId token id
-     * @return tokenType TokenType enum
+     * @return oracleId
      */
-    function parseTokenType(uint256 tokenId) internal pure returns (TokenType tokenType) {
+    function parseOracleId(uint256 tokenId) internal pure returns (uint8 oracleId) {
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            tokenType := shr(232, tokenId)
+            oracleId := shr(224, tokenId) // 192 to get product id, another 32 to get oracleId
         }
     }
 
     /**
-     * @notice derive if option is expired from ERC1155 token id
+     * @notice derive token settlement from ERC1155 token id
+     * @dev    See table above for tokenId composition
+     * @param tokenId token id
+     * @return settlementType SettlementType enum
+     */
+    function parseSettlementType(uint256 tokenId) internal pure returns (SettlementType settlementType) {
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            settlementType := shr(240, tokenId)
+        }
+    }
+
+    /**
+     * @notice derive token type type from ERC1155 token id
+     * @param tokenId token id
+     * @return tokenType TokenType enum
+     */
+    function parseTokenType(uint256 tokenId) internal pure returns (TokenType) {
+        uint8 tokenType;
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            tokenType := shr(232, tokenId)
+        }
+
+        return TokenType(tokenType);
+    }
+
+    /**
+     * @notice derive if token is cash settled from ERC1155 token id
+     * @param tokenId token id
+     * @return cash bool
+     */
+    function isCash(uint256 tokenId) internal pure returns (bool) {
+        return parseSettlementType(tokenId) == SettlementType.CASH;
+    }
+
+    /**
+     * @notice derive if token is cash settled from ERC1155 token id
+     * @param tokenId token id
+     * @return cash bool
+     */
+    function isPhysical(uint256 tokenId) internal pure returns (bool) {
+        return parseSettlementType(tokenId) == SettlementType.PHYSICAL;
+    }
+
+    /**
+     * @notice derive if token is expired from ERC1155 token id
      * @param tokenId token id
      * @return expired bool
      */
@@ -118,13 +180,14 @@ library TokenIdUtil {
 
     /**
      * @notice convert an spread tokenId back to put or call.
-     *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
-     * @dev   oldId =   | spread type (24 b)  | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) | shortStrike (64 bits) |
-     *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
-     *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
-     * @dev   newId =   | call or put type    | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) | 0           (64 bits) |
-     *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
-     * @dev   this function will: override tokenType, remove shortStrike.
+     *                  * ---------------------- | --------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
+     * @dev   oldId =   | settlementType (16 b)  | spread type  (8 bits) | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) | shortStrike (64 bits) |
+     *                  * ---------------------- | --------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
+     *                  * ---------------------- | --------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
+     * @dev   newId =   | settlementType (16 b)  | call or put  (8 bits) | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) | 0           (64 bits) |
+     *                  * ---------------------- | --------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
+     *        this function will: override tokenType, remove shortStrike.
+     * @dev   this should only be used with DebitSpread Contract
      * @param _tokenId token id to change
      */
     function convertToVanillaId(uint256 _tokenId) internal pure returns (uint256 newId) {
@@ -139,14 +202,15 @@ library TokenIdUtil {
 
     /**
      * @notice convert an spread tokenId back to put or call.
-     *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
-     * @dev   oldId =   | call or put type    | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) | 0           (64 bits) |
-     *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
-     *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
-     * @dev   newId =   | spread type         | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) | shortStrike (64 bits) |
-     *                  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
+     *                  * ------------------------- | -------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
+     * @dev   oldId =   | settlementType  (16 bits) | call or put (8 bits) | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) | 0           (64 bits) |
+     *                  * ------------------------- | -------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
+     *                  * ------------------------- | -------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
+     * @dev   newId =   | settlementType  (16 bits) | spread type (8 bits) | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) | shortStrike (64 bits) |
+     *                  * ------------------------- | -------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
      *
-     * this function convert put or call type to spread type, add shortStrike.
+     *        this function convert put or call type to spread type, add shortStrike.
+     * @dev   this should only be used with DebitSpread Contract
      * @param _tokenId token id to change
      * @param _shortStrike strike to add
      */

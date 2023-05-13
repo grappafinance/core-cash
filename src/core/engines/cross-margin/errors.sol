@@ -29,6 +29,9 @@ error CM_CannotMintOptionWithThisCollateral();
 /// @dev invalid tokenId specify to mint / burn actions
 error CM_InvalidToken();
 
+/// @dev invalid settlement type for tokenId
+error CM_InvalidSettlement();
+
 /* --------------------- *
  *  Cross Margin Math Errors
  * --------------------- */

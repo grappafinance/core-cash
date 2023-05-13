@@ -131,7 +131,7 @@ contract FullMarginLibTest is Test {
         uint8 collateralId = 2;
         uint40 productId = ProductIdUtil.getProductId(0, 0, underlyingId, strikeId, collateralId);
 
-        uint256 id = TokenIdUtil.getTokenId(TokenType.CALL, productId, expiry, 100, 0);
+        uint256 id = TokenIdUtil.getTokenId(SettlementType.CASH, TokenType.CALL, productId, expiry, 100, 0);
 
         // can mint the first option
         tester.mintOption(id, 100);
@@ -159,7 +159,7 @@ contract FullMarginLibTest is Test {
         uint8 underlyingId = 2;
         // product id with collateral id == underlying id (for call)
         uint40 productId = ProductIdUtil.getProductId(0, 0, underlyingId, strikeId, underlyingId);
-        uint256 id = TokenIdUtil.getTokenId(TokenType.CALL, productId, expiry, 100, 0);
+        uint256 id = TokenIdUtil.getTokenId(SettlementType.CASH, TokenType.CALL, productId, expiry, 100, 0);
 
         // cannot mint this token!
         vm.expectRevert(FM_CollateralMisMatch.selector);
@@ -172,19 +172,19 @@ contract FullMarginLibTest is Test {
         uint8 underlyingId = 2;
         // cannot mint put with underlying as collateral
         uint40 productId = ProductIdUtil.getProductId(0, 0, underlyingId, strikeId, underlyingId);
-        uint256 putId = TokenIdUtil.getTokenId(TokenType.PUT, productId, expiry, 100, 0);
+        uint256 putId = TokenIdUtil.getTokenId(SettlementType.CASH, TokenType.PUT, productId, expiry, 100, 0);
         vm.expectRevert(FM_CannotMintOptionWithThisCollateral.selector);
         tester.mintOption(putId, 100);
 
         // cannot mint call with strike as collateral
         productId = ProductIdUtil.getProductId(0, 0, underlyingId, strikeId, strikeId);
-        uint256 callId = TokenIdUtil.getTokenId(TokenType.CALL, productId, expiry, 100, 0);
+        uint256 callId = TokenIdUtil.getTokenId(SettlementType.CASH, TokenType.CALL, productId, expiry, 100, 0);
         vm.expectRevert(FM_CannotMintOptionWithThisCollateral.selector);
         tester.mintOption(callId, 100);
 
         // cannot mint call spread with asset != underlying or strike
         productId = ProductIdUtil.getProductId(0, 0, underlyingId, strikeId, 3);
-        uint256 callSpread = TokenIdUtil.getTokenId(TokenType.CALL_SPREAD, productId, expiry, 100, 0);
+        uint256 callSpread = TokenIdUtil.getTokenId(SettlementType.CASH, TokenType.CALL_SPREAD, productId, expiry, 100, 0);
         vm.expectRevert(FM_CannotMintOptionWithThisCollateral.selector);
         tester.mintOption(callSpread, 100);
     }
@@ -196,7 +196,7 @@ contract FullMarginLibTest is Test {
         uint8 underlyingId = 2;
         uint8 collateralId = 2;
         uint40 productId = ProductIdUtil.getProductId(0, 0, underlyingId, strikeId, collateralId);
-        uint256 id = TokenIdUtil.getTokenId(TokenType.CALL, productId, expiry, 100, 0);
+        uint256 id = TokenIdUtil.getTokenId(SettlementType.CASH, TokenType.CALL, productId, expiry, 100, 0);
         tester.mintOption(id, 100);
 
         // cannot burn option with diff id
@@ -221,8 +221,8 @@ contract FullMarginLibTest is Test {
         uint8 underlyingId = 2;
         uint8 collateralId = 2;
         uint40 productId = ProductIdUtil.getProductId(0, 0, underlyingId, strikeId, collateralId);
-        uint256 shortId = TokenIdUtil.getTokenId(TokenType.CALL, productId, expiry, 100, 0);
-        uint256 longId = TokenIdUtil.getTokenId(TokenType.CALL, productId, expiry, 120, 0);
+        uint256 shortId = TokenIdUtil.getTokenId(SettlementType.CASH, TokenType.CALL, productId, expiry, 100, 0);
+        uint256 longId = TokenIdUtil.getTokenId(SettlementType.CASH, TokenType.CALL, productId, expiry, 120, 0);
         tester.mintOption(shortId, 100);
 
         // cannot merge if short is different then what the account holds
@@ -247,7 +247,7 @@ contract FullMarginLibTest is Test {
         uint8 underlyingId = 2;
         uint8 collateralId = 2;
         uint40 productId = ProductIdUtil.getProductId(0, 0, underlyingId, strikeId, collateralId);
-        uint256 spreadId = TokenIdUtil.getTokenId(TokenType.CALL_SPREAD, productId, expiry, 100, 120);
+        uint256 spreadId = TokenIdUtil.getTokenId(SettlementType.CASH, TokenType.CALL_SPREAD, productId, expiry, 100, 120);
         tester.mintOption(spreadId, 100);
 
         // cannot split if spread id is different than what the account has minted

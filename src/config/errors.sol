@@ -38,6 +38,9 @@ error GP_NotExpired();
 /// @dev settlement price is not finalized yet
 error GP_PriceNotFinalized();
 
+/// @dev cannot mint settlement type
+error GP_InvalidSettlement();
+
 /// @dev cannot mint token after expiry
 error GP_InvalidExpiry();
 

@@ -38,7 +38,7 @@ contract TestLiquidateCall is AdvancedFixture {
 
         accountId = alice;
 
-        tokenId = getTokenId(TokenType.CALL, productId, expiry, strike, 0);
+        tokenId = getTokenId(SettlementType.CASH, TokenType.CALL, productId, expiry, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, alice, initialCollateral);
         // give option to this address, so it can liquidate alice
@@ -144,7 +144,7 @@ contract TestLiquidatePut is AdvancedFixture {
 
         accountId = alice;
 
-        tokenId = getTokenId(TokenType.PUT, productId, expiry, strike, 0);
+        tokenId = getTokenId(SettlementType.CASH, TokenType.PUT, productId, expiry, strike, 0);
         ActionArgs[] memory actions = new ActionArgs[](2);
         actions[0] = createAddCollateralAction(usdcId, alice, initialCollateral);
         // give option to this address, so it can liquidate alice
@@ -243,8 +243,8 @@ contract TestLiquidateCallAndPut is AdvancedFixture {
 
         accountId = alice;
 
-        callId = getTokenId(TokenType.CALL, productId, expiry, callStrike, 0);
-        putId = getTokenId(TokenType.PUT, productId, expiry, putStrike, 0);
+        callId = getTokenId(SettlementType.CASH, TokenType.CALL, productId, expiry, callStrike, 0);
+        putId = getTokenId(SettlementType.CASH, TokenType.PUT, productId, expiry, putStrike, 0);
         ActionArgs[] memory actions = new ActionArgs[](3);
         actions[0] = createAddCollateralAction(usdcId, alice, initialCollateral);
         // give options to this address, so it can liquidate alice

@@ -138,9 +138,9 @@ contract BaseDebitSpreadEngineFlow is MockedBaseEngineSetup {
         uint256 strikePriceHigher = 5000 * UNIT;
         uint256 amount = 1 * UNIT;
 
-        uint256 spreadId = getTokenId(TokenType.CALL_SPREAD, productId, expiry, strikePrice, strikePriceHigher);
+        uint256 spreadId = getTokenId(SettlementType.CASH, TokenType.CALL_SPREAD, productId, expiry, strikePrice, strikePriceHigher);
 
-        uint256 expectedLong = getTokenId(TokenType.CALL, productId, expiry, strikePriceHigher, 0);
+        uint256 expectedLong = getTokenId(SettlementType.CASH, TokenType.CALL, productId, expiry, strikePriceHigher, 0);
 
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSplitAction(spreadId, amount, address(this));
@@ -153,8 +153,8 @@ contract BaseDebitSpreadEngineFlow is MockedBaseEngineSetup {
         uint256 expiry = block.timestamp + 1 days;
         uint256 strikePrice = 4000 * UNIT;
         uint256 amount = 1 * UNIT;
-        uint256 tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
-        uint256 shortId = getTokenId(TokenType.CALL, productId, expiry, strikePrice + 1, 0);
+        uint256 tokenId = getTokenId(SettlementType.CASH, TokenType.CALL, productId, expiry, strikePrice, 0);
+        uint256 shortId = getTokenId(SettlementType.CASH, TokenType.CALL, productId, expiry, strikePrice + 1, 0);
 
         // prepare: mint 4000 call option to this address
         ActionArgs[] memory _actions = new ActionArgs[](1);
@@ -250,6 +250,6 @@ contract BaseDebitSpreadEngineFlow is MockedBaseEngineSetup {
     function _getDefaultCallId() internal view returns (uint256 tokenId) {
         uint256 expiry = block.timestamp + 1 days;
         uint256 strikePrice = 4000 * UNIT;
-        tokenId = getTokenId(TokenType.CALL, productId, expiry, strikePrice, 0);
+        tokenId = getTokenId(SettlementType.CASH, TokenType.CALL, productId, expiry, strikePrice, 0);
     }
 }
