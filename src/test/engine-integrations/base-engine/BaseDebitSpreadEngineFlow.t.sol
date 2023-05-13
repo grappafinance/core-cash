@@ -138,7 +138,8 @@ contract BaseDebitSpreadEngineFlow is MockedBaseEngineSetup {
         uint256 strikePriceHigher = 5000 * UNIT;
         uint256 amount = 1 * UNIT;
 
-        uint256 spreadId = getTokenId(SettlementType.CASH, TokenType.CALL_SPREAD, productId, expiry, strikePrice, strikePriceHigher);
+        uint256 spreadId =
+            getTokenId(SettlementType.CASH, TokenType.CALL_SPREAD, productId, expiry, strikePrice, strikePriceHigher);
 
         uint256 expectedLong = getTokenId(SettlementType.CASH, TokenType.CALL, productId, expiry, strikePriceHigher, 0);
 

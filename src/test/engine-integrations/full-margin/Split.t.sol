@@ -143,7 +143,8 @@ contract TestSplitPutSpread_FM is FullMarginFixture {
 
     function testCannotSplitNonExistingSpreadId() public {
         uint256 fakeLongStrike = strikePriceHigh - (50 * UNIT);
-        uint256 fakeSpreadId = getTokenId(SettlementType.CASH, TokenType.PUT_SPREAD, pidEthCollat, expiry, fakeLongStrike, strikePriceLow);
+        uint256 fakeSpreadId =
+            getTokenId(SettlementType.CASH, TokenType.PUT_SPREAD, pidEthCollat, expiry, fakeLongStrike, strikePriceLow);
 
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSplitAction(fakeSpreadId, amount, address(this));

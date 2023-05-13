@@ -836,8 +836,10 @@ contract TestSettleShortCondor is AdvancedFixture {
         higherPutStrike = uint64(1200 * UNIT);
         lowerPutStrike = uint64(1000 * UNIT);
 
-        callSpreadTokenId = getTokenId(SettlementType.CASH, TokenType.CALL_SPREAD, productId, expiry, lowerCallStrike, higherCallStrike);
-        putSpreadTokenId = getTokenId(SettlementType.CASH, TokenType.PUT_SPREAD, productId, expiry, higherPutStrike, lowerPutStrike);
+        callSpreadTokenId =
+            getTokenId(SettlementType.CASH, TokenType.CALL_SPREAD, productId, expiry, lowerCallStrike, higherCallStrike);
+        putSpreadTokenId =
+            getTokenId(SettlementType.CASH, TokenType.PUT_SPREAD, productId, expiry, higherPutStrike, lowerPutStrike);
 
         ActionArgs[] memory actions = new ActionArgs[](3);
         actions[0] = createAddCollateralAction(usdcId, address(this), depositAmount);

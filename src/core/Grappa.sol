@@ -446,14 +446,8 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
      *
      */
     function _getPayoutPerToken(uint256 _tokenId) internal view returns (address, address, uint256 payoutPerOption) {
-        (
-            SettlementType settlementType,
-            TokenType tokenType,
-            uint40 productId,
-            uint64 expiry,
-            uint64 strikePrice,
-            uint64 reserved
-        ) = TokenIdUtil.parseTokenId(_tokenId);
+        (SettlementType settlementType, TokenType tokenType, uint40 productId, uint64 expiry, uint64 strikePrice, uint64 reserved)
+        = TokenIdUtil.parseTokenId(_tokenId);
 
         if (settlementType != SettlementType.CASH) revert GP_InvalidSettlement();
 

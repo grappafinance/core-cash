@@ -138,7 +138,8 @@ contract TestSplitPutSpread is AdvancedFixture {
 
     function testCannotSplitNonExistingSpreadId() public {
         uint256 fakeLongStrike = strikePriceHigh - (50 * UNIT);
-        uint256 fakeSpreadId = getTokenId(SettlementType.CASH, TokenType.PUT_SPREAD, productId, expiry, fakeLongStrike, strikePriceLow);
+        uint256 fakeSpreadId =
+            getTokenId(SettlementType.CASH, TokenType.PUT_SPREAD, productId, expiry, fakeLongStrike, strikePriceLow);
 
         ActionArgs[] memory actions = new ActionArgs[](1);
         actions[0] = createSplitAction(fakeSpreadId, amount, address(this));
