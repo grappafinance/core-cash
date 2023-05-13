@@ -17,7 +17,6 @@ src
 │   ├── OptionTokenDescriptor.sol
 │   ├── engines
 │   │   ├── BaseEngine.sol
-│   │   ├── cross-margin
 │   │   └── ...
 │   └── oracles
 │       ├── ChainlinkOracle.sol
@@ -37,7 +36,7 @@ We also separate each engine / oracle's error into each folder. All errors are p
 
 ## Margin Engines
 
-All engines are located in `src/core/engines`. They are the most important part of the system as they decide the "rule of margining".
+Shared abstract engine are located in `src/core/engines`, and each engines have their own repo. Margin engines are the most important part of the system as they decide the "rule of margining".
 
 ### BaseEngine
 
