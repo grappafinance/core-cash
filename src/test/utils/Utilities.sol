@@ -1,11 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
-import {DSTest} from "ds-test/test.sol";
-import {Vm} from "forge-std/Vm.sol";
-
 //common utilities for forge tests
-abstract contract Utilities is DSTest {
+abstract contract Utilities {
     // solhint-disable max-line-length
     function predictAddress(address _origin, uint256 _nonce) public pure returns (address) {
         if (_nonce == 0x00) {
@@ -33,7 +30,4 @@ abstract contract Utilities is DSTest {
             uint160(uint256(keccak256(abi.encodePacked(bytes1(0xda), bytes1(0x94), _origin, bytes1(0x84), uint32(_nonce)))))
         );
     }
-
-    // add a function prefixed with test here so forge coverage will ignore this file
-    function testUtils() public {}
 }
