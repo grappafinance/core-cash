@@ -12,8 +12,6 @@ import "../src/core/OptionToken.sol";
 import "../src/core/OptionTokenDescriptor.sol";
 import "../src/core/Grappa.sol";
 import "../src/core/GrappaProxy.sol";
-import "../src/core/engines/cross-margin/CrossMarginEngine.sol";
-import "../src/core/engines/cross-margin/CrossMarginEngineProxy.sol";
 
 import "../src/core/oracles/ChainlinkOracle.sol";
 import "../src/core/oracles/ChainlinkOracleDisputable.sol";
@@ -26,9 +24,6 @@ contract Deploy is Script, Utilities {
 
         // Deploy core components
         (Grappa grappa,, address optionToken) = deployCore();
-
-        // deploy and register Cross Margin Engine
-        deployCrossMarginEngine(grappa, optionToken);
 
         // deploy and register Oracles
         deployOracles(grappa);
@@ -73,21 +68,6 @@ contract Deploy is Script, Utilities {
         console.log("\n---- Core deployment ended ----\n");
     }
 
-    function deployCrossMarginEngine(Grappa grappa, address optionToken) public returns (address crossMarginEngine) {
-        // ============ Deploy Cross Margin Engine (Upgradable) ============== //
-        address engineImplementation = address(new CrossMarginEngine(address(grappa), optionToken));
-        bytes memory engineData = abi.encode(CrossMarginEngine.initialize.selector);
-        crossMarginEngine = address(new CrossMarginEngineProxy(engineImplementation, engineData));
-
-        console.log("CrossMargin Engine: \t\t", crossMarginEngine);
-
-        // ============ Register Full Margin Engine ============== //
-        {
-            uint256 engineId = grappa.registerEngine(crossMarginEngine);
-            console.log("   -> Registered ID:", engineId);
-        }
-    }
-
     function deployOracles(Grappa grappa) public {
         // ============ Deploy Chainlink Oracles ============== //
         address clOracle = address(new ChainlinkOracle());
@@ -103,7 +83,4 @@ contract Deploy is Script, Utilities {
             console.log("   -> Registered ID:", oracleId2);
         }
     }
-
-    // add a function prefixed with test here so forge coverage will ignore this file
-    function testChill() public {}
 }

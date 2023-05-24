@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../config/types.sol";
+import {Balance} from "../config/types.sol";
 
 /**
  * Operations on Balance struct
