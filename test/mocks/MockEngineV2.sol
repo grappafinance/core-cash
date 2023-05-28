@@ -5,10 +5,6 @@ pragma solidity ^0.8.0;
 
 import {UUPSUpgradeable} from "openzeppelin/proxy/utils/UUPSUpgradeable.sol";
 
-import "src/config/enums.sol";
-import "src/config/types.sol";
-import "src/config/errors.sol";
-
 /**
  * @title   MockEngineV2
  * @notice  Mock contract to test upgradability

@@ -8,12 +8,12 @@ import "../../mocks/MockOracle.sol";
 import "../../mocks/MockChainlinkAggregator.sol";
 import "../../mocks/MockDebitSpreadEngine.sol";
 
-import "src/core/Grappa.sol";
-import "src/core/GrappaProxy.sol";
-import "src/core/OptionToken.sol";
+import "../../../src/core/Grappa.sol";
+import "../../../src/core/GrappaProxy.sol";
+import "../../../src/core/OptionToken.sol";
 
-import "src/config/enums.sol";
-import "src/config/types.sol";
+import "../../../src/config/enums.sol";
+import "../../../src/config/types.sol";
 
 import "../../utils/Utilities.sol";
 

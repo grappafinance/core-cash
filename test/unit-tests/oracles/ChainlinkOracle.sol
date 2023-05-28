@@ -10,10 +10,10 @@ import {MockERC20} from "../../mocks/MockERC20.sol";
 import {MockOracle} from "../../mocks/MockOracle.sol";
 import {MockChainlinkAggregator} from "../../mocks/MockChainlinkAggregator.sol";
 
-import "src/config/enums.sol";
-import "src/config/types.sol";
-import "src/config/constants.sol";
-import "src/core/oracles/errors.sol";
+import "../../../src/config/enums.sol";
+import "../../../src/config/types.sol";
+import "../../../src/config/constants.sol";
+import "../../../src/core/oracles/errors.sol";
 
 /**
  * @dev test internal function _toPriceWithUnitDecimals

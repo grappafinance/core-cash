@@ -5,10 +5,10 @@ pragma solidity ^0.8.0;
 import {MockedBaseEngineSetup} from "./MockedBaseEngineSetup.sol";
 import {stdError} from "forge-std/Test.sol";
 
-import "src/config/enums.sol";
-import "src/config/types.sol";
-import "src/config/constants.sol";
-import "src/config/errors.sol";
+import "../../../src/config/enums.sol";
+import "../../../src/config/types.sol";
+import "../../../src/config/constants.sol";
+import "../../../src/config/errors.sol";
 
 contract BaseDebitSpreadEngineFlow is MockedBaseEngineSetup {
     address public random = address(0xaabb);
