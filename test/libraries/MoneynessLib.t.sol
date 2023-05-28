@@ -3,10 +3,10 @@ pragma solidity ^0.8.0;
 
 import {Test} from "forge-std/Test.sol";
 
-import {MoneynessLib} from "src/libraries/MoneynessLib.sol";
-import "src/config/constants.sol";
-import "src/config/errors.sol";
-import "src/config/types.sol";
+import {MoneynessLib} from "../../src/libraries/MoneynessLib.sol";
+import "../../src/config/constants.sol";
+import "../../src/config/errors.sol";
+import "../../src/config/types.sol";
 
 contract MoneynessLibTester {
     function getCallCashValue(uint256 spot, uint256 strikePrice) external pure returns (uint256) {
