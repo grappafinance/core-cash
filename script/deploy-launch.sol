@@ -8,22 +8,22 @@ import "openzeppelin/utils/Strings.sol";
 
 import "openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 
-import "../src/core/OptionToken.sol";
-import "../src/core/OptionTokenDescriptor.sol";
-import "../src/core/Grappa.sol";
-import "../src/core/GrappaProxy.sol";
+import "src/core/OptionToken.sol";
+import "src/core/OptionTokenDescriptor.sol";
+import "src/core/Grappa.sol";
+import "src/core/GrappaProxy.sol";
 
-import "../src/core/oracles/ChainlinkOracle.sol";
-import "../src/core/oracles/ChainlinkOracleDisputable.sol";
+import "src/core/oracles/ChainlinkOracle.sol";
+import "src/core/oracles/ChainlinkOracleDisputable.sol";
 
-import "../src/test/utils/Utilities.sol";
+import "test/utils/Utilities.sol";
 
 contract Deploy is Script, Utilities {
     function run() external {
         vm.startBroadcast();
 
         // Deploy core components
-        (Grappa grappa,, address optionToken) = deployCore();
+        (Grappa grappa,,) = deployCore();
 
         // deploy and register Oracles
         deployOracles(grappa);

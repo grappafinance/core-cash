@@ -4,16 +4,16 @@ pragma solidity ^0.8.0;
 // import test base and helpers.
 import "forge-std/Test.sol";
 
-import {Grappa} from "../../core/Grappa.sol";
-import {GrappaProxy} from "../../core/GrappaProxy.sol";
+import {Grappa} from "src/core/Grappa.sol";
+import {GrappaProxy} from "src/core/GrappaProxy.sol";
 import {MockERC20} from "../mocks/MockERC20.sol";
 import {MockOracle} from "../mocks/MockOracle.sol";
 
 import {MockGrappaV2} from "../mocks/MockGrappaV2.sol";
 
-import "../../config/errors.sol";
-import "../../config/enums.sol";
-import "../../config/constants.sol";
+import "src/config/errors.sol";
+import "src/config/enums.sol";
+import "src/config/constants.sol";
 
 /**
  * @dev test on implementation contract

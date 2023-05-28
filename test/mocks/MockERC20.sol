@@ -11,7 +11,4 @@ contract MockERC20 is ERC20 {
     function mint(address _to, uint256 _amount) external {
         _mint(_to, _amount);
     }
-
-    // add a function prefixed with test here so forge coverage will ignore this file
-    function test() public {}
 }

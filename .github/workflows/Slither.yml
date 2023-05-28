@@ -22,11 +22,10 @@ jobs:
         run: forge install
         
       - name: Run Slither core
-        uses: crytic/slither-action@v0.2.0
+        uses: crytic/slither-action@v0.3.0
         continue-on-error: true
         id: slither
         with:
-          target: "src/core"
           slither-config: "slither.config.json"
           solc-version: 0.8.17
           sarif: results.sarif

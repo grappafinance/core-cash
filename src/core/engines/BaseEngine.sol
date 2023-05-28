@@ -9,17 +9,17 @@ import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 import {IERC1155} from "openzeppelin/token/ERC1155/IERC1155.sol";
 
 // interfaces
-import {IGrappa} from "../../interfaces/IGrappa.sol";
-import {IOptionToken} from "../../interfaces/IOptionToken.sol";
+import {IGrappa} from "src/interfaces/IGrappa.sol";
+import {IOptionToken} from "src/interfaces/IOptionToken.sol";
 
 // libraries
-import {TokenIdUtil} from "../../libraries/TokenIdUtil.sol";
+import {TokenIdUtil} from "src/libraries/TokenIdUtil.sol";
 
 // constants and types
-import "../../config/types.sol";
-import "../../config/enums.sol";
-import "../../config/constants.sol";
-import "../../config/errors.sol";
+import "src/config/types.sol";
+import "src/config/enums.sol";
+import "src/config/constants.sol";
+import "src/config/errors.sol";
 
 /**
  * @title   BaeEngine
