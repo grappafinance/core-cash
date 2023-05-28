@@ -3,10 +3,10 @@ pragma solidity ^0.8.0;
 
 import {Test} from "forge-std/Test.sol";
 
-import {BalanceUtil} from "../../libraries/BalanceUtil.sol";
-import "../../config/constants.sol";
-import "../../config/errors.sol";
-import "../../config/types.sol";
+import {BalanceUtil} from "src/libraries/BalanceUtil.sol";
+import "src/config/constants.sol";
+import "src/config/errors.sol";
+import "src/config/types.sol";
 
 contract BalanceUtilTester {
     Balance[] public balances;

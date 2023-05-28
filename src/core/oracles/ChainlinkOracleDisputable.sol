@@ -7,7 +7,7 @@ import {ChainlinkOracle} from "./ChainlinkOracle.sol";
 
 // constants and types
 import "./errors.sol";
-import "../../config/constants.sol";
+import "src/config/constants.sol";
 
 /**
  * @title ChainlinkOracleDisputable

@@ -6,11 +6,11 @@ pragma solidity ^0.8.0;
 import {BaseEngine} from "../BaseEngine.sol";
 
 // libraries
-import {TokenIdUtil} from "../../../libraries/TokenIdUtil.sol";
+import {TokenIdUtil} from "src/libraries/TokenIdUtil.sol";
 
 // // constants and types
-import "../../../config/enums.sol";
-import "../../../config/errors.sol";
+import "src/config/enums.sol";
+import "src/config/errors.sol";
 
 /**
  * @title   OptionTransferable

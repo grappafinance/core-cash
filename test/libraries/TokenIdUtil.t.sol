@@ -3,10 +3,10 @@ pragma solidity ^0.8.0;
 
 import {Test} from "forge-std/Test.sol";
 
-import {TokenIdUtil} from "../../libraries/TokenIdUtil.sol";
-import "../../config/constants.sol";
-import "../../config/errors.sol";
-import "../../config/types.sol";
+import {TokenIdUtil} from "src/libraries/TokenIdUtil.sol";
+import "src/config/constants.sol";
+import "src/config/errors.sol";
+import "src/config/types.sol";
 
 /**
  * @dev tester contract to make coverage works

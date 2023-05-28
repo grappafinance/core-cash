@@ -6,12 +6,12 @@ import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import {SafeCastLib} from "solmate/utils/SafeCastLib.sol";
 
 // interfaces
-import {IOracle} from "../../interfaces/IOracle.sol";
-import {IAggregatorV3} from "../../interfaces/IAggregatorV3.sol";
+import {IOracle} from "src/interfaces/IOracle.sol";
+import {IAggregatorV3} from "src/interfaces/IAggregatorV3.sol";
 
 // constants and types
 import "./errors.sol";
-import "../../config/constants.sol";
+import "src/config/constants.sol";
 
 /**
  * @title ChainlinkOracle

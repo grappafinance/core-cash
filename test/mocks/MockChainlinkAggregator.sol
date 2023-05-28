@@ -3,7 +3,7 @@
 
 pragma solidity ^0.8.0;
 
-import "../../interfaces/IAggregatorV3.sol";
+import "src/interfaces/IAggregatorV3.sol";
 
 contract MockChainlinkAggregator is IAggregatorV3 {
     uint8 private immutable d;

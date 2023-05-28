@@ -3,16 +3,16 @@
 
 pragma solidity ^0.8.0;
 
-import {IMarginEngine} from "../../interfaces/IMarginEngine.sol";
-import {BaseEngine} from "../../core/engines/BaseEngine.sol";
-import {DebitSpread} from "../../core/engines/mixins/DebitSpread.sol";
+import {IMarginEngine} from "src/interfaces/IMarginEngine.sol";
+import {BaseEngine} from "src/core/engines/BaseEngine.sol";
+import {DebitSpread} from "src/core/engines/mixins/DebitSpread.sol";
 import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "solmate/utils/ReentrancyGuard.sol";
 
-import "../../config/enums.sol";
-import "../../config/types.sol";
-import "../../config/errors.sol";
+import "src/config/enums.sol";
+import "src/config/types.sol";
+import "src/config/errors.sol";
 
 /**
  * @title   MockEngine

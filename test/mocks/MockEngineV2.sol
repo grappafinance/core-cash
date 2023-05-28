@@ -5,15 +5,15 @@ pragma solidity ^0.8.0;
 
 import {UUPSUpgradeable} from "openzeppelin/proxy/utils/UUPSUpgradeable.sol";
 
-import "../../config/enums.sol";
-import "../../config/types.sol";
-import "../../config/errors.sol";
+import "src/config/enums.sol";
+import "src/config/types.sol";
+import "src/config/errors.sol";
 
 /**
- * @title   MockGrappaV2
+ * @title   MockEngineV2
  * @notice  Mock contract to test upgradability
  */
-contract MockGrappaV2 is UUPSUpgradeable {
+contract MockEngineV2 is UUPSUpgradeable {
     function version() external pure returns (uint256) {
         return 2;
     }

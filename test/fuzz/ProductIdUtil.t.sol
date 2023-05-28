@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
-import {ProductIdUtil} from "../../libraries/ProductIdUtil.sol";
+import {ProductIdUtil} from "src/libraries/ProductIdUtil.sol";
 
 contract ProductIdUtilTest is Test {
     function testFormatAndParseAreMirrored(uint8 id0, uint8 id1, uint8 id2, uint8 id3, uint8 id4) public {
