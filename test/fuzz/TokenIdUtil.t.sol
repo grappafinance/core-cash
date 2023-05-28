@@ -6,7 +6,6 @@ import {TokenIdUtil} from "../../src/libraries/TokenIdUtil.sol";
 
 import "../../src/config/enums.sol";
 
-
 contract TokenIdUtilTest is Test {
     function testTokenIdHigherThan0(uint8 tokenType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 shortStrike)
         public

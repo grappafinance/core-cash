@@ -5,7 +5,6 @@ pragma solidity ^0.8.0;
 
 import {UUPSUpgradeable} from "openzeppelin/proxy/utils/UUPSUpgradeable.sol";
 
-
 /**
  * @title   MockGrappaV2
  * @notice  Mock contract to test upgradability
