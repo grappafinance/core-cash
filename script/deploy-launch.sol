@@ -23,7 +23,7 @@ contract Deploy is Script, Utilities {
         vm.startBroadcast();
 
         // Deploy core components
-        (Grappa grappa,, address optionToken) = deployCore();
+        (Grappa grappa,, ) = deployCore();
 
         // deploy and register Oracles
         deployOracles(grappa);
