@@ -4,12 +4,12 @@ pragma solidity ^0.8.0;
 // import test base and helpers.
 import "forge-std/Test.sol";
 
-import {OptionToken} from "src/core/OptionToken.sol";
-import {Grappa} from "src/core/Grappa.sol";
-import {OptionTokenDescriptor} from "src/core/OptionTokenDescriptor.sol";
-import "src/libraries/TokenIdUtil.sol";
-import "src/libraries/ProductIdUtil.sol";
-import "src/config/errors.sol";
+import {OptionToken} from "../../src/core/OptionToken.sol";
+import {Grappa} from "../../src/core/Grappa.sol";
+import {OptionTokenDescriptor} from "../../src/core/OptionTokenDescriptor.sol";
+import "../../src/libraries/TokenIdUtil.sol";
+import "../../src/libraries/ProductIdUtil.sol";
+import "../../src/config/errors.sol";
 
 contract OptionTokenTest is Test {
     OptionToken public option;

@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 
-import "src/libraries/NumberUtil.sol";
+import "../../src/libraries/NumberUtil.sol";
 
 /**
  * @dev for current `forge coverage` to wrok, i needs to call an external contract then invoke internal library
