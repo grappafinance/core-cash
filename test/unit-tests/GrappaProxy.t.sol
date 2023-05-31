@@ -27,7 +27,7 @@ contract GrappaProxyTest is Test {
         weth = new MockERC20("WETH", "WETH", 18);
 
         implementation = new Grappa(address(0));
-        bytes memory data = abi.encode(Grappa.initialize.selector);
+        bytes memory data = abi.encodeWithSelector(Grappa.initialize.selector, address(this));
 
         grappa = Grappa(address(new GrappaProxy(address(implementation), data)));
     }
@@ -38,7 +38,7 @@ contract GrappaProxyTest is Test {
 
     function testImplementationIsInitialized() public {
         vm.expectRevert("Initializable: contract is already initialized");
-        implementation.initialize();
+        implementation.initialize(address(this));
     }
 
     function testProxyOwnerIsSelf() public {
@@ -47,7 +47,7 @@ contract GrappaProxyTest is Test {
 
     function testProxyIsInitialized() public {
         vm.expectRevert("Initializable: contract is already initialized");
-        grappa.initialize();
+        grappa.initialize(address(this));
     }
 
     function testCannotUpgradeFromNonOwner() public {

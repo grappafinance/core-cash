@@ -19,6 +19,8 @@ import "src/core/oracles/errors.sol";
  * @dev test internal function _toPriceWithUnitDecimals
  */
 contract ChainlinkOracleInternalTests is ChainlinkOracle, Test {
+    constructor() ChainlinkOracle(address(this)) {}
+
     function testDecimalConversion0Decimals() public {
         uint256 base = 1000;
         uint256 price = _toPriceWithUnitDecimals(base, 1, 0, 0);
@@ -102,7 +104,7 @@ contract ChainlinkOracleConfigurationTest is Test {
         usdc = address(new MockERC20("USDC", "USDC", 6));
         weth = address(new MockERC20("WETH", "WETH", 18));
 
-        oracle = new ChainlinkOracle();
+        oracle = new ChainlinkOracle(address(this));
         aggregator = address(new MockChainlinkAggregator(8));
     }
 
@@ -165,7 +167,7 @@ contract ChainlinkOracleTest is Test {
         usdc = address(new MockERC20("USDC", "USDC", 6));
         weth = address(new MockERC20("WETH", "WETH", 18));
 
-        oracle = new ChainlinkOracle();
+        oracle = new ChainlinkOracle(address(this));
 
         wethAggregator = new MockChainlinkAggregator(8);
         usdcAggregator = new MockChainlinkAggregator(8);
@@ -255,7 +257,7 @@ contract ChainlinkOracleTestWriteOracle is Test {
         usdc = address(new MockERC20("USDC", "USDC", 6));
         weth = address(new MockERC20("WETH", "WETH", 18));
 
-        oracle = new ChainlinkOracle();
+        oracle = new ChainlinkOracle(address(this));
 
         wethAggregator = new MockChainlinkAggregator(8);
         usdcAggregator = new MockChainlinkAggregator(8);

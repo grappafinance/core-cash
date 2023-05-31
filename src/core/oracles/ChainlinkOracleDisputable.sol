@@ -26,6 +26,12 @@ contract ChainlinkOracleDisputable is ChainlinkOracle {
 
     event DisputePeriodUpdated(address base, address quote, uint256 period);
 
+    /*///////////////////////////////////////////////////////////////
+                                Constructor
+    //////////////////////////////////////////////////////////////*/
+
+    constructor(address _owner) ChainlinkOracle(_owner) {}
+
     /**
      * @dev return the maximum dispute period for the oracle
      */

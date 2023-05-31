@@ -48,6 +48,17 @@ contract ChainlinkOracle is IOracle, Ownable {
     event ExpiryPriceSet(address base, address quote, uint256 expiry, uint256 price, bool isDispute);
 
     /*///////////////////////////////////////////////////////////////
+                                Constructor
+    //////////////////////////////////////////////////////////////*/
+
+    constructor(address _owner) {
+        // solhint-disable-next-line reason-string
+        if (_owner == address(0)) revert();
+
+        _transferOwnership(_owner);
+    }
+
+    /*///////////////////////////////////////////////////////////////
                             External Functions
     //////////////////////////////////////////////////////////////*/
 
