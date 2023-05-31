@@ -56,7 +56,7 @@ abstract contract MockedBaseEngineSetup is Test, ActionHelper, Utilities {
 
         address grappaImplementation = address(new Grappa(address(option))); // nonce: 5
 
-        bytes memory data = abi.encode(Grappa.initialize.selector);
+        bytes memory data = abi.encodeWithSelector(Grappa.initialize.selector, address(this));
 
         grappa = Grappa(address(new GrappaProxy(grappaImplementation, data))); // 6
 

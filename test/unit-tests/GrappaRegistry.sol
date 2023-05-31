@@ -26,7 +26,7 @@ contract GrappaRegistry is Test {
         // set option to 0
         address grappaImplementation = address(new Grappa(address(0))); // nonce: 5
 
-        bytes memory data = abi.encode(Grappa.initialize.selector);
+        bytes memory data = abi.encodeWithSelector(Grappa.initialize.selector, address(this));
 
         grappa = Grappa(address(new GrappaProxy(grappaImplementation, data))); // 6
     }
@@ -109,7 +109,7 @@ contract RegisterEngineTest is Test {
         engine1 = address(1);
         address grappaImplementation = address(new Grappa(address(0))); // nonce: 5
 
-        bytes memory data = abi.encode(Grappa.initialize.selector);
+        bytes memory data = abi.encodeWithSelector(Grappa.initialize.selector, address(this));
 
         grappa = Grappa(address(new GrappaProxy(grappaImplementation, data))); // 6
     }
@@ -154,7 +154,7 @@ contract RegisterOracleTest is Test {
     constructor() {
         oracle = address(new MockOracle());
         address grappaImplementation = address(new Grappa(address(0))); // nonce: 5
-        bytes memory data = abi.encode(Grappa.initialize.selector);
+        bytes memory data = abi.encodeWithSelector(Grappa.initialize.selector, address(this));
         grappa = Grappa(address(new GrappaProxy(grappaImplementation, data))); // 6
     }
 

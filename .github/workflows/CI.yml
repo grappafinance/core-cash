@@ -30,9 +30,9 @@ jobs:
         uses: onbjerg/foundry-toolchain@v1
         with:
           version: nightly
-      
+
       - name: Run deployment script
-        run: forge script script/deploy-launch.sol
+        run: GrappaOwner=0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38 OracleOwner=0x0000000000000000000000000000000000001234 forge script script/deploy-launch.sol
 
       - name: Run tests
         run: forge test --gas-report

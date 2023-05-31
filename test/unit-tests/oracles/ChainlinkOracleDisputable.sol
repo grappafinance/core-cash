@@ -39,7 +39,7 @@ contract ChainlinkOracleDisputableTest is Test {
         usdc = address(new MockERC20("USDC", "USDC", 6));
         weth = address(new MockERC20("WETH", "WETH", 18));
 
-        oracle = new ChainlinkOracleDisputable();
+        oracle = new ChainlinkOracleDisputable(address(this));
 
         wethAggregator = new MockChainlinkAggregator(8);
         usdcAggregator = new MockChainlinkAggregator(8);

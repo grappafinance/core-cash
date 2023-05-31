@@ -45,7 +45,7 @@ contract Deploy is Script, Utilities {
 
         address implementation = address(new Grappa(optionTokenAddr)); // nonce
         console.log("grappa implementation\t\t", address(implementation));
-        bytes memory data = abi.encode(Grappa.initialize.selector);
+        bytes memory data = abi.encodeWithSelector(Grappa.initialize.selector, vm.envAddress("GrappaOwner"));
         grappa = Grappa(address(new GrappaProxy(implementation, data))); // nonce + 1
 
         console.log("grappa proxy \t\t\t", address(grappa));
@@ -70,8 +70,8 @@ contract Deploy is Script, Utilities {
 
     function deployOracles(Grappa grappa) public {
         // ============ Deploy Chainlink Oracles ============== //
-        address clOracle = address(new ChainlinkOracle());
-        address clOracleDisputable = address(new ChainlinkOracleDisputable());
+        address clOracle = address(new ChainlinkOracle(vm.envAddress("OracleOwner")));
+        address clOracleDisputable = address(new ChainlinkOracleDisputable(vm.envAddress("OracleOwner")));
 
         // ============ Register Oracles ============== //
         {
@@ -83,4 +83,7 @@ contract Deploy is Script, Utilities {
             console.log("   -> Registered ID:", oracleId2);
         }
     }
+
+    // add a function prefixed with test here so forge coverage will ignore this file
+    function testChill() public {}
 }
