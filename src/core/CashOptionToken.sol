@@ -5,9 +5,9 @@ pragma solidity ^0.8.0;
 import {ERC1155} from "solmate/tokens/ERC1155.sol";
 
 // interfaces
-import {IOptionToken} from "../interfaces/IOptionToken.sol";
+import {ICashOptionToken} from "../interfaces/ICashOptionToken.sol";
 import {IGrappa} from "../interfaces/IGrappa.sol";
-import {IOptionTokenDescriptor} from "../interfaces/IOptionTokenDescriptor.sol";
+import {ICashOptionTokenDescriptor} from "../interfaces/ICashOptionTokenDescriptor.sol";
 
 // constants and types
 import "../config/enums.sol";
@@ -15,22 +15,22 @@ import "../config/constants.sol";
 import "../config/errors.sol";
 
 /**
- * @title   OptionToken
+ * @title   CashOptionToken
  * @author  antoncoding
- * @dev     each OptionToken represent the right to redeem cash value at expiry.
+ * @dev     each CashOptionToken represent the right to redeem cash value at expiry.
  *             The value of each OptionType should always be positive.
  */
-contract OptionToken is ERC1155, IOptionToken {
+contract CashOptionToken is ERC1155, ICashOptionToken {
     ///@dev grappa serve as the registry
     IGrappa public immutable grappa;
-    IOptionTokenDescriptor public immutable descriptor;
+    ICashOptionTokenDescriptor public immutable descriptor;
 
     constructor(address _grappa, address _descriptor) {
         // solhint-disable-next-line reason-string
         if (_grappa == address(0)) revert();
         grappa = IGrappa(_grappa);
 
-        descriptor = IOptionTokenDescriptor(_descriptor);
+        descriptor = ICashOptionTokenDescriptor(_descriptor);
     }
 
     /**

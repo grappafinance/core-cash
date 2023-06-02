@@ -20,9 +20,9 @@ import "../../../config/errors.sol";
 abstract contract DebitSpread is BaseEngine {
     using TokenIdUtil for uint256;
 
-    event OptionTokenMerged(address subAccount, uint256 longToken, uint256 shortToken, uint64 amount);
+    event CashOptionTokenMerged(address subAccount, uint256 longToken, uint256 shortToken, uint64 amount);
 
-    event OptionTokenSplit(address subAccount, uint256 spreadId, uint64 amount);
+    event CashOptionTokenSplit(address subAccount, uint256 spreadId, uint64 amount);
 
     /**
      * ========================================================= **
@@ -48,7 +48,7 @@ abstract contract DebitSpread is BaseEngine {
         // update the account in state
         _mergeLongIntoSpread(_subAccount, shortTokenId, longTokenId, amount);
 
-        emit OptionTokenMerged(_subAccount, longTokenId, shortTokenId, amount);
+        emit CashOptionTokenMerged(_subAccount, longTokenId, shortTokenId, amount);
 
         // this line will revert if user is trying to burn an un-authorized tokenId
         optionToken.burn(from, longTokenId, amount);
@@ -67,7 +67,7 @@ abstract contract DebitSpread is BaseEngine {
         // update the account in state
         _splitSpreadInAccount(_subAccount, spreadId, amount);
 
-        emit OptionTokenSplit(_subAccount, spreadId, amount);
+        emit CashOptionTokenSplit(_subAccount, spreadId, amount);
 
         optionToken.mint(recipient, tokenId, amount);
     }

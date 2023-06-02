@@ -4,15 +4,15 @@ pragma solidity ^0.8.0;
 // import test base and helpers.
 import "forge-std/Test.sol";
 
-import {OptionToken} from "../../src/core/OptionToken.sol";
+import {CashOptionToken} from "../../src/core/CashOptionToken.sol";
 import {Grappa} from "../../src/core/Grappa.sol";
-import {OptionTokenDescriptor} from "../../src/core/OptionTokenDescriptor.sol";
+import {CashOptionTokenDescriptor} from "../../src/core/CashOptionTokenDescriptor.sol";
 import "../../src/libraries/TokenIdUtil.sol";
 import "../../src/libraries/ProductIdUtil.sol";
 import "../../src/config/errors.sol";
 
-contract OptionTokenTest is Test {
-    OptionToken public option;
+contract CashOptionTokenTest is Test {
+    CashOptionToken public option;
 
     address public grappa;
     address public nftDescriptor;
@@ -20,9 +20,9 @@ contract OptionTokenTest is Test {
     function setUp() public {
         grappa = address(new Grappa(address(0)));
 
-        nftDescriptor = address(new OptionTokenDescriptor());
+        nftDescriptor = address(new CashOptionTokenDescriptor());
 
-        option = new OptionToken(grappa, nftDescriptor);
+        option = new CashOptionToken(grappa, nftDescriptor);
     }
 
     function testCannotMint() public {

@@ -12,7 +12,7 @@ import {ReentrancyGuardUpgradeable} from "openzeppelin-upgradeable/security/Reen
 // interfaces
 import {IERC20Metadata} from "openzeppelin/token/ERC20/extensions/IERC20Metadata.sol";
 import {IOracle} from "../interfaces/IOracle.sol";
-import {IOptionToken} from "../interfaces/IOptionToken.sol";
+import {ICashOptionToken} from "../interfaces/ICashOptionToken.sol";
 import {IMarginEngine} from "../interfaces/IMarginEngine.sol";
 
 // librarise
@@ -42,7 +42,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     using TokenIdUtil for uint256;
 
     /// @dev optionToken address
-    IOptionToken public immutable optionToken;
+    ICashOptionToken public immutable optionToken;
 
     /*///////////////////////////////////////////////////////////////
                          State Variables V1
@@ -91,7 +91,7 @@ contract Grappa is OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeab
     /// @dev set immutables in constructor
     /// @dev also set the implementation contract to initialized = true
     constructor(address _optionToken) initializer {
-        optionToken = IOptionToken(_optionToken);
+        optionToken = ICashOptionToken(_optionToken);
     }
 
     /*///////////////////////////////////////////////////////////////
