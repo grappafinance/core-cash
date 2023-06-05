@@ -20,7 +20,7 @@ import "../../../config/errors.sol";
 abstract contract OptionTransferable is BaseEngine {
     event CollateralTransferred(address from, address to, uint8 collateralId, uint256 amount);
 
-    event OptionTokenTransferred(address from, address to, uint256 tokenId, uint64 amount);
+    event CashOptionTokenTransferred(address from, address to, uint256 tokenId, uint64 amount);
 
     /**
      * @dev Transfers collateral to another account.
@@ -51,7 +51,7 @@ abstract contract OptionTransferable is BaseEngine {
         _decreaseShortInAccount(_subAccount, tokenId, amount);
         _increaseShortInAccount(to, tokenId, amount);
 
-        emit OptionTokenTransferred(_subAccount, to, tokenId, amount);
+        emit CashOptionTokenTransferred(_subAccount, to, tokenId, amount);
 
         if (!_isAccountAboveWater(to)) revert BM_AccountUnderwater();
     }
@@ -68,7 +68,7 @@ abstract contract OptionTransferable is BaseEngine {
         _decreaseLongInAccount(_subAccount, tokenId, amount);
         _increaseLongInAccount(to, tokenId, amount);
 
-        emit OptionTokenTransferred(_subAccount, to, tokenId, amount);
+        emit CashOptionTokenTransferred(_subAccount, to, tokenId, amount);
     }
 
     /**
@@ -84,14 +84,14 @@ abstract contract OptionTransferable is BaseEngine {
         // update the account in state
         _increaseShortInAccount(_subAccount, tokenId, amount);
 
-        emit OptionTokenMinted(_subAccount, tokenId, amount);
+        emit CashOptionTokenMinted(_subAccount, tokenId, amount);
 
         _verifyLongTokenIdToAdd(tokenId);
 
         // update the account in state
         _increaseLongInAccount(recipientSubAccount, tokenId, amount);
 
-        emit OptionTokenAdded(recipientSubAccount, tokenId, amount);
+        emit CashOptionTokenAdded(recipientSubAccount, tokenId, amount);
 
         // mint option token
         optionToken.mint(address(this), tokenId, amount);

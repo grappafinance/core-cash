@@ -13,8 +13,8 @@ src
 │   └── types.sol
 ├── core
 │   ├── Grappa.sol
-│   ├── OptionToken.sol
-│   ├── OptionTokenDescriptor.sol
+│   ├── CashOptionToken.sol
+│   ├── CashOptionTokenDescriptor.sol
 │   ├── engines
 │   │   ├── BaseEngine.sol
 │   │   └── ...
@@ -28,7 +28,7 @@ src
 
 ### Types and Errors
 
-All shared types, constant, enums and errors are defined in `config`. 
+All shared types, constant, enums and errors are defined in `config`.
 
 Each margin engine, has their own data type to store account data and manage margin rules. These types are defined in each engine's `types.sol` file.
 
@@ -52,6 +52,6 @@ note: `subAccount`*: In the current shared engine design (inherited from `BaseEn
 
 ### Integration tests
 
-You can find the integration tests for each engine in `test/engine-integrations/`. In these tests, we setup the engine with the real Grappa contract and OptionToken contract to test the margining rules.
+You can find the integration tests for each engine in `test/engine-integrations/`. In these tests, we setup the engine with the real Grappa contract and CashOptionToken contract to test the margining rules.
 
 Mosts of the tests for engines are in this form, as it give us better gas estimation, and make it easier to test shared logic like payout in settlement.

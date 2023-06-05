@@ -8,8 +8,8 @@ import "openzeppelin/utils/Strings.sol";
 
 import "openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";
 
-import "../src/core/OptionToken.sol";
-import "../src/core/OptionTokenDescriptor.sol";
+import "../src/core/CashOptionToken.sol";
+import "../src/core/CashOptionTokenDescriptor.sol";
 import "../src/core/Grappa.sol";
 import "../src/core/GrappaProxy.sol";
 
@@ -32,7 +32,7 @@ contract Deploy is Script, Utilities {
         vm.stopBroadcast();
     }
 
-    /// @dev deploy core contracts: Upgradable Grappa, non-upgradable OptionToken with descriptor
+    /// @dev deploy core contracts: Upgradable Grappa, non-upgradable CashOptionToken with descriptor
     function deployCore() public returns (Grappa grappa, address optionDesciptor, address optionToken) {
         uint256 nonce = vm.getNonce(msg.sender);
         console.log("nonce", nonce);
@@ -52,14 +52,14 @@ contract Deploy is Script, Utilities {
 
         // =================== Deploy Option Desciptor (Upgradable) =============== //
 
-        address descriptorImpl = address(new OptionTokenDescriptor()); // nonce + 2
-        bytes memory descriptorInitData = abi.encode(OptionTokenDescriptor.initialize.selector);
+        address descriptorImpl = address(new CashOptionTokenDescriptor()); // nonce + 2
+        bytes memory descriptorInitData = abi.encode(CashOptionTokenDescriptor.initialize.selector);
         optionDesciptor = address(new ERC1967Proxy(descriptorImpl, descriptorInitData)); // nonce + 3
         console.log("optionToken descriptor\t", optionDesciptor);
 
-        // =============== Deploy OptionToken ================= //
+        // =============== Deploy CashOptionToken ================= //
 
-        optionToken = address(new OptionToken(address(grappa), optionDesciptor)); // nonce + 4
+        optionToken = address(new CashOptionToken(address(grappa), optionDesciptor)); // nonce + 4
         console.log("optionToken\t\t\t", optionToken);
 
         // revert if deployed contract is different than what we set in Grappa

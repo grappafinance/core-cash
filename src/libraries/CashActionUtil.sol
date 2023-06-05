@@ -8,7 +8,7 @@ import "../config/types.sol";
  * @title libraries to encode action arguments
  * @dev   only used in tests
  */
-library ActionUtil {
+library CashActionUtil {
     /**
      * @param collateralId id of collateral
      * @param amount amount of collateral to deposit

@@ -7,7 +7,7 @@ optimizer_runs = 100000
 gas_reports = [
   # "*",
   "Grappa",
-  "OptionToken",
+  "CashOptionToken",
   "FullMarginEngine",
   "CrossMarginEngine",
   "AdvancedMarginEngine",

@@ -10,7 +10,7 @@ import "../../mocks/MockDebitSpreadEngine.sol";
 
 import "../../../src/core/Grappa.sol";
 import "../../../src/core/GrappaProxy.sol";
-import "../../../src/core/OptionToken.sol";
+import "../../../src/core/CashOptionToken.sol";
 
 import "../../../src/config/enums.sol";
 import "../../../src/config/types.sol";
@@ -23,7 +23,7 @@ import {ActionHelper} from "../../shared/ActionHelper.sol";
 abstract contract MockedBaseEngineSetup is Test, ActionHelper, Utilities {
     MockDebitSpreadEngine internal engine;
     Grappa internal grappa;
-    OptionToken internal option;
+    CashOptionToken internal option;
 
     MockERC20 internal usdc;
     MockERC20 internal weth;
@@ -52,7 +52,7 @@ abstract contract MockedBaseEngineSetup is Test, ActionHelper, Utilities {
         // predict address of margin account and use it here
         address grappaAddr = predictAddress(address(this), 6);
 
-        option = new OptionToken(grappaAddr, address(0)); // nonce: 4
+        option = new CashOptionToken(grappaAddr, address(0)); // nonce: 4
 
         address grappaImplementation = address(new Grappa(address(option))); // nonce: 5
 

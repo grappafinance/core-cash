@@ -5,7 +5,7 @@ import "../../src/config/enums.sol";
 import "../../src/config/types.sol";
 
 import "../../src/libraries/TokenIdUtil.sol";
-import "../../src/libraries/ActionUtil.sol";
+import "../../src/libraries/CashActionUtil.sol";
 
 abstract contract ActionHelper {
     function getTokenId(TokenType tokenType, uint40 productId, uint256 expiry, uint256 longStrike, uint256 shortStrike)
@@ -29,7 +29,7 @@ abstract contract ActionHelper {
         pure
         returns (ActionArgs memory action)
     {
-        return ActionUtil.createAddCollateralAction(collateralId, amount, from);
+        return CashActionUtil.createAddCollateralAction(collateralId, amount, from);
     }
 
     function createRemoveCollateralAction(uint256 amount, uint8 collateralId, address recipient)
@@ -37,7 +37,7 @@ abstract contract ActionHelper {
         pure
         returns (ActionArgs memory action)
     {
-        return ActionUtil.createRemoveCollateralAction(collateralId, amount, recipient);
+        return CashActionUtil.createRemoveCollateralAction(collateralId, amount, recipient);
     }
 
     function createTransferCollateralAction(uint256 amount, uint8 collateralId, address recipient)
@@ -45,7 +45,7 @@ abstract contract ActionHelper {
         pure
         returns (ActionArgs memory action)
     {
-        return ActionUtil.createTransferCollateralAction(collateralId, amount, recipient);
+        return CashActionUtil.createTransferCollateralAction(collateralId, amount, recipient);
     }
 
     function createMintAction(uint256 tokenId, address recipient, uint256 amount)
@@ -53,7 +53,7 @@ abstract contract ActionHelper {
         pure
         returns (ActionArgs memory action)
     {
-        return ActionUtil.createMintAction(tokenId, amount, recipient);
+        return CashActionUtil.createMintAction(tokenId, amount, recipient);
     }
 
     function createMintIntoAccountAction(uint256 tokenId, address recipient, uint256 amount)
@@ -61,11 +61,11 @@ abstract contract ActionHelper {
         pure
         returns (ActionArgs memory action)
     {
-        return ActionUtil.createMintIntoAccountAction(tokenId, amount, recipient);
+        return CashActionUtil.createMintIntoAccountAction(tokenId, amount, recipient);
     }
 
     function createBurnAction(uint256 tokenId, address from, uint256 amount) internal pure returns (ActionArgs memory action) {
-        return ActionUtil.createBurnAction(tokenId, amount, from);
+        return CashActionUtil.createBurnAction(tokenId, amount, from);
     }
 
     function createTransferLongAction(uint256 tokenId, address recipient, uint256 amount)
@@ -73,7 +73,7 @@ abstract contract ActionHelper {
         pure
         returns (ActionArgs memory action)
     {
-        return ActionUtil.createTransferLongAction(tokenId, amount, recipient);
+        return CashActionUtil.createTransferLongAction(tokenId, amount, recipient);
     }
 
     function createTransferShortAction(uint256 tokenId, address recipient, uint256 amount)
@@ -81,7 +81,7 @@ abstract contract ActionHelper {
         pure
         returns (ActionArgs memory action)
     {
-        return ActionUtil.createTransferShortAction(tokenId, amount, recipient);
+        return CashActionUtil.createTransferShortAction(tokenId, amount, recipient);
     }
 
     function createMergeAction(uint256 tokenId, uint256 shortId, address from, uint256 amount)
@@ -89,7 +89,7 @@ abstract contract ActionHelper {
         pure
         returns (ActionArgs memory action)
     {
-        return ActionUtil.createMergeAction(tokenId, shortId, amount, from);
+        return CashActionUtil.createMergeAction(tokenId, shortId, amount, from);
     }
 
     function createSplitAction(uint256 spreadId, uint256 amount, address recipient)
@@ -97,7 +97,7 @@ abstract contract ActionHelper {
         pure
         returns (ActionArgs memory action)
     {
-        return ActionUtil.createSplitAction(spreadId, amount, recipient);
+        return CashActionUtil.createSplitAction(spreadId, amount, recipient);
     }
 
     function createAddLongAction(uint256 tokenId, uint256 amount, address from)
@@ -105,7 +105,7 @@ abstract contract ActionHelper {
         pure
         returns (ActionArgs memory action)
     {
-        return ActionUtil.createAddLongAction(tokenId, amount, from);
+        return CashActionUtil.createAddLongAction(tokenId, amount, from);
     }
 
     function createRemoveLongAction(uint256 tokenId, uint256 amount, address recipient)
@@ -113,11 +113,11 @@ abstract contract ActionHelper {
         pure
         returns (ActionArgs memory action)
     {
-        return ActionUtil.createRemoveLongAction(tokenId, amount, recipient);
+        return CashActionUtil.createRemoveLongAction(tokenId, amount, recipient);
     }
 
     function createSettleAction() internal pure returns (ActionArgs memory action) {
-        return ActionUtil.createSettleAction();
+        return CashActionUtil.createSettleAction();
     }
 
     // add a function prefixed with test here so forge coverage will ignore this file
