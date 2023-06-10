@@ -16,7 +16,7 @@ import "../../src/config/enums.sol";
 import "../../src/config/constants.sol";
 
 /**
- * @dev test on implementation contract
+ * @dev test on proxy contract
  */
 contract GrappaProxyTest is Test {
     Grappa public implementation;
@@ -72,5 +72,17 @@ contract GrappaProxyTest is Test {
 
         vm.expectRevert("not upgrdable anymore");
         grappa.upgradeTo(address(v3));
+    }
+
+    function testProxyCanDecideInitRule() public {
+        // deploy a new proxy that doesn't call initialize when deployed
+        Grappa proxy2 = Grappa(address(new GrappaProxy(address(implementation), "")));
+
+        // cannot init with 0 as owner
+        vm.expectRevert();
+        proxy2.initialize(address(0));
+
+        proxy2.initialize(address(0xaa));
+        assertEq(proxy2.owner(), address(0xaa));
     }
 }
