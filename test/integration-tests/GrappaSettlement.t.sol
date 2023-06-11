@@ -11,6 +11,16 @@ contract GrappaSettlementTest is Setup {
         _setupGrappaTestEnvironment();
     }
 
+    function testCannotSettleBeforeFinalization() public {
+        uint256 tokenId = _mintCallOption(2000e6, usdcCollatProductId, 1e6);
+        
+        vm.warp(expiry);
+        oracle.setExpiryPriceWithFinality(address(weth), address(usdc), 2300e6, false);
+        vm.expectRevert(GP_PriceNotFinalized.selector);
+        
+        grappa.settleOption(address(this), tokenId, 1e6);
+    }
+
     function testSettleUSDCCollatCall() public {
         // arrange
         uint256 tokenId = _mintCallOption(2000e6, usdcCollatProductId, 1e6);
