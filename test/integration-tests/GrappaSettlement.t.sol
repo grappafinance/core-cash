@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {Setup} from "./Setup.t.sol";
+import "./Setup.t.sol";
 
 /**
  * @dev test getPayout function on different token types
@@ -96,49 +96,79 @@ contract GrappaSettlementTest is Setup {
     }
 
     function testSettleSameCollat() public {
-      uint256[] memory ids = new uint256[](3);
-      uint256[] memory amounts = new uint256[](3);
-      ids[0] = _mintCallSpread(2000e6, 2200e6, usdcCollatProductId, 1e6);
-      ids[1] = _mintCallOption(2000e6, usdcCollatProductId, 1e6);
-      ids[2] = _mintPutOption(2500e6, usdcCollatProductId, 1e6);
+        uint256[] memory ids = new uint256[](3);
+        uint256[] memory amounts = new uint256[](3);
+        ids[0] = _mintCallSpread(2000e6, 2200e6, usdcCollatProductId, 1e6);
+        ids[1] = _mintCallOption(2000e6, usdcCollatProductId, 1e6);
+        ids[2] = _mintPutOption(2500e6, usdcCollatProductId, 1e6);
 
-      amounts[0] = 1e6;
-      amounts[1] = 1e6;
-      amounts[2] = 1e6;
+        amounts[0] = 1e6;
+        amounts[1] = 1e6;
+        amounts[2] = 1e6;
 
-      vm.warp(expiry);
-      oracle.setExpiryPrice(address(weth), address(usdc), 2600e6);
+        vm.warp(expiry);
+        oracle.setExpiryPrice(address(weth), address(usdc), 2600e6);
 
-      // act
-      grappa.batchSettleOptions(address(this), ids, amounts);
+        // act
+        grappa.batchSettleOptions(address(this), ids, amounts);
 
-      // assertion
-      uint expectedPayout = (200 + 600) * 1e6;
-      assertEq(usdc.balanceOf(address(this)), expectedPayout);
+        // assertion
+        uint256 expectedPayout = (200 + 600) * 1e6;
+        assertEq(usdc.balanceOf(address(this)), expectedPayout);
     }
 
     function testSettleDiffCollat() public {
-      uint256[] memory ids = new uint256[](3);
-      uint256[] memory amounts = new uint256[](3);
-      ids[0] = _mintCallSpread(2000e6, 2200e6, usdcCollatProductId, 1e6);
-      ids[1] = _mintCallOption(2000e6, wethCollatProductId, 1e6); // eth collat call
-      ids[2] = _mintCallOption(2000e6, usdcCollatProductId, 1e6); // usdc collatf
+        uint256[] memory ids = new uint256[](3);
+        uint256[] memory amounts = new uint256[](3);
+        ids[0] = _mintCallSpread(2000e6, 2200e6, usdcCollatProductId, 1e6);
+        ids[1] = _mintCallOption(2000e6, wethCollatProductId, 1e6); // eth collat call
+        ids[2] = _mintCallOption(2000e6, usdcCollatProductId, 1e6); // usdc collat call
 
-      amounts[0] = 1e6;
-      amounts[1] = 1e6;
-      amounts[2] = 1e6;
+        amounts[0] = 1e6;
+        amounts[1] = 1e6;
+        amounts[2] = 1e6;
 
-      vm.warp(expiry);
-      oracle.setExpiryPrice(address(weth), address(usdc), 2500e6);
+        vm.warp(expiry);
+        oracle.setExpiryPrice(address(weth), address(usdc), 2500e6);
 
-      // act
-      grappa.batchSettleOptions(address(this), ids, amounts);
+        // act
+        grappa.batchSettleOptions(address(this), ids, amounts);
 
-      // assertion
-      uint expectedUSDC = (200 + 500) * 1e6;
-      assertEq(usdc.balanceOf(address(this)), expectedUSDC);
+        // assertion
+        uint256 expectedUSDC = (200 + 500) * 1e6;
+        assertEq(usdc.balanceOf(address(this)), expectedUSDC);
 
-      uint expectedWETH = 0.2e18;
-      assertEq(weth.balanceOf(address(this)), expectedWETH);
+        uint256 expectedWETH = 0.2e18;
+        assertEq(weth.balanceOf(address(this)), expectedWETH);
+    }
+
+    function testSettleWithNonUnderlyingNorStrike() public {
+        // eth call collateralized in btc
+        MockERC20 wbtc = new MockERC20("WBTC", "WBTC", 8);
+        wbtc.mint(address(engine), 100e8);
+        uint8 wbtcId = grappa.registerAsset(address(wbtc));
+        uint40 productId = ProductIdUtil.getProductId(oracleId, engineId, wethId, usdcId, wbtcId);
+        uint256 tokenId = _mintCallOption(2000e6, productId, 1e6);
+
+        vm.warp(expiry);
+        oracle.setExpiryPrice(address(weth), address(usdc), 2500e6);
+        oracle.setExpiryPrice(address(wbtc), address(usdc), 25000e6);
+
+        grappa.settleOption(address(this), tokenId, 1e6);
+
+        assertEq(wbtc.balanceOf(address(this)), 0.02e8);
+    }
+
+    function testCannotPassInInconsistentArray() public {
+        uint256[] memory ids = new uint256[](3);
+        uint256[] memory amounts = new uint256[](2);
+        vm.expectRevert(GP_WrongArgumentLength.selector);
+        grappa.batchSettleOptions(address(this), ids, amounts);
+    }
+
+    function testCannotMintExpiredOption() public {
+        uint256 tokenId = TokenIdUtil.getTokenId(TokenType.CALL, usdcCollatProductId, uint64(block.timestamp - 1), 1e6, 0);
+        vm.expectRevert(GP_InvalidExpiry.selector);
+        engine.mintOptionToken(address(this), tokenId, 1e6);
     }
 }
