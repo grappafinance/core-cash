@@ -67,4 +67,14 @@ contract OptionProxyTest is Test {
         assertEq(descriptor.tokenURI(0), "https://grappa.finance/token/v2/0");
         assertEq(descriptor.tokenURI(200), "https://grappa.finance/token/v2/200");
     }
+
+    function testProxyCanInitLater() public {
+        // don't set init call as data
+        CashOptionTokenDescriptor testDescriptor =
+            CashOptionTokenDescriptor(address(new ERC1967Proxy(address(implementation), "")));
+        assertEq(testDescriptor.owner(), address(0));
+
+        testDescriptor.initialize();
+        assertEq(testDescriptor.owner(), address(this));
+    }
 }
