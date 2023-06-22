@@ -5,10 +5,7 @@ pragma solidity ^0.8.0;
 // inheriting contracts
 import {BaseEngine} from "../BaseEngine.sol";
 
-// libraries
-import {TokenIdUtil} from "../../../libraries/TokenIdUtil.sol";
-
-// // constants and types
+// constants and types
 import "../../../config/enums.sol";
 import "../../../config/errors.sol";
 
