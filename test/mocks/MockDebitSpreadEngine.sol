@@ -3,8 +3,6 @@
 
 pragma solidity ^0.8.0;
 
-import {IERC20} from "openzeppelin/token/ERC20/IERC20.sol";
-import {SafeERC20} from "openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "solmate/utils/ReentrancyGuard.sol";
 
 import {IMarginEngine} from "../../src/interfaces/IMarginEngine.sol";
@@ -47,7 +45,7 @@ contract MockDebitSpreadEngine is BaseEngine, DebitSpread, ReentrancyGuard {
      * @notice default behavior of the engine 'execute' function
      * @dev put the default implementation here to have unit tests for all token transfer flows
      */
-    function execute(address _subAccount, ActionArgs[] calldata actions) public virtual nonReentrant {
+    function execute(address _subAccount, ActionArgs[] calldata actions) external nonReentrant {
         _assertCallerHasAccess(_subAccount);
 
         // update the account and do external calls on the flight
@@ -83,7 +81,4 @@ contract MockDebitSpreadEngine is BaseEngine, DebitSpread, ReentrancyGuard {
     function _isAccountAboveWater(address /*_subAccount*/ ) internal view override returns (bool) {
         return isAboveWater;
     }
-
-    // add a function prefixed with test here so forge coverage will ignore this file
-    function test() public {}
 }

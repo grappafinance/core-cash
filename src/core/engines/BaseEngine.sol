@@ -26,7 +26,7 @@ import "../../config/errors.sol";
  * @author  @antoncoding, @dsshap
  * @dev  common functions / flow that can be shared among MarginEngines
  */
-abstract contract BaseEngine {
+contract BaseEngine {
     using SafeERC20 for IERC20;
     using TokenIdUtil for uint256;
 

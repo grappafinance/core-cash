@@ -5,7 +5,6 @@ import "forge-std/Test.sol";
 
 import "../../mocks/MockERC20.sol";
 import "../../mocks/MockOracle.sol";
-import "../../mocks/MockChainlinkAggregator.sol";
 import "../../mocks/MockDebitSpreadEngine.sol";
 
 import "../../../src/core/Grappa.sol";
@@ -20,7 +19,7 @@ import "../../utils/Utilities.sol";
 import {ActionHelper} from "../../shared/ActionHelper.sol";
 
 // solhint-disable max-states-count
-abstract contract MockedBaseEngineSetup is Test, ActionHelper, Utilities {
+contract MockedBaseEngineSetup is ActionHelper, Utilities, Test {
     MockDebitSpreadEngine internal engine;
     Grappa internal grappa;
     CashOptionToken internal option;
