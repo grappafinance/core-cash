@@ -133,6 +133,33 @@ contract OptionTransferableTest is ActionHelper, Utilities, Test {
         assertEq(option.balanceOf(address(engine), tokenId), balanceBefore);
     }
 
+    function testCannotTransferShortIfEndingUnderwater() public {
+        _setupDefaultAccount();
+
+        address subAccount = address(uint160(address(this)) - 1);
+
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createTransferShortAction(tokenId, subAccount, 1 * UNIT);
+
+        vm.expectRevert(BM_AccountUnderwater.selector);
+        engine.execute(subAccount, actions);
+    }
+
+    function testMintOptionToOtherAccount() public {
+        _setupDefaultAccount();
+
+        address subAccount = address(uint160(address(this)) - 1);
+
+        ActionArgs[] memory actions = new ActionArgs[](1);
+        actions[0] = createMintIntoAccountAction(tokenId, subAccount, 1 * UNIT);
+
+        engine.setIsAboveWater(address(this), true);
+        engine.execute(subAccount, actions);
+
+        // option is minted to the engine
+        assertEq(option.balanceOf(address(engine), tokenId), 1 * UNIT);
+    }
+
     function onERC1155Received(address, address, uint256, uint256, bytes calldata) external virtual returns (bytes4) {
         return this.onERC1155Received.selector;
     }
