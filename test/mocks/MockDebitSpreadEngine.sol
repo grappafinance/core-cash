@@ -3,8 +3,6 @@
 
 pragma solidity ^0.8.0;
 
-import {ReentrancyGuard} from "solmate/utils/ReentrancyGuard.sol";
-
 import {IMarginEngine} from "../../src/interfaces/IMarginEngine.sol";
 import {BaseEngine} from "../../src/core/engines/BaseEngine.sol";
 import {DebitSpread} from "../../src/core/engines/mixins/DebitSpread.sol";
@@ -17,7 +15,7 @@ import "../../src/config/errors.sol";
  * @title   MockEngine
  * @notice  Implement execute to test all flow in BaseEngine
  */
-contract MockDebitSpreadEngine is BaseEngine, DebitSpread, ReentrancyGuard {
+contract MockDebitSpreadEngine is BaseEngine, DebitSpread {
     bool public isAboveWater;
 
     int80 public mockPayout;
@@ -45,7 +43,7 @@ contract MockDebitSpreadEngine is BaseEngine, DebitSpread, ReentrancyGuard {
      * @notice default behavior of the engine 'execute' function
      * @dev put the default implementation here to have unit tests for all token transfer flows
      */
-    function execute(address _subAccount, ActionArgs[] calldata actions) external nonReentrant {
+    function execute(address _subAccount, ActionArgs[] calldata actions) public virtual {
         _assertCallerHasAccess(_subAccount);
 
         // update the account and do external calls on the flight
