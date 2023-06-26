@@ -5,11 +5,11 @@
 [submodule "lib/solmate"]
 	# set to commit 2001af4 on branch main
 	path = lib/solmate
-	url = https://github.com/Rari-Capital/solmate
+	url = https://github.com/transmissions11/solmate
 [submodule "lib/openzeppelin-contracts"]
 	# v4.8.2 set to commit d00acef on branch master
 	path = lib/openzeppelin-contracts
-	url = https://github.com/openzeppelin/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
 [submodule "lib/openzeppelin-contracts-upgradeable"]
 	# v4.8.2 set to commit f6c4c9c on branch master
 	path = lib/openzeppelin-contracts-upgradeable
