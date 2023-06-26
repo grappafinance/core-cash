@@ -14,6 +14,7 @@
 	# v4.8.2 set to commit f6c4c9c on branch master
 	path = lib/openzeppelin-contracts-upgradeable
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts-upgradeable
+	branch = v4.8.2
 [submodule "lib/array-lib"]
 	# set to commit beba8db on branch master
 	path = lib/array-lib
