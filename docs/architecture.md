@@ -2,47 +2,48 @@
 
 ## System Diagram
 
-This is the basic diagram of how all contracts interact with each other.
+This diagram provides a high-level view of how all the contracts interact with each other.
 
 ![high level](./imgs/system-diagram.png)
 
-There are 2 main contracts: `Grappa`, `CashOptionToken`, and 2 sets of contracts: oracles, and margin engines.
+The architecture primarily comprises two main contracts: `Grappa`, `CashOptionToken`, and two sets of contracts: oracles and margin engines.
 
 ## `Grappa.sol`
 
-`Grappa.sol` serves as the registry of the system that has an owner role to add assets, oracles and engine into the system.
+`Grappa.sol` functions as the system's registry with an owner role to add assets, oracles, and engines into the system.
 
-Grappa is upgradeable right now, given that we might want to expand the definition of "Option Tokens" in the short term to support other derivatives. We will remove the upgradeability once we have enough confidence in the form of the contract.
+Currently, Grappa is upgradeable to accommodate potential short-term expansions in the "Option Tokens" definition to support other derivatives. Once we gain enough confidence in the contract form, we will remove this upgradeability.
 
-Grappa is also in charge of settling the options after expiry. Once a optionToken is created by the engine, `Grappa` serve as the fair clearing house to determine the settlement price. Each engines has to comply with the interface to pay out to users accordingly.
+Grappa is also responsible for settling the options after expiry. Once an optionToken is created by the engine, `Grappa` acts as a fair clearinghouse to determine the settlement price. Each engine must adhere to the interface to pay out to users accordingly.
 
 ## `CashOptionToken.sol`
 
-`CashOptionToken`: ERC1155 token that represent the right to claim for a non-negative payout at expiry. It can represent a long call position, a long put position, or debit spreads. How the Id of an option token is interpreted is determined by the Grappa contract at settlement.
+`CashOptionToken` is an ERC1155 token representing the right to claim a non-negative payout at expiry. It can signify a long call position, a long put position, or debit spreads. How the ID of an option token is interpreted is determined by the Grappa contract at settlement.
 
 ## Oracles
 
-Grappa Owner can register bunch of oracles to the system. Oracles are contracts that can be used to determine settlement price, different user / protocol might want to settle with different oracles.
+The Grappa Owner can register multiple oracles in the system. Oracles are contracts that can be used to determine the settlement price. Different users/protocols may prefer to settle with different oracles.
 
 ## Margin Engines
 
-**Margine Engines** are contracts that determine the rule to collateralize option tokens. Tokens minted by different engines are not fungible, so that the risk are always isolated. There should be multiple margin engines working together to provide user flexibilities to choose from, based on user preference such as gas fee, capital efficiency, composability and risk.
+**Margin Engines** are contracts that establish the rules for collateralizing option tokens. Tokens minted by different engines are not fungible, thereby isolating the risks. Multiple margin engines should work together to offer users flexibility based on their preferences such as gas fees, capital efficiency, composability, and risk.
 
-### List of Margin Engines
+### List of Margin Engines (Repos)
 
-- `FullMargin`: Simple implementation of fully collateralized margin. Only accept 1 collateral + 1 short per account. Can be used to mint the following shorts:
-  - covered call (collateralized with underlying)
-  - put (collateralized with strike)
-  - call spread (collateralized with strike or underlying)
-  - put spread (collateralized with strike)
+- [Fully Collat Margin Engine](https://github.com/grappafinance/full-collat-engine):
+  - Covers call (collateralized with underlying)
+  - Puts (collateralized with strike)
+  - Call spread (collateralized with strike or underlying)
+  - Put spread (collateralized with strike)
 
-- `CrossMargin`: use a single subAccount to hold multiple collateral, long and short positions.
-  - Upgradable and maintained by Hashnote team
-  - Can use single account to collateralize arbitrary amount of short positions, and offset requirements with long positions.
-  - Currently fully collateralize all positions. Can be expanded to partial collateral in the future
-  - Does not support spread token
+- [Cross Margin Engine](https://github.com/grappafinance/cross-margin-engine):
+  - Uses a single subAccount to hold multiple collateral, long, and short positions.
+  - Upgradable and maintained by the Hashnote team
+  - Allows a single account to collateralize an arbitrary number of short positions, and offset requirements with long positions.
+  - Currently, it fully collateralizes all positions. It may be expanded to partial collateral in the future.
+  - Does not support spread tokens
 
-- `AdvancedMargin`: mint partially collateralized options which is 3x - 20x more capital efficient compared to fully collateralized options. Requires dependencies on vol oracle to estimate the value of option. Each subAccounts can process:
-  - single collateral type
-  - can mint 1 call (or call spread) + 1 put (or put spread) in a single account.
+- [Partial Collat Engine](https://github.com/grappafinance/partial-collat-engine): Mints partially collateralized options, which are 3x - 20x more capital-efficient compared to fully collateralized options. It requires dependencies on vol oracle to estimate the value of the option. Each subAccount can process:
+  - Single collateral type
+  - Can mint one call (or call spread) + one put (or put spread) in a single account.
   - Some known issues are still WIP. (See Github Issues)
