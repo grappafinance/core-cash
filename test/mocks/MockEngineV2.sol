@@ -21,7 +21,4 @@ contract MockEngineV2 is UUPSUpgradeable {
     function _authorizeUpgrade(address /*newImplementation*/ ) internal pure override {
         revert("not upgrdable anymore");
     }
-
-    // add a function prefixed with test here so forge coverage will ignore this file
-    function test() public {}
 }

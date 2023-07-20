@@ -83,7 +83,4 @@ contract Deploy is Script, Utilities {
             console.log("   -> Registered ID:", oracleId2);
         }
     }
-
-    // add a function prefixed with test here so forge coverage will ignore this file
-    function testChill() public {}
 }
