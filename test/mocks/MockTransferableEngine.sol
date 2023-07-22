@@ -53,7 +53,7 @@ contract MockTransferableEngine is BaseEngine, OptionTransferable {
         return isAboveWater[_subAccount];
     }
 
-    function _getAccountPayout(address _subAccount) internal pure override returns (uint8, int80) {
+    function _getAccountPayout(address) internal pure override returns (uint8, int80) {
         return (0, 0);
     }
 
