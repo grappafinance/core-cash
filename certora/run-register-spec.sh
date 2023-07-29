@@ -1,5 +1,5 @@
 certoraRun src/core/Grappa.sol:Grappa \
-    --verify Grappa:certora/Grappa.spec \
+    --verify Grappa:certora/grappa-registration.spec \
     --solc_allow_path src \
     --optimistic_loop \
     --packages  solmate=lib/solmate/src \
