@@ -42,7 +42,4 @@ contract MockOracle is IOracle {
     function setExpiryPriceWithFinality(address base, address quote, uint256 _mockedExpiryPrice, bool _isFinalized) external {
         expiryPrice[base][quote] = MockPrice(uint128(_mockedExpiryPrice), _isFinalized);
     }
-
-    // add a function prefixed with test here so forge coverage will ignore this file
-    function test() public {}
 }

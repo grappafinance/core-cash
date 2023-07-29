@@ -298,14 +298,14 @@ abstract contract BaseEngine {
      * @dev    this function will revert when called before expiry
      * @param _subAccount account id
      */
-    function _getAccountPayout(address _subAccount) internal view virtual returns (uint8 collateralId, int80 payout) {}
+    function _getAccountPayout(address _subAccount) internal view virtual returns (uint8 collateralId, int80 payout);
 
     /**
      * @dev [MUST Implement] return whether if an account is healthy.
      * @param _subAccount subaccount id
      * @return isHealthy true if account is in good condition, false if it's underwater (liquidatable)
      */
-    function _isAccountAboveWater(address _subAccount) internal view virtual returns (bool) {}
+    function _isAccountAboveWater(address _subAccount) internal view virtual returns (bool);
 
     /**
      * @dev reverts if the account cannot add this token into the margin account.
