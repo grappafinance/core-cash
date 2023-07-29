@@ -64,7 +64,6 @@ function no_duplicate_engines(uint8 id1, uint8 id2) returns bool {
  */
 invariant assetZeroIsEmpty() asset_is_empty(0) filtered { f -> f.selector != sig:upgradeToAndCall(address,bytes).selector }
 
-
 /**
  * Description: engines[0] must return address(0)
  */
@@ -74,6 +73,7 @@ invariant engineZeroIsEmpty() engines(0) == 0 filtered { f -> f.selector != sig:
  * Description: oralces[0] must return address(0)
  */
 invariant oracleZeroIsEmpty() engines(0) == 0 filtered { f -> f.selector != sig:upgradeToAndCall(address,bytes).selector }
+
 
 /**
  * Description: querying assets with [id], must return the address than can be queried with `assetIds` and result in id
@@ -90,6 +90,10 @@ invariant engineIdMapMatches(uint8 id) engine_id_map_match(id) filtered { f -> f
  */
 invariant oracleIdMapMatches(uint8 id) oracle_id_map_match(id) filtered { f -> f.selector != sig:upgradeToAndCall(address,bytes).selector }
 
+
+/**
+ * Description: cannot have two ids pointing to the same asset
+ */
 invariant noDuplicateAssets(uint8 id1, uint8 id2) no_duplicate_assets(id1, id2) filtered { f -> f.selector != sig:upgradeToAndCall(address,bytes).selector } {
     preserved {
         requireInvariant assetIdMapMatches(id1);
@@ -97,6 +101,9 @@ invariant noDuplicateAssets(uint8 id1, uint8 id2) no_duplicate_assets(id1, id2) 
     }
 }
 
+/**
+ * Description: cannot have two ids pointing to the same oracle
+ */
 invariant noDuplicateOracles(uint8 id1, uint8 id2) no_duplicate_oracles(id1, id2) filtered { f -> f.selector != sig:upgradeToAndCall(address,bytes).selector } {
     preserved {
         requireInvariant oracleIdMapMatches(id1);
@@ -104,6 +111,9 @@ invariant noDuplicateOracles(uint8 id1, uint8 id2) no_duplicate_oracles(id1, id2
     }
 }
 
+/**
+ * Description: cannot have two ids pointing to the same engine
+ */
 invariant noDuplicateEngines(uint8 id1, uint8 id2) no_duplicate_engines(id1, id2) filtered { f -> f.selector != sig:upgradeToAndCall(address,bytes).selector } {
     preserved {
         requireInvariant engineIdMapMatches(id1);
