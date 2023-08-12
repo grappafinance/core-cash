@@ -50,7 +50,7 @@ library TokenIdUtil {
         pure
         returns (TokenType tokenType, uint40 productId, uint64 expiry, uint64 longStrike, uint64 reserved)
     {
-        // solhint-disable-next-line no-inline-assembly
+        /// @solidity memory-safe-assembly
         assembly {
             tokenType := shr(232, tokenId)
             productId := shr(192, tokenId)
@@ -67,7 +67,7 @@ library TokenIdUtil {
      * @return collateralId
      */
     function parseCollateralId(uint256 tokenId) internal pure returns (uint8 collateralId) {
-        // solhint-disable-next-line no-inline-assembly
+        /// @solidity memory-safe-assembly
         assembly {
             // collateralId is the last bits of productId
             collateralId := shr(192, tokenId)
@@ -81,7 +81,7 @@ library TokenIdUtil {
      * @return engineId
      */
     function parseEngineId(uint256 tokenId) internal pure returns (uint8 engineId) {
-        // solhint-disable-next-line no-inline-assembly
+        /// @solidity memory-safe-assembly
         assembly {
             // collateralId is the last bits of productId
             engineId := shr(216, tokenId) // 192 to get product id, another 24 to get engineId
@@ -94,7 +94,7 @@ library TokenIdUtil {
      * @return tokenType TokenType enum
      */
     function parseTokenType(uint256 tokenId) internal pure returns (TokenType tokenType) {
-        // solhint-disable-next-line no-inline-assembly
+        /// @solidity memory-safe-assembly
         assembly {
             tokenType := shr(232, tokenId)
         }
@@ -108,7 +108,7 @@ library TokenIdUtil {
     function isExpired(uint256 tokenId) internal view returns (bool expired) {
         uint64 expiry;
 
-        // solhint-disable-next-line no-inline-assembly
+        /// @solidity memory-safe-assembly
         assembly {
             expiry := shr(128, tokenId)
         }
@@ -128,7 +128,7 @@ library TokenIdUtil {
      * @param _tokenId token id to change
      */
     function convertToVanillaId(uint256 _tokenId) internal pure returns (uint256 newId) {
-        // solhint-disable-next-line no-inline-assembly
+        /// @solidity memory-safe-assembly
         assembly {
             newId := shr(64, _tokenId) // step 1: >> 64 to wipe out shortStrike
             newId := shl(64, newId) // step 2: << 64 go back
@@ -151,7 +151,7 @@ library TokenIdUtil {
      * @param _shortStrike strike to add
      */
     function convertToSpreadId(uint256 _tokenId, uint256 _shortStrike) internal pure returns (uint256 newId) {
-        // solhint-disable-next-line no-inline-assembly
+        /// @solidity memory-safe-assembly
         unchecked {
             newId = _tokenId + _shortStrike;
             return newId + (1 << 232); // new type (spread type) = old type + 1

@@ -25,7 +25,7 @@ library ProductIdUtil {
         pure
         returns (uint8 oracleId, uint8 engineId, uint8 underlyingId, uint8 strikeId, uint8 collateralId)
     {
-        // solhint-disable-next-line no-inline-assembly
+        /// @solidity memory-safe-assembly
         assembly {
             oracleId := shr(32, _productId)
             engineId := shr(24, _productId)

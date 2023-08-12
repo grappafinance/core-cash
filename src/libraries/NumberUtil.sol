@@ -6,7 +6,7 @@ library NumberUtil {
      * @dev use it in uncheck so overflow will still be checked.
      */
     function mul(uint256 x, uint256 y) internal pure returns (uint256 z) {
-        // solhint-disable-next-line no-inline-assembly
+        /// @solidity memory-safe-assembly
         assembly {
             // Store x * y in z for now.
             z := mul(x, y)

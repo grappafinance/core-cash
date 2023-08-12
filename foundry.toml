@@ -2,7 +2,7 @@
 solc_version = '0.8.17'
 optimizer = true
 optimizer_runs = 100000
-# via_ir = true # temporarily disable for faster snapshot
+via_ir = true
 
 gas_reports = [
   # "*",
