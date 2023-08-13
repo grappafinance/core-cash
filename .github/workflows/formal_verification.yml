@@ -1,0 +1,43 @@
+name: Certora Formal Verification
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - "**"
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Check key
+        env:
+          CERTORAKEY: ${{ secrets.CERTORAKEY }}
+        run: echo "key length" ${#CERTORAKEY}
+
+      - name: Install python
+        uses: actions/setup-python@v2
+        with: { python-version: 3.9 }
+
+      - name: Install certora cli
+        run: pip3 install certora-cli==4.5.1
+      
+      - name: Install solc
+        run: |
+          wget https://github.com/ethereum/solidity/releases/download/v0.8.17/solc-static-linux
+          chmod +x solc-static-linux
+          sudo mv solc-static-linux /usr/local/bin/solc
+
+      - name: Verify rule ${{ matrix.rule }}
+        run: |
+          ./certora/run-register-spec.sh
+        env:
+          CERTORAKEY: ${{ secrets.CERTORAKEY }}
+          
+    
