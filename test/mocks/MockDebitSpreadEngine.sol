@@ -7,8 +7,7 @@ import {IMarginEngine} from "../../src/interfaces/IMarginEngine.sol";
 import {BaseEngine} from "../../src/core/engines/BaseEngine.sol";
 import {DebitSpread} from "../../src/core/engines/mixins/DebitSpread.sol";
 
-import "../../src/config/enums.sol";
-import "../../src/config/types.sol";
+import "../types.sol";
 import "../../src/config/errors.sol";
 
 /**

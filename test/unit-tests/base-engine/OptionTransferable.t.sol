@@ -13,13 +13,12 @@ import "../../../src/core/CashOptionToken.sol";
 
 import "../../../src/config/enums.sol";
 import "../../../src/config/types.sol";
+import "../../types.sol";
 
 import "../../utils/Utilities.sol";
 
-import {ActionHelper} from "../../shared/ActionHelper.sol";
-
 // solhint-disable max-states-count
-contract OptionTransferableTest is ActionHelper, Utilities, Test {
+contract OptionTransferableTest is Utilities, Test {
     MockTransferableEngine internal engine;
     Grappa internal grappa;
     CashOptionToken internal option;
@@ -84,8 +83,8 @@ contract OptionTransferableTest is ActionHelper, Utilities, Test {
 
     function _setupDefaultAccount() public {
         ActionArgs[] memory actions = new ActionArgs[](2);
-        actions[0] = createAddCollateralAction(usdcId, address(this), 1000 * UNIT);
-        actions[1] = createMintAction(tokenId, address(this), 1 * UNIT);
+        actions[0] = ActionArgs({action: ActionType.AddCollateral, data: abi.encode(address(this), uint80(1000 * UNIT), usdcId)});
+        actions[1] = ActionArgs({action: ActionType.MintShort, data: abi.encode(tokenId, address(this), uint64(1 * UNIT))});
 
         engine.execute(address(this), actions);
     }
@@ -96,7 +95,7 @@ contract OptionTransferableTest is ActionHelper, Utilities, Test {
         address subAccount = address(uint160(address(this)) - 1);
 
         ActionArgs[] memory actions = new ActionArgs[](1);
-        actions[0] = createTransferCollateralAction(400 * UNIT, usdcId, subAccount);
+        actions[0] = ActionArgs({action: ActionType.TransferCollateral, data: abi.encode(uint80(400 * UNIT), subAccount, usdcId)});
 
         // this will invoke _removeCollateralFromAccount, _addCollateralToAccount
         engine.execute(subAccount, actions);
@@ -110,7 +109,7 @@ contract OptionTransferableTest is ActionHelper, Utilities, Test {
         address subAccount = address(uint160(address(this)) - 1);
 
         ActionArgs[] memory actions = new ActionArgs[](1);
-        actions[0] = createTransferLongAction(tokenId, subAccount, 1 * UNIT);
+        actions[0] = ActionArgs({action: ActionType.TransferLong, data: abi.encode(tokenId, subAccount, uint64(1 * UNIT))});
 
         engine.execute(subAccount, actions);
 
@@ -125,7 +124,7 @@ contract OptionTransferableTest is ActionHelper, Utilities, Test {
         address subAccount = address(uint160(address(this)) - 1);
 
         ActionArgs[] memory actions = new ActionArgs[](1);
-        actions[0] = createTransferShortAction(tokenId, subAccount, 1 * UNIT);
+        actions[0] = ActionArgs({action: ActionType.TransferShort, data: abi.encode(tokenId, subAccount, uint64(1 * UNIT))});
 
         engine.setIsAboveWater(subAccount, true);
         engine.execute(subAccount, actions);
@@ -139,7 +138,7 @@ contract OptionTransferableTest is ActionHelper, Utilities, Test {
         address subAccount = address(uint160(address(this)) - 1);
 
         ActionArgs[] memory actions = new ActionArgs[](1);
-        actions[0] = createTransferShortAction(tokenId, subAccount, 1 * UNIT);
+        actions[0] = ActionArgs({action: ActionType.TransferShort, data: abi.encode(tokenId, subAccount, uint64(1 * UNIT))});
 
         vm.expectRevert(BM_AccountUnderwater.selector);
         engine.execute(subAccount, actions);
@@ -151,7 +150,8 @@ contract OptionTransferableTest is ActionHelper, Utilities, Test {
         address subAccount = address(uint160(address(this)) - 1);
 
         ActionArgs[] memory actions = new ActionArgs[](1);
-        actions[0] = createMintIntoAccountAction(tokenId, subAccount, 1 * UNIT);
+        actions[0] =
+            ActionArgs({action: ActionType.MintShortIntoAccount, data: abi.encode(tokenId, subAccount, uint64(1 * UNIT))});
 
         engine.setIsAboveWater(address(this), true);
         engine.execute(subAccount, actions);

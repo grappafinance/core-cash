@@ -16,10 +16,8 @@ import "../../../src/config/types.sol";
 
 import "../../utils/Utilities.sol";
 
-import {ActionHelper} from "../../shared/ActionHelper.sol";
-
 // solhint-disable max-states-count
-contract MockedBaseEngineSetup is ActionHelper, Utilities, Test {
+contract MockedBaseEngineSetup is Utilities, Test {
     MockDebitSpreadEngine internal engine;
     Grappa internal grappa;
     CashOptionToken internal option;
