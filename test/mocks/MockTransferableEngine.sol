@@ -6,7 +6,7 @@ pragma solidity ^0.8.0;
 import {BaseEngine} from "../../src/core/engines/BaseEngine.sol";
 import {OptionTransferable} from "../../src/core/engines/mixins/OptionTransferable.sol";
 
-import "../../src/config/types.sol";
+import "../types.sol";
 
 /**
  * @title   MockTransferableEngine

@@ -8,7 +8,7 @@ import {IMarginEngine} from "../../src/interfaces/IMarginEngine.sol";
 
 import {ICashOptionToken} from "../../src/interfaces/ICashOptionToken.sol";
 
-import {ActionArgs} from "../../src/config/types.sol";
+import "../types.sol";
 
 /**
  * @title   MockEngine

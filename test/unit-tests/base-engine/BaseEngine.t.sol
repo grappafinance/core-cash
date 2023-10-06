@@ -5,8 +5,8 @@ pragma solidity ^0.8.0;
 import {MockedBaseEngineSetup} from "./MockedBaseEngineSetup.sol";
 import {stdError} from "forge-std/Test.sol";
 
-import "../../../src/config/enums.sol";
-import "../../../src/config/types.sol";
+import "../../types.sol";
+
 import "../../../src/config/constants.sol";
 import "../../../src/config/errors.sol";
 
