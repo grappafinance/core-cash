@@ -22,9 +22,13 @@ Grappa is also responsible for settling the options after expiry. Once an option
 
 ## Oracles
 
-The Grappa Owner can register multiple oracles in the system. Oracles are contracts that can be used to determine the settlement price. Different users/protocols may prefer to settle with different oracles.
+The Grappa owner can register multiple oracles in the system. Oracles are contracts that can be used to determine the settlement price. Different users/protocols may prefer to settle with different oracles.
+
+Once an oracle is registered in Grappa, it cannot be removed, and all engines can mint option tokens with the corresponding oracleId, which will settle with the new oracle accordingly. 
 
 ## Margin Engines
+
+The margin calculation are the most complex part of an option protocol, and it can vary a lot based on different use cases. With Grappa, those logics are abstracts into different **margin engines**, by doing this, Grappa ensure a shared settlement process accross different option products.
 
 **Margin Engines** are contracts that establish the rules for collateralizing option tokens. Tokens minted by different engines are not fungible, thereby isolating the risks. Multiple margin engines should work together to offer users flexibility based on their preferences such as gas fees, capital efficiency, composability, and risk.
 
