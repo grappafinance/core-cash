@@ -28,4 +28,5 @@ enum ActionType {
     TransferLong, // transfer long directly to another subAccount
     TransferShort, // transfer short directly to another subAccount
     BurnShortInAccount // decreases short position in one subAccount, decreases long position in another
+
 }

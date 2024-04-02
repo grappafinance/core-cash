@@ -64,7 +64,6 @@ abstract contract BaseEngine {
      *                       Constructor
      * ========================================================= *
      */
-
     constructor(address _grappa, address _optionToken) {
         grappa = IGrappa(_grappa);
         optionToken = ICashOptionToken(_optionToken);
@@ -323,7 +322,7 @@ abstract contract BaseEngine {
      * @notice revert if the msg.sender is not authorized to access an subAccount id
      * @param _subAccount subaccount id
      */
-    function _assertCallerHasAccess(address _subAccount) internal {
+    function _assertCallerHasAccess(address _subAccount) internal virtual {
         if (_isPrimaryAccountFor(msg.sender, _subAccount)) return;
 
         // the sender is not the direct owner. check if they're authorized
