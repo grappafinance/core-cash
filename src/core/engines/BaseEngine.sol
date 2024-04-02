@@ -64,7 +64,6 @@ abstract contract BaseEngine {
      *                       Constructor
      * ========================================================= *
      */
-
     constructor(address _grappa, address _optionToken) {
         grappa = IGrappa(_grappa);
         optionToken = ICashOptionToken(_optionToken);

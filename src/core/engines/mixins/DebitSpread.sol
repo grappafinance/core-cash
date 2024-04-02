@@ -77,7 +77,6 @@ abstract contract DebitSpread is BaseEngine {
      *                State changing functions to override
      * ========================================================= *
      */
-
     function _mergeLongIntoSpread(address _subAccount, uint256 shortTokenId, uint256 longTokenId, uint64 amount)
         internal
         virtual

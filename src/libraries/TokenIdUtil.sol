@@ -13,7 +13,6 @@ import "../config/errors.sol";
  *  | tokenType (24 bits) | productId (40 bits) | expiry (64 bits) | longStrike (64 bits) | reserved    (64 bits) |
  *  * ------------------- | ------------------- | ---------------- | -------------------- | --------------------- *
  */
-
 library TokenIdUtil {
     /**
      * @notice calculate ERC1155 token id for given option parameters. See table above for tokenId
